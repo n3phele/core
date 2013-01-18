@@ -1,0 +1,160 @@
+# Expression Exception test
+# Copyright (c) 2012 Nigel Cook. All Rights reserved
+# xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+name	   :  denoise
+description: denoise an aggregate of up to 5 files in .sff.txt format,
+			 which is the output of sffinfo
+version	   : 1.6	# more comments
+preferred  : True	# a comment
+public	   : True	# another comment
+icon	   : http://www.n3phele.com/qiimeIcon
+parameters :						  
+	optional int nnn = 8 								# cluster size
+	boolean titanium = true 				# select for titanium sequencer, unselected for flx
+	string primer = "LinkerPrimerSequence" 	# Primer sequence.
+											# Default use mapping file LinkerPrimerSequence in mapping file
+	double spotPrice = 0					# maximum hourly spot price for a virtual machine.
+											# Specifying 0 will use an on-demand instance.							  
+input files:
+	flowgram.sff.txt 			# Input flowgram file in sff.txt format",
+    optional
+    flowgram1.sff.txt			# Input flowgram file 2 in sff.txt format(optional)
+    optional flowgram2.sff.txt	# Input flowgram file 3 in sff.txt format(optional)
+    optional flowgram3.sff.txt	# Input flowgram file 4 in sff.txt format(optional)
+    optional flowgram4.sff.txt	# Input flowgram file 5 in sff.txt format(optional)
+	sequence.fasta 				# Input sequence file
+	optional mapping.txt 		# Input mapping file, has to contain field LinkerPrimerSequence. 
+								# Not required if primer sequence specified
+output files:
+	denoiser.log				# Log of the denoising process",
+	centroids.fasta				# The centroids of sequences clustered with 2 and more members
+    singletons.fasta			# Read sequences that could not be clustered",
+	denoiser_mapping.txt		# Cluster to read mapping",
+	denoised.fasta				# Denoised sequences for additional processing",
+EC2: # Amazon baby
+	$$DenoiseCluster = CREATEVM --name DenoiseCluster --imageId ami-e4bf1b8d --minCount $$n-1
+							  --spotPrice $$spotPrice --instanceType c1.xlarge --securityGroups n3phele-default
+     						  --userData %%{
+								#!/bin/bash
+								chmod a+rwx /mnt
+								set -x
+								wget -q -O - https://s3.amazonaws.com/n3phele-agent/addswap | /bin/bash -s 2000
+								wget -q -O - https://n3phele-agent.s3.amazonaws.com/n3ph-install-tgz-basic | su - -c '/bin/bash -s ubuntu ~/agent /mnt/sandbox' ubuntu
+								ln -s /mnt/sandbox ~ubuntu/sandbox
+							 }%%
+	CREATEVM --name DenoiseMaster --imageId ami-e4bf1b8d --launchGroup "denoise" --minCount 1 --spotPrice $$spotPrice
+							 --instanceType m1.xlarge --securityGroups n3phele-default
+							 --userData %%{
+								#!/bin/bash
+								chmod a+rwx /mnt
+								set -x
+								wget -q -O - https://s3.amazonaws.com/n3phele-agent/addswap | /bin/bash -s 2000
+								wget -q -O - https://n3phele-agent.s3.amazonaws.com/n3ph-install-tgz-basic | su - -c '/bin/bash -s ubuntu ~/agent /mnt/sandbox' ubuntu
+								ln -s /mnt/sandbox ~ubuntu/sandbox
+							 }%%
+							 
+							 
+	# On the master node a public/private key pair is generated and the known_hosts file updated to point to all the slave nodes.
+	ON $$DenoiseMaster --needsAll --producesNone
+		function scan-hosts() { i=0; while [ $i -le 10 ]; do i=$(($i+1)); ssh-keyscan -H $* > /tmp/known_hosts; if ["`wc -l </tmp/known_hosts`" -ne "$#" ]; then echo not done .. retrying >&2; sleep 5;else cat /tmp/known_hosts; break; fi; done };
+		function n-times() {  i=0; n=$1; shift; while [ $i -lt $n ]; do $*; i=$(($i+1)); done; }; ssh-keygen -t rsa -f cluster -P '' -q -C cluster; mv cluster cluster.pem; mv cluster.* ~/.ssh; 
+		scan-hosts $$string($$DenoiseCluster.privateIpAddressList," ","") >> ~/.ssh/known_hosts
+		echo -n localhost,$${$$string($$DenoiseCluster.privateIpAddressList,",","")}, | sed 's/,/\n/g' > ~/hosts
+		CORES=8; echo Your workers have $CORES cores.
+		n-times 3 echo localhost > ~/hosts.slave
+		n-times $CORES sed 1d ~/hosts >>~/hosts.slave
+		cat ~/.ssh/cluster.pub
+		someother command --foobar <in >out.foo
+
+	FOR $$i : $$n-1>
+		ON $$DenoiseCluster[$$i]
+			source /home/ubuntu/qiime_software/activate.sh
+			cp $QIIME/qiime/support_files/qiime_config_n3phele ~/.qiime_config_default
+			echo '$${$$regex($$setupMaster.stdout,".*(ssh-rsa .*cluster).*",1)}'  >> ~/.ssh/authorized_keys
+			chmod 600 ~/.ssh/authorized_keys
+ 
+    ON $$DenoiseMaster --needsNone --producesNone
+    	for i in `grep -v localhost ~/hosts.slave`; do ssh -i ~/.ssh/cluster.pem $i ping -q -c 3 $$DenoiseMaster.privateIpAddressList[0] || echo $i failed; done
+    ON $$DenoiseMaster --produces [denoiser.log: output/denoiser.log,
+    				centroids.fasta: output/centroids.fasta,
+    			    singletons.fasta: output/singletons.fasta,
+    			    denoiser_mapping.txt: output/denoiser_mapping.txt]
+	    	source /home/ubuntu/qiime_software/activate.sh
+	    	cp $QIIME/qiime/support_files/qiime_config_n3phele ~/.qiime_config_default
+	    	sed 's/127.0.1.1/#127.0.1.1/' </etc/hosts >/tmp/hosts
+	    	cat /tmp/hosts >/etc/hosts
+	    	shopt -s nullglob; files="flowgram.sff.txt"
+	    	for i in flowgram[1234].sff.txt; do files=$files,$i; done
+	    	WORKERS=`wc -l < ~/hosts.slave`
+	    	echo Run with $WORKERS workers.
+	    	denoise_wrapper.py -v -i $files $$primer=="LinkerPrimerSequence"?"-m mapping.txt ":"-p "+$$primer -f seqs.fna -o output -n $WORKERS $$titanium?" --titanium ":"" || { tail -40 output/denoiser.log; exit 1; }
+    	
+    ON $$DenoiseMaster --needs [sequence.fasta, centroids.fasta, singletons.fasta, denoiser_mapping.txt]
+    	--produces denoised.fasta
+    		source /home/ubuntu/qiime_software/activate.sh
+    		inflate_denoiser_output.py -v -c output/centroids.fasta -s output/singletons.fasta -f seqs.fna -d output/denoiser_mapping.txt -o denoised.fasta
+HPCloud-USWest2-AZ1:
+	DenoiseCluster = createvm --imageId ami-0000379f --minCount $<n>-1
+							  --spotPrice" $<spotPrice> --instanceType standard.2xlarge --securityGroups n3phele-default"
+     						  --userData %%{
+								#!/bin/bash
+								chmod a+rwx /mnt
+								set -x
+								wget -q -O - https://s3.amazonaws.com/n3phele-agent/addswap | /bin/bash -s 2000
+								wget -q -O - https://n3phele-agent.s3.amazonaws.com/n3ph-install-tgz-basic | su - -c '/bin/bash -s ubuntu ~/agent /mnt/sandbox' ubuntu
+								ln -s /mnt/sandbox ~ubuntu/sandbox
+							 }%%
+	DenoiseMaster = createvm --imageId ami-0000379f --launchGroup "denoise" --minCount 1 --spotPrice $<spotPrice>
+							 --instanceType standard.2xlarge --securityGroups n3phele-default
+							 --userData %%{
+								#!/bin/bash
+								chmod a+rwx /mnt
+								set -x
+								wget -q -O - https://s3.amazonaws.com/n3phele-agent/addswap | /bin/bash -s 2000
+								wget -q -O - https://n3phele-agent.s3.amazonaws.com/n3ph-install-tgz-basic | su - -c '/bin/bash -s ubuntu ~/agent /mnt/sandbox' ubuntu
+								ln -s /mnt/sandbox ~ubuntu/sandbox
+							 %%}
+							 
+	# On the master node a public/private key pair is generated and the known_hosts file updated to point to all the slave nodes.
+	on DenoiseMaster run --needsNone --producesNone %%{
+	 						function scan-hosts() { i=0; while [ $i -le 10 ]; do i=$(($i+1)); ssh-keyscan -H $* > /tmp/known_hosts; if [ \\\"`wc -l </tmp/known_hosts`\\\" -ne \\\"$#\\\" ]; then echo not done .. retrying >&2; sleep 5;else cat /tmp/known_hosts; break; fi; done };
+	 						function n-times() {  i=0; n=$1; shift; while [ $i -lt $n ]; do $*; i=$(($i+1)); done; }; ssh-keygen -t rsa -f cluster -P '' -q -C cluster; mv cluster cluster.pem; mv cluster.* ~/.ssh; 
+	 						scan-hosts $$string($$DenoiseCluster.privateIpAddressList," ","") >> ~/.ssh/known_hosts
+	 						echo -n localhost,$$string($<DenoiseCluster.privateIpAddressList,",",""), | sed 's/,/\n/g' > ~/hosts
+	 						CORES=8; echo Your workers have $CORES cores.
+	 						n-times 3 echo localhost > ~/hosts.slave
+	 						n-times $CORES sed 1d ~/hosts >>~/hosts.slave
+	 						cat ~/.ssh/cluster.pub
+						}%%
+	fork $<n>-1 {
+		on $<DenoiseCluster[$<i>]> run %%{
+						source /home/ubuntu/qiime_software/activate.sh
+						cp $QIIME/qiime/support_files/qiime_config_n3phele ~/.qiime_config_default
+						echo '$$regex($$setupMaster.stdout>, ".*(ssh-rsa .*cluster).*", 1)>'  >> ~/.ssh/authorized_keys
+						chmod 600 ~/.ssh/authorized_keys
+                     }%%
+    }
+    on DenoiseMaster 
+    run -needsNone --producesNone for i in `grep -v localhost ~/hosts.slave`; do ssh -i ~/.ssh/cluster.pem $i ping -q -c 3 $<DenoiseMaster.privateIpAddressList[0]> || echo $i failed; done
+    run --produces [denoiser.log: output/denoiser.log,
+    				centroids.fasta: output/centroids.fasta,
+    			    singletons.fasta: output/singletons.fasta,
+    			    denoiser_mapping.txt: output/denoiser_mapping.txt]
+    	--command %%{
+	    	source /home/ubuntu/qiime_software/activate.sh
+	    	cp $QIIME/qiime/support_files/qiime_config_n3phele ~/.qiime_config_default
+	    	sed 's/127.0.1.1/#127.0.1.1/' </etc/hosts >/tmp/hosts
+	    	cat /tmp/hosts >/etc/hosts
+	    	shopt -s nullglob; files="flowgram.sff.txt"
+	    	for i in flowgram[1234].sff.txt; do files=$files,$i; done
+	    	WORKERS=`wc -l < ~/hosts.slave`
+	    	echo Run with $WORKERS workers.
+	    	denoise_wrapper.py -v -i $files $<($<primer>=="LinkerPrimerSequence"?"-m mapping.txt ":"-p "+$<primer>> -f seqs.fna -o output -n $WORKERS $<titanium?" --titanium ":""> || { tail -40 output/denoiser.log; exit 1; }
+    	}%%
+    run --needs [sequence.fasta, centroids.fasta, singletons.fasta, denoiser_mapping.txt]
+    	--produces denoised.fasta
+    	%%{
+    		source /home/ubuntu/qiime_software/activate.sh
+    		inflate_denoiser_output.py -v -c output/centroids.fasta -s output/singletons.fasta -f seqs.fna -d output/denoiser_mapping.txt -o denoised.fasta
+    	}%%
+
