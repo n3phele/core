@@ -3,8 +3,6 @@ package n3phele.service.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import n3phele.service.nShell.SelfCompilingNode;
-
 /**
  * (C) Copyright 2010-2013. Nigel Cook. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.

@@ -13,7 +13,6 @@ package n3phele.service.model;
  */
 
 import java.net.URI;
-import java.util.HashMap;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;

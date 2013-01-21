@@ -11,7 +11,6 @@ package n3phele.service.actions.tasks;
  *  specific language governing permissions and limitations under the License.
  */
 import java.net.URI;
-import java.util.HashMap;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
@@ -26,7 +25,6 @@ import n3phele.service.model.ActionState;
 import n3phele.service.model.CloudProcess;
 import n3phele.service.model.Context;
 import n3phele.service.model.SignalKind;
-import n3phele.service.model.Variable;
 import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.User;
 import n3phele.service.rest.impl.CloudProcessResource;

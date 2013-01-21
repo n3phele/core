@@ -3,9 +3,6 @@ package n3phele.service.model.core;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
-import n3phele.service.model.Variable;
 
 public class Helpers {
 	
