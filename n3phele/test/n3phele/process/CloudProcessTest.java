@@ -1,4 +1,4 @@
-package n3phele.tests;
+package n3phele.process;
 /**
  * (C) Copyright 2010-2013. Nigel Cook. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
@@ -26,6 +26,7 @@ import n3phele.service.actions.tasks.CountDownAction;
 import n3phele.service.actions.tasks.JobAction;
 import n3phele.service.model.ActionState;
 import n3phele.service.model.CloudProcess;
+import n3phele.service.model.Context;
 import n3phele.service.model.core.User;
 import n3phele.service.rest.impl.ActionResource;
 import n3phele.service.rest.impl.CloudProcessResource;
@@ -354,11 +355,11 @@ public class CloudProcessTest extends CloudProcessResource {
 	@Test
 	public void twoProcessWithPreestablishedDependency() throws InterruptedException {
 		addSecurityContext(null);
-		HashMap<String,String> tom_env = new HashMap<String,String>();
-		tom_env.put("arg", "tom rocks!");
+		Context tom_env = new Context();
+		tom_env.putValue("arg", "tom rocks!");
 		
-		final HashMap<String,String> jerry_env = new HashMap<String,String>();
-		jerry_env.put("arg", "jelly rolls");
+		final Context jerry_env = new Context();
+		jerry_env.putValue("arg", "jelly rolls");
 	
 		CloudProcess tom = dao.create(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
 		List<URI> jerryDependency = new ArrayList<URI>();
@@ -400,11 +401,11 @@ public class CloudProcessTest extends CloudProcessResource {
 	@Test
 	public void twoProcessWithDependencyAddedAfterDependentCompleted() throws InterruptedException {
 		addSecurityContext(null);
-		HashMap<String,String> tom_env = new HashMap<String,String>();
-		tom_env.put("arg", "tom rocks!");
+		Context tom_env = new Context();
+		tom_env.putValue("arg", "tom rocks!");
 		
-		final HashMap<String,String> jerry_env = new HashMap<String,String>();
-		jerry_env.put("arg", "jelly rolls");
+		final Context jerry_env = new Context();
+		jerry_env.putValue("arg", "jelly rolls");
 	
 		CloudProcess tom = dao.create(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
 		init(tom);
@@ -443,11 +444,11 @@ public class CloudProcessTest extends CloudProcessResource {
 	@Test
 	public void twoProcessWithPreestablishedDependencyCancelTest() throws InterruptedException {
 		addSecurityContext(null);
-		HashMap<String,String> tom_env = new HashMap<String,String>();
-		tom_env.put("arg", "tom rocks!");
+		Context tom_env = new Context();
+		tom_env.putValue("arg", "tom rocks!");
 		
-		final HashMap<String,String> jerry_env = new HashMap<String,String>();
-		jerry_env.put("arg", "jelly rolls");
+		final Context jerry_env = new Context();
+		jerry_env.putValue("arg", "jelly rolls");
 	
 		CloudProcess tom = dao.create(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
 		List<URI> jerryDependency = new ArrayList<URI>();
@@ -486,11 +487,11 @@ public class CloudProcessTest extends CloudProcessResource {
 	@Test
 	public void twoProcessWithDependencyAddedAfterDependentCancelled() throws InterruptedException {
 		addSecurityContext(null);
-		HashMap<String,String> tom_env = new HashMap<String,String>();
-		tom_env.put("arg", "tom rocks!");
+		Context tom_env = new Context();
+		tom_env.putValue("arg", "tom rocks!");
 		
-		final HashMap<String,String> jerry_env = new HashMap<String,String>();
-		jerry_env.put("arg", "jelly rolls");
+		final Context jerry_env = new Context();
+		jerry_env.putValue("arg", "jelly rolls");
 	
 		CloudProcess tom = dao.create(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
 		init(tom);
@@ -524,11 +525,12 @@ public class CloudProcessTest extends CloudProcessResource {
 	@Test
 	public void twoProcessWithPreestablishedDependencyInitFailTest() throws InterruptedException {
 		addSecurityContext(null);
-		HashMap<String,String> tom_env = new HashMap<String,String>();
-		tom_env.put("arg", "throwInit");
 		
-		final HashMap<String,String> jerry_env = new HashMap<String,String>();
-		jerry_env.put("arg", "jelly rolls");
+		Context tom_env = new Context();
+		tom_env.putValue("arg", "throwInit");
+		
+		final Context jerry_env = new Context();
+		jerry_env.putValue("arg", "jelly rolls");
 	
 		CloudProcess tom = dao.create(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
 		List<URI> jerryDependency = new ArrayList<URI>();
@@ -556,11 +558,12 @@ public class CloudProcessTest extends CloudProcessResource {
 	@Test
 	public void twoProcessWithPreestablishedDependencyFailTest() throws InterruptedException {
 		addSecurityContext(null);
-		HashMap<String,String> tom_env = new HashMap<String,String>();
-		tom_env.put("arg", "throw5");
+
+		Context tom_env = new Context();
+		tom_env.putValue("arg", "throw5");
 		
-		final HashMap<String,String> jerry_env = new HashMap<String,String>();
-		jerry_env.put("arg", "jelly rolls");
+		final Context jerry_env = new Context();
+		jerry_env.putValue("arg", "jelly rolls");
 	
 		CloudProcess tom = dao.create(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
 		List<URI> jerryDependency = new ArrayList<URI>();
@@ -599,11 +602,11 @@ public class CloudProcessTest extends CloudProcessResource {
 	@Test
 	public void twoProcessWithPreestablishedDependencyGetsDump() throws InterruptedException {
 		addSecurityContext(null);
-		HashMap<String,String> tom_env = new HashMap<String,String>();
-		tom_env.put("arg", "tom rocks!");
+		Context tom_env = new Context();
+		tom_env.putValue("arg", "tom rocks!");
 		
-		final HashMap<String,String> jerry_env = new HashMap<String,String>();
-		jerry_env.put("arg", "jelly rolls");
+		final Context jerry_env = new Context();
+		jerry_env.putValue("arg", "jelly rolls");
 	
 		CloudProcess tom = dao.create(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
 		List<URI> jerryDependency = new ArrayList<URI>();
@@ -647,11 +650,11 @@ public class CloudProcessTest extends CloudProcessResource {
 	@Test
 	public void runningProcessGetsDependencyAdded() throws InterruptedException {
 		addSecurityContext(null);
-		HashMap<String,String> tom_env = new HashMap<String,String>();
-		tom_env.put("arg", "tom rocks!");
+		Context tom_env = new Context();
+		tom_env.putValue("arg", "tom rocks!");
 		
-		final HashMap<String,String> jerry_env = new HashMap<String,String>();
-		jerry_env.put("arg", "jelly rolls");
+		final Context jerry_env = new Context();
+		jerry_env.putValue("arg", "jelly rolls");
 	
 		CloudProcess tom = dao.create(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
 		List<URI> jerryDependency = new ArrayList<URI>();
@@ -686,11 +689,11 @@ public class CloudProcessTest extends CloudProcessResource {
 	@Test
 	public void runningProcessGetsDependencyAddedAndResumesOnCompletion() throws InterruptedException {
 		addSecurityContext(null);
-		HashMap<String,String> tom_env = new HashMap<String,String>();
-		tom_env.put("arg", "tom rocks!");
+		Context tom_env = new Context();
+		tom_env.putValue("arg", "tom rocks!");
 		
-		final HashMap<String,String> jerry_env = new HashMap<String,String>();
-		jerry_env.put("arg", "jelly rolls");
+		final Context jerry_env = new Context();
+		jerry_env.putValue("arg", "jelly rolls");
 	
 		CloudProcess tom = dao.create(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
 		List<URI> jerryDependency = new ArrayList<URI>();
@@ -739,11 +742,11 @@ public class CloudProcessTest extends CloudProcessResource {
 	@Test
 	public void runningProcessGetsDependencyAddedAndCancelled() throws InterruptedException {
 		addSecurityContext(null);
-		HashMap<String,String> tom_env = new HashMap<String,String>();
-		tom_env.put("arg", "tom rocks!");
+		Context tom_env = new Context();
+		tom_env.putValue("arg", "tom rocks!");
 		
-		final HashMap<String,String> jerry_env = new HashMap<String,String>();
-		jerry_env.put("arg", "jelly rolls");
+		final Context jerry_env = new Context();
+		jerry_env.putValue("arg", "jelly rolls");
 	
 		CloudProcess tom = dao.create(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
 		List<URI> jerryDependency = new ArrayList<URI>();
@@ -791,11 +794,11 @@ public class CloudProcessTest extends CloudProcessResource {
 	@Test
 	public void runningProcessGetsDependencyAddedAndRunningProcessCancelled() throws InterruptedException {
 		addSecurityContext(null);
-		HashMap<String,String> tom_env = new HashMap<String,String>();
-		tom_env.put("arg", "tom rocks!");
+		Context tom_env = new Context();
+		tom_env.putValue("arg", "tom rocks!");
 		
-		final HashMap<String,String> jerry_env = new HashMap<String,String>();
-		jerry_env.put("arg", "jelly rolls");
+		final Context jerry_env = new Context();
+		jerry_env.putValue("arg", "jelly rolls");
 	
 		CloudProcess tom = dao.create(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
 		List<URI> jerryDependency = new ArrayList<URI>();
@@ -847,11 +850,11 @@ public class CloudProcessTest extends CloudProcessResource {
 	@Test
 	public void runningProcessGetsDependencyAddedAndDumped() throws InterruptedException {
 		addSecurityContext(null);
-		HashMap<String,String> tom_env = new HashMap<String,String>();
-		tom_env.put("arg", "tom rocks!");
+		Context tom_env = new Context();
+		tom_env.putValue("arg", "tom rocks!");
 		
-		final HashMap<String,String> jerry_env = new HashMap<String,String>();
-		jerry_env.put("arg", "jelly rolls");
+		final Context jerry_env = new Context();
+		jerry_env.putValue("arg", "jelly rolls");
 	
 		CloudProcess tom = dao.create(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
 		List<URI> jerryDependency = new ArrayList<URI>();
@@ -901,11 +904,11 @@ public class CloudProcessTest extends CloudProcessResource {
 	@Test
 	public void runningProcessGetsDependencyAddedAndRunningProcessDumped() throws InterruptedException {
 		addSecurityContext(null);
-		HashMap<String,String> tom_env = new HashMap<String,String>();
-		tom_env.put("arg", "tom rocks!");
+		Context tom_env = new Context();
+		tom_env.putValue("arg", "tom rocks!");
 		
-		final HashMap<String,String> jerry_env = new HashMap<String,String>();
-		jerry_env.put("arg", "jelly rolls");
+		final Context jerry_env = new Context();
+		jerry_env.putValue("arg", "jelly rolls");
 	
 		CloudProcess tom = dao.create(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
 		List<URI> jerryDependency = new ArrayList<URI>();

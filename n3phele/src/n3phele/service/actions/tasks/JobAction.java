@@ -24,7 +24,9 @@ import n3phele.service.core.NotFoundException;
 import n3phele.service.model.Action;
 import n3phele.service.model.ActionState;
 import n3phele.service.model.CloudProcess;
+import n3phele.service.model.Context;
 import n3phele.service.model.SignalKind;
+import n3phele.service.model.Variable;
 import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.User;
 import n3phele.service.rest.impl.CloudProcessResource;
@@ -61,7 +63,7 @@ public class JobAction extends Action {
 	
 	public JobAction() {}
 	
-	protected JobAction(User owner, String name, HashMap<String, String> context) {
+	protected JobAction(User owner, String name, Context context) {
 		super(owner, name, context);
 	}
 
@@ -99,9 +101,9 @@ public class JobAction extends Action {
 
 	@Override
 	public void init() throws Exception {
-		this.actionName = this.getContext().get("action");
+		this.actionName = this.getContext().getValue("action");
 
-		String arg = this.getContext().get("arg");
+		String arg = this.getContext().getValue("arg");
 		String[] argv;
 		if(Helpers.isBlankOrNull(arg)) {
 			argv = new String[0];
@@ -109,18 +111,18 @@ public class JobAction extends Action {
 			argv =	arg.split("[\\s]+");	// FIXME - find a better regex for shell split
 		}
 		
-		HashMap<String, String> childEnv = new HashMap<String,String>();
+		Context childEnv = new Context();
 		childEnv.putAll(this.getContext());
 		
 		if(Helpers.isBlankOrNull(this.actionName) && argv.length > 0) {
 			this.actionName = argv[0];
-			childEnv.put("action", this.actionName);
+			childEnv.putValue("action", this.actionName);
 		}
 		
-		String childName = childEnv.get("name");
+		String childName = childEnv.getValue("name");
 		if(Helpers.isBlankOrNull(childName)) {
 			childName = this.getName()+"."+this.actionName;
-			childEnv.put("name", childName);
+			childEnv.putValue("name", childName);
 		}
 
 		StringBuilder newArg = new StringBuilder();
@@ -129,7 +131,7 @@ public class JobAction extends Action {
 				newArg.append(" ");
 			newArg.append(argv[i]);
 		}
-		childEnv.put("arg", newArg.toString());
+		childEnv.putValue("arg", newArg.toString());
 		
 		CloudProcess child = CloudProcessResource.spawn(this.getOwner(), childName, childEnv, null, this.getProcess(), this.actionName);
 		log.info("Created child "+child.getName()+" "+child.getUri()+" Action "+child.getTask());

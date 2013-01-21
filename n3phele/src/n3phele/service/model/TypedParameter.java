@@ -1,5 +1,4 @@
 package n3phele.service.model;
-
 /**
  * (C) Copyright 2010-2013. Nigel Cook. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
@@ -22,17 +21,16 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 
-import com.google.appengine.api.datastore.Text;
-
 @XmlRootElement(name="TypedParameter")
-@XmlType(name="TypedParameter", propOrder={"name", "description", "type", "value", "defaultValue"})
+@XmlType(name="TypedParameter", propOrder={"name", "description", "type", "value", "defaultValue", "optional"})
 public class TypedParameter implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private String name;
-	private Text description;
+	private String description;
 	private ParameterType type;
-	private Text value;
-	private Text defaultValue;
+	private String value;
+	private String defaultValue;
+	private boolean isOptional = false;
 	public static Map<String, TypedParameter> asMap(List<TypedParameter> executionParameters) {
 		Map<String, TypedParameter> result = new HashMap<String, TypedParameter>();
 		if(executionParameters != null) {
@@ -174,13 +172,13 @@ public class TypedParameter implements Serializable {
 	 * @return the description
 	 */
 	public String getDescription() {
-		return (description==null)?null:description.getValue();
+		return (description==null)?null:description;
 	}
 	/**
 	 * @param description the description to set
 	 */
 	public void setDescription(String description) {
-		this.description = (description==null)?null:new Text(description);
+		this.description = (description==null)?null:description;
 	}
 	/**
 	 * @return the type
@@ -201,7 +199,7 @@ public class TypedParameter implements Serializable {
 		if(value != null && this.type == ParameterType.Secret)
 			return "***********";
 		else
-			return (value==null)?null:value.getValue();
+			return (value==null)?null:value;
 	}
 	
 	public String valueOf() {
@@ -213,13 +211,13 @@ public class TypedParameter implements Serializable {
 	 * @return the value
 	 */
 	public String value() {
-		return (value==null)?null:value.getValue();
+		return (value==null)?null:value;
 	}
 	/**
 	 * @param value the value to set
 	 */
 	public void setValue(String value) {
-		this.value = (value==null)?null:new Text(value);
+		this.value = (value==null)?null:value;
 	}
 	/**
 	 * @return the defaultValue, obscured if of type secret
@@ -228,21 +226,41 @@ public class TypedParameter implements Serializable {
 		if(defaultValue != null && this.type == ParameterType.Secret)
 			return "***********";
 		else
-			return (defaultValue==null)?null:defaultValue.getValue();
+			return (defaultValue==null)?null:defaultValue;
 	}
 	
 	/**
 	 * @return the defaultValue
 	 */
 	public String defaultValue() {
-		return (defaultValue==null)?null:defaultValue.getValue();
+		return (defaultValue==null)?null:defaultValue;
 	}
 	
 	/**
 	 * @param defaultValue the defaultValue to set
 	 */
 	public void setDefaultValue(String defaultValue) {
-		this.defaultValue = (defaultValue==null)?null:new Text(defaultValue);
+		this.defaultValue = (defaultValue==null)?null:defaultValue;
+	}
+	/**
+	 * @return the isOptional
+	 */
+	public boolean isOptional() {
+		return this.isOptional;
+	}
+	
+	/**
+	 * @return the isOptional
+	 */
+	public boolean getOptional() {
+		return this.isOptional;
+	}
+
+	/**
+	 * @param isOptional the isOptional to set
+	 */
+	public void setOptional(boolean isOptional) {
+		this.isOptional = isOptional;
 	}
 
 	/* (non-Javadoc)
@@ -251,8 +269,9 @@ public class TypedParameter implements Serializable {
 	@Override
 	public String toString() {
 		return String
-				.format("TypedParameter [name=%s, description=%s, type=%s, value=%s, defaultValue=%s]",
-						name, getDescription(), type, value, defaultValue);
+				.format("TypedParameter [name=%s, description=%s, type=%s, value=%s, defaultValue=%s, isOptional=%s]",
+						name, description, type, value, defaultValue,
+						isOptional);
 	}
 
 	/* (non-Javadoc)
@@ -266,6 +285,7 @@ public class TypedParameter implements Serializable {
 				+ ((defaultValue == null) ? 0 : defaultValue.hashCode());
 		result = prime * result
 				+ ((description == null) ? 0 : description.hashCode());
+		result = prime * result + (isOptional ? 1231 : 1237);
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
 		result = prime * result + ((value == null) ? 0 : value.hashCode());
@@ -294,6 +314,8 @@ public class TypedParameter implements Serializable {
 				return false;
 		} else if (!description.equals(other.description))
 			return false;
+		if (isOptional != other.isOptional)
+			return false;
 		if (name == null) {
 			if (other.name != null)
 				return false;
@@ -309,5 +331,4 @@ public class TypedParameter implements Serializable {
 		return true;
 	}
 
-	
 }

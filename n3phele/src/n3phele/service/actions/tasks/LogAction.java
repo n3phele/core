@@ -11,8 +11,6 @@ package n3phele.service.actions.tasks;
  *  specific language governing permissions and limitations under the License.
  */
 
-import java.util.HashMap;
-
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -21,6 +19,7 @@ import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.annotation.Unindex;
 
 import n3phele.service.model.Action;
+import n3phele.service.model.Context;
 import n3phele.service.model.SignalKind;
 import n3phele.service.model.core.User;
 
@@ -36,7 +35,7 @@ public class LogAction extends Action {
 	public LogAction() {}
 	
 	protected LogAction(User owner, String name,
-			HashMap<String, String> context) {
+			Context context) {
 		super(owner, name, context);
 	}
 
@@ -60,8 +59,8 @@ public class LogAction extends Action {
 
 	@Override
 	public void init() throws Exception {
-		log.warning("Init "+this.getContext().get("arg"));
-		ActionLogger.name(this).info(this.getContext().get("arg"));
+		log.warning("Init "+this.getContext().getValue("arg"));
+		ActionLogger.name(this).info(this.getContext().getValue("arg"));
 	}
 
 	@Override

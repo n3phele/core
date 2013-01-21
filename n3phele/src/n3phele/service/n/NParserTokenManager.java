@@ -21,8 +21,8 @@ import java.util.List;
 import n3phele.service.model.CommandDefinition;
 import n3phele.service.model.CommandImplementationDefinition;
 import n3phele.service.model.FileSpecification;
-import n3phele.service.model.core.ParameterType;
-import n3phele.service.model.core.TypedParameter;
+import n3phele.service.model.ParameterType;
+import n3phele.service.model.TypedParameter;
 
 /** Token Manager. */
 public class NParserTokenManager implements NParserConstants

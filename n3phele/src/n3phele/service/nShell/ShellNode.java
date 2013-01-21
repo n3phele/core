@@ -1,9 +1,13 @@
 package n3phele.service.nShell;
 
-public class ShellNode extends SimpleNode {
+import n3phele.service.model.ShellFragmentKind;
+
+
+
+public class ShellNode extends SelfCompilingNode {
 
 	public ShellNode(int i) {
-		super(i);
+		super(i, false);
 	}
 
 
@@ -24,4 +28,9 @@ public class ShellNode extends SimpleNode {
 		return new ShellNode(id);
 	}
 
+
+	@Override
+	ShellFragmentKind toKind() {
+		return ShellFragmentKind.valueOf(ShellTreeConstants.jjtNodeName[id]);
+	}
 }

@@ -3,7 +3,7 @@ package n3phele.service.nShell;
 
 public interface ShellTreeConstants
 {
-  public int JJTCREATETREE = 0;
+  public int JJTSCRIPT = 0;
   public int JJTVOID = 1;
   public int JJTFORCOMMAND = 2;
   public int JJTVARIABLE = 3;
@@ -22,7 +22,7 @@ public interface ShellTreeConstants
 
 
   public String[] jjtNodeName = {
-    "createTree",
+    "script",
     "void",
     "forCommand",
     "variable",
@@ -40,4 +40,4 @@ public interface ShellTreeConstants
     "fileList",
   };
 }
-/* JavaCC - OriginalChecksum=4e25d5209e6f8f136a7bfda981dfdfd9 (do not edit this line) */
+/* JavaCC - OriginalChecksum=287263161a558429e223c4706bd21a2a (do not edit this line) */

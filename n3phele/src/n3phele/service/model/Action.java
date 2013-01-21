@@ -36,16 +36,16 @@ public abstract class Action extends Entity {
 
 	@Id private Long id;
 	private String process;
-	private HashMap<String, String> context;
+	private Context context;
 	
 	protected Action() {}
 	
-	protected Action(User owner, String name, HashMap<String, String> context) {
+	protected Action(User owner, String name, Context context) {
 		super();
 		this.create(owner,  name,  context);
 	}
 	
-	public Action create(User owner, String name, HashMap<String, String> context) {
+	public Action create(User owner, String name, Context context) {
 		this.owner = owner.getUri().toString();
 		this.name = name;
 		this.context = context;
@@ -152,14 +152,14 @@ public abstract class Action extends Entity {
 	/**
 	 * @return the context
 	 */
-	public HashMap<String, String> getContext() {
-		return context == null? new HashMap<String,String>() : context;
+	public Context getContext() {
+		return context == null? new Context() : context;
 	}
 
 	/**
 	 * @param context the context to set
 	 */
-	public void setContext(HashMap<String, String> context) {
+	public void setContext(Context context) {
 		this.context = context;
 	}
 	

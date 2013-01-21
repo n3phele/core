@@ -30,7 +30,7 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
 
   final public void functionExpression() throws ParseException {
                              /*@bgen(jjtree) functionExpression */
-  SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTFUNCTIONEXPRESSION);
+  SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTFUNCTIONEXPRESSION);
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
     try {
@@ -166,9 +166,9 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
 
   final public SimpleNode conditionalExpression() throws ParseException {
                                       /*@bgen(jjtree) conditionalExpression */
-  SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTCONDITIONALEXPRESSION);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
+                                       SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTCONDITIONALEXPRESSION);
+                                       boolean jjtc000 = true;
+                                       jjtree.openNodeScope(jjtn000);jjtn000.isNoop();
     try {
       logicalORExpression();
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -209,9 +209,9 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
 
   final public void logicalORExpression() throws ParseException {
                               /*@bgen(jjtree) logicalORExpression */
-  SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTLOGICALOREXPRESSION);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
+                               SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTLOGICALOREXPRESSION);
+                               boolean jjtc000 = true;
+                               jjtree.openNodeScope(jjtn000);jjtn000.isNoop();
     try {
       logicalANDExpression();
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -246,9 +246,9 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
 
   final public void logicalANDExpression() throws ParseException {
                                /*@bgen(jjtree) logicalANDExpression */
-  SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTLOGICALANDEXPRESSION);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
+                                SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTLOGICALANDEXPRESSION);
+                                boolean jjtc000 = true;
+                                jjtree.openNodeScope(jjtn000);jjtn000.isNoop();
     try {
       equalityExpression();
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -283,9 +283,9 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
 
   final public void equalityExpression() throws ParseException {
                              /*@bgen(jjtree) equalityExpression */
-                              SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTEQUALITYEXPRESSION);
+                              SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTEQUALITYEXPRESSION);
                               boolean jjtc000 = true;
-                              jjtree.openNodeScope(jjtn000);String op;
+                              jjtree.openNodeScope(jjtn000);String op; jjtn000.isNoop();
     try {
       relationalExpression();
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -334,9 +334,9 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
 
   final public void relationalExpression() throws ParseException {
                                /*@bgen(jjtree) relationalExpression */
-                               SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTRELATIONALEXPRESSION);
+                               SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTRELATIONALEXPRESSION);
                                boolean jjtc000 = true;
-                               jjtree.openNodeScope(jjtn000);String op;
+                               jjtree.openNodeScope(jjtn000);String op; jjtn000.isNoop();
     try {
       additiveExpression();
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -395,9 +395,9 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
 
   final public void additiveExpression() throws ParseException {
                              /*@bgen(jjtree) additiveExpression */
-                              SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTADDITIVEEXPRESSION);
+                              SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTADDITIVEEXPRESSION);
                               boolean jjtc000 = true;
-                              jjtree.openNodeScope(jjtn000);Token op;
+                              jjtree.openNodeScope(jjtn000);Token op; jjtn000.isNoop();
     try {
       multiplicativeExpression();
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -445,9 +445,9 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
 
   final public void multiplicativeExpression() throws ParseException {
                                    /*@bgen(jjtree) multiplicativeExpression */
-  SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTMULTIPLICATIVEEXPRESSION);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
+                                    SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTMULTIPLICATIVEEXPRESSION);
+                                    boolean jjtc000 = true;
+                                    jjtree.openNodeScope(jjtn000);jjtn000.isNoop();
     try {
       unaryExpression();
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -501,9 +501,9 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
 
   final public void unaryExpression() throws ParseException {
                           /*@bgen(jjtree) unaryExpression */
-  SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTUNARYEXPRESSION);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
+                           SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTUNARYEXPRESSION);
+                           boolean jjtc000 = true;
+                           jjtree.openNodeScope(jjtn000);jjtn000.isNoop(); Token t;
     try {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case REGEX:
@@ -532,8 +532,11 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
       case 37:
       case 41:
       case 42:
-        unaryOperator();
+        t = unaryOperator();
         unaryExpression();
+                                                    jjtree.closeNodeScope(jjtn000, true);
+                                                    jjtc000 = false;
+                                                    jjtn000.jjtSetValue(t.image); jjtn000.notNoop();
         break;
       default:
         jj_la1[14] = jj_gen;
@@ -561,47 +564,28 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
     }
   }
 
-  final public void unaryOperator() throws ParseException {
-                        /*@bgen(jjtree) unaryOperator */
-  SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTUNARYOPERATOR);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
-    try {
-      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case 36:
-        jj_consume_token(36);
-                                  jjtree.closeNodeScope(jjtn000, true);
-                                  jjtc000 = false;
-                                  jjtn000.jjtSetValue("+");
-        break;
-      case 37:
-        jj_consume_token(37);
-                                  jjtree.closeNodeScope(jjtn000, true);
-                                  jjtc000 = false;
-                                  jjtn000.jjtSetValue("-");
-        break;
-      case 41:
-        jj_consume_token(41);
-                                  jjtree.closeNodeScope(jjtn000, true);
-                                  jjtc000 = false;
-                          jjtn000.jjtSetValue("~");
-        break;
-      case 42:
-        jj_consume_token(42);
-                                  jjtree.closeNodeScope(jjtn000, true);
-                                  jjtc000 = false;
-                          jjtn000.jjtSetValue("!");
-        break;
-      default:
-        jj_la1[15] = jj_gen;
-        jj_consume_token(-1);
-        throw new ParseException();
-      }
-    } finally {
-          if (jjtc000) {
-            jjtree.closeNodeScope(jjtn000, true);
-          }
+  final public Token unaryOperator() throws ParseException {
+                               Token t;
+    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+    case 36:
+      t = jj_consume_token(36);
+      break;
+    case 37:
+      t = jj_consume_token(37);
+      break;
+    case 41:
+      t = jj_consume_token(41);
+      break;
+    case 42:
+      t = jj_consume_token(42);
+      break;
+    default:
+      jj_la1[15] = jj_gen;
+      jj_consume_token(-1);
+      throw new ParseException();
     }
+          {if (true) return t;}
+    throw new Error("Missing return statement in function");
   }
 
   final public void primaryExpression() throws ParseException {
@@ -636,38 +620,14 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
   }
 
   final public void listIndexExpression() throws ParseException {
-                              /*@bgen(jjtree) listIndexExpression */
-  SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTLISTINDEXEXPRESSION);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
-    try {
-      jj_consume_token(44);
-      conditionalExpression();
-      jj_consume_token(45);
-    } catch (Throwable jjte000) {
-           if (jjtc000) {
-             jjtree.clearNodeScope(jjtn000);
-             jjtc000 = false;
-           } else {
-             jjtree.popNode();
-           }
-           if (jjte000 instanceof RuntimeException) {
-             {if (true) throw (RuntimeException)jjte000;}
-           }
-           if (jjte000 instanceof ParseException) {
-             {if (true) throw (ParseException)jjte000;}
-           }
-           {if (true) throw (Error)jjte000;}
-    } finally {
-           if (jjtc000) {
-             jjtree.closeNodeScope(jjtn000, true);
-           }
-    }
+    jj_consume_token(44);
+    conditionalExpression();
+    jj_consume_token(45);
   }
 
   final public void identifier() throws ParseException {
                      /*@bgen(jjtree) identifier */
-                      SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTIDENTIFIER);
+                      SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTIDENTIFIER);
                       boolean jjtc000 = true;
                       jjtree.openNodeScope(jjtn000);Token t;
     try {
@@ -683,51 +643,27 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
   }
 
   final public void primaryListExpression() throws ParseException {
-                                /*@bgen(jjtree) primaryListExpression */
-  SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTPRIMARYLISTEXPRESSION);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
-    try {
-      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case 43:
-        jj_consume_token(43);
-        list();
-        jj_consume_token(25);
-        break;
-      case IDENTIFIER:
-        identifier();
-        break;
-      default:
-        jj_la1[17] = jj_gen;
-        jj_consume_token(-1);
-        throw new ParseException();
-      }
-    } catch (Throwable jjte000) {
-             if (jjtc000) {
-               jjtree.clearNodeScope(jjtn000);
-               jjtc000 = false;
-             } else {
-               jjtree.popNode();
-             }
-             if (jjte000 instanceof RuntimeException) {
-               {if (true) throw (RuntimeException)jjte000;}
-             }
-             if (jjte000 instanceof ParseException) {
-               {if (true) throw (ParseException)jjte000;}
-             }
-             {if (true) throw (Error)jjte000;}
-    } finally {
-             if (jjtc000) {
-               jjtree.closeNodeScope(jjtn000, true);
-             }
+    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+    case 43:
+      jj_consume_token(43);
+      list();
+      jj_consume_token(25);
+      break;
+    case IDENTIFIER:
+      identifier();
+      break;
+    default:
+      jj_la1[17] = jj_gen;
+      jj_consume_token(-1);
+      throw new ParseException();
     }
   }
 
   final public void subList() throws ParseException {
                   /*@bgen(jjtree) subList */
-  SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTSUBLIST);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
+                   SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTSUBLIST);
+                   boolean jjtc000 = true;
+                   jjtree.openNodeScope(jjtn000);jjtn000.isNoop();
     try {
       primaryListExpression();
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -765,9 +701,9 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
 
   final public void list() throws ParseException {
                /*@bgen(jjtree) list */
-  SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTLIST);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
+                SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTLIST);
+                boolean jjtc000 = true;
+                jjtree.openNodeScope(jjtn000);jjtn000.isNoop();
     try {
       subList();
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -802,7 +738,7 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
 
   final public void constant() throws ParseException {
                    /*@bgen(jjtree) constant */
-                   SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTCONSTANT);
+                   SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTCONSTANT);
                    boolean jjtc000 = true;
                    jjtree.openNodeScope(jjtn000);Token t;
     try {
@@ -811,7 +747,7 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
         t = jj_consume_token(INTEGER_LITERAL);
                                                   jjtree.closeNodeScope(jjtn000, true);
                                                   jjtc000 = false;
-                                                  jjtn000.jjtSetValue(Integer.decode(t.image));
+                                                  jjtn000.jjtSetValue(Long.decode(t.image));
         break;
       case STRING_LITERAL:
         t = jj_consume_token(STRING_LITERAL);
@@ -842,21 +778,6 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
     try { return !jj_3_1(); }
     catch(LookaheadSuccess ls) { return true; }
     finally { jj_save(0, xla); }
-  }
-
-  private boolean jj_3R_28() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_30()) {
-    jj_scanpos = xsp;
-    if (jj_3R_31()) return true;
-    }
-    return false;
-  }
-
-  private boolean jj_3R_34() {
-    if (jj_scan_token(40)) return true;
-    return false;
   }
 
   private boolean jj_3R_30() {
@@ -938,6 +859,17 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
     return false;
   }
 
+  private boolean jj_3R_3() {
+    if (jj_scan_token(36)) return true;
+    if (jj_3R_1()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_47() {
+    if (jj_scan_token(FLOATING_POINT_LITERAL)) return true;
+    return false;
+  }
+
   private boolean jj_3R_13() {
     if (jj_scan_token(28)) return true;
     if (jj_3R_10()) return true;
@@ -949,14 +881,8 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
     return false;
   }
 
-  private boolean jj_3R_3() {
-    if (jj_scan_token(36)) return true;
-    if (jj_3R_1()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_51() {
-    if (jj_scan_token(FLOATING_POINT_LITERAL)) return true;
+  private boolean jj_3R_46() {
+    if (jj_scan_token(STRING_LITERAL)) return true;
     return false;
   }
 
@@ -965,18 +891,13 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
     return false;
   }
 
-  private boolean jj_3R_50() {
-    if (jj_scan_token(STRING_LITERAL)) return true;
+  private boolean jj_3R_45() {
+    if (jj_scan_token(INTEGER_LITERAL)) return true;
     return false;
   }
 
   private boolean jj_3R_24() {
     if (jj_scan_token(32)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_49() {
-    if (jj_scan_token(INTEGER_LITERAL)) return true;
     return false;
   }
 
@@ -997,6 +918,19 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
     return false;
   }
 
+  private boolean jj_3R_43() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_45()) {
+    jj_scanpos = xsp;
+    if (jj_3R_46()) {
+    jj_scanpos = xsp;
+    if (jj_3R_47()) return true;
+    }
+    }
+    return false;
+  }
+
   private boolean jj_3R_16() {
     if (jj_3R_18()) return true;
     Token xsp;
@@ -1005,21 +939,8 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
     return false;
   }
 
-  private boolean jj_3R_60() {
+  private boolean jj_3R_56() {
     if (jj_3R_8()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_47() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_49()) {
-    jj_scanpos = xsp;
-    if (jj_3R_50()) {
-    jj_scanpos = xsp;
-    if (jj_3R_51()) return true;
-    }
-    }
     return false;
   }
 
@@ -1036,16 +957,16 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
     return false;
   }
 
-  private boolean jj_3R_20() {
-    if (jj_scan_token(30)) return true;
-    return false;
-  }
-
   private boolean jj_3R_1() {
     if (jj_3R_2()) return true;
     Token xsp;
     xsp = jj_scanpos;
     if (jj_3R_3()) jj_scanpos = xsp;
+    return false;
+  }
+
+  private boolean jj_3R_20() {
+    if (jj_scan_token(30)) return true;
     return false;
   }
 
@@ -1081,11 +1002,13 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
     return false;
   }
 
-  private boolean jj_3R_12() {
-    if (jj_3R_14()) return true;
+  private boolean jj_3R_4() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_15()) jj_scanpos = xsp;
+    if (jj_3R_6()) {
+    jj_scanpos = xsp;
+    if (jj_3R_7()) return true;
+    }
     return false;
   }
 
@@ -1096,18 +1019,16 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
     return false;
   }
 
-  private boolean jj_3_1() {
-    if (jj_3R_1()) return true;
+  private boolean jj_3R_12() {
+    if (jj_3R_14()) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_15()) jj_scanpos = xsp;
     return false;
   }
 
-  private boolean jj_3R_4() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_6()) {
-    jj_scanpos = xsp;
-    if (jj_3R_7()) return true;
-    }
+  private boolean jj_3_1() {
+    if (jj_3R_1()) return true;
     return false;
   }
 
@@ -1119,7 +1040,7 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
     return false;
   }
 
-  private boolean jj_3R_59() {
+  private boolean jj_3R_55() {
     if (jj_3R_1()) return true;
     return false;
   }
@@ -1139,20 +1060,6 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
     return false;
   }
 
-  private boolean jj_3R_58() {
-    if (jj_scan_token(UNESCAPE)) return true;
-    if (jj_3R_8()) return true;
-    if (jj_scan_token(25)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_57() {
-    if (jj_scan_token(ESCAPE)) return true;
-    if (jj_3R_8()) return true;
-    if (jj_scan_token(25)) return true;
-    return false;
-  }
-
   private boolean jj_3R_9() {
     if (jj_scan_token(IDENTIFIER)) return true;
     return false;
@@ -1163,27 +1070,13 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
     return false;
   }
 
-  private boolean jj_3R_55() {
-    if (jj_scan_token(LENGTH)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_59()) {
-    jj_scanpos = xsp;
-    if (jj_3R_60()) return true;
-    }
-    if (jj_scan_token(25)) return true;
-    return false;
-  }
-
   private boolean jj_3R_40() {
-    if (jj_3R_48()) return true;
+    if (jj_3R_44()) return true;
     return false;
   }
 
   private boolean jj_3R_54() {
-    if (jj_scan_token(MIN)) return true;
-    if (jj_3R_8()) return true;
-    if (jj_scan_token(24)) return true;
+    if (jj_scan_token(UNESCAPE)) return true;
     if (jj_3R_8()) return true;
     if (jj_scan_token(25)) return true;
     return false;
@@ -1197,7 +1090,35 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
   }
 
   private boolean jj_3R_38() {
-    if (jj_3R_47()) return true;
+    if (jj_3R_43()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_53() {
+    if (jj_scan_token(ESCAPE)) return true;
+    if (jj_3R_8()) return true;
+    if (jj_scan_token(25)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_51() {
+    if (jj_scan_token(LENGTH)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_55()) {
+    jj_scanpos = xsp;
+    if (jj_3R_56()) return true;
+    }
+    if (jj_scan_token(25)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_50() {
+    if (jj_scan_token(MIN)) return true;
+    if (jj_3R_8()) return true;
+    if (jj_scan_token(24)) return true;
+    if (jj_3R_8()) return true;
+    if (jj_scan_token(25)) return true;
     return false;
   }
 
@@ -1206,19 +1127,8 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
     return false;
   }
 
-  private boolean jj_3R_53() {
+  private boolean jj_3R_49() {
     if (jj_scan_token(MAX)) return true;
-    if (jj_3R_8()) return true;
-    if (jj_scan_token(24)) return true;
-    if (jj_3R_8()) return true;
-    if (jj_scan_token(25)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_56() {
-    if (jj_scan_token(STRING)) return true;
-    if (jj_3R_1()) return true;
-    if (jj_scan_token(24)) return true;
     if (jj_3R_8()) return true;
     if (jj_scan_token(24)) return true;
     if (jj_3R_8()) return true;
@@ -1243,6 +1153,17 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
   }
 
   private boolean jj_3R_52() {
+    if (jj_scan_token(STRING)) return true;
+    if (jj_3R_1()) return true;
+    if (jj_scan_token(24)) return true;
+    if (jj_3R_8()) return true;
+    if (jj_scan_token(24)) return true;
+    if (jj_3R_8()) return true;
+    if (jj_scan_token(25)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_48() {
     if (jj_scan_token(REGEX)) return true;
     if (jj_3R_8()) return true;
     if (jj_scan_token(24)) return true;
@@ -1253,61 +1174,41 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
     return false;
   }
 
-  private boolean jj_3R_46() {
-    if (jj_scan_token(42)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_45() {
-    if (jj_scan_token(41)) return true;
-    return false;
-  }
-
   private boolean jj_3R_44() {
-    if (jj_scan_token(37)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_48() {
     Token xsp;
     xsp = jj_scanpos;
+    if (jj_3R_48()) {
+    jj_scanpos = xsp;
+    if (jj_3R_49()) {
+    jj_scanpos = xsp;
+    if (jj_3R_50()) {
+    jj_scanpos = xsp;
+    if (jj_3R_51()) {
+    jj_scanpos = xsp;
     if (jj_3R_52()) {
     jj_scanpos = xsp;
     if (jj_3R_53()) {
     jj_scanpos = xsp;
-    if (jj_3R_54()) {
-    jj_scanpos = xsp;
-    if (jj_3R_55()) {
-    jj_scanpos = xsp;
-    if (jj_3R_56()) {
-    jj_scanpos = xsp;
-    if (jj_3R_57()) {
-    jj_scanpos = xsp;
-    if (jj_3R_58()) return true;
+    if (jj_3R_54()) return true;
     }
     }
     }
     }
     }
     }
-    return false;
-  }
-
-  private boolean jj_3R_43() {
-    if (jj_scan_token(36)) return true;
     return false;
   }
 
   private boolean jj_3R_37() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_43()) {
+    if (jj_scan_token(36)) {
     jj_scanpos = xsp;
-    if (jj_3R_44()) {
+    if (jj_scan_token(37)) {
     jj_scanpos = xsp;
-    if (jj_3R_45()) {
+    if (jj_scan_token(41)) {
     jj_scanpos = xsp;
-    if (jj_3R_46()) return true;
+    if (jj_scan_token(42)) return true;
     }
     }
     }
@@ -1317,6 +1218,21 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
   private boolean jj_3R_31() {
     if (jj_3R_37()) return true;
     if (jj_3R_28()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_28() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_30()) {
+    jj_scanpos = xsp;
+    if (jj_3R_31()) return true;
+    }
+    return false;
+  }
+
+  private boolean jj_3R_34() {
+    if (jj_scan_token(40)) return true;
     return false;
   }
 

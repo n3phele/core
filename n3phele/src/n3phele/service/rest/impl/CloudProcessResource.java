@@ -144,8 +144,8 @@ public class CloudProcessResource {
 	public Response exec(@DefaultValue("Log") @QueryParam("name") String name,
 						 @DefaultValue("hello world!") @QueryParam("arg") String arg) throws ClassNotFoundException  {
 
-		HashMap<String,String> env = new HashMap<String,String>();
-		env.put("arg", arg);
+		n3phele.service.model.Context env = new n3phele.service.model.Context();
+		env.putValue("arg", arg);
 	
 		Class<? extends Action> clazz = Class.forName("n3phele.service.actions.tasks."+name+"Action").asSubclass(Action.class);
 		if(clazz != null) {
@@ -628,7 +628,7 @@ public class CloudProcessResource {
 		}
 	}
 	
-	public static CloudProcess spawn(URI owner, String name, HashMap<String, String> context, List<URI> dependency, URI parent, String className) throws IllegalArgumentException, NotFoundException, ClassNotFoundException {
+	public static CloudProcess spawn(URI owner, String name, n3phele.service.model.Context context, List<URI> dependency, URI parent, String className) throws IllegalArgumentException, NotFoundException, ClassNotFoundException {
 
 		String canonicalClassName = "n3phele.service.actions.tasks."+className+"Action";
 
@@ -892,7 +892,7 @@ public class CloudProcessResource {
 		
 		public java.util.Collection<CloudProcess> getChildren(URI parent) { return super.itemDao.collectionByProperty("parent", parent.toString()); }
 		
-		public CloudProcess create(User user, String name, HashMap<String, String> context, List<URI> dependency, URI parent, Class<? extends Action> clazz) throws IllegalArgumentException {
+		public CloudProcess create(User user, String name, n3phele.service.model.Context context, List<URI> dependency, URI parent, Class<? extends Action> clazz) throws IllegalArgumentException {
 			Action task;
 			try {
 				task = clazz.newInstance().create(user, name, context);

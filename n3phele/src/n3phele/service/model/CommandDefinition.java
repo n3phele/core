@@ -18,10 +18,9 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-import n3phele.service.model.core.TypedParameter;
 
 @XmlRootElement(name="CommandDefinition")
-@XmlType(name="CommandDefinition", propOrder={"uri", "name", "description", "public", "preferred", "version", "icon", "inputFiles", "outputFiles", "executionParameters", "outputParameters", "implementations"})
+@XmlType(name="CommandDefinition", propOrder={"uri", "name", "description", "public", "preferred", "version", "icon", "inputFiles", "outputFiles", "executionParameters", "implementations"})
 public class CommandDefinition {
 	private URI uri;
 	private String name;
@@ -33,7 +32,6 @@ public class CommandDefinition {
 	private List<FileSpecification> inputFiles;
 	private List<TypedParameter> executionParameters;
 	private List<FileSpecification> outputFiles;
-	private List<TypedParameter> outputParameters;
 	private ArrayList<CommandImplementationDefinition> implementations = new ArrayList<CommandImplementationDefinition>();
 	
 	public CommandDefinition() {}
@@ -178,20 +176,6 @@ public class CommandDefinition {
 	}
 
 	/**
-	 * @return the outputParameters
-	 */
-	public List<TypedParameter> getOutputParameters() {
-		return this.outputParameters;
-	}
-
-	/**
-	 * @param outputParameters the outputParameters to set
-	 */
-	public void setOutputParameters(List<TypedParameter> outputParameters) {
-		this.outputParameters = outputParameters;
-	}
-
-	/**
 	 * @return the implementations
 	 */
 	public List<CommandImplementationDefinition> getImplementations() {
@@ -213,10 +197,10 @@ public class CommandDefinition {
 	@Override
 	public String toString() {
 		return String
-				.format("CommandDefinition [uri=%s, name=%s, description=%s, isPublic=%s, isPreferred=%s, version=%s, icon=%s, inputFiles=%s, executionParameters=%s, outputFiles=%s, outputParameters=%s, implementations=%s]",
+				.format("CommandDefinition [uri=%s, name=%s, description=%s, isPublic=%s, isPreferred=%s, version=%s, icon=%s, inputFiles=%s, executionParameters=%s, outputFiles=%s, implementations=%s]",
 						uri, name, description, isPublic, isPreferred, version,
 						icon, inputFiles, executionParameters, outputFiles,
-						outputParameters, implementations);
+					    implementations);
 	}
 
 	

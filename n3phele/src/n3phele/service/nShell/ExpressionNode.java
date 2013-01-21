@@ -1,9 +1,11 @@
 package n3phele.service.nShell;
 
-public class ExpressionNode extends SimpleNode {
+import n3phele.service.model.ShellFragmentKind;
+
+public class ExpressionNode extends SelfCompilingNode {
 
 	public ExpressionNode(int i) {
-		super(i);
+		super(i, false);
 	}
 
 
@@ -22,6 +24,22 @@ public class ExpressionNode extends SimpleNode {
 	
 	public static Node jjtCreate(int id) {
 		return new ExpressionNode(id);
+	}
+
+
+	@Override
+	ShellFragmentKind toKind() {
+		if(ExpressionTreeConstants.jjtNodeName[id].equals("constant")) {
+			if(this.jjtGetValue() instanceof Long) {
+				return ShellFragmentKind.constantLong;
+			} else if(this.jjtGetValue() instanceof Double) {
+				return ShellFragmentKind.constantDouble;
+			} else {
+				return ShellFragmentKind.constantString;
+			}
+		} else {
+			return ShellFragmentKind.valueOf(ExpressionTreeConstants.jjtNodeName[id]);
+		}
 	}
 
 }
