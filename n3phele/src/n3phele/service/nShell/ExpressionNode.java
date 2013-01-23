@@ -34,7 +34,9 @@ public class ExpressionNode extends SelfCompilingNode {
 				return ShellFragmentKind.constantLong;
 			} else if(this.jjtGetValue() instanceof Double) {
 				return ShellFragmentKind.constantDouble;
-			} else {
+			} else if(this.jjtGetValue() instanceof Boolean) {
+				return ShellFragmentKind.constantBoolean;
+			}else {
 				return ShellFragmentKind.constantString;
 			}
 		} else {

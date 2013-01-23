@@ -11,51 +11,84 @@ package n3phele.service.model;
  *  specific language governing permissions and limitations under the License.
  */
 
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+
+import n3phele.service.model.core.Helpers;
 
 @XmlRootElement(name = "Variable")
 @XmlType(name = "Variable", propOrder = {"name", "type", "value" })
 public class Variable {
 	private String name;
 	private VariableType type;
-	private String value;
+	private String[] value = new String[] { null };
 	
 	public Variable() {}
 	public Variable(String name, long value) {
 		this.name = name;
 		this.type = VariableType.Long;
-		this.value = Long.toString(value);
+		this.value = new String[] {Long.toString(value)};
 	}
 	
 	public Variable(String name, int value) {
 		this.name = name;
 		this.type = VariableType.Long;
-		this.value = Long.toString(value);
+		this.value = new String[] {Long.toString(value)};
 	}
 	
 	public Variable(String name, boolean value) {
 		this.name = name;
 		this.type = VariableType.Boolean;
-		this.value = Boolean.toString(value);
+		this.value = new String[] {Boolean.toString(value)};
 	}
 	
 	public Variable(String name, float value) {
 		this.name = name;
 		this.type = VariableType.Double;
-		this.value = Double.toString(value);
+		this.value = new String[] { Double.toString(value)};
 	}
 	
 	public Variable(String name, double value) {
 		this.name = name;
 		this.type = VariableType.Double;
-		this.value = Double.toString(value);
+		this.value = new String[] { Double.toString(value)};
 	}
 	
 	public Variable(String name, String value) {
 		this.name = name;
 		this.type = VariableType.String;
-		this.value = value;
+		this.value =new String[] { value };
+	}
+	
+	@SuppressWarnings("unchecked")
+	public Variable(String name, Object value) {
+		this.name = name;	
+		if(value instanceof List) {
+			this.type = VariableType.List;
+			this.value = ((List<String>)value).toArray(new String[((List<String>)value).size()]);
+		} else {
+			this.value = new String[] { value.toString() };
+			if(value instanceof Long) {
+				this.type = VariableType.Long;
+			} else if(value instanceof String) {
+				this.type = VariableType.String;
+			}else if(value instanceof Double) {
+				this.type = VariableType.Double;
+			} else if(value instanceof Boolean) {
+				this.type = VariableType.Boolean;
+			} else  if(value instanceof Action) {
+				this.type = VariableType.Action;
+			} else  if(value instanceof URI) {
+				this.type = VariableType.Object;
+			} else {
+				this.type = VariableType.String;	
+			}
+		}
 	}
 
 
@@ -91,35 +124,49 @@ public class Variable {
 	 * @return the value
 	 */
 	public String getValue() {
-		return value;
+		if(type == VariableType.List)
+			return Arrays.toString(value);
+		else
+			return value[0];
 	}
 
 	/**
 	 * @param value the value to set
 	 */
 	public void setValue(String value) {
-		this.value = value;
+		this.value = new String[] { value };
+	}
+	
+	/**
+	 * @param value the value to set
+	 */
+	public void setValue(List<String> value) {
+		this.value = value.toArray(new String[value.size()]);
 	}
 	
 	public Object getExpressionObject() {
 		switch(type) {
 
 		case Boolean:
-			return Boolean.valueOf(this.value);
+			return Boolean.valueOf(this.value[0]);
 		case Double:
-			return Double.valueOf(this.value);
+			return Double.valueOf(this.value[0]);
 		case Long:
-			return Long.valueOf(this.value);
+			return Long.valueOf(this.value[0]);
 		case Secret:
 			return "******";
-		case Action:
-		case List:
 		case Object:
+		case Action:
+			return Helpers.stringToURI(this.value[0]);
+		case List:
+			return new ArrayList<String>(Arrays.asList(this.value));
 		case String:
 			default:
-			return this.value;
+			return this.value[0];
 		}
 	}
+
+	
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
@@ -127,9 +174,8 @@ public class Variable {
 	@Override
 	public String toString() {
 		return String.format("Variable [name=%s, type=%s, value=%s]", name,
-				type, value);
+				type, Arrays.toString(value));
 	}
-
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */
@@ -139,10 +185,9 @@ public class Variable {
 		int result = 1;
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
-		result = prime * result + ((value == null) ? 0 : value.hashCode());
+		result = prime * result + Arrays.hashCode(value);
 		return result;
 	}
-
 	/* (non-Javadoc)
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
@@ -162,14 +207,9 @@ public class Variable {
 			return false;
 		if (type != other.type)
 			return false;
-		if (value == null) {
-			if (other.value != null)
-				return false;
-		} else if (!value.equals(other.value))
+		if (!Arrays.equals(value, other.value))
 			return false;
 		return true;
 	}
-	
-	
 
 }

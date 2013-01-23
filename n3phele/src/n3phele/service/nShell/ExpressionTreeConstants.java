@@ -14,9 +14,7 @@ public interface ExpressionTreeConstants
   public int JJTMULTIPLICATIVEEXPRESSION = 8;
   public int JJTUNARYEXPRESSION = 9;
   public int JJTIDENTIFIER = 10;
-  public int JJTSUBLIST = 11;
-  public int JJTLIST = 12;
-  public int JJTCONSTANT = 13;
+  public int JJTCONSTANT = 11;
 
 
   public String[] jjtNodeName = {
@@ -31,9 +29,7 @@ public interface ExpressionTreeConstants
     "multiplicativeExpression",
     "unaryExpression",
     "identifier",
-    "subList",
-    "list",
     "constant",
   };
 }
-/* JavaCC - OriginalChecksum=78e45422c6249f4672066ea7e7c360bf (do not edit this line) */
+/* JavaCC - OriginalChecksum=422a116c2a6d3020b2a5993f5950001d (do not edit this line) */

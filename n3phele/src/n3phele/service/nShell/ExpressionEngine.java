@@ -1,30 +1,54 @@
 package n3phele.service.nShell;
-
+/**
+*
+* (C) Copyright 2010-2013. Nigel Cook. All rights reserved.
+* DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+* 
+* Licensed under the terms described in LICENSE file that accompanied this code, (the "License"); you may not use this file
+* except in compliance with the License. 
+* 
+*  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on 
+*  an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the 
+*  specific language governing permissions and limitations under the License.
+*
+*/
+import java.net.URI;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import n3phele.service.core.NotFoundException;
+import n3phele.service.model.Action;
 import n3phele.service.model.Context;
 import n3phele.service.model.ShellFragment;
 import n3phele.service.model.Variable;
+import n3phele.service.model.VariableType;
 import n3phele.service.n.helpers.StringEscapeUtils;
+import n3phele.service.rest.impl.ActionResource;
 
 public class ExpressionEngine {
 	private List<ShellFragment> executable;
 	private Context context;
 	
 	
+	/**
+	 * @param executable
+	 * @param context
+	 */
 	public ExpressionEngine(List<ShellFragment> executable, Context context) {
 		this.executable = executable;
 		this.context = context;
 	}
 
-	Variable eval(ShellFragment s) throws IllegalArgumentException, UnexpectedTypeException {
-		return (Variable) eval(this.executable.indexOf(s));
+	public Object run() throws IllegalArgumentException, UnexpectedTypeException {
+		return eval(this.executable.size()-1);
 	}
 	
-	Object eval(int pc) throws UnexpectedTypeException, IllegalArgumentException {
+	public Object expression(ShellFragment s) throws IllegalArgumentException, UnexpectedTypeException {
+		return eval(this.executable.indexOf(s));
+	}
+	
+	public Object eval(int pc) throws UnexpectedTypeException, IllegalArgumentException {
 		ShellFragment s = executable.get(pc);
 		switch (s.kind){
 		case additiveExpression:
@@ -37,14 +61,14 @@ public class ExpressionEngine {
 			return constantDouble(s);
 		case constantString:
 			return constantString(s);
+		case constantBoolean:
+			return constantBoolean(s);
 		case equalityExpression:
 			return equalityExpression(s);
 		case functionExpression:
 			return functionExpression(s);
 		case identifier:
 			return identifier(s);
-		case list:
-			return list(s);
 		case logicalANDExpression:
 			return logicalANDExpression(s);
 		case logicalORExpression:
@@ -53,8 +77,6 @@ public class ExpressionEngine {
 			return multiplicativeExpression(s);
 		case relationalExpression:
 			return relationalExpression(s);
-		case subList:
-			return subList(s);
 		case unaryExpression:
 			return unaryExpression(s);
 		default:
@@ -103,30 +125,24 @@ public class ExpressionEngine {
 			}
 
 			
-		} else {
-			stack = twoChildren(s);
+		} else if((stack = twoChildren(s))!=null) {
 			if(isClass(stack[0], "List", List.class) && isClass(stack[1], "integer", Long.class))
 				return ((List<?>)stack[0]).get(((Long)stack[1]).intValue());
-		}
-		
-		throw new IllegalArgumentException();
-	}
-
-
-	private Object subList(ShellFragment s) throws UnexpectedTypeException {
-		Object[] stack;
-		if((stack = threeChildren(s))!=null) {
+		} else if((stack = threeChildren(s))!=null) {
 			if(isClass(stack[0], "List", List.class) && isClass(stack[1], "integer", Long.class) && isClass(stack[2], "integer", Long.class))
 				return ((List<?>)stack[0]).subList(((Long)stack[1]).intValue(), ((Long)stack[2]).intValue());
-		} else if((stack = oneChild(s))!=null) {
-			return stack[0];
-		} 
+		}	
+		
 		throw new IllegalArgumentException();
 	}
 
 	private Object equalityExpression(ShellFragment s) throws IllegalArgumentException, UnexpectedTypeException {
 		Object stack[];
 		if((stack = twoChildren(s))!=null) {
+			if(stack[0] instanceof Double || stack[1] instanceof Double) {
+				if(stack[0] instanceof Long) stack[0] = (double) ((Long)stack[0]);
+				if(stack[1] instanceof Long) stack[1] = (double) ((Long)stack[1]);
+			}
 			if(s.value.equals("==")) {
 				return stack[0].equals(stack[1]);
 			} else if(s.value.equals("!=")) {
@@ -147,13 +163,13 @@ public class ExpressionEngine {
 					if(stack[1] instanceof Long) {
 						return Boolean.valueOf(((Long)stack[0])>((Long)stack[1]));
 					} else if(stack[1] instanceof Double) {
-						return Boolean.valueOf((Double.valueOf((Long)stack[0]))>((Double)stack[1]));
+						return Boolean.valueOf(((Long)stack[0])>((Double)stack[1]));
 					}
 				} else if(stack[0] instanceof Double) {
 					if(stack[1] instanceof Double) {
 						return Boolean.valueOf(((Double)stack[0])>((Double)stack[1]));
 					} else if(stack[1] instanceof Long) {
-						return Boolean.valueOf(((Double)stack[0])>(Double.valueOf((Long)stack[1])));
+						return Boolean.valueOf(((Double)stack[0])>((Long)stack[1]));
 					} 
 				} else
 					throw new UnexpectedTypeException(stack[1], "numeric");
@@ -162,13 +178,13 @@ public class ExpressionEngine {
 					if(stack[1] instanceof Long) {
 						return Boolean.valueOf(((Long)stack[0])>=((Long)stack[1]));
 					} else if(stack[1] instanceof Double) {
-						return Boolean.valueOf((Double.valueOf((Long)stack[0]))>=((Double)stack[1]));
+						return Boolean.valueOf(((Long)stack[0])>=((Double)stack[1]));
 					}
 				} else if(stack[0] instanceof Double) {
 					if(stack[1] instanceof Double) {
 						return Boolean.valueOf(((Double)stack[0])>=((Double)stack[1]));
 					} else if(stack[1] instanceof Long) {
-						return Boolean.valueOf(((Double)stack[0])>=(Double.valueOf((Long)stack[1])));
+						return Boolean.valueOf(((Double)stack[0])>=((Long)stack[1]));
 					} 
 				} else
 					throw new UnexpectedTypeException(stack[1], "numeric");
@@ -177,13 +193,13 @@ public class ExpressionEngine {
 					if(stack[1] instanceof Long) {
 						return Boolean.valueOf(((Long)stack[0])<((Long)stack[1]));
 					} else if(stack[1] instanceof Double) {
-						return Boolean.valueOf((Double.valueOf((Long)stack[0]))<((Double)stack[1]));
+						return Boolean.valueOf(((Long)stack[0])<((Double)stack[1]));
 					}
 				} else if(stack[0] instanceof Double) {
 					if(stack[1] instanceof Double) {
 						return Boolean.valueOf(((Double)stack[0])<((Double)stack[1]));
 					} else if(stack[1] instanceof Long) {
-						return Boolean.valueOf(((Double)stack[0])<(Double.valueOf((Long)stack[1])));
+						return Boolean.valueOf(((Double)stack[0])<((Long)stack[1]));
 					} 
 				} else
 					throw new UnexpectedTypeException(stack[1], "numeric");
@@ -192,13 +208,13 @@ public class ExpressionEngine {
 					if(stack[1] instanceof Long) {
 						return Boolean.valueOf(((Long)stack[0])<=((Long)stack[1]));
 					} else if(stack[1] instanceof Double) {
-						return Boolean.valueOf((Double.valueOf((Long)stack[0]))<=((Double)stack[1]));
+						return Boolean.valueOf(((Long)stack[0])<=((Double)stack[1]));
 					}
 				} else if(stack[0] instanceof Double) {
 					if(stack[1] instanceof Double) {
 						return Boolean.valueOf(((Double)stack[0])<=((Double)stack[1]));
 					} else if(stack[1] instanceof Long) {
-						return Boolean.valueOf(((Double)stack[0])<=(Double.valueOf((Long)stack[1])));
+						return Boolean.valueOf(((Double)stack[0])<=((Long)stack[1]));
 					} 
 				} else
 					throw new UnexpectedTypeException(stack[1], "numeric");
@@ -226,7 +242,7 @@ public class ExpressionEngine {
 					if(stack[1] instanceof Double) {
 						return Double.valueOf(((Double)stack[0])*((Double)stack[1]));
 					} else if(stack[1] instanceof Long) {
-						return Double.valueOf(((Double)stack[0])*(Double.valueOf((Long)stack[1])));
+						return Double.valueOf(((Double)stack[0])*((Long)stack[1]));
 					} 
 				} else
 					throw new UnexpectedTypeException(stack[1], "numeric");
@@ -235,13 +251,13 @@ public class ExpressionEngine {
 					if(stack[1] instanceof Long) {
 						return Long.valueOf(((Long)stack[0])/((Long)stack[1]));
 					} else if(stack[1] instanceof Double) {
-						return Double.valueOf((Double.valueOf((Long)stack[0]))/((Double)stack[1]));
+						return Double.valueOf(((Long)stack[0])/((Double)stack[1]));
 					}
 				} else if(stack[0] instanceof Double) {
 					if(stack[1] instanceof Double) {
 						return Double.valueOf(((Double)stack[0])/((Double)stack[1]));
 					} else if(stack[1] instanceof Long) {
-						return Double.valueOf(((Double)stack[0])/(Double.valueOf((Long)stack[1])));
+						return Double.valueOf(((Double)stack[0])/((Long)stack[1]));
 					} 
 				} else
 					throw new UnexpectedTypeException(stack[1], "numeric");
@@ -297,23 +313,6 @@ public class ExpressionEngine {
 				}
 				throw new UnexpectedTypeException(stack[1], "boolean");
 		
-		} else if((stack = oneChild(s))!=null) {
-			return stack[0];
-		}
-		throw new IllegalArgumentException();
-	}
-
-	private Object list(ShellFragment s) throws UnexpectedTypeException {
-		Object[] stack;
-		if((stack = threeChildren(s))!=null) {
-			if(isClass(stack[0], "List", List.class) && isClass(stack[1], "List", List.class)) {
-				@SuppressWarnings("unchecked")
-				List<String> list1 = (List<String>) stack[0];
-				@SuppressWarnings("unchecked")
-				List<String> list2 = (List<String>) stack[1];
-				list1.addAll(list2);
-				return list1;
-			}
 		} else if((stack = oneChild(s))!=null) {
 			return stack[0];
 		}
@@ -412,7 +411,7 @@ public class ExpressionEngine {
 				} else if(stack[0] instanceof List) {
 					return Long.valueOf(((List<?>)stack[0]).size());
 				} else
-					throw new UnexpectedTypeException(stack[1], "list or string");
+					throw new UnexpectedTypeException(stack[0], "list or string");
 			}
 			
 		} else if(s.value.equals("string")) {
@@ -468,6 +467,7 @@ public class ExpressionEngine {
     }
 
 	
+	@SuppressWarnings("unchecked")
 	private Object additiveExpression(ShellFragment s) throws IllegalArgumentException, UnexpectedTypeException {
 		Object stack[];
 
@@ -478,27 +478,36 @@ public class ExpressionEngine {
 						return Long.valueOf(((Long)stack[0])+((Long)stack[1]));
 					} else if(stack[1] instanceof Double) {
 						return Double.valueOf((Double.valueOf((Long)stack[0]))+((Double)stack[1]));
+					} else if(stack[1] instanceof String) {
+						return ((Long)stack[0])+((String)stack[1]);
 					}
 				} else if(stack[0] instanceof Double) {
 					if(stack[1] instanceof Double) {
 						return Double.valueOf(((Double)stack[0])+((Double)stack[1]));
 					} else if(stack[1] instanceof Long) {
-						return Double.valueOf(((Double)stack[0])+(Double.valueOf((Long)stack[1])));
-					} 
-				} else
+						return Double.valueOf(((Double)stack[0])+((Long)stack[1]));
+					} else if(stack[1] instanceof String) {
+						return ((Double)stack[0])+((String)stack[1]);
+					}
+				} else if(stack[0] instanceof String) {
+					return ((String)stack[0])+stack[1];
+				} else if(stack[0] instanceof List && stack[1] instanceof List) {
+					((List<String>)stack[0]).addAll((List<String>)stack[1]);
+					return stack[0];
+				}
 					throw new UnexpectedTypeException(stack[1], "numeric");
 			} else if(s.value.equals("-")) {
 				if(stack[0] instanceof Long) {
 					if(stack[1] instanceof Long) {
 						return Long.valueOf(((Long)stack[0])-((Long)stack[1]));
 					} else if(stack[1] instanceof Double) {
-						return Double.valueOf((Double.valueOf((Long)stack[0]))-((Double)stack[1]));
+						return Double.valueOf(((Long)stack[0])-((Double)stack[1]));
 					}
 				} else if(stack[0] instanceof Double) {
 					if(stack[1] instanceof Double) {
 						return Double.valueOf(((Double)stack[0])-((Double)stack[1]));
 					} else if(stack[1] instanceof Long) {
-						return Double.valueOf(((Double)stack[0])-(Double.valueOf((Long)stack[1])));
+						return Double.valueOf(((Double)stack[0])-((Long)stack[1]));
 					} 
 				} else
 					throw new UnexpectedTypeException(stack[1], "numeric");
@@ -540,6 +549,10 @@ public class ExpressionEngine {
 		return s.value;
 	}
 	
+	private Object constantBoolean(ShellFragment s) {
+		return Boolean.valueOf(s.value);
+	}
+	
 	private Object identifier(ShellFragment s) {
 		Variable v = lookup(s.value);
 		if(v == null)
@@ -575,13 +588,37 @@ public class ExpressionEngine {
 	}
 	
 	private boolean isClass(Object o, String expected, Class<?> clazz ) throws UnexpectedTypeException {
-		if(o.getClass() == clazz)
+		if(clazz.isInstance(o))
 			return true;
 		throw new UnexpectedTypeException(o, expected);
 	}
 	
-	private Variable lookup(String name) {
-		Variable result = this.context.get(name);
-		return result;
+	private Variable lookup(String name) throws NotFoundException {
+		return lookupFromContext(name, name, this.context);
+	}
+	
+	private Variable lookupFromContext(final String canonicalName, String field, Context myContext) throws NotFoundException {
+		int fieldIdx = field.indexOf(".");
+		Variable result;
+		if(fieldIdx > 0) {
+			String primaryName = field.substring(0, fieldIdx);
+			String fieldName = field.substring(fieldIdx+1);
+			result = myContext.get(primaryName);
+			if(result != null && result.getType() == VariableType.Action) {
+				result = lookupFromContext(canonicalName, fieldName, getContext(URI.create(result.getValue())));
+				if(result != null) {
+					result.setName(primaryName+"."+result.getName());
+				}
+				return result;
+			}
+		} else {
+			return myContext.get(field);
+		}
+		throw new NotFoundException(canonicalName);
+	}
+	
+	protected Context getContext(URI uri) throws NotFoundException {
+		Action action = ActionResource.dao.load(uri);
+		return action.getContext();
 	}
 }

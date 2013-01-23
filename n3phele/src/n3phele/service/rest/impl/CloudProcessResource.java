@@ -202,14 +202,16 @@ public class CloudProcessResource {
 	 * @param process
 	 * @return TRUE if process queued
 	 */
-	private boolean schedule(final CloudProcess process) {
+	private boolean schedule(CloudProcess process) {
+		final URI processURI = process.getUri();
+		final Long processId = process.getId();
 		return dao.transact(new Work<Boolean>() {
 
 			@Override
 			public Boolean run() {
 				boolean result = false;
 				boolean dirty = false;
-				CloudProcess p = dao.load(process.getUri());
+				CloudProcess p = dao.load(processId);
 				if(p.getRunning() == null) {
 					if(p.getWaitTimeout() != null) {
 						Date now = new Date();
@@ -226,7 +228,7 @@ public class CloudProcessResource {
 					if(p.hasPending()) {
 						p.setRunning(new Date());
 						QueueFactory.getDefaultQueue().add(
-								TaskOptions.Builder.withPayload(new Schedule(process.getUri())));
+								TaskOptions.Builder.withPayload(new Schedule(processURI)));
 						result = true;
 						dirty = true;
 					}
@@ -359,7 +361,6 @@ public class CloudProcessResource {
 			break;
 		case init:
 			try {
-				preInitMapping(p);
 				task.init();
 			} catch (Exception e) {
 				log.log(Level.WARNING, "Init exception for process "+p.getUri()+" task "+task.getUri(), e);
@@ -628,7 +629,8 @@ public class CloudProcessResource {
 		}
 	}
 	
-	public static CloudProcess spawn(URI owner, String name, n3phele.service.model.Context context, List<URI> dependency, URI parent, String className) throws IllegalArgumentException, NotFoundException, ClassNotFoundException {
+	public CloudProcess spawn(URI owner, String name, n3phele.service.model.Context context, 
+								     List<URI> dependency, URI parent, String className) throws IllegalArgumentException, NotFoundException, ClassNotFoundException {
 
 		String canonicalClassName = "n3phele.service.actions.tasks."+className+"Action";
 
@@ -643,7 +645,6 @@ public class CloudProcessResource {
 		CloudProcess process = dao.create(user, 
 				name, context, dependency, parent, 
 				Class.forName(canonicalClassName).asSubclass(Action.class));
-		new CloudProcessResource().init(process);
 		return process;
 	}
 
@@ -669,8 +670,8 @@ public class CloudProcessResource {
 				schedule(p);
 			}});
 	}
-	
-	protected void init(CloudProcess process) {
+
+	public void init(CloudProcess process) {
 		log.info("init "+process.getUri()+" "+process.getName());
 		final Long processId = process.getId();
 		dao.transact(new VoidWork() {
@@ -684,16 +685,18 @@ public class CloudProcessResource {
 					} else {
 						p.setState(ActionState.RUNABLE);
 						p.setPendingInit(true);
-						schedule(p);
+						/*
+						 * NB: There is an assumption that:
+						 * 1. The objectify get operation will fetch the modified process object
+						 *    in the schedule transaction
+						 * 2. The pendingInit will cause schedule to write the CloudProcess object
+						 */
+						schedule(p); 
 					}
 				} else {
 					log.severe("Init on finalized or non-newborn process "+p.getUri()+" "+p.getState());
 				}
 			}});
-	}
-	
-	private void preInitMapping(CloudProcess process) {
-		log.severe("*************** Unimplemented preInitMapping ***************************" );
 	}
 	
 	/** Dump a running process, which causes the process to be stopped current processing and 

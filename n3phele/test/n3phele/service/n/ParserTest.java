@@ -255,7 +255,7 @@ public class ParserTest {
 				+ "...........identifier:\"$$DenoiseMaster\"\n"
 				+ "..option:\"needsAll\"\n"
 				+ "..option:\"producesNone\"\n"
-				+ "..remoteShell:null\n"
+				+ "..pieces:null\n"
 				+ "...passThru:\"function scan-hosts() { i=0; while [ $i -le 10 ]; do i=$(( $i+1)); ssh-keyscan -H $* > /tmp/known_hosts; if [\"`wc -l </tmp/known_hosts`\" -ne \"$#\" ]; then echo not done .. retrying >&2; sleep 5;else cat /tmp/known_hosts; break; fi; done };\n"
 				+ " function n-times() { i=0; n=$1; shift; while [ $i -lt $n ]; do $*; i=$(( $i+1)); done; }; ssh-keygen -t rsa -f cluster -P '' -q -C cluster; mv cluster cluster.pem; mv cluster.* ~/.ssh; scan-hosts\"\n"
 				+ "...expression:\" \"\n"
@@ -366,7 +366,7 @@ public class ParserTest {
 				+ "...................multiplicativeExpression:null\n"
 				+ "....................unaryExpression:null\n"
 				+ ".....................identifier:\"$$i\"\n"
-				+ "....remoteShell:null\n"
+				+ "....pieces:null\n"
 				+ ".....passThru:\"source /home/ubuntu/qiime_software/activate.sh\n"
 				+ " cp $QIIME/qiime/support_files/qiime_config_n3phele ~/.qiime_config_default\n"
 				+ " echo '\"\n"
@@ -423,7 +423,7 @@ public class ParserTest {
 				+ "...........identifier:\"$$DenoiseMaster\"\n"
 				+ "..option:\"needsNone\"\n"
 				+ "..option:\"producesNone\"\n"
-				+ "..remoteShell:null\n"
+				+ "..pieces:null\n"
 				+ "...passThru:\"for i in `grep -v localhost ~/hosts.slave`; do ssh -i ~/.ssh/cluster.pem $i ping -q -c 3\"\n"
 				+ "...expression:\" \"\n"
 				+ "....conditionalExpression:null\n"
@@ -458,8 +458,12 @@ public class ParserTest {
 				+ "..........unaryExpression:null\n"
 				+ "...........identifier:\"$$DenoiseMaster\"\n"
 				+ "..option:\"produces\"\n"
-				+ "...fileList:{denoiser_mapping.txt=output/denoiser_mapping.txt, denoiser.log=output/denoiser.log, singletons.fasta=output/singletons.fasta, centroids.fasta=output/centroids.fasta}\n"
-				+ "..remoteShell:null\n"
+				+ "...fileList:{}\n"
+				+ "....fileElement:\"denoiser.log|output/denoiser.log\"\n"
+				+ "....fileElement:\"centroids.fasta|output/centroids.fasta\"\n"
+				+ "....fileElement:\"singletons.fasta|output/singletons.fasta\"\n"
+				+ "....fileElement:\"denoiser_mapping.txt|output/denoiser_mapping.txt\"\n"
+				+ "..pieces:null\n"
 				+ "...passThru:\"source /home/ubuntu/qiime_software/activate.sh\n"
 				+ " cp $QIIME/qiime/support_files/qiime_config_n3phele ~/.qiime_config_default\n"
 				+ " sed 's/127.0.1.1/#127.0.1.1/' </etc/hosts >/tmp/hosts\n"
@@ -550,15 +554,18 @@ public class ParserTest {
 				+ "..........unaryExpression:null\n"
 				+ "...........identifier:\"$$DenoiseMaster\"\n"
 				+ "..option:\"needs\"\n"
-				+ "...fileList:{denoiser_mapping.txt=denoiser_mapping.txt, sequence.fasta=sequence.fasta, singletons.fasta=singletons.fasta, centroids.fasta=centroids.fasta}\n"
+				+ "...fileList:{}\n"
+				+ "....fileElement:\"sequence.fasta|sequence.fasta\"\n"
+				+ "....fileElement:\"centroids.fasta|centroids.fasta\"\n"
+				+ "....fileElement:\"singletons.fasta|singletons.fasta\"\n"
+				+ "....fileElement:\"denoiser_mapping.txt|denoiser_mapping.txt\"\n"
 				+ "..option:\"produces\"\n"
 				+ "...literalArg:\"denoised.fasta\"\n"
-				+ "..remoteShell:null\n"
+				+ "..pieces:null\n"
 				+ "...passThru:\"source /home/ubuntu/qiime_software/activate.sh\n"
 				+ " inflate_denoiser_output.py -v -c output/centroids.fasta -s output/singletons.fasta -f seqs.fna -d output/denoiser_mapping.txt -o denoised.fasta\n"
 				+ "\"\n"
 				+ "";
-
 		
 		Assert.assertEquals(expected, result);
 	}
@@ -691,7 +698,7 @@ public class ParserTest {
 				+ "...........identifier:\"$$DenoiseMaster\"\n"
 				+ "..option:\"needsAll\"\n"
 				+ "..option:\"producesNone\"\n"
-				+ "..remoteShell:null\n"
+				+ "..pieces:null\n"
 				+ "...passThru:\"ls -lx | sort | cat > /tmp/foo.bar\n"
 				+ "\"\n"
 				+ "";
@@ -726,11 +733,16 @@ public class ParserTest {
 				+ "..........unaryExpression:null\n"
 				+ "...........identifier:\"$$DenoiseMaster\"\n"
 				+ "..option:\"produces\"\n"
-				+ "...fileList:{denoiser_mapping.txt=output/denoiser_mapping.txt, denoiser.log=denoiser.log, singletons.fasta=output/singletons.fasta, centroids.fasta=output/centroids.fasta}\n"
-				+ "..remoteShell:null\n"
+				+ "...fileList:{}\n"
+				+ "....fileElement:\"denoiser.log|denoiser.log\"\n"
+				+ "....fileElement:\"centroids.fasta|output/centroids.fasta\"\n"
+				+ "....fileElement:\"singletons.fasta|output/singletons.fasta\"\n"
+				+ "....fileElement:\"denoiser_mapping.txt|output/denoiser_mapping.txt\"\n"
+				+ "..pieces:null\n"
 				+ "...passThru:\"cp $QIIME/qiime/support_files/qiime_config_n3phele ~/.qiime_config_default\n"
 				+ "\"\n"
 				+ "";
+
 		Assert.assertEquals(expected, result);
 
 		
@@ -790,7 +802,7 @@ public class ParserTest {
 				+ "...................multiplicativeExpression:null\n"
 				+ "....................unaryExpression:null\n"
 				+ ".....................identifier:\"$$i\"\n"
-				+ "....remoteShell:null\n"
+				+ "....pieces:null\n"
 				+ ".....passThru:\"first --command\n"
 				+ "\"\n"
 				+ "...on:null\n"
@@ -813,7 +825,7 @@ public class ParserTest {
 				+ "...................multiplicativeExpression:null\n"
 				+ "....................unaryExpression:null\n"
 				+ ".....................identifier:\"$$i\"\n"
-				+ "....remoteShell:null\n"
+				+ "....pieces:null\n"
 				+ ".....passThru:\"second -help\n"
 				+ "\"\n"
 				+ ".on:null\n"
@@ -827,7 +839,7 @@ public class ParserTest {
 				+ ".........multiplicativeExpression:null\n"
 				+ "..........unaryExpression:null\n"
 				+ "...........identifier:\"$$DenoiseMaster\"\n"
-				+ "..remoteShell:null\n"
+				+ "..pieces:null\n"
 				+ "...passThru:\"third foobar > file.txt\n"
 				+ "\"\n";
 		Assert.assertEquals(expected, result);	

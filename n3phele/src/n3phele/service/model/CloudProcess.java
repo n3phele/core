@@ -306,6 +306,8 @@ public class CloudProcess extends Entity {
 	public void setParent(URI parent) {
 		this.parent = URItoString(parent);
 	}
+	
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */

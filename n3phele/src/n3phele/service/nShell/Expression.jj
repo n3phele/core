@@ -5,7 +5,7 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants/*@ege
   protected JJTExpressionState jjtree = new JJTExpressionState();
 
 /*@egen*/
-	public Expression(String s, int lineNo, int columnNo)	{		jj_input_stream = new SimpleCharStream(new java.io.StringReader(s), lineNo, columnNo);        jj_input_stream.setTabSize(4);        token_source = new ExpressionTokenManager(jj_input_stream);        token = new Token();        jj_ntk = -1;        jj_gen = 0;        for (int i = 0; i < 5; i++) jj_la1[i] = -1;	}	public void reInit(String s, int lineNo, int columnNo)	{	  	jj_input_stream.ReInit(new java.io.StringReader(s), lineNo, columnNo);	    token_source.ReInit(jj_input_stream);	    token = new Token();	    jj_ntk = -1;	    jjtree.reset();	    jj_gen = 0;	    for (int i = 0; i < 20; i++) jj_la1[i] = -1;	    for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();	}}PARSER_END(Expression)SKIP :{     "\r"  |  " "  |  "\t"  |  "\n"  | < COMMENT: "#" (~["\n"])* >}// ----------------- Expression -------------------------------TOKEN : {    < REGEX: "$$regex(" >  | < MAX: "$$max(" >  | < MIN: "$$min(" >  | < LENGTH: "$$length(" >  | < ESCAPE: "$$escape(" >  | < UNESCAPE: "$$unescape(" >  | < STRING: "$$string(" >}TOKEN : { <INTEGER_LITERAL: <DECIMAL_LITERAL> | <HEX_LITERAL> | <OCTAL_LITERAL> >|  <#DECIMAL_LITERAL: ["1"-"9"] (["0"-"9"])*>|  <#HEX_LITERAL: "0" ["x","X"] (["0"-"9","a"-"f","A"-"F"])+>|  <#OCTAL_LITERAL: "0" (["0"-"7"])*>|  <FLOATING_POINT_LITERAL: (["0"-"9"])+ "." (["0"-"9"])* (<EXPONENT>)? (["f","F","d","D"])? | "." (["0"-"9"])+ (<EXPONENT>)? (["f","F","d","D"])? | (["0"-"9"])+ <EXPONENT> (["f","F","d","D"])? | (["0"-"9"])+ (<EXPONENT>)? ["f","F","d","D"]>|  <#EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+>|  <STRING_LITERAL: "\"" ( ~["\"","\\"] | "\\" ( ["n","t","b","r","f","\\","\'","\""] | ["0"-"7"] (["0"-"7"])?  | ["0"-"3"] ["0"-"7"] ["0"-"7"] ))* "\"">}TOKEN : { <IDENTIFIER: "$$" <VARSTART> ( < VARREST > | ".")* >   | < #VARSTART: ["A"-"Z", "a"-"z"] >  | < #VARREST:  ["A"-"Z", "a"-"z", "0"-"9", "_"] >  | < #WHITESPACE: " " | "\t" >}void functionExpression() : {/*@bgen(jjtree) functionExpression */
+	public Expression(String s, int lineNo, int columnNo)	{		jj_input_stream = new SimpleCharStream(new java.io.StringReader(s), lineNo, columnNo);        jj_input_stream.setTabSize(4);        token_source = new ExpressionTokenManager(jj_input_stream);        token = new Token();        jj_ntk = -1;        jj_gen = 0;        for (int i = 0; i < 5; i++) jj_la1[i] = -1;	}	public void reInit(String s, int lineNo, int columnNo)	{	  	jj_input_stream.ReInit(new java.io.StringReader(s), lineNo, columnNo);	    token_source.ReInit(jj_input_stream);	    token = new Token();	    jj_ntk = -1;	    jjtree.reset();	    jj_gen = 0;	    for (int i = 0; i < 20; i++) jj_la1[i] = -1;	}}PARSER_END(Expression)SKIP :{     "\r"  |  " "  |  "\t"  |  "\n"  | < COMMENT: "#" (~["\n"])* >}// ----------------- Expression -------------------------------TOKEN : {    < REGEX: "$$regex(" >  | < MAX: "$$max(" >  | < MIN: "$$min(" >  | < LENGTH: "$$length(" >  | < ESCAPE: "$$escape(" >  | < UNESCAPE: "$$unescape(" >  | < STRING: "$$string(" >  | <  TRUE: "true" >  | <  FALSE: "false" >}TOKEN : { <INTEGER_LITERAL: <DECIMAL_LITERAL> | <HEX_LITERAL> | <OCTAL_LITERAL> >|  <#DECIMAL_LITERAL: ["1"-"9"] (["0"-"9"])*>|  <#HEX_LITERAL: "0" ["x","X"] (["0"-"9","a"-"f","A"-"F"])+>|  <#OCTAL_LITERAL: "0" (["0"-"7"])*>|  <FLOATING_POINT_LITERAL: (["0"-"9"])+ "." (["0"-"9"])* (<EXPONENT>)? (["f","F","d","D"])? | "." (["0"-"9"])+ (<EXPONENT>)? (["f","F","d","D"])? | (["0"-"9"])+ <EXPONENT> (["f","F","d","D"])? | (["0"-"9"])+ (<EXPONENT>)? ["f","F","d","D"]>|  <#EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+>|  <STRING_LITERAL: "\"" ( ~["\"","\\"] | "\\" ( ["n","t","b","r","f","\\","\'","\""] | ["0"-"7"] (["0"-"7"])?  | ["0"-"3"] ["0"-"7"] ["0"-"7"] ))* "\"">}TOKEN : { <IDENTIFIER: "$$" <VARSTART> ( < VARREST > | ".")* >   | < #VARSTART: ["A"-"Z", "a"-"z"] >  | < #VARREST:  ["A"-"Z", "a"-"z", "0"-"9", "_"] >  | < #WHITESPACE: " " | "\t" >}void functionExpression() : {/*@bgen(jjtree) functionExpression */
   SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTFUNCTIONEXPRESSION);
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
@@ -26,16 +26,16 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants/*@ege
                                                                                     jjtree.closeNodeScope(jjtn000, true);
                                                                                     jjtc000 = false;
                                                                                   }
-/*@egen*/ { jjtn000.jjtSetValue("min"); }		| < LENGTH > (LOOKAHEAD(list()) list() | conditionalExpression()) ")"/*@bgen(jjtree)*/
-                                                                                      {
-                                                                                        jjtree.closeNodeScope(jjtn000, true);
-                                                                                        jjtc000 = false;
-                                                                                      }
-/*@egen*/ { jjtn000.jjtSetValue("length"); }	    | < STRING > list() "," conditionalExpression() "," conditionalExpression() ")"/*@bgen(jjtree)*/
-                                                                                            {
-                                                                                              jjtree.closeNodeScope(jjtn000, true);
-                                                                                              jjtc000 = false;
-                                                                                            }
+/*@egen*/ { jjtn000.jjtSetValue("min"); }		| < LENGTH > conditionalExpression() ")"/*@bgen(jjtree)*/
+                                                         {
+                                                           jjtree.closeNodeScope(jjtn000, true);
+                                                           jjtc000 = false;
+                                                         }
+/*@egen*/ { jjtn000.jjtSetValue("length"); }	    | < STRING > conditionalExpression() "," conditionalExpression() "," conditionalExpression() ")"/*@bgen(jjtree)*/
+                                                                                                             {
+                                                                                                               jjtree.closeNodeScope(jjtn000, true);
+                                                                                                               jjtc000 = false;
+                                                                                                             }
 /*@egen*/ { jjtn000.jjtSetValue("string"); }		| < ESCAPE > conditionalExpression() ")"/*@bgen(jjtree)*/
                                                          {
                                                            jjtree.closeNodeScope(jjtn000, true);
@@ -66,7 +66,7 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants/*@ege
             jjtree.closeNodeScope(jjtn000, true);
           }
         }
-/*@egen*/}SimpleNode buildExpressionTree()       : { SimpleNode t; }{  (  	t = conditionalExpression() < EOF>  )  {    return t;  }}SimpleNode conditionalExpression() : {/*@bgen(jjtree) conditionalExpression */
+/*@egen*/}SelfCompilingNode buildExpressionTree()       : { SimpleNode t; }{  (  	t = conditionalExpression() < EOF>  )  {    return (SelfCompilingNode) t;  }}SimpleNode conditionalExpression() : {/*@bgen(jjtree) conditionalExpression */
                                        SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTCONDITIONALEXPRESSION);
                                        boolean jjtc000 = true;
                                        jjtree.openNodeScope(jjtn000);
@@ -284,7 +284,7 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants/*@ege
             jjtree.closeNodeScope(jjtn000, true);
           }
         }
-/*@egen*/}Token unaryOperator()       : {Token t;}{	( t = "+" 	| t = "-" 	| t = "~"	| t = "!"	)	{	  return t;	}}void primaryExpression()       : {  }{	(    constant()	  | "(" conditionalExpression() ")"		  | functionExpression()	  | identifier()	)}void listIndexExpression()       : {  }{	 "[" conditionalExpression()  "]"} void identifier() : {/*@bgen(jjtree) identifier */
+/*@egen*/}Token unaryOperator()       : {Token t;}{	( t = "+" 	| t = "-" 	| t = "~"	| t = "!"	)	{	  return t;	}}void primaryExpression()       : {  }{	(    constant()	  | "(" conditionalExpression() ")"		  | functionExpression()	  | identifier()	)}void listIndexExpression()       : {  }{	 "[" conditionalExpression() [ "," conditionalExpression() ]  "]"} void identifier() : {/*@bgen(jjtree) identifier */
                       SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTIDENTIFIER);
                       boolean jjtc000 = true;
                       jjtree.openNodeScope(jjtn000);
@@ -295,65 +295,13 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants/*@ege
           jjtree.closeNodeScope(jjtn000, true);
           jjtc000 = false;
         }
-/*@egen*/	{	  jjtn000.jjtSetValue(t.image);	}/*@bgen(jjtree)*/
+/*@egen*/	{	  jjtn000.jjtSetValue(t.image.substring(2));	}/*@bgen(jjtree)*/
   } finally {
     if (jjtc000) {
       jjtree.closeNodeScope(jjtn000, true);
     }
   }
-/*@egen*/}void primaryListExpression()       : {  }{	   "(" list() ")" 	|  identifier()}void subList() : {/*@bgen(jjtree) subList */
-                   SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTSUBLIST);
-                   boolean jjtc000 = true;
-                   jjtree.openNodeScope(jjtn000);
-/*@egen*/ jjtn000.isNoop(); }{/*@bgen(jjtree) subList */
-        try {
-/*@egen*/	primaryListExpression() [ "[" conditionalExpression() "," conditionalExpression()  "]" ]/*@bgen(jjtree)*/
-        } catch (Throwable jjte000) {
-          if (jjtc000) {
-            jjtree.clearNodeScope(jjtn000);
-            jjtc000 = false;
-          } else {
-            jjtree.popNode();
-          }
-          if (jjte000 instanceof RuntimeException) {
-            throw (RuntimeException)jjte000;
-          }
-          if (jjte000 instanceof ParseException) {
-            throw (ParseException)jjte000;
-          }
-          throw (Error)jjte000;
-        } finally {
-          if (jjtc000) {
-            jjtree.closeNodeScope(jjtn000, true);
-          }
-        }
-/*@egen*/}void list() : {/*@bgen(jjtree) list */
-                SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTLIST);
-                boolean jjtc000 = true;
-                jjtree.openNodeScope(jjtn000);
-/*@egen*/ jjtn000.isNoop();  }{/*@bgen(jjtree) list */
-        try {
-/*@egen*/	subList() [ "+"  list() ]/*@bgen(jjtree)*/
-        } catch (Throwable jjte000) {
-          if (jjtc000) {
-            jjtree.clearNodeScope(jjtn000);
-            jjtc000 = false;
-          } else {
-            jjtree.popNode();
-          }
-          if (jjte000 instanceof RuntimeException) {
-            throw (RuntimeException)jjte000;
-          }
-          if (jjte000 instanceof ParseException) {
-            throw (ParseException)jjte000;
-          }
-          throw (Error)jjte000;
-        } finally {
-          if (jjtc000) {
-            jjtree.closeNodeScope(jjtn000, true);
-          }
-        }
-/*@egen*/}void constant() : {/*@bgen(jjtree) constant */
+/*@egen*/}void constant() : {/*@bgen(jjtree) constant */
                    SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ExpressionNode.jjtCreate(JJTCONSTANT);
                    boolean jjtc000 = true;
                    jjtree.openNodeScope(jjtn000);
@@ -374,7 +322,17 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants/*@ege
                                           jjtree.closeNodeScope(jjtn000, true);
                                           jjtc000 = false;
                                         }
-/*@egen*/  { jjtn000.jjtSetValue(Double.valueOf(t.image)); } 	)/*@bgen(jjtree)*/
+/*@egen*/  { jjtn000.jjtSetValue(Double.valueOf(t.image)); } 	| < TRUE >/*@bgen(jjtree)*/
+                                                                {
+                                                                  jjtree.closeNodeScope(jjtn000, true);
+                                                                  jjtc000 = false;
+                                                                }
+/*@egen*/ 						{ jjtn000.jjtSetValue(Boolean.valueOf(true)); } 	| < FALSE >/*@bgen(jjtree)*/
+                                                        {
+                                                          jjtree.closeNodeScope(jjtn000, true);
+                                                          jjtc000 = false;
+                                                        }
+/*@egen*/ 					{ jjtn000.jjtSetValue(Boolean.valueOf(false)); }  	)/*@bgen(jjtree)*/
         } finally {
           if (jjtc000) {
             jjtree.closeNodeScope(jjtn000, true);

@@ -392,7 +392,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
         }
         option();
       }
-      remoteShell();
+      pieces();
     } catch (Throwable jjte000) {
           if (jjtc000) {
             jjtree.clearNodeScope(jjtn000);
@@ -421,6 +421,21 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
   jjtree.openNodeScope(jjtn000);
     try {
       jj_consume_token(LOG);
+      pieces();
+    } catch (Throwable jjte000) {
+          if (jjtc000) {
+            jjtree.clearNodeScope(jjtn000);
+            jjtc000 = false;
+          } else {
+            jjtree.popNode();
+          }
+          if (jjte000 instanceof RuntimeException) {
+            {if (true) throw (RuntimeException)jjte000;}
+          }
+          if (jjte000 instanceof ParseException) {
+            {if (true) throw (ParseException)jjte000;}
+          }
+          {if (true) throw (Error)jjte000;}
     } finally {
           if (jjtc000) {
             jjtree.closeNodeScope(jjtn000, true);
@@ -435,6 +450,21 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
   jjtree.openNodeScope(jjtn000);
     try {
       jj_consume_token(DESTROY);
+      expression();
+    } catch (Throwable jjte000) {
+          if (jjtc000) {
+            jjtree.clearNodeScope(jjtn000);
+            jjtc000 = false;
+          } else {
+            jjtree.popNode();
+          }
+          if (jjte000 instanceof RuntimeException) {
+            {if (true) throw (RuntimeException)jjte000;}
+          }
+          if (jjte000 instanceof ParseException) {
+            {if (true) throw (ParseException)jjte000;}
+          }
+          {if (true) throw (Error)jjte000;}
     } finally {
           if (jjtc000) {
             jjtree.closeNodeScope(jjtn000, true);
@@ -596,11 +626,11 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
     }
   }
 
-  final public void remoteShell() throws ParseException {
-                      /*@bgen(jjtree) remoteShell */
-                       SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTREMOTESHELL);
-                       boolean jjtc000 = true;
-                       jjtree.openNodeScope(jjtn000);boolean lastWasExp = false;
+  final public void pieces() throws ParseException {
+                 /*@bgen(jjtree) pieces */
+                  SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTPIECES);
+                  boolean jjtc000 = true;
+                  jjtree.openNodeScope(jjtn000);boolean lastWasExp = false;
     try {
       label_6:
       while (true) {
@@ -664,18 +694,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
       jj_consume_token(FILELIST);
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case FILESPEC:
-        f = jj_consume_token(FILESPEC);
-                                             m = f;
-        switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-        case COLON:
-          jj_consume_token(COLON);
-          m = jj_consume_token(FILESPEC);
-          break;
-        default:
-          jj_la1[14] = jj_gen;
-          ;
-        }
-                                                                                      result.put(f.image, m.image);
+        fileElement();
         label_7:
         while (true) {
           switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -683,32 +702,62 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
             ;
             break;
           default:
-            jj_la1[15] = jj_gen;
+            jj_la1[14] = jj_gen;
             break label_7;
           }
           jj_consume_token(COMMA);
-          f = jj_consume_token(FILESPEC);
-                                          m = f;
-          switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-          case COLON:
-            jj_consume_token(COLON);
-            m = jj_consume_token(FILESPEC);
-            break;
-          default:
-            jj_la1[16] = jj_gen;
-            ;
-          }
-                                                                                   result.put(f.image, m.image);
+          fileElement();
         }
         break;
       default:
-        jj_la1[17] = jj_gen;
+        jj_la1[15] = jj_gen;
         ;
       }
       jj_consume_token(FILELISTEND);
           jjtree.closeNodeScope(jjtn000, true);
           jjtc000 = false;
          jjtn000.jjtSetValue(result);
+    } catch (Throwable jjte000) {
+          if (jjtc000) {
+            jjtree.clearNodeScope(jjtn000);
+            jjtc000 = false;
+          } else {
+            jjtree.popNode();
+          }
+          if (jjte000 instanceof RuntimeException) {
+            {if (true) throw (RuntimeException)jjte000;}
+          }
+          if (jjte000 instanceof ParseException) {
+            {if (true) throw (ParseException)jjte000;}
+          }
+          {if (true) throw (Error)jjte000;}
+    } finally {
+          if (jjtc000) {
+            jjtree.closeNodeScope(jjtn000, true);
+          }
+    }
+  }
+
+  final public void fileElement() throws ParseException {
+                      /*@bgen(jjtree) fileElement */
+                       SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTFILEELEMENT);
+                       boolean jjtc000 = true;
+                       jjtree.openNodeScope(jjtn000);Token f; Token m;
+    try {
+      f = jj_consume_token(FILESPEC);
+                           m = f;
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case COLON:
+        jj_consume_token(COLON);
+        m = jj_consume_token(FILESPEC);
+        break;
+      default:
+        jj_la1[16] = jj_gen;
+        ;
+      }
+                                                                    jjtree.closeNodeScope(jjtn000, true);
+                                                                    jjtc000 = false;
+                                                                    jjtn000.jjtSetValue(f.image+"|"+m.image);
     } finally {
           if (jjtc000) {
             jjtree.closeNodeScope(jjtn000, true);
@@ -725,7 +774,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
   public Token jj_nt;
   private int jj_ntk;
   private int jj_gen;
-  final private int[] jj_la1 = new int[18];
+  final private int[] jj_la1 = new int[17];
   static private int[] jj_la1_0;
   static private int[] jj_la1_1;
   static {
@@ -733,10 +782,10 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
       jj_la1_init_1();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0xfc0,0xfc0,0x6c0,0x18000,0x18000,0xc0c80000,0x40480000,0x18000,0x800006c0,0x80000000,0x0,0x0,0x80000000,0x80000000,0x20000000,0x8000000,0x20000000,0x1000000,};
+      jj_la1_0 = new int[] {0xfc0,0xfc0,0x6c0,0x18000,0x18000,0xc0c80000,0x40480000,0x18000,0x800006c0,0x80000000,0x0,0x0,0x80000000,0x80000000,0x8000000,0x1000000,0x20000000,};
    }
    private static void jj_la1_init_1() {
-      jj_la1_1 = new int[] {0x0,0x0,0x0,0x0,0x0,0x21,0x0,0x0,0x21,0x21,0x14,0x14,0x35,0x35,0x0,0x0,0x0,0x0,};
+      jj_la1_1 = new int[] {0x0,0x0,0x0,0x0,0x0,0x21,0x0,0x0,0x21,0x21,0x14,0x14,0x35,0x35,0x0,0x0,0x0,};
    }
 
   /** Constructor with InputStream. */
@@ -750,7 +799,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 17; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -765,7 +814,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
     jj_ntk = -1;
     jjtree.reset();
     jj_gen = 0;
-    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 17; i++) jj_la1[i] = -1;
   }
 
   /** Constructor. */
@@ -775,7 +824,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 17; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -786,7 +835,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
     jj_ntk = -1;
     jjtree.reset();
     jj_gen = 0;
-    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 17; i++) jj_la1[i] = -1;
   }
 
   /** Constructor with generated Token Manager. */
@@ -795,7 +844,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 17; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -805,7 +854,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
     jj_ntk = -1;
     jjtree.reset();
     jj_gen = 0;
-    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 17; i++) jj_la1[i] = -1;
   }
 
   private Token jj_consume_token(int kind) throws ParseException {
@@ -861,7 +910,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
       la1tokens[jj_kind] = true;
       jj_kind = -1;
     }
-    for (int i = 0; i < 18; i++) {
+    for (int i = 0; i < 17; i++) {
       if (jj_la1[i] == jj_gen) {
         for (int j = 0; j < 32; j++) {
           if ((jj_la1_0[i] & (1<<j)) != 0) {

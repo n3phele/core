@@ -27,8 +27,9 @@ public enum ShellFragmentKind {
     variableAssign,
     expression,
     passThru,
-    remoteShell,
+    pieces,
     fileList,
+    fileElement,
     //
     // Expression related
     //
@@ -42,10 +43,9 @@ public enum ShellFragmentKind {
     multiplicativeExpression,
     unaryExpression,
     identifier,
-    subList,
-    list,
     constantLong,
     constantDouble,
     constantString,
+    constantBoolean
     
 }

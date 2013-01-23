@@ -27,27 +27,31 @@ public interface ExpressionConstants {
   /** RegularExpression Id. */
   int STRING = 12;
   /** RegularExpression Id. */
-  int INTEGER_LITERAL = 13;
+  int TRUE = 13;
   /** RegularExpression Id. */
-  int DECIMAL_LITERAL = 14;
+  int FALSE = 14;
   /** RegularExpression Id. */
-  int HEX_LITERAL = 15;
+  int INTEGER_LITERAL = 15;
   /** RegularExpression Id. */
-  int OCTAL_LITERAL = 16;
+  int DECIMAL_LITERAL = 16;
   /** RegularExpression Id. */
-  int FLOATING_POINT_LITERAL = 17;
+  int HEX_LITERAL = 17;
   /** RegularExpression Id. */
-  int EXPONENT = 18;
+  int OCTAL_LITERAL = 18;
   /** RegularExpression Id. */
-  int STRING_LITERAL = 19;
+  int FLOATING_POINT_LITERAL = 19;
   /** RegularExpression Id. */
-  int IDENTIFIER = 20;
+  int EXPONENT = 20;
   /** RegularExpression Id. */
-  int VARSTART = 21;
+  int STRING_LITERAL = 21;
   /** RegularExpression Id. */
-  int VARREST = 22;
+  int IDENTIFIER = 22;
   /** RegularExpression Id. */
-  int WHITESPACE = 23;
+  int VARSTART = 23;
+  /** RegularExpression Id. */
+  int VARREST = 24;
+  /** RegularExpression Id. */
+  int WHITESPACE = 25;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -67,6 +71,8 @@ public interface ExpressionConstants {
     "\"$$escape(\"",
     "\"$$unescape(\"",
     "\"$$string(\"",
+    "\"true\"",
+    "\"false\"",
     "<INTEGER_LITERAL>",
     "<DECIMAL_LITERAL>",
     "<HEX_LITERAL>",

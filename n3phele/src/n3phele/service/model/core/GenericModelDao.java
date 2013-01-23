@@ -181,6 +181,17 @@ public final Class<T> clazz;
 		return ofy().load().type(clazz).filter(propName, propValue).keys().list();
 	}
 	
+	public Collection<T> listByURI(Collection<URI> ids) {
+		List<Long> idList = new ArrayList<Long>();
+		for(URI uri : ids) {
+			String s = uri.getPath();
+			Long id = Long.valueOf(s.substring(s.lastIndexOf("/")+1));
+			idList.add(id);
+		}
+		return ofy().load().type(clazz).ids(idList).values();
+
+	}
+	
 	public List<T> listAll() {
 		return ofy().load().type(clazz).list();
 	}

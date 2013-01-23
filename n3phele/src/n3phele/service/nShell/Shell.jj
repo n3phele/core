@@ -5,7 +5,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants/*@egen*/{/*@bg
   protected JJTShellState jjtree = new JJTShellState();
 
 /*@egen*/    protected Expression expressionHandler = null;
-	public Shell(String s, int lineNo)	{	  	if(s.charAt(0) != '\n')	  	{	  	  	lineNo = lineNo -1;	  		s = "\n"+s;	   }		jj_input_stream = new SimpleCharStream(new java.io.StringReader(s), lineNo, 1);        jj_input_stream.setTabSize(4);        token_source = new ShellTokenManager(jj_input_stream);        token = new Token();        jj_ntk = -1;        jj_gen = 0;        for (int i = 0; i < 5; i++) jj_la1[i] = -1;	}	public Expression getExpressionHandler(String s, int lineNo, int columnNo)	{		if(expressionHandler == null)		{		  	return (expressionHandler = new Expression(s, lineNo, columnNo));		} else		{			expressionHandler.reInit(s, lineNo, columnNo);			return expressionHandler;		}			  	}    public SimpleNode getExpressionNode(String s, int lineNo, int columnNo) throws ParseException	{		Expression e = getExpressionHandler(s, lineNo, columnNo);	 	SimpleNode node = e.buildExpressionTree();	 	return node;    }	 public List<ShellFragment> compile() throws ParseException     {        List<ShellFragment> result = new ArrayList<ShellFragment>();        SelfCompilingNode s = script();        s.compile(result);        return result;     }	    }PARSER_END(Shell)//SPECIAL_TOKEN ://{//	< INDENT: "\n" ( " " | "\t" )+ >//  | < COMMENT: "#" (~["\n"])* >// }< fileListProcessing, DEFAULT, argProcessing, passThruProcessing, wrappedExpressionProcessing >SKIP :{     "\r"  |  "\n"  | < COMMENT: "#" (~["\n"])* >}< fileListProcessing, DEFAULT, argProcessing, passThruProcessing, wrappedExpressionProcessing >SPECIAL_TOKEN :{     < SPACE: ( " " | "\t" )+ >}< fileListProcessing, DEFAULT, argProcessing, passThruProcessing >SKIP :{   < EXPRESSIONWRAPPER: "$${" > : wrappedExpressionProcessing}// Shell primatives< passThruProcessing, DEFAULT >TOKEN :{	< ON: "ON" > : DEFAULT  | < CREATEVM: "CREATEVM" > : DEFAULT  | < FORLOOP: "FOR" > : DEFAULT  | < DESTROY: "DESTROY" > : DEFAULT  | < LOG: "LOG" > : DEFAULT  | < VARIABLEASSIGN: "$$" < VARSTART > (< VARREST >)* (< WHITESPACE >)* "=" (< WHITESPACE >)* > { String s = image.toString().trim(); matchedToken.image = s.substring(0, s.length()-1).trim(); } : DEFAULT  | < #VARSTART: ["A"-"Z", "a"-"z"] >  | < #VARREST:  ["A"-"Z", "a"-"z", "0"-"9", "_"] >  | < #WHITESPACE: " " | "\t" >}TOKEN :{    < NO_ARG_OPTION: ("--nowait" | "--wait" | "--needsAll" | "--needsNone" | "--producesAll" | "--producesNone" ) > { String ss = image.toString(); matchedToken.image = ss.substring(2); }  | < OPTION: "--" < OPTIONSTART > (< OPTIONREST >)* > { matchedToken.image = image.toString().substring(2); } : argProcessing   | < #OPTIONSTART: ["a"-"z"] >  | < #OPTIONREST: ["A"-"Z", "a"-"z", "0"-"9"] >}< argProcessing >TOKEN :{    < NON_SPACE_ARG : < ARGSTART > (< ARGREST >)* > : DEFAULT  | < #ARGSTART: ["A"-"Z", "a"-"z", "0"-"9", ".", "_", "/"]  >  | < #ARGREST:  ~[" ", "\n"] >  | < LITERAL_STRING : < STRING_LITERAL > > { matchedToken.image = image.toString() ;									  matchedToken.image = n3phele.service.n.helpers.StringEscapeUtils.unescapeJavaString(matchedToken.image.substring(1,matchedToken.image.length()-1));									} : DEFAULT    | < FILELIST : "["  > : fileListProcessing }< fileListProcessing >TOKEN :{	< FILESPEC: <FILESTART> (<FILEREST>)* >	|  <#FILESTART: ["A"-"Z","a"-"z","0"-"9","_","-","."]>	|  <#FILEREST: ["A"-"Z","a"-"z","0"-"9","_","-",".","/"]>	|  < COMMA: "," >	|  < FILELISTEND : "]" > :DEFAULT}< fileListProcessing, DEFAULT, wrappedExpressionProcessing, expressionProcessing >TOKEN :{	< COLON: ":" >}< argProcessing, DEFAULT, passThruProcessing >TOKEN :{	< LITERALBLOCK: "%%{" ([" ", "\t"])* ("\n")? (~["}"] | "}" ~["%"] | "}%" ~["%"])* "}%%" > 	{	        String sss = image.toString();            int i, j;            for(j = 3; j < sss.length() && (sss.charAt(j) == ' ' || sss.charAt(j) == '\t'); j++) ;            if(j < sss.length() && sss.charAt(j) == '\n') j++;            for(i = sss.length()-4; i > 0 && (sss.charAt(i) == ' ' || sss.charAt(i) == '\t'); i--) ;            if(i > 0 && sss.charAt(i) == '\n') i++;            sss = sss.substring(j, i+1);            StringBuffer b = new StringBuffer();            boolean skipToEnd = false;            for(int p=0; p < sss.length(); p++) {            	char c = sss.charAt(p);            	if(skipToEnd) {            		if(c == '\n') {            			skipToEnd = false;            		}            	} else {            		if(c == ' ' || c == '\t')            			continue;            		skipToEnd = true;            		            	}            	b.append(c);	            }            matchedToken.image = b.toString();    } : DEFAULT    | < VARIABLE: "$$" < VARSTART > (< VARREST >)* (< WHITESPACE > | "\n") > { matchedToken.image = image.toString().trim(); } : DEFAULT    | < EXPRESSION: "$$" (~[" ", "\t", "\"", "'", "\\", "{", "\n", "\r" ] | < STRING_LITERAL> | ("'" (~["'"] | "\\'")* "'") )+ > : DEFAULT    | < #STRING_LITERAL: "\"" ( ~["\"","\\"] | "\\" ( ["n","t","b","r","f","\\","\'","\""] | ["0"-"7"] (["0"-"7"])?  | ["0"-"3"] ["0"-"7"] ["0"-"7"] ))* "\"">}< DEFAULT >TOKEN :{   <  PASSTHRU: (< PASSTHRUSET >)+ > : passThruProcessing | < #PASSTHRUSET: ( ~[" ", "\t", "\n", "\r", "$" ] | ( "$" ~["$"] )) >}< passThruProcessing >TOKEN :{    < PASSTHRUMORE:  (< PASSTHRUSET >)+ ("\n")? >}< wrappedExpressionProcessing >TOKEN :{  < WRAPPEDEXPRESSION: (~["}"])* "}" > { matchedToken.image = image.toString().substring(0, image.toString().length()-1); } : DEFAULT}SelfCompilingNode script() : {/*@bgen(jjtree) script */
+	public Shell(String s, int lineNo)	{	  	if(s.charAt(0) != '\n')	  	{	  	  	lineNo = lineNo -1;	  		s = "\n"+s;	   }		jj_input_stream = new SimpleCharStream(new java.io.StringReader(s), lineNo, 1);        jj_input_stream.setTabSize(4);        token_source = new ShellTokenManager(jj_input_stream);        token = new Token();        jj_ntk = -1;        jj_gen = 0;        for (int i = 0; i < 5; i++) jj_la1[i] = -1;	}	public Expression getExpressionHandler(String s, int lineNo, int columnNo)	{		if(expressionHandler == null)		{		  	return (expressionHandler = new Expression(s, lineNo, columnNo));		} else		{			expressionHandler.reInit(s, lineNo, columnNo);			return expressionHandler;		}			  	}    public SimpleNode getExpressionNode(String s, int lineNo, int columnNo) throws ParseException	{		Expression e = getExpressionHandler(s, lineNo, columnNo);	 	SimpleNode node = e.buildExpressionTree();	 	return node;    }	 public List<ShellFragment> compile() throws ParseException     {        List<ShellFragment> result = new ArrayList<ShellFragment>();        SelfCompilingNode s = script();        s.compile(result);        return result;     }	    }PARSER_END(Shell)//SPECIAL_TOKEN ://{//	< INDENT: "\n" ( " " | "\t" )+ >//  | < COMMENT: "#" (~["\n"])* >// }< fileListProcessing, DEFAULT, argProcessing, passThruProcessing, wrappedExpressionProcessing >SKIP :{     "\r"  |  "\n"  | < COMMENT: "#" (~["\n"])* >}< fileListProcessing, DEFAULT, argProcessing, passThruProcessing, wrappedExpressionProcessing >SPECIAL_TOKEN :{     < SPACE: ( " " | "\t" )+ >}< fileListProcessing, DEFAULT, argProcessing, passThruProcessing >SKIP :{   < EXPRESSIONWRAPPER: "$${" > : wrappedExpressionProcessing}// Shell primatives< passThruProcessing, DEFAULT >TOKEN :{	< ON: "ON" > : DEFAULT  | < CREATEVM: "CREATEVM" > : DEFAULT  | < FORLOOP: "FOR" > : DEFAULT  | < DESTROY: "DESTROY" > : DEFAULT  | < LOG: "LOG" > : DEFAULT  | < VARIABLEASSIGN: "$$" < VARSTART > (< VARREST >)* (< WHITESPACE >)* "=" (< WHITESPACE >)* > { String s = image.toString().trim(); matchedToken.image = s.substring(0, s.length()-1).trim(); } : DEFAULT  | < #VARSTART: ["A"-"Z", "a"-"z"] >  | < #VARREST:  ["A"-"Z", "a"-"z", "0"-"9", "_", "."] >  | < #WHITESPACE: " " | "\t" >}TOKEN :{    < NO_ARG_OPTION: ("--async" | "--wait" | "--needsAll" | "--needsNone" | "--producesAll" | "--producesNone" ) > { String ss = image.toString(); matchedToken.image = ss.substring(2); }  | < OPTION: "--" < OPTIONSTART > (< OPTIONREST >)* > { matchedToken.image = image.toString().substring(2); } : argProcessing   | < #OPTIONSTART: ["a"-"z"] >  | < #OPTIONREST: ["A"-"Z", "a"-"z", "0"-"9"] >}< argProcessing >TOKEN :{    < NON_SPACE_ARG : < ARGSTART > (< ARGREST >)* > : DEFAULT  | < #ARGSTART: ["A"-"Z", "a"-"z", "0"-"9", ".", "_", "/"]  >  | < #ARGREST:  ~[" ", "\n"] >  | < LITERAL_STRING : < STRING_LITERAL > > { matchedToken.image = image.toString() ;									  matchedToken.image = n3phele.service.n.helpers.StringEscapeUtils.unescapeJavaString(matchedToken.image.substring(1,matchedToken.image.length()-1));									} : DEFAULT    | < FILELIST : "["  > : fileListProcessing }< fileListProcessing >TOKEN :{	< FILESPEC: <FILESTART> (<FILEREST>)* >	|  <#FILESTART: ["A"-"Z","a"-"z","0"-"9","_","-","."]>	|  <#FILEREST: ["A"-"Z","a"-"z","0"-"9","_","-",".","/"]>	|  < COMMA: "," >	|  < FILELISTEND : "]" > :DEFAULT}< fileListProcessing, DEFAULT, wrappedExpressionProcessing, expressionProcessing >TOKEN :{	< COLON: ":" >}< argProcessing, DEFAULT, passThruProcessing >TOKEN :{	< LITERALBLOCK: "%%{" ([" ", "\t"])* ("\n")? (~["}"] | "}" ~["%"] | "}%" ~["%"])* "}%%" > 	{	        String sss = image.toString();            int i, j;            for(j = 3; j < sss.length() && (sss.charAt(j) == ' ' || sss.charAt(j) == '\t'); j++) ;            if(j < sss.length() && sss.charAt(j) == '\n') j++;            for(i = sss.length()-4; i > 0 && (sss.charAt(i) == ' ' || sss.charAt(i) == '\t'); i--) ;            if(i > 0 && sss.charAt(i) == '\n') i++;            sss = sss.substring(j, i+1);            StringBuffer b = new StringBuffer();            boolean skipToEnd = false;            for(int p=0; p < sss.length(); p++) {            	char c = sss.charAt(p);            	if(skipToEnd) {            		if(c == '\n') {            			skipToEnd = false;            		}            	} else {            		if(c == ' ' || c == '\t')            			continue;            		skipToEnd = true;            		            	}            	b.append(c);	            }            matchedToken.image = b.toString();    } : DEFAULT    | < VARIABLE: "$$" < VARSTART > (< VARREST >)* (< WHITESPACE > | "\n") > { matchedToken.image = image.toString().trim(); } : DEFAULT    | < EXPRESSION: "$$" (~[" ", "\t", "\"", "'", "\\", "{", "\n", "\r" ] | < STRING_LITERAL> | ("'" (~["'"] | "\\'")* "'") )+ > : DEFAULT    | < #STRING_LITERAL: "\"" ( ~["\"","\\"] | "\\" ( ["n","t","b","r","f","\\","\'","\""] | ["0"-"7"] (["0"-"7"])?  | ["0"-"3"] ["0"-"7"] ["0"-"7"] ))* "\"">}< DEFAULT >TOKEN :{   <  PASSTHRU: (< PASSTHRUSET >)+ > : passThruProcessing | < #PASSTHRUSET: ( ~[" ", "\t", "\n", "\r", "$" ] | ( "$" ~["$"] )) >}< passThruProcessing >TOKEN :{    < PASSTHRUMORE:  (< PASSTHRUSET >)+ ("\n")? >}< wrappedExpressionProcessing >TOKEN :{  < WRAPPEDEXPRESSION: (~["}"])* "}" > { matchedToken.image = image.toString().substring(0, image.toString().length()-1); } : DEFAULT}SelfCompilingNode script() : {/*@bgen(jjtree) script */
   SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTSCRIPT);
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
@@ -185,7 +185,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants/*@egen*/{/*@bg
   jjtree.openNodeScope(jjtn000);
 /*@egen*/ }{/*@bgen(jjtree) on */
         try {
-/*@egen*/	< ON > expression() ( option() )*  remoteShell()/*@bgen(jjtree)*/
+/*@egen*/	< ON > expression() ( option() )*  pieces()/*@bgen(jjtree)*/
         } catch (Throwable jjte000) {
           if (jjtc000) {
             jjtree.clearNodeScope(jjtn000);
@@ -211,7 +211,21 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants/*@egen*/{/*@bg
   jjtree.openNodeScope(jjtn000);
 /*@egen*/ }{/*@bgen(jjtree) log */
         try {
-/*@egen*/	< LOG >/*@bgen(jjtree)*/
+/*@egen*/	< LOG > pieces()/*@bgen(jjtree)*/
+        } catch (Throwable jjte000) {
+          if (jjtc000) {
+            jjtree.clearNodeScope(jjtn000);
+            jjtc000 = false;
+          } else {
+            jjtree.popNode();
+          }
+          if (jjte000 instanceof RuntimeException) {
+            throw (RuntimeException)jjte000;
+          }
+          if (jjte000 instanceof ParseException) {
+            throw (ParseException)jjte000;
+          }
+          throw (Error)jjte000;
         } finally {
           if (jjtc000) {
             jjtree.closeNodeScope(jjtn000, true);
@@ -223,7 +237,21 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants/*@egen*/{/*@bg
   jjtree.openNodeScope(jjtn000);
 /*@egen*/ }{/*@bgen(jjtree) destroy */
         try {
-/*@egen*/	< DESTROY >/*@bgen(jjtree)*/
+/*@egen*/	< DESTROY >	 expression()/*@bgen(jjtree)*/
+        } catch (Throwable jjte000) {
+          if (jjtc000) {
+            jjtree.clearNodeScope(jjtn000);
+            jjtc000 = false;
+          } else {
+            jjtree.popNode();
+          }
+          if (jjte000 instanceof RuntimeException) {
+            throw (RuntimeException)jjte000;
+          }
+          if (jjte000 instanceof ParseException) {
+            throw (ParseException)jjte000;
+          }
+          throw (Error)jjte000;
         } finally {
           if (jjtc000) {
             jjtree.closeNodeScope(jjtn000, true);
@@ -308,11 +336,11 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants/*@egen*/{/*@bg
             jjtree.closeNodeScope(jjtn000, true);
           }
         }
-/*@egen*/}void remoteShell() : {/*@bgen(jjtree) remoteShell */
-                       SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTREMOTESHELL);
-                       boolean jjtc000 = true;
-                       jjtree.openNodeScope(jjtn000);
-/*@egen*/ boolean lastWasExp = false; }{/*@bgen(jjtree) remoteShell */
+/*@egen*/}void pieces() : {/*@bgen(jjtree) pieces */
+                  SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTPIECES);
+                  boolean jjtc000 = true;
+                  jjtree.openNodeScope(jjtn000);
+/*@egen*/ boolean lastWasExp = false; }{/*@bgen(jjtree) pieces */
         try {
 /*@egen*/	( 	   expression()	   {	     lastWasExp = true;	   }	 |   passThru(lastWasExp)	   {	    lastWasExp = false;	   }	) +/*@bgen(jjtree)*/
         } catch (Throwable jjte000) {
@@ -340,15 +368,46 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants/*@egen*/{/*@bg
                     jjtree.openNodeScope(jjtn000);
 /*@egen*/ Map<String, String> result = new HashMap<String, String>(); Token f; Token m; }{/*@bgen(jjtree) fileList */
         try {
-/*@egen*/	(  	    < FILELIST > [f = < FILESPEC > { m = f; } [ < COLON > m = < FILESPEC >] { result.put(f.image, m.image); }	    (< COMMA > f = < FILESPEC > { m = f; } [ < COLON > m = < FILESPEC >] { result.put(f.image, m.image); } )*] < FILELISTEND >	)/*@bgen(jjtree)*/
+/*@egen*/	(  	    < FILELIST > [ fileElement() ( < COMMA > fileElement() ) * ] < FILELISTEND >	)/*@bgen(jjtree)*/
         {
           jjtree.closeNodeScope(jjtn000, true);
           jjtc000 = false;
         }
 /*@egen*/	{	 jjtn000.jjtSetValue(result);	}/*@bgen(jjtree)*/
+        } catch (Throwable jjte000) {
+          if (jjtc000) {
+            jjtree.clearNodeScope(jjtn000);
+            jjtc000 = false;
+          } else {
+            jjtree.popNode();
+          }
+          if (jjte000 instanceof RuntimeException) {
+            throw (RuntimeException)jjte000;
+          }
+          if (jjte000 instanceof ParseException) {
+            throw (ParseException)jjte000;
+          }
+          throw (Error)jjte000;
         } finally {
           if (jjtc000) {
             jjtree.closeNodeScope(jjtn000, true);
           }
         }
-/*@egen*/}
+/*@egen*/}void fileElement() : {/*@bgen(jjtree) fileElement */
+                       SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTFILEELEMENT);
+                       boolean jjtc000 = true;
+                       jjtree.openNodeScope(jjtn000);
+/*@egen*/ Token f; Token m; }{/*@bgen(jjtree) fileElement */
+        try {
+/*@egen*/	f = < FILESPEC > { m = f; } [ < COLON > m = < FILESPEC >]/*@bgen(jjtree)*/
+                                                                  {
+                                                                    jjtree.closeNodeScope(jjtn000, true);
+                                                                    jjtc000 = false;
+                                                                  }
+/*@egen*/ { jjtn000.jjtSetValue(f.image+"|"+m.image); }/*@bgen(jjtree)*/
+        } finally {
+          if (jjtc000) {
+            jjtree.closeNodeScope(jjtn000, true);
+          }
+        }
+/*@egen*/}  

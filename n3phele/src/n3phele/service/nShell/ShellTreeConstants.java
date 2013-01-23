@@ -17,8 +17,9 @@ public interface ShellTreeConstants
   public int JJTVARIABLEASSIGN = 11;
   public int JJTEXPRESSION = 12;
   public int JJTPASSTHRU = 13;
-  public int JJTREMOTESHELL = 14;
+  public int JJTPIECES = 14;
   public int JJTFILELIST = 15;
+  public int JJTFILEELEMENT = 16;
 
 
   public String[] jjtNodeName = {
@@ -36,8 +37,9 @@ public interface ShellTreeConstants
     "variableAssign",
     "expression",
     "passThru",
-    "remoteShell",
+    "pieces",
     "fileList",
+    "fileElement",
   };
 }
-/* JavaCC - OriginalChecksum=287263161a558429e223c4706bd21a2a (do not edit this line) */
+/* JavaCC - OriginalChecksum=dd34f587ff6d886ff726ad184d2df40f (do not edit this line) */

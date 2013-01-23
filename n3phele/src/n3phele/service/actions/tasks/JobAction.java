@@ -130,8 +130,9 @@ public class JobAction extends Action {
 			newArg.append(argv[i]);
 		}
 		childEnv.putValue("arg", newArg.toString());
-		
-		CloudProcess child = CloudProcessResource.spawn(this.getOwner(), childName, childEnv, null, this.getProcess(), this.actionName);
+		CloudProcessResource cpr = new CloudProcessResource();
+		CloudProcess child = cpr.spawn(this.getOwner(), childName, childEnv, null, this.getProcess(), this.actionName);
+		cpr.init(child);
 		log.info("Created child "+child.getName()+" "+child.getUri()+" Action "+child.getTask());
 		this.childProcess = child.getUri().toString();
 	}

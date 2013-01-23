@@ -446,7 +446,7 @@ private int jjMoveNfa_1(int startState, int curPos)
                      jjAddStates(0, 2);
                   break;
                case 21:
-                  if ((0x3ff000000000000L & l) != 0L)
+                  if ((0x3ff400000000000L & l) != 0L)
                      jjCheckNAddStates(27, 29);
                   break;
                case 22:
@@ -472,7 +472,7 @@ private int jjMoveNfa_1(int startState, int curPos)
                      jjstateSet[jjnewStateCnt++] = 26;
                   break;
                case 27:
-                  if ((0x3ff000000000000L & l) != 0L)
+                  if ((0x3ff400000000000L & l) != 0L)
                      jjAddStates(30, 31);
                   break;
                case 28:
@@ -545,9 +545,9 @@ private int jjMoveNfa_1(int startState, int curPos)
                   if (curChar == 45)
                      jjAddStates(3, 9);
                   break;
-               case 52:
+               case 51:
                   if (curChar == 45)
-                     jjstateSet[jjnewStateCnt++] = 51;
+                     jjstateSet[jjnewStateCnt++] = 50;
                   break;
                case 56:
                   if (curChar == 45)
@@ -682,29 +682,32 @@ private int jjMoveNfa_1(int startState, int curPos)
                      jjstateSet[jjnewStateCnt++] = 38;
                   break;
                case 46:
-                  if (curChar == 116 && kind > 15)
+                  if (curChar == 99 && kind > 15)
                      kind = 15;
                   break;
                case 47:
-               case 53:
-                  if (curChar == 105)
-                     jjCheckNAdd(46);
+                  if (curChar == 110)
+                     jjstateSet[jjnewStateCnt++] = 46;
                   break;
                case 48:
-                  if (curChar == 97)
+                  if (curChar == 121)
                      jjstateSet[jjnewStateCnt++] = 47;
                   break;
                case 49:
-                  if (curChar == 119)
+                  if (curChar == 115)
                      jjstateSet[jjnewStateCnt++] = 48;
                   break;
                case 50:
-                  if (curChar == 111)
+                  if (curChar == 97)
                      jjstateSet[jjnewStateCnt++] = 49;
                   break;
-               case 51:
-                  if (curChar == 110)
-                     jjstateSet[jjnewStateCnt++] = 50;
+               case 52:
+                  if (curChar == 116 && kind > 15)
+                     kind = 15;
+                  break;
+               case 53:
+                  if (curChar == 105)
+                     jjstateSet[jjnewStateCnt++] = 52;
                   break;
                case 54:
                   if (curChar == 97)
@@ -1383,7 +1386,7 @@ private int jjMoveNfa_2(int startState, int curPos)
                      jjAddStates(41, 42);
                   break;
                case 29:
-                  if ((0x3ff000000000000L & l) != 0L)
+                  if ((0x3ff400000000000L & l) != 0L)
                      jjAddStates(64, 65);
                   break;
                case 30:
@@ -2217,7 +2220,7 @@ private int jjMoveNfa_3(int startState, int curPos)
                      jjAddStates(81, 83);
                   break;
                case 22:
-                  if ((0x3ff000000000000L & l) != 0L)
+                  if ((0x3ff400000000000L & l) != 0L)
                      jjCheckNAddStates(93, 95);
                   break;
                case 23:
@@ -2243,7 +2246,7 @@ private int jjMoveNfa_3(int startState, int curPos)
                      jjstateSet[jjnewStateCnt++] = 27;
                   break;
                case 28:
-                  if ((0x3ff000000000000L & l) != 0L)
+                  if ((0x3ff400000000000L & l) != 0L)
                      jjAddStates(96, 97);
                   break;
                case 29:
@@ -2493,7 +2496,7 @@ private int jjMoveNfa_3(int startState, int curPos)
    }
 }
 static final int[] jjnextStates = {
-   19, 25, 29, 52, 56, 65, 75, 86, 98, 99, 30, 31, 36, 37, 39, 40, 
+   19, 25, 29, 51, 56, 65, 75, 86, 98, 99, 30, 31, 36, 37, 39, 40, 
    32, 33, 35, 4, 5, 6, 7, 9, 6, 7, 9, 21, 22, 23, 27, 28, 
    32, 33, 42, 35, 10, 12, 34, 41, 43, 27, 31, 32, 33, 38, 39, 41, 
    42, 34, 35, 37, 6, 7, 11, 9, 15, 16, 17, 18, 20, 17, 18, 20, 
@@ -2759,7 +2762,7 @@ void TokenLexicalActions(Token matchedToken)
          break;
       case 15 :
         image.append(input_stream.GetSuffix(jjimageLen + (lengthOfMatch = jjmatchedPos + 1)));
-                                                                                                                      String ss = image.toString(); matchedToken.image = ss.substring(2);
+                                                                                                                     String ss = image.toString(); matchedToken.image = ss.substring(2);
          break;
       case 16 :
         image.append(input_stream.GetSuffix(jjimageLen + (lengthOfMatch = jjmatchedPos + 1)));

@@ -1,6 +1,7 @@
 package n3phele.service.model;
 
 import java.util.HashMap;
+import java.util.List;
 
 public class Context extends HashMap<String, Variable> {
 	private static final long serialVersionUID = 1L;
@@ -85,6 +86,20 @@ public class Context extends HashMap<String, Variable> {
 		return created;
 	}
 	
+	public boolean putValue(String name, List<String> value) {
+		Variable v = this.get(name);
+		boolean created = false;
+		if(v == null) {
+			v = new Variable();
+			v.setName(name);
+			created = true;
+		}
+		v.setType(VariableType.List);
+		v.setValue(value);
+		this.put(name, v);
+		return created;
+	}
+	
 	public long getLongValue(String name) {
 		Variable v = this.get(name);
 		if(v != null && !v.getValue().isEmpty()) {
@@ -135,6 +150,31 @@ public class Context extends HashMap<String, Variable> {
 			}
 		}
 		return false;
+	}
+
+	@SuppressWarnings("unchecked")
+	public void putObjectValue(String name, Object arg) {
+		if(arg instanceof String) {
+			putValue(name, (String)arg);
+		} else if (arg instanceof Long) {
+			putValue(name, (Long)arg);
+		} else if (arg instanceof Double) {
+			putValue(name, (Double)arg);
+		} else if (arg instanceof Boolean) {
+			putValue(name, (Boolean)arg);
+		} else if (arg instanceof List) {
+			putValue(name, (List<String>)arg);
+		} else{
+			putValue(name, arg.toString());
+		}
+	}
+	
+	public Object getObjectValue(String name) {
+		Variable v = this.get(name);
+		if(v == null) 
+			return null;
+		else
+			return v.getExpressionObject();
 	}
 
 }

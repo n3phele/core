@@ -125,6 +125,8 @@ public class ActionResource {
 		
 		public Action load(Long id) throws NotFoundException { return super.get(id); }
 		
+		public java.util.Collection<Action> load(java.util.Collection<URI>list) throws NotFoundException { return super.itemDao.listByURI(list); }
+		
 		public void update(Action action) throws NotFoundException { super.update(action); }
 		
 		public void add(Action action) { super.add(action); }
