@@ -23,6 +23,7 @@ import n3phele.service.model.core.User;
 import n3phele.service.rest.impl.CloudProcessResource.WaitForSignalRequest;
 
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Unindex;
 
@@ -35,13 +36,16 @@ public abstract class Action extends Entity {
 
 	@Id private Long id;
 	private String process;
-	private Context context;
+	@Embed protected Context context;
 	
 	protected Action() {}
 	
-	protected Action(User owner, String name, Context context) {
+	protected Action(URI owner, String name, Context context) {
 		super();
-		this.create(owner,  name,  context);
+		this.owner = owner.toString();
+		this.name = name;
+		this.context = context;
+		this.isPublic = false;
 	}
 	
 	public Action create(User owner, String name, Context context) {
@@ -51,6 +55,13 @@ public abstract class Action extends Entity {
 		this.isPublic = false;
 		 return this;
 	}
+	
+	/** Initialize a process for execution. The initialization phase can cause initial resource to be
+	 * allocated by the process. A task will not be initialized until all dependencies
+	 * has successfully completed processing.
+	 * @throws Exception
+	 */
+	public abstract void init() throws Exception;
 	
 	/** Invokes the process for a running timeslice and returns information regarding on going processing.
 	 * When a process completes, all processes that have nominated this process as a dependency are notified.
@@ -76,13 +87,6 @@ public abstract class Action extends Entity {
 	 * 
 	 */
 	public abstract void dump();
-	
-	/** Initialize a process for execution. The initialization phase can cause initial resource to be
-	 * allocated by the process. A task will not be initialized until all dependencies
-	 * has successfully completed processing.
-	 * @throws Exception
-	 */
-	public abstract void init() throws Exception;
 	
 	/** Signals a process with an assertion.
 	 * @param assertion

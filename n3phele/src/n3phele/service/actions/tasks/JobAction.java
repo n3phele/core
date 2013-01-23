@@ -62,41 +62,9 @@ public class JobAction extends Action {
 	public JobAction() {}
 	
 	protected JobAction(User owner, String name, Context context) {
-		super(owner, name, context);
+		super(owner.getUri(), name, context);
 	}
-
-	@Override
-	public boolean call() throws WaitForSignalRequest {
-		log.warning("Call");
-		if(!childComplete) {
-			CloudProcessResource.waitForSignal();
-			return false; // never executed
-		} else {
-			notifyOwner();
-			return true;
-		}
-		
-			
-	}
-
-	@Override
-	public void cancel() {
-		log.warning("Cancel");
-		CloudProcessResource.dump(URI.create(this.childProcess));
-		this.childEndState = ActionState.CANCELLED;
-		notifyOwner();
-		
-	}
-
-	@Override
-	public void dump() {
-		log.warning("Dump");
-		CloudProcessResource.dump(URI.create(this.childProcess));
-		this.childEndState = ActionState.CANCELLED;
-		notifyOwner();
-		
-	}
-
+	
 	@Override
 	public void init() throws Exception {
 		this.actionName = this.getContext().getValue("action");
@@ -136,6 +104,41 @@ public class JobAction extends Action {
 		log.info("Created child "+child.getName()+" "+child.getUri()+" Action "+child.getTask());
 		this.childProcess = child.getUri().toString();
 	}
+	
+
+	@Override
+	public boolean call() throws WaitForSignalRequest {
+		log.warning("Call");
+		if(!childComplete) {
+			CloudProcessResource.waitForSignal();
+			return false; // never executed
+		} else {
+			notifyOwner();
+			return true;
+		}
+		
+			
+	}
+
+	@Override
+	public void cancel() {
+		log.warning("Cancel");
+		CloudProcessResource.dump(URI.create(this.childProcess));
+		this.childEndState = ActionState.CANCELLED;
+		notifyOwner();
+		
+	}
+
+	@Override
+	public void dump() {
+		log.warning("Dump");
+		CloudProcessResource.dump(URI.create(this.childProcess));
+		this.childEndState = ActionState.CANCELLED;
+		notifyOwner();
+		
+	}
+
+
 
 	@Override
 	public void signal(SignalKind kind, String assertion) throws NotFoundException {

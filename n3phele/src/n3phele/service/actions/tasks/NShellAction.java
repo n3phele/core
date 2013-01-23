@@ -21,6 +21,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
+
+import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Embed;
+import com.googlecode.objectify.annotation.EntitySubclass;
+import com.googlecode.objectify.annotation.Unindex;
+
 import n3phele.service.core.NotFoundException;
 import n3phele.service.model.Action;
 import n3phele.service.model.CloudProcess;
@@ -31,28 +39,73 @@ import n3phele.service.model.SignalKind;
 import n3phele.service.model.Variable;
 import n3phele.service.model.VariableType;
 import n3phele.service.model.core.Helpers;
+import n3phele.service.model.core.User;
 import n3phele.service.nShell.ExpressionEngine;
 import n3phele.service.nShell.UnexpectedTypeException;
 import n3phele.service.rest.impl.ActionResource;
 import n3phele.service.rest.impl.CloudProcessResource;
 import n3phele.service.rest.impl.CloudProcessResource.WaitForSignalRequest;
 
+@EntitySubclass
+@XmlRootElement(name = "NShellAction")
+@XmlType(name = "NShellAction", propOrder = { "context", "executable", "childProcess", "childComplete", "childStatus" })
+@Unindex
+@Cache
 public class NShellAction extends Action {
 	private final static Logger log = Logger.getLogger(NShellAction.class.getName()); 
-	private List<ShellFragment> executable;
-	private Context context;
-	private URI owner;
-	private URI parent;
-	private Action action;
+	@Embed private List<ShellFragment> executable;
+	private String parent;
 	private int pc = 0;
-	private URI watchFor;
+	private String watchFor = null;
 	
-	public NShellAction(List<ShellFragment> executable, Context context, URI owner, URI parent) {
+	public NShellAction(List<ShellFragment> executable, String name, Context context, User owner, URI parent) {
+		super(owner.getUri(), name, context);
 		this.executable = executable;
-		this.context = context;
-		this.owner = owner;
-		this.parent = parent;
+		this.parent = Helpers.URItoString(parent);
 	}
+	
+	@Override
+	public void init() throws Exception {
+		this.pc = executable.size()-1;
+		
+	}
+	
+	@Override
+	public boolean call() throws IllegalArgumentException, UnexpectedTypeException, NotFoundException, ClassNotFoundException, WaitForSignalRequest { 
+		ShellFragment script = this.executable.get(this.executable.size()-1);
+		for(int i = this.pc; i < script.children.size(); i++) {
+			if(this.watchFor != null) {
+				this.pc = i;
+				throw new CloudProcessResource.WaitForSignalRequest();
+			}
+			this.execute(script.children.get(i));
+		}
+		return true;
+		
+	}
+	
+	
+	@Override
+	public void cancel() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void dump() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void signal(SignalKind kind, String assertion) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	
+	
+	
 
 	/** Processes the executable at the pc, creating a series of executable subshell processes
 	 *  responsible for the top level command objects in the syntax tree.
@@ -148,12 +201,12 @@ public class NShellAction extends Action {
 			}
 		}
 		
-		CloudProcess child = cpr.spawn(this.owner, name, childContext, dependency, this.parent, "CreateVM");
+		CloudProcess child = cpr.spawn(this.getOwner(), name, childContext, dependency, getParent(), "CreateVM");
 		if(!isAsync) {
-			this.watchFor = child.getUri();
+			setWatchFor(child.getUri());
 			cpr.init(child);
 		}
-		this.context.putValue(specifiedName, this.action);
+		this.context.putActionValue(specifiedName, child.getTask());
 		return this.context.get(specifiedName);
 	}
 	
@@ -232,11 +285,11 @@ public class NShellAction extends Action {
 		 * the output to the repo, dependent on that command completing.
 		 */
 		
-		CloudProcess child = cpr.spawn(this.owner, name, childContext, dependency, this.parent, "On");
+		CloudProcess child = cpr.spawn(this.getOwner(), name, childContext, dependency, this.getParent(), "On");
 		if(!isAsync) {
-			this.watchFor = child.getUri();	
+			this.setWatchFor(child.getUri());	
 		}
-		this.context.putValue(specifiedName, this.action);
+		this.context.putActionValue(specifiedName, child.getTask());
 		cpr.init(child);
 		return this.context.get(specifiedName);
 	}
@@ -315,7 +368,7 @@ public class NShellAction extends Action {
 		int myIndex = this.executable.indexOf(shellFragment);
 		
 		CloudProcessResource cpr = new CloudProcessResource();
-		CloudProcess process = cpr.spawn(this.owner, name, childContext, dependency, this.parent, "NShell");
+		CloudProcess process = cpr.spawn(this.getOwner(), name, childContext, dependency, this.getParent(), "NShell");
 		NShellAction action = (NShellAction) ActionResource.dao.load(process.getTask());
 		action.setExecutable(this.executable.subList(0, myIndex+1));
 		this.context.putValue(name, action);
@@ -398,47 +451,133 @@ public class NShellAction extends Action {
 	}
 
 
+
+
+	/*
+	 * Getters and Setters
+	 * ===================
+	 * 
+	 */
+	
+	/**
+	 * @return the executable
+	 */
+	public List<ShellFragment> getExecutable() {
+		return executable;
+	}
+
+	/**
+	 * @param executable the executable to set
+	 */
+	public void setExecutable(List<ShellFragment> executable) {
+		this.executable = executable;
+	}
+
+	/**
+	 * @return the parent
+	 */
+	public URI getParent() {
+		return Helpers.stringToURI(parent);
+	}
+
+	/**
+	 * @param parent the parent to set
+	 */
+	public void setParent(URI parent) {
+		this.parent = Helpers.URItoString(parent);
+	}
+
+	/**
+	 * @return the pc
+	 */
+	public int getPc() {
+		return pc;
+	}
+
+	/**
+	 * @param pc the pc to set
+	 */
+	public void setPc(int pc) {
+		this.pc = pc;
+	}
+
+	/**
+	 * @return the watchFor
+	 */
+	public URI getWatchFor() {
+		return Helpers.stringToURI(watchFor);
+	}
+
+	/**
+	 * @param watchFor the watchFor to set
+	 */
+	public void setWatchFor(URI watchFor) {
+		this.watchFor = Helpers.URItoString(watchFor);
+	}
+	
+	
+	/*
+	 * Object housekeeping
+	 * ===================
+	 */
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
-	public boolean call() throws IllegalArgumentException, UnexpectedTypeException, NotFoundException, ClassNotFoundException, WaitForSignalRequest { 
-		ShellFragment script = this.executable.get(this.executable.size()-1);
-		for(int i = this.pc; i < script.children.size(); i++) {
-			if(this.watchFor != null) {
-				this.pc = i;
-				throw new CloudProcessResource.WaitForSignalRequest();
-			}
-			this.execute(script.children.get(i));
-		}
+	public String toString() {
+		return String
+				.format("NShellAction [executable=%s, parent=%s, pc=%s, watchFor=%s, toString()=%s]",
+						executable, parent, pc, watchFor, super.toString());
+	}
+
+
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result
+				+ ((executable == null) ? 0 : executable.hashCode());
+		result = prime * result + ((parent == null) ? 0 : parent.hashCode());
+		result = prime * result + pc;
+		result = prime * result
+				+ ((watchFor == null) ? 0 : watchFor.hashCode());
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		NShellAction other = (NShellAction) obj;
+		if (executable == null) {
+			if (other.executable != null)
+				return false;
+		} else if (!executable.equals(other.executable))
+			return false;
+		if (parent == null) {
+			if (other.parent != null)
+				return false;
+		} else if (!parent.equals(other.parent))
+			return false;
+		if (pc != other.pc)
+			return false;
+		if (watchFor == null) {
+			if (other.watchFor != null)
+				return false;
+		} else if (!watchFor.equals(other.watchFor))
+			return false;
 		return true;
-		
 	}
 	
-	
-	@Override
-	public void cancel() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void dump() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void init() throws Exception {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void signal(SignalKind kind, String assertion) {
-		// TODO Auto-generated method stub
-		
-	}
-	
-	private void setExecutable(List<ShellFragment> subList) {
-		// TODO Auto-generated method stub
-		
-	}
 }

@@ -321,6 +321,20 @@ public class CloudProcessResource {
 			writeOnChange(task);
 			endOfTimeSlice(p);
 			break;
+		case init:
+			try {
+				task.init();
+			} catch (Exception e) {
+				log.log(Level.WARNING, "Init exception for process "+p.getUri()+" task "+task.getUri(), e);
+				error = true;
+			}
+			writeOnChange(task);
+			if(error) {
+				toFailed(p);
+			} else {
+				endOfTimeSlice(p);
+			}
+			break;
 		case call:
 			boolean complete = false;
 			try {
@@ -358,20 +372,6 @@ public class CloudProcessResource {
 			}
 			writeOnChange(task);
 			toCancelled(p);
-			break;
-		case init:
-			try {
-				task.init();
-			} catch (Exception e) {
-				log.log(Level.WARNING, "Init exception for process "+p.getUri()+" task "+task.getUri(), e);
-				error = true;
-			}
-			writeOnChange(task);
-			if(error) {
-				toFailed(p);
-			} else {
-				endOfTimeSlice(p);
-			}
 			break;
 		case nothing:
 		default:
@@ -685,6 +685,7 @@ public class CloudProcessResource {
 					} else {
 						p.setState(ActionState.RUNABLE);
 						p.setPendingInit(true);
+						p.setPendingCall(true);
 						/*
 						 * NB: There is an assumption that:
 						 * 1. The objectify get operation will fetch the modified process object

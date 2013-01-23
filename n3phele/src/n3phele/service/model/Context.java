@@ -1,5 +1,6 @@
 package n3phele.service.model;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 
@@ -100,6 +101,21 @@ public class Context extends HashMap<String, Variable> {
 		return created;
 	}
 	
+	public boolean putActionValue(String name, URI action) {
+		Variable v = this.get(name);
+		boolean created = false;
+		if(v == null) {
+			v = new Variable();
+			v.setName(name);
+			created = true;
+		}
+		v.setType(VariableType.Action);
+		v.setValue(action.toString());
+		this.put(name, v);
+		return created;
+	}
+
+	
 	public long getLongValue(String name) {
 		Variable v = this.get(name);
 		if(v != null && !v.getValue().isEmpty()) {
@@ -176,5 +192,4 @@ public class Context extends HashMap<String, Variable> {
 		else
 			return v.getExpressionObject();
 	}
-
 }

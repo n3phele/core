@@ -30,19 +30,23 @@ import n3phele.service.model.core.User;
 @Cache
 public class LogAction extends Action {
 	final private static java.util.logging.Logger log = java.util.logging.Logger.getLogger(LogAction.class.getName()); 
-	private int count = 5;
 	
 	public LogAction() {}
 	
 	protected LogAction(User owner, String name,
 			Context context) {
-		super(owner, name, context);
+		super(owner.getUri(), name, context);
+	}
+	
+	@Override
+	public void init() throws Exception {
+		log.info(this.getContext().getValue("arg"));
+		ActionLogger.name(this).info(this.getContext().getValue("arg"));
 	}
 
 	@Override
 	public boolean call() throws Exception {
-		log.warning("Call "+count--);
-		return count <= 0;
+		return false;
 	}
 
 	@Override
@@ -58,57 +62,8 @@ public class LogAction extends Action {
 	}
 
 	@Override
-	public void init() throws Exception {
-		log.warning("Init "+this.getContext().getValue("arg"));
-		ActionLogger.name(this).info(this.getContext().getValue("arg"));
-	}
-
-	@Override
 	public void signal(SignalKind kind, String assertion) {
 		log.warning("Signal "+assertion);
-		
-	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = super.hashCode();
-		result = prime * result + count;
-		return result;
-	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (!super.equals(obj))
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		LogAction other = (LogAction) obj;
-		if (count != other.count)
-			return false;
-		return true;
-	}
-
-	/**
-	 * @return the count
-	 */
-	public int getCount() {
-		return count;
-	}
-
-	/**
-	 * @param count the count to set
-	 */
-	public void setCount(int count) {
-		this.count = count;
 	}
 
 	/* (non-Javadoc)
@@ -116,10 +71,9 @@ public class LogAction extends Action {
 	 */
 	@Override
 	public String toString() {
-		return String.format("LogAction [count=%s, %s]", count,
+		return String.format("LogAction [%s]",
 				super.toString());
 	}
 
-	
 	
 }

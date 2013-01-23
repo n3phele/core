@@ -38,12 +38,13 @@ public class CountDownAction extends Action {
 	
 	protected CountDownAction(User owner, String name,
 			Context context) {
-		super(owner, name, context);
+		super(owner.getUri(), name, context);
 	}
 
 	@Override
 	public boolean call() throws Exception {
 		log.warning(this.name+" Call "+count);
+		ActionLogger.name(this).info("Call "+count);
 		if(this.getContext().getValue("arg").equals("throw"+count--)) {
 			throw new IllegalArgumentException();
 		}

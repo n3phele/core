@@ -7,6 +7,12 @@ import n3phele.service.rest.impl.CloudProcessResource.WaitForSignalRequest;
 public class CreateVMAction extends Action {
 
 	@Override
+	public void init() throws Exception {
+	
+	}
+	
+	
+	@Override
 	public boolean call() throws WaitForSignalRequest, Exception {
 		// TODO Auto-generated method stub
 		return false;
@@ -20,12 +26,6 @@ public class CreateVMAction extends Action {
 
 	@Override
 	public void dump() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void init() throws Exception {
 		// TODO Auto-generated method stub
 
 	}

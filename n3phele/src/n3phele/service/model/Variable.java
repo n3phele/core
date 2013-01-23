@@ -19,6 +19,8 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import com.googlecode.objectify.annotation.Entity;
+
 import n3phele.service.model.core.Helpers;
 
 @XmlRootElement(name = "Variable")

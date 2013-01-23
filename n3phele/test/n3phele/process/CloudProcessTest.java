@@ -16,7 +16,6 @@ import static org.junit.Assert.*;
 import java.net.URI;
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
@@ -41,7 +40,6 @@ import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestC
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Result;
 
 public class CloudProcessTest extends CloudProcessResource {
 	
@@ -93,7 +91,7 @@ public class CloudProcessTest extends CloudProcessResource {
 		Thread.sleep(1000);
 		dao.clear();
 		CountDownAction action = (CountDownAction) ActionResource.dao.load(process.getTask());
-		assertEquals("Count value", 4, action.getCount());
+		assertEquals("Count value", 3, action.getCount());
 	}
 
 	/** Creates and runs a simple test process verifying preservation of running task state
@@ -115,7 +113,7 @@ public class CloudProcessTest extends CloudProcessResource {
 		dao.clear();
 		result = super.refresh();
 		assertEquals(200,result.getStatus());
-		assertEquals("{\"RUNABLE\": 2}", result.getEntity());
+		assertEquals("{\"RUNABLE\": 1, \"RUNABLE_Wait\": 1}", result.getEntity());
 		Thread.sleep(1000);
 		dao.clear();
 		JobAction jobAction = (JobAction) ActionResource.dao.load(job.getTask());
@@ -124,7 +122,7 @@ public class CloudProcessTest extends CloudProcessResource {
 		
 		CountDownAction countDownAction = (CountDownAction) ActionResource.dao.load(countDownProcess.getTask());
 		
-		assertEquals("Count value", 4, countDownAction.getCount());
+		assertEquals("Count value", 3, countDownAction.getCount());
 		countDownAction.setCount(1);
 		ActionResource.dao.update(countDownAction);
 		dao.clear();
@@ -279,7 +277,11 @@ public class CloudProcessTest extends CloudProcessResource {
 		assertTrue(process.isFinalized());
 		CountDownAction action = (CountDownAction) ActionResource.dao.load(process.getTask());
 		assertEquals("Count value", 5, action.getCount());
-		
+		dao.clear();
+		result = super.refresh();
+		assertEquals(200,result.getStatus());
+		Thread.sleep(1000);
+		dao.clear();
 		job = dao.load(job.getId());
 		jobAction = (JobAction) ActionResource.dao.load(jobAction.getId());
 		assertEquals(ActionState.COMPLETE, job.getState());
@@ -299,16 +301,8 @@ public class CloudProcessTest extends CloudProcessResource {
 		Thread.sleep(3000);
 		dao.clear();
 		CloudProcess process = dao.load(processId);
-		assertEquals(ActionState.RUNABLE, process.getState());
-		dao.clear();
-		result = super.refresh();
-		assertEquals(200,result.getStatus());
-		assertEquals("{\"RUNABLE\": 1}", result.getEntity());
-		Thread.sleep(1000);
-		dao.clear();
-		
-		process = dao.load(processId);
 		assertEquals(ActionState.FAILED, process.getState());
+	
 		assertTrue(process.isFinalized());
 		CountDownAction action = (CountDownAction) ActionResource.dao.load(process.getTask());
 		assertEquals("Count value", 4, action.getCount());
@@ -329,19 +323,17 @@ public class CloudProcessTest extends CloudProcessResource {
 		CloudProcess job = dao.load(processId);
 		JobAction jobAction = (JobAction) ActionResource.dao.load(job.getTask());
 		CloudProcess process = dao.load(jobAction.getChildProcess());;
-		assertEquals(ActionState.RUNABLE, process.getState());
-		dao.clear();
-		result = super.refresh();
-		assertEquals(200,result.getStatus());
-		assertEquals("{\"RUNABLE\": 2}", result.getEntity());
-		Thread.sleep(1000);
-		dao.clear();
-		
-		process = dao.load(process.getId());
 		assertEquals(ActionState.FAILED, process.getState());
 		assertTrue(process.isFinalized());
 		CountDownAction action = (CountDownAction) ActionResource.dao.load(process.getTask());
 		assertEquals("Count value", 4, action.getCount());
+		dao.clear();
+		result = super.refresh();
+		assertEquals(200,result.getStatus());
+		assertEquals("{}", result.getEntity());
+		Thread.sleep(1000);
+		dao.clear();
+		
 		
 		job = dao.load(job.getId());
 		jobAction = (JobAction) ActionResource.dao.load(jobAction.getId());
@@ -578,21 +570,10 @@ public class CloudProcessTest extends CloudProcessResource {
 		
 		tom  = dao.load(tom.getUri());
 		jerry  = dao.load(jerry.getUri());
-		assertEquals(ActionState.RUNABLE, tom.getState());
-		assertEquals(ActionState.INIT, jerry.getState());
-		dao.clear();
-		refresh();
-
-		Thread.sleep(1000);
-		dao.clear();
-		tom = dao.load(tom.getId());
 		assertEquals(ActionState.FAILED, tom.getState());
-		assertTrue(tom.isFinalized());
-		dao.clear();
-
-		jerry = dao.load(jerry.getId());
 		assertEquals(ActionState.CANCELLED, jerry.getState());
 		assertTrue(jerry.isFinalized());
+		assertTrue(tom.isFinalized());
 
 	}
 	
