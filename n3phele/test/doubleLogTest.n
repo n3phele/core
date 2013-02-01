@@ -1,0 +1,14 @@
+# doubleLogTest.n
+# Copyright (c) 2013 Nigel Cook. All Rights reserved
+# xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+name	   :  doubleLog
+description: produce a log message with a suffix
+version	   : 1.0
+preferred  : true
+public	   : true
+icon	   : http://www.n3phele.com/icons/custom
+parameters :						  
+	optional string message	= "hello woorld!" # log message
+EC2: # Amazon EC2
+	$$log = LOG $$message
+	LOG  $$log.message and a suffix
