@@ -15,5 +15,5 @@ import javax.xml.bind.annotation.XmlEnum;
 
 @XmlEnum(String.class)
 public enum VariableType {
-	String, Boolean, Long, Double, Secret, List, Action, Object
+	String, Boolean, Long, Double, Secret, List, FileList, File, Action, Object
 }

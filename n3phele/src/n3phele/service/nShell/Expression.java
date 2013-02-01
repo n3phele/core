@@ -10,21 +10,14 @@ public class Expression/*@bgen(jjtree)*/implements ExpressionTreeConstants, Expr
                 jj_input_stream = new SimpleCharStream(new java.io.StringReader(s), lineNo, columnNo);
         jj_input_stream.setTabSize(4);
         token_source = new ExpressionTokenManager(jj_input_stream);
-        token = new Token();
-        jj_ntk = -1;
-        jj_gen = 0;
-        for (int i = 0; i < 5; i++) jj_la1[i] = -1;
+        this.ReInit(token_source);
         }
 
         public void reInit(String s, int lineNo, int columnNo)
         {
                 jj_input_stream.ReInit(new java.io.StringReader(s), lineNo, columnNo);
             token_source.ReInit(jj_input_stream);
-            token = new Token();
-            jj_ntk = -1;
-            jjtree.reset();
-            jj_gen = 0;
-            for (int i = 0; i < 20; i++) jj_la1[i] = -1;
+            this.ReInit(token_source);
         }
 
   final public void functionExpression() throws ParseException {

@@ -33,7 +33,7 @@ import static n3phele.service.model.core.Helpers.URItoString;
 
 @XmlRootElement(name="CloudProcess")
 @XmlType(name="Action", propOrder={"id","state", "running", "waitTimeout", "pendingInit", "pendingCall", "pendingCancel", "pendingDump", "pendingAssertion", 
-		"dependentOn", "dependencyFor", "start", "complete", "finalized", "task", "parent"})
+		"dependentOn", "dependencyFor", "start", "complete", "finalized", "action", "parent"})
 @Unindex
 @com.googlecode.objectify.annotation.Entity
 public class CloudProcess extends Entity {
@@ -52,7 +52,7 @@ public class CloudProcess extends Entity {
 	private Date start = null;
 	private Date complete = null;
 	@Index private boolean finalized = false;
-	private String task = null;
+	private String action = null;
 	@Index private String parent = null;
 	
 	
@@ -60,11 +60,11 @@ public class CloudProcess extends Entity {
 	/** Describes a cloud process. 
 	 * @param owner process owner
 	 * @param parent Parent to be notified on process state changes
-	 * @param taskId Reference to the task managed by the process
+	 * @param taskId Reference to the action managed by the process
 	 */
 	public CloudProcess(User owner, String name, URI parent, Action task)  {
 		super(name, null, "", owner.getUri(), false);
-		this.task = task.getUri().toString();
+		this.action = task.getUri().toString();
 		this.parent = URItoString(parent);
 	}
 	
@@ -283,16 +283,16 @@ public class CloudProcess extends Entity {
 		this.finalized = finalized;
 	}
 	/**
-	 * @return the task
+	 * @return the action
 	 */
-	public URI getTask() {
-		return stringToURI(task);
+	public URI getAction() {
+		return stringToURI(action);
 	}
 	/**
-	 * @param task the task to set
+	 * @param action the action to set
 	 */
-	public void setTask(URI task) {
-		this.task = URItoString(task);
+	public void setAction(URI task) {
+		this.action = URItoString(task);
 	}
 	/**
 	 * @return the parent
@@ -314,12 +314,12 @@ public class CloudProcess extends Entity {
 	@Override
 	public String toString() {
 		return String
-				.format("CloudProcess [name=%s, uri=%s, mime=%s, owner=%s, isPublic=%s, state=%s, running=%s, waitTimeout=%s, pendingInit=%s, pendingCall=%s, pendingCancel=%s, pendingDump=%s, pendingAssertion=%s, dependentOn=%s, dependencyFor=%s, start=%s, complete=%s, finalized=%s, task=%s, parent=%s]",
+				.format("CloudProcess [name=%s, uri=%s, mime=%s, owner=%s, isPublic=%s, state=%s, running=%s, waitTimeout=%s, pendingInit=%s, pendingCall=%s, pendingCancel=%s, pendingDump=%s, pendingAssertion=%s, dependentOn=%s, dependencyFor=%s, start=%s, complete=%s, finalized=%s, action=%s, parent=%s]",
 						name, uri, mime,
 						owner, isPublic, state, running, waitTimeout,
 						pendingInit, pendingCall, pendingCancel, pendingDump,
 						pendingAssertion, dependentOn, dependencyFor, start,
-						complete, finalized, task, parent );
+						complete, finalized, action, parent );
 	}
 
 }

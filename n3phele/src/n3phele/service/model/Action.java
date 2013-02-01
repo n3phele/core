@@ -17,10 +17,10 @@ import java.net.URI;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import n3phele.service.lifecycle.ProcessLifecycle.WaitForSignalRequest;
 import n3phele.service.model.core.Entity;
 import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.User;
-import n3phele.service.rest.impl.CloudProcessResource.WaitForSignalRequest;
 
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Embed;
@@ -36,7 +36,7 @@ public abstract class Action extends Entity {
 
 	@Id private Long id;
 	private String process;
-	@Embed protected Context context;
+	@Embed protected Context context = new Context();
 	
 	protected Action() {}
 	

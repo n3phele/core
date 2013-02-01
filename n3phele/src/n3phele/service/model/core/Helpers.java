@@ -18,6 +18,8 @@ public class Helpers {
 	public static <E> List<E> safeIterator(List<E> list) {
 		return list == null ? (List<E>) nullList : list;	
 	}
+	
+	
 	@SuppressWarnings("rawtypes")
 	final private static List nullList = new ArrayList(0);
 	public static boolean isBlankOrNull(String s) {

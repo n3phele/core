@@ -1,4 +1,9 @@
 package n3phele.service.model;
+
+import java.util.Arrays;
+
+import com.googlecode.objectify.annotation.Serialize;
+
 /**
 *
 * (C) Copyright 2010-2013. Nigel Cook. All rights reserved.
@@ -13,12 +18,55 @@ package n3phele.service.model;
 *
 */
 
-import java.util.ArrayList;
-
 
 public class ShellFragment {
 	public ShellFragmentKind kind;
 	public String value;
-	public ArrayList<Integer> children = new ArrayList<Integer>();
+	@Serialize public Integer[] children;
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return String.format("ShellFragment [kind=%s, value=%s, children=%s]",
+				kind, value, Arrays.toString(children));
+	}
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + Arrays.hashCode(children);
+		result = prime * result + ((kind == null) ? 0 : kind.hashCode());
+		result = prime * result + ((value == null) ? 0 : value.hashCode());
+		return result;
+	}
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ShellFragment other = (ShellFragment) obj;
+		if (!Arrays.equals(children, other.children))
+			return false;
+		if (kind != other.kind)
+			return false;
+		if (value == null) {
+			if (other.value != null)
+				return false;
+		} else if (!value.equals(other.value))
+			return false;
+		return true;
+	}
+	
+	
 
 }

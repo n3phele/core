@@ -1,5 +1,6 @@
 package n3phele.service.nShell;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import n3phele.service.model.ShellFragment;
@@ -18,28 +19,30 @@ public abstract class SelfCompilingNode extends SimpleNode {
 	    me.kind = toKind();
 	    me.value = this.value==null? null : this.value.toString();
 	    if(children == null || children.length == 0) {
+	    	this.compiledIndex = result.size();
 	    	result.add(me);
-	    	this.compiledIndex = result.size()-1;
 	    } else if(children.length == 1) {
 	    	SelfCompilingNode n = (SelfCompilingNode)children[0];
     		n.compile(result);
 	    	if(isNoop && me.value == null) {
 	    		this.compiledIndex = n.compiledIndex;
 	    	} else {
-	    		me.children.add(n.compiledIndex);
+	    		me.children = new Integer[] { n.compiledIndex };
+		        this.compiledIndex = result.size();
 	    		result.add(me);
-		        this.compiledIndex = result.size()-1;
 	    	}
 	    } else {
+	    	List<Integer> build = new ArrayList<Integer>();
 	    	for (int i = 0; i < children.length; ++i) {
 		        SelfCompilingNode n = (SelfCompilingNode)children[i];
 		        if (n != null) {
 		           n.compile(result);
-		           me.children.add(n.compiledIndex);
+		           build.add(n.compiledIndex);
 		        }
-		        result.add(me);
-		        this.compiledIndex = result.size()-1;
-		    }
+	    	}
+	    	me.children = build.toArray(new Integer[build.size()]);
+	        this.compiledIndex = result.size();
+	        result.add(me);
 	    }
 	   
 	}

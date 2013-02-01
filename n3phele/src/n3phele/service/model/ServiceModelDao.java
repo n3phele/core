@@ -14,9 +14,10 @@ package n3phele.service.model;
 
 import com.googlecode.objectify.ObjectifyService;
 
-import n3phele.service.actions.tasks.CountDownAction;
-import n3phele.service.actions.tasks.JobAction;
-import n3phele.service.actions.tasks.LogAction;
+import n3phele.service.actions.CountDownAction;
+import n3phele.service.actions.JobAction;
+import n3phele.service.actions.LogAction;
+import n3phele.service.actions.NShellAction;
 import n3phele.service.model.core.GenericModelDao;
 import n3phele.service.model.core.User;
 
@@ -25,12 +26,14 @@ public class ServiceModelDao<T> extends GenericModelDao<T> {
 	static {
 		// Register all your entity classes here
 		ObjectifyService.register(CloudProcess.class);
+		ObjectifyService.register(User.class);
+		ObjectifyService.register(Narrative.class);
+		
 		ObjectifyService.register(Action.class);
 		ObjectifyService.register(LogAction.class);
 		ObjectifyService.register(CountDownAction.class);
 		ObjectifyService.register(JobAction.class);
-		ObjectifyService.register(User.class);
-		ObjectifyService.register(Narrative.class);
+		ObjectifyService.register(NShellAction.class);
 
 	}
 	public ServiceModelDao(Class<T> clazz) {

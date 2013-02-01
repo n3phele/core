@@ -1,4 +1,4 @@
-package n3phele.service.actions.tasks;
+package n3phele.service.actions;
 
 /**
  * (C) Copyright 2010-2013. Nigel Cook. All rights reserved.
@@ -31,7 +31,8 @@ import n3phele.service.model.core.User;
 @Unindex
 @Cache
 public class CountDownAction extends Action {
-	final private static java.util.logging.Logger log = java.util.logging.Logger.getLogger(CountDownAction.class.getName()); 
+	final private static java.util.logging.Logger log = java.util.logging.Logger.getLogger(CountDownAction.class.getName());
+	ActionLogger logger;
 	private int count = 99;
 	
 	public CountDownAction() {}
@@ -43,8 +44,9 @@ public class CountDownAction extends Action {
 
 	@Override
 	public boolean call() throws Exception {
+		logger = new ActionLogger(this);
 		log.warning(this.name+" Call "+count);
-		ActionLogger.name(this).info("Call "+count);
+		logger.info("Call "+count);
 		if(this.getContext().getValue("arg").equals("throw"+count--)) {
 			throw new IllegalArgumentException();
 		}

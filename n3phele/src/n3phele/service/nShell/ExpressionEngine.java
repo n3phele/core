@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.mortbay.log.Log;
+
 import n3phele.service.core.NotFoundException;
 import n3phele.service.model.Action;
 import n3phele.service.model.Context;
@@ -45,7 +47,7 @@ public class ExpressionEngine {
 	}
 	
 	public Object expression(ShellFragment s) throws IllegalArgumentException, UnexpectedTypeException {
-		return eval(this.executable.indexOf(s));
+		return eval(s.children[0]);
 	}
 	
 	public Object eval(int pc) throws UnexpectedTypeException, IllegalArgumentException {
@@ -567,22 +569,22 @@ public class ExpressionEngine {
 	 * =======
 	 */
 	private Object[] oneChild(ShellFragment s) throws IllegalArgumentException, UnexpectedTypeException {
-		if(s.children.size() == 1) {
-			return new Object[] { eval(s.children.get(0)) };
+		if(s.children.length == 1) {
+			return new Object[] { eval(s.children[0]) };
 		}
 		return null;
 	}
 	
 	private Object[] twoChildren(ShellFragment s) throws IllegalArgumentException, UnexpectedTypeException {
-		if(s.children.size() == 2) {
-			return new Object[] { eval(s.children.get(0)), eval(s.children.get(1)) };
+		if(s.children.length == 2) {
+			return new Object[] { eval(s.children[0]), eval(s.children[1]) };
 		}
 		return null;
 	}
 	
 	private Object[] threeChildren(ShellFragment s) throws IllegalArgumentException, UnexpectedTypeException {
-		if(s.children.size() == 3) {
-			return new Object[] { eval(s.children.get(0)), eval(s.children.get(1)), eval(s.children.get(2)) };
+		if(s.children.length == 3) {
+			return new Object[] { eval(s.children[0]), eval(s.children[1]), eval(s.children[2]) };
 		}
 		return null;
 	}
@@ -594,6 +596,7 @@ public class ExpressionEngine {
 	}
 	
 	private Variable lookup(String name) throws NotFoundException {
+		Log.info("############### lookup "+name);
 		return lookupFromContext(name, name, this.context);
 	}
 	

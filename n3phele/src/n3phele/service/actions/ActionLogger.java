@@ -1,4 +1,4 @@
-package n3phele.service.actions.tasks;
+package n3phele.service.actions;
 
 /**
  * (C) Copyright 2010-2013. Nigel Cook. All rights reserved.
@@ -17,32 +17,45 @@ import java.util.logging.Logger;
 
 import n3phele.service.model.Action;
 import n3phele.service.model.NarrativeLevel;
+import n3phele.service.model.core.Helpers;
 import n3phele.service.rest.impl.NarrativeResource;
 
 
 
 public class ActionLogger {
 	private static Logger debug = Logger.getLogger(ActionLogger.class.getName()); 
-	private URI progressUri;
 	private String id;
+	private String processUri;
+
 	
-	private ActionLogger() {};
+	public ActionLogger() {} ;
+	public ActionLogger(Action action) {
+		URI loggerUri = Helpers.stringToURI(action.getContext().getValue("logger"));
+		if(loggerUri == null) {
+			action.getContext().putValue("logger", action.getProcess());
+			loggerUri = action.getProcess();
+		}
+		this.processUri= Helpers.URItoString(loggerUri);
+		this.id = action.getName();
+	};
 	
-	public ActionLogger(URI progress, String id) {
-		this.progressUri= progress;
+	public ActionLogger(URI process, String id) {
+		this.processUri= Helpers.URItoString(process);
 		this.id = id;
 	}
 	
 	public ActionLogger(ActionLogger log, String id) {
-		this.progressUri = log.progressUri;
+		this.processUri = log.processUri;
 		this.id = id;
 	}
 
 	public String log(NarrativeLevel state, String message) {
 		try {
-			NarrativeResource.dao.addNarrative(progressUri, id, state, message);
+			debug.log(Level.INFO, String.format("===>Narrative %s %s %s %s", processUri, id, state, message));
+
+			NarrativeResource.dao.addNarrative(Helpers.stringToURI(processUri), id, state, message);
 		} catch (Exception e) {
-			debug.log(Level.SEVERE, String.format("Narrative %s %s %s %s failed %s", progressUri, id, state, message, e.getMessage()),e);
+			debug.log(Level.SEVERE, String.format("Narrative %s %s %s %s failed %s", processUri, id, state, message, e.getMessage()),e);
 		}
 		return null;
 	}
@@ -68,7 +81,7 @@ public class ActionLogger {
 		try {
 			return NarrativeResource.dao.updateNarrativeText(msgId, newText);
 		} catch (Exception e) {
-			debug.log(Level.SEVERE, String.format("Narrative %s %s", progressUri, msgId),e);
+			debug.log(Level.SEVERE, String.format("Narrative %s %s", processUri, msgId),e);
 		}
 		return null;
 	}
@@ -78,7 +91,7 @@ public class ActionLogger {
 		return NarrativeResource.dao.getNarrative(msgId);
 	}
 	
-	public static ActionLogger name(Action me) {
+	public static ActionLogger forAction(Action me) {
 		return new ActionLogger(me.getProcess(), me.getName());
 	}
 	
@@ -87,9 +100,8 @@ public class ActionLogger {
 		return this;
 	}
 	
-	public static ActionLogger withProcess(URI uri) {
-		ActionLogger x = new ActionLogger();
-		x.progressUri = uri;
-		return x;
+	public ActionLogger withProcess(URI uri) {
+		this.processUri = Helpers.URItoString(uri);
+		return this;
 	}
 }

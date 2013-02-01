@@ -14,12 +14,13 @@ package n3phele.service.model;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
-
-import com.googlecode.objectify.annotation.Entity;
 
 import n3phele.service.model.core.Helpers;
 
@@ -31,6 +32,7 @@ public class Variable {
 	private String[] value = new String[] { null };
 	
 	public Variable() {}
+
 	public Variable(String name, long value) {
 		this.name = name;
 		this.type = VariableType.Long;
@@ -67,13 +69,38 @@ public class Variable {
 		this.value =new String[] { value };
 	}
 	
+	public Variable(String name, URI value) {
+		this.name = name;
+		URI uri = (URI) value;
+		String scheme = uri.getScheme();
+		if("http".equals(scheme) || "https".equals(scheme)) {
+			this.type = VariableType.Object;
+		} else {
+			this.type = VariableType.File;
+		}
+		this.value =new String[] { value.toString() };
+	}
+	
+	public Variable(String name, Map<String,String> value) {
+		this.name = name;
+		this.type = VariableType.FileList;
+		this.setValue(value);
+	}
+
+	
 	@SuppressWarnings("unchecked")
 	public Variable(String name, Object value) {
 		this.name = name;	
 		if(value instanceof List) {
 			this.type = VariableType.List;
 			this.value = ((List<String>)value).toArray(new String[((List<String>)value).size()]);
-		} else {
+		} else if(value instanceof Action) {
+			this.type = VariableType.Action;
+			this.value = new String[] { ((Action)value).getUri().toString() };
+		} else if(value instanceof Map) {
+			this.type = VariableType.FileList;
+			this.setValue((Map<String,String>)value);
+		}else {
 			this.value = new String[] { value.toString() };
 			if(value instanceof Long) {
 				this.type = VariableType.Long;
@@ -83,10 +110,14 @@ public class Variable {
 				this.type = VariableType.Double;
 			} else if(value instanceof Boolean) {
 				this.type = VariableType.Boolean;
-			} else  if(value instanceof Action) {
-				this.type = VariableType.Action;
 			} else  if(value instanceof URI) {
-				this.type = VariableType.Object;
+				URI uri = (URI) value;
+				String scheme = uri.getScheme();
+				if("http".equals(scheme) || "https".equals(scheme)) {
+					this.type = VariableType.Object;
+				} else {
+					this.type = VariableType.File;
+				}
 			} else {
 				this.type = VariableType.String;	
 			}
@@ -146,6 +177,17 @@ public class Variable {
 		this.value = value.toArray(new String[value.size()]);
 	}
 	
+	/**
+	 * @param value the value to set
+	 */
+	public void setValue(Map<String,String> value) {
+		List<String> linear = new ArrayList<String>();
+		for(Entry<String, String> e : ((Map<String,String>)value).entrySet()) {
+			linear.add(e.getKey()+":"+e.getValue());
+		}
+		this.value = linear.toArray(new String[linear.size()]);
+	}
+	
 	public Object getExpressionObject() {
 		switch(type) {
 
@@ -159,7 +201,15 @@ public class Variable {
 			return "******";
 		case Object:
 		case Action:
+		case File:
 			return Helpers.stringToURI(this.value[0]);
+		case FileList:
+			Map<String,String> fileList = new HashMap<String,String>();
+			for(String combo : this.value){
+				String[] parts = combo.split(":");
+				fileList.put(parts[0], parts[1]);
+			}
+			return fileList;
 		case List:
 			return new ArrayList<String>(Arrays.asList(this.value));
 		case String:

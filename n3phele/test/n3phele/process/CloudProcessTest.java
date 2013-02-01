@@ -21,8 +21,9 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
-import n3phele.service.actions.tasks.CountDownAction;
-import n3phele.service.actions.tasks.JobAction;
+import n3phele.service.actions.CountDownAction;
+import n3phele.service.actions.JobAction;
+import n3phele.service.lifecycle.ProcessLifecycle;
 import n3phele.service.model.ActionState;
 import n3phele.service.model.CloudProcess;
 import n3phele.service.model.Context;
@@ -90,7 +91,7 @@ public class CloudProcessTest extends CloudProcessResource {
 		assertEquals("{\"RUNABLE\": 1}", result.getEntity());
 		Thread.sleep(1000);
 		dao.clear();
-		CountDownAction action = (CountDownAction) ActionResource.dao.load(process.getTask());
+		CountDownAction action = (CountDownAction) ActionResource.dao.load(process.getAction());
 		assertEquals("Count value", 3, action.getCount());
 	}
 
@@ -116,11 +117,11 @@ public class CloudProcessTest extends CloudProcessResource {
 		assertEquals("{\"RUNABLE\": 1, \"RUNABLE_Wait\": 1}", result.getEntity());
 		Thread.sleep(1000);
 		dao.clear();
-		JobAction jobAction = (JobAction) ActionResource.dao.load(job.getTask());
+		JobAction jobAction = (JobAction) ActionResource.dao.load(job.getAction());
 		URI childProcess = jobAction.getChildProcess();
 		CloudProcess countDownProcess = CloudProcessResource.dao.load(childProcess);
 		
-		CountDownAction countDownAction = (CountDownAction) ActionResource.dao.load(countDownProcess.getTask());
+		CountDownAction countDownAction = (CountDownAction) ActionResource.dao.load(countDownProcess.getAction());
 		
 		assertEquals("Count value", 3, countDownAction.getCount());
 		countDownAction.setCount(1);
@@ -152,14 +153,14 @@ public class CloudProcessTest extends CloudProcessResource {
 		Thread.sleep(3000);
 		assertEquals(ActionState.RUNABLE, process.getState());
 
-		cancel(process);
+		ProcessLifecycle.mgr().cancel(process);
 		dao.clear();
 		Thread.sleep(1000);
 		dao.clear();
 		process = dao.load(processId);
 		assertEquals(ActionState.CANCELLED, process.getState());
 		assertTrue(process.isFinalized());
-		CountDownAction action = (CountDownAction) ActionResource.dao.load(process.getTask());
+		CountDownAction action = (CountDownAction) ActionResource.dao.load(process.getAction());
 		assertEquals("Count value", 1000, action.getCount());
 	}
 	
@@ -179,19 +180,19 @@ public class CloudProcessTest extends CloudProcessResource {
 		Thread.sleep(2000);
 		dao.clear();
 		CloudProcess job = dao.load(processId);
-		JobAction jobAction = (JobAction) ActionResource.dao.load(job.getTask());
+		JobAction jobAction = (JobAction) ActionResource.dao.load(job.getAction());
 		CloudProcess process = dao.load(jobAction.getChildProcess());
 		
 		assertEquals(ActionState.RUNABLE, process.getState());
 
-		cancel(process);
+		ProcessLifecycle.mgr().cancel(process);
 		dao.clear();
 		Thread.sleep(1000);
 		dao.clear();
 		process = dao.load(process.getId());
 		assertEquals(ActionState.CANCELLED, process.getState());
 		assertTrue(process.isFinalized());
-		CountDownAction action = (CountDownAction) ActionResource.dao.load(process.getTask());
+		CountDownAction action = (CountDownAction) ActionResource.dao.load(process.getAction());
 		assertEquals("Count value", 1000, action.getCount());
 		job = dao.load(job.getId());
 		jobAction = (JobAction) ActionResource.dao.load(jobAction.getId());
@@ -216,19 +217,19 @@ public class CloudProcessTest extends CloudProcessResource {
 		Thread.sleep(2000);
 		dao.clear();
 		CloudProcess job = dao.load(processId);
-		JobAction jobAction = (JobAction) ActionResource.dao.load(job.getTask());
+		JobAction jobAction = (JobAction) ActionResource.dao.load(job.getAction());
 		CloudProcess process = dao.load(jobAction.getChildProcess());
 		
 		assertEquals(ActionState.RUNABLE, process.getState());
 
-		cancel(job);
+		ProcessLifecycle.mgr().cancel(job);
 		dao.clear();
 		Thread.sleep(1000);
 		dao.clear();
 		process = dao.load(process.getId());
 		assertEquals(ActionState.CANCELLED, process.getState());
 		assertTrue(process.isFinalized());
-		CountDownAction action = (CountDownAction) ActionResource.dao.load(process.getTask());
+		CountDownAction action = (CountDownAction) ActionResource.dao.load(process.getAction());
 		assertEquals("Count value", 2000, action.getCount());
 		job = dao.load(job.getId());
 		jobAction = (JobAction) ActionResource.dao.load(jobAction.getId());
@@ -252,7 +253,7 @@ public class CloudProcessTest extends CloudProcessResource {
 
 		assertEquals(ActionState.FAILED, process.getState());
 		assertTrue(process.isFinalized());
-		CountDownAction action = (CountDownAction) ActionResource.dao.load(process.getTask());
+		CountDownAction action = (CountDownAction) ActionResource.dao.load(process.getAction());
 		assertEquals("Count value", 5, action.getCount());
 	}
 	
@@ -270,12 +271,12 @@ public class CloudProcessTest extends CloudProcessResource {
 		Thread.sleep(3000);
 		dao.clear();
 		CloudProcess job = dao.load(processId);
-		JobAction jobAction = (JobAction) ActionResource.dao.load(job.getTask());
+		JobAction jobAction = (JobAction) ActionResource.dao.load(job.getAction());
 		CloudProcess process = dao.load(jobAction.getChildProcess());
 
 		assertEquals(ActionState.FAILED, process.getState());
 		assertTrue(process.isFinalized());
-		CountDownAction action = (CountDownAction) ActionResource.dao.load(process.getTask());
+		CountDownAction action = (CountDownAction) ActionResource.dao.load(process.getAction());
 		assertEquals("Count value", 5, action.getCount());
 		dao.clear();
 		result = super.refresh();
@@ -304,7 +305,7 @@ public class CloudProcessTest extends CloudProcessResource {
 		assertEquals(ActionState.FAILED, process.getState());
 	
 		assertTrue(process.isFinalized());
-		CountDownAction action = (CountDownAction) ActionResource.dao.load(process.getTask());
+		CountDownAction action = (CountDownAction) ActionResource.dao.load(process.getAction());
 		assertEquals("Count value", 4, action.getCount());
 	}
 	
@@ -321,11 +322,11 @@ public class CloudProcessTest extends CloudProcessResource {
 		Thread.sleep(3000);
 		dao.clear();
 		CloudProcess job = dao.load(processId);
-		JobAction jobAction = (JobAction) ActionResource.dao.load(job.getTask());
+		JobAction jobAction = (JobAction) ActionResource.dao.load(job.getAction());
 		CloudProcess process = dao.load(jobAction.getChildProcess());;
 		assertEquals(ActionState.FAILED, process.getState());
 		assertTrue(process.isFinalized());
-		CountDownAction action = (CountDownAction) ActionResource.dao.load(process.getTask());
+		CountDownAction action = (CountDownAction) ActionResource.dao.load(process.getAction());
 		assertEquals("Count value", 4, action.getCount());
 		dao.clear();
 		result = super.refresh();
@@ -353,12 +354,12 @@ public class CloudProcessTest extends CloudProcessResource {
 		final Context jerry_env = new Context();
 		jerry_env.putValue("arg", "jelly rolls");
 	
-		CloudProcess tom = dao.create(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
+		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
 		List<URI> jerryDependency = new ArrayList<URI>();
 		jerryDependency.add(tom.getUri());
-		CloudProcess jerry = dao.create(UserResource.Root, "jerry", jerry_env, jerryDependency, null, CountDownAction.class);
-		init(tom);
-		init(jerry);
+		CloudProcess jerry = ProcessLifecycle.mgr().createProcess(UserResource.Root, "jerry", jerry_env, jerryDependency, null, CountDownAction.class);
+		ProcessLifecycle.mgr().init(tom);
+		ProcessLifecycle.mgr().init(jerry);
 
 		Thread.sleep(3000);
 		dao.clear();
@@ -369,7 +370,7 @@ public class CloudProcessTest extends CloudProcessResource {
 		assertEquals(ActionState.RUNABLE, tom.getState());
 		assertEquals(ActionState.INIT, jerry.getState());
 		dao.clear();
-		CountDownAction tomAction = (CountDownAction) ActionResource.dao.load(tom.getTask());
+		CountDownAction tomAction = (CountDownAction) ActionResource.dao.load(tom.getAction());
 		tomAction.setCount(1);
 		ActionResource.dao.update(tomAction);
 		
@@ -399,14 +400,14 @@ public class CloudProcessTest extends CloudProcessResource {
 		final Context jerry_env = new Context();
 		jerry_env.putValue("arg", "jelly rolls");
 	
-		CloudProcess tom = dao.create(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
-		init(tom);
+		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
+		ProcessLifecycle.mgr().init(tom);
 		Thread.sleep(3000);
 		dao.clear();
 		tom  = dao.load(tom.getUri());
 		assertEquals(ActionState.RUNABLE, tom.getState());
 		dao.clear();
-		CountDownAction tomAction = (CountDownAction) ActionResource.dao.load(tom.getTask());
+		CountDownAction tomAction = (CountDownAction) ActionResource.dao.load(tom.getAction());
 		tomAction.setCount(1);
 		ActionResource.dao.update(tomAction);
 		dao.clear();
@@ -416,8 +417,8 @@ public class CloudProcessTest extends CloudProcessResource {
 		
 		refresh();
 		
-		CloudProcess jerry = dao.create(UserResource.Root, "jerry", jerry_env, jerryDependency, null, CountDownAction.class);
-		init(jerry);
+		CloudProcess jerry = ProcessLifecycle.mgr().createProcess(UserResource.Root, "jerry", jerry_env, jerryDependency, null, CountDownAction.class);
+		ProcessLifecycle.mgr().init(jerry);
 
 		Thread.sleep(3500);
 		dao.clear();
@@ -442,12 +443,12 @@ public class CloudProcessTest extends CloudProcessResource {
 		final Context jerry_env = new Context();
 		jerry_env.putValue("arg", "jelly rolls");
 	
-		CloudProcess tom = dao.create(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
+		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
 		List<URI> jerryDependency = new ArrayList<URI>();
 		jerryDependency.add(tom.getUri());
-		CloudProcess jerry = dao.create(UserResource.Root, "jerry", jerry_env, jerryDependency, null, CountDownAction.class);
-		init(tom);
-		init(jerry);
+		CloudProcess jerry = ProcessLifecycle.mgr().createProcess(UserResource.Root, "jerry", jerry_env, jerryDependency, null, CountDownAction.class);
+		ProcessLifecycle.mgr().init(tom);
+		ProcessLifecycle.mgr().init(jerry);
 
 		Thread.sleep(3000);
 		dao.clear();
@@ -458,7 +459,7 @@ public class CloudProcessTest extends CloudProcessResource {
 		assertEquals(ActionState.RUNABLE, tom.getState());
 		assertEquals(ActionState.INIT, jerry.getState());
 		dao.clear();
-		cancel(tom);
+		ProcessLifecycle.mgr().cancel(tom);
 
 		Thread.sleep(1000);
 		dao.clear();
@@ -485,14 +486,14 @@ public class CloudProcessTest extends CloudProcessResource {
 		final Context jerry_env = new Context();
 		jerry_env.putValue("arg", "jelly rolls");
 	
-		CloudProcess tom = dao.create(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
-		init(tom);
+		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
+		ProcessLifecycle.mgr().init(tom);
 		Thread.sleep(3000);
 		dao.clear();
 		tom  = dao.load(tom.getUri());
 		assertEquals(ActionState.RUNABLE, tom.getState());
 		dao.clear();
-		cancel(tom);
+		ProcessLifecycle.mgr().cancel(tom);
 		Thread.sleep(1000);
 		dao.clear();
 		
@@ -501,7 +502,7 @@ public class CloudProcessTest extends CloudProcessResource {
 		
 		CloudProcess jerry;
 		try {
-			jerry = dao.create(UserResource.Root, "jerry", jerry_env, jerryDependency, null, CountDownAction.class);
+			jerry = ProcessLifecycle.mgr().createProcess(UserResource.Root, "jerry", jerry_env, jerryDependency, null, CountDownAction.class);
 			fail("Exception expected");
 		} catch (IllegalArgumentException e) {
 			dao.clear();
@@ -524,12 +525,12 @@ public class CloudProcessTest extends CloudProcessResource {
 		final Context jerry_env = new Context();
 		jerry_env.putValue("arg", "jelly rolls");
 	
-		CloudProcess tom = dao.create(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
+		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
 		List<URI> jerryDependency = new ArrayList<URI>();
 		jerryDependency.add(tom.getUri());
-		CloudProcess jerry = dao.create(UserResource.Root, "jerry", jerry_env, jerryDependency, null, CountDownAction.class);
-		init(tom);
-		init(jerry);
+		CloudProcess jerry = ProcessLifecycle.mgr().createProcess(UserResource.Root, "jerry", jerry_env, jerryDependency, null, CountDownAction.class);
+		ProcessLifecycle.mgr().init(tom);
+		ProcessLifecycle.mgr().init(jerry);
 
 		Thread.sleep(2000);
 		dao.clear();
@@ -557,12 +558,12 @@ public class CloudProcessTest extends CloudProcessResource {
 		final Context jerry_env = new Context();
 		jerry_env.putValue("arg", "jelly rolls");
 	
-		CloudProcess tom = dao.create(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
+		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
 		List<URI> jerryDependency = new ArrayList<URI>();
 		jerryDependency.add(tom.getUri());
-		CloudProcess jerry = dao.create(UserResource.Root, "jerry", jerry_env, jerryDependency, null, CountDownAction.class);
-		init(tom);
-		init(jerry);
+		CloudProcess jerry = ProcessLifecycle.mgr().createProcess(UserResource.Root, "jerry", jerry_env, jerryDependency, null, CountDownAction.class);
+		ProcessLifecycle.mgr().init(tom);
+		ProcessLifecycle.mgr().init(jerry);
 
 		Thread.sleep(2000);
 		dao.clear();
@@ -589,12 +590,12 @@ public class CloudProcessTest extends CloudProcessResource {
 		final Context jerry_env = new Context();
 		jerry_env.putValue("arg", "jelly rolls");
 	
-		CloudProcess tom = dao.create(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
+		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
 		List<URI> jerryDependency = new ArrayList<URI>();
 		jerryDependency.add(tom.getUri());
-		CloudProcess jerry = dao.create(UserResource.Root, "jerry", jerry_env, jerryDependency, null, CountDownAction.class);
-		init(tom);
-		init(jerry);
+		CloudProcess jerry = ProcessLifecycle.mgr().createProcess(UserResource.Root, "jerry", jerry_env, jerryDependency, null, CountDownAction.class);
+		ProcessLifecycle.mgr().init(tom);
+		ProcessLifecycle.mgr().init(jerry);
 
 		Thread.sleep(3000);
 		dao.clear();
@@ -605,7 +606,7 @@ public class CloudProcessTest extends CloudProcessResource {
 		assertEquals(ActionState.RUNABLE, tom.getState());
 		assertEquals(ActionState.INIT, jerry.getState());
 		dao.clear();
-		dump(tom);
+		ProcessLifecycle.mgr().dump(tom);
 		
 		dao.clear();
 		
@@ -618,9 +619,9 @@ public class CloudProcessTest extends CloudProcessResource {
 		assertEquals(ActionState.CANCELLED, jerry.getState());
 		assertTrue(jerry.isFinalized());
 		
-		CountDownAction cda = (CountDownAction) ActionResource.dao.load(tom.getTask());
+		CountDownAction cda = (CountDownAction) ActionResource.dao.load(tom.getAction());
 		assertEquals("dump entry point activated", 2000, cda.getCount());
-		CountDownAction jcda = (CountDownAction) ActionResource.dao.load(jerry.getTask());
+		CountDownAction jcda = (CountDownAction) ActionResource.dao.load(jerry.getAction());
 		assertEquals("cancel entry point not activated", 99, jcda.getCount());
 
 	}
@@ -637,9 +638,9 @@ public class CloudProcessTest extends CloudProcessResource {
 		final Context jerry_env = new Context();
 		jerry_env.putValue("arg", "jelly rolls");
 	
-		CloudProcess tom = dao.create(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
+		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
 		List<URI> jerryDependency = new ArrayList<URI>();
-		init(tom);
+		ProcessLifecycle.mgr().init(tom);
 		Thread.sleep(2000);
 		dao.clear();
 		refresh();
@@ -648,11 +649,11 @@ public class CloudProcessTest extends CloudProcessResource {
 		tom  = dao.load(tom.getUri());
 		assertEquals(ActionState.RUNABLE, tom.getState());
 		//
-		CloudProcess jerry = dao.create(UserResource.Root, "jerry", jerry_env, null, null, CountDownAction.class);
+		CloudProcess jerry = ProcessLifecycle.mgr().createProcess(UserResource.Root, "jerry", jerry_env, null, null, CountDownAction.class);
 		dao.clear();
 		refresh();
-		addDependentOn(tom, jerry);
-		init(jerry);
+		ProcessLifecycle.mgr().addDependentOn(tom, jerry);
+		ProcessLifecycle.mgr().init(jerry);
 
 		Thread.sleep(3000);
 		dao.clear();
@@ -676,9 +677,9 @@ public class CloudProcessTest extends CloudProcessResource {
 		final Context jerry_env = new Context();
 		jerry_env.putValue("arg", "jelly rolls");
 	
-		CloudProcess tom = dao.create(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
+		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
 		List<URI> jerryDependency = new ArrayList<URI>();
-		init(tom);
+		ProcessLifecycle.mgr().init(tom);
 		Thread.sleep(2000);
 		dao.clear();
 		refresh();
@@ -687,11 +688,11 @@ public class CloudProcessTest extends CloudProcessResource {
 		tom  = dao.load(tom.getUri());
 		assertEquals(ActionState.RUNABLE, tom.getState());
 		//
-		CloudProcess jerry = dao.create(UserResource.Root, "jerry", jerry_env, null, null, CountDownAction.class);
+		CloudProcess jerry = ProcessLifecycle.mgr().createProcess(UserResource.Root, "jerry", jerry_env, null, null, CountDownAction.class);
 		dao.clear();
 		refresh();
-		addDependentOn(tom, jerry);
-		init(jerry);
+		ProcessLifecycle.mgr().addDependentOn(tom, jerry);
+		ProcessLifecycle.mgr().init(jerry);
 
 		Thread.sleep(3000);
 		dao.clear();
@@ -702,7 +703,7 @@ public class CloudProcessTest extends CloudProcessResource {
 		assertEquals(ActionState.BLOCKED, tom.getState());
 		assertEquals(ActionState.RUNABLE, jerry.getState());
 		
-		CountDownAction jerryAction = (CountDownAction) ActionResource.dao.load(jerry.getTask());
+		CountDownAction jerryAction = (CountDownAction) ActionResource.dao.load(jerry.getAction());
 		jerryAction.setCount(1);
 		ActionResource.dao.update(jerryAction);
 		dao.clear();
@@ -729,9 +730,9 @@ public class CloudProcessTest extends CloudProcessResource {
 		final Context jerry_env = new Context();
 		jerry_env.putValue("arg", "jelly rolls");
 	
-		CloudProcess tom = dao.create(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
+		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
 		List<URI> jerryDependency = new ArrayList<URI>();
-		init(tom);
+		ProcessLifecycle.mgr().init(tom);
 		Thread.sleep(2000);
 		dao.clear();
 		refresh();
@@ -740,11 +741,11 @@ public class CloudProcessTest extends CloudProcessResource {
 		tom  = dao.load(tom.getUri());
 		assertEquals(ActionState.RUNABLE, tom.getState());
 		//
-		CloudProcess jerry = dao.create(UserResource.Root, "jerry", jerry_env, null, null, CountDownAction.class);
+		CloudProcess jerry = ProcessLifecycle.mgr().createProcess(UserResource.Root, "jerry", jerry_env, null, null, CountDownAction.class);
 		dao.clear();
 		refresh();
-		addDependentOn(tom, jerry);
-		init(jerry);
+		ProcessLifecycle.mgr().addDependentOn(tom, jerry);
+		ProcessLifecycle.mgr().init(jerry);
 
 		Thread.sleep(3000);
 		dao.clear();
@@ -755,10 +756,10 @@ public class CloudProcessTest extends CloudProcessResource {
 		assertEquals(ActionState.BLOCKED, tom.getState());
 		assertEquals(ActionState.RUNABLE, jerry.getState());
 		
-		CountDownAction jerryAction = (CountDownAction) ActionResource.dao.load(jerry.getTask());
+		CountDownAction jerryAction = (CountDownAction) ActionResource.dao.load(jerry.getAction());
 		jerryAction.setCount(1);
 		ActionResource.dao.update(jerryAction);
-		cancel(tom);
+		ProcessLifecycle.mgr().cancel(tom);
 		dao.clear();
 		refresh();
 		Thread.sleep(1000);
@@ -781,9 +782,9 @@ public class CloudProcessTest extends CloudProcessResource {
 		final Context jerry_env = new Context();
 		jerry_env.putValue("arg", "jelly rolls");
 	
-		CloudProcess tom = dao.create(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
+		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
 		List<URI> jerryDependency = new ArrayList<URI>();
-		init(tom);
+		ProcessLifecycle.mgr().init(tom);
 		Thread.sleep(2000);
 		dao.clear();
 		refresh();
@@ -792,11 +793,11 @@ public class CloudProcessTest extends CloudProcessResource {
 		tom  = dao.load(tom.getUri());
 		assertEquals(ActionState.RUNABLE, tom.getState());
 		//
-		CloudProcess jerry = dao.create(UserResource.Root, "jerry", jerry_env, null, null, CountDownAction.class);
+		CloudProcess jerry = ProcessLifecycle.mgr().createProcess(UserResource.Root, "jerry", jerry_env, null, null, CountDownAction.class);
 		dao.clear();
 		refresh();
-		addDependentOn(tom, jerry);
-		init(jerry);
+		ProcessLifecycle.mgr().addDependentOn(tom, jerry);
+		ProcessLifecycle.mgr().init(jerry);
 
 		Thread.sleep(3000);
 		dao.clear();
@@ -807,10 +808,10 @@ public class CloudProcessTest extends CloudProcessResource {
 		assertEquals(ActionState.BLOCKED, tom.getState());
 		assertEquals(ActionState.RUNABLE, jerry.getState());
 		
-		CountDownAction jerryAction = (CountDownAction) ActionResource.dao.load(jerry.getTask());
+		CountDownAction jerryAction = (CountDownAction) ActionResource.dao.load(jerry.getAction());
 		jerryAction.setCount(1);
 		ActionResource.dao.update(jerryAction);
-		cancel(jerry);
+		ProcessLifecycle.mgr().cancel(jerry);
 		dao.clear();
 		refresh();
 		Thread.sleep(1000);
@@ -819,9 +820,9 @@ public class CloudProcessTest extends CloudProcessResource {
 		jerry  = dao.load(jerry.getUri());
 		assertEquals(ActionState.CANCELLED, tom.getState());
 		assertEquals(ActionState.CANCELLED, jerry.getState());
-		CountDownAction ta = (CountDownAction) ActionResource.dao.load(tom.getTask());
+		CountDownAction ta = (CountDownAction) ActionResource.dao.load(tom.getAction());
 		assertEquals("cancel has been called", 1000, ta.getCount());
-		CountDownAction ja = (CountDownAction) ActionResource.dao.load(jerry.getTask());
+		CountDownAction ja = (CountDownAction) ActionResource.dao.load(jerry.getAction());
 		assertEquals("cancel has been called", 1000, ja.getCount());
 	}
 	
@@ -837,9 +838,9 @@ public class CloudProcessTest extends CloudProcessResource {
 		final Context jerry_env = new Context();
 		jerry_env.putValue("arg", "jelly rolls");
 	
-		CloudProcess tom = dao.create(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
+		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
 		List<URI> jerryDependency = new ArrayList<URI>();
-		init(tom);
+		ProcessLifecycle.mgr().init(tom);
 		Thread.sleep(2000);
 		dao.clear();
 		refresh();
@@ -848,11 +849,11 @@ public class CloudProcessTest extends CloudProcessResource {
 		tom  = dao.load(tom.getUri());
 		assertEquals(ActionState.RUNABLE, tom.getState());
 		//
-		CloudProcess jerry = dao.create(UserResource.Root, "jerry", jerry_env, null, null, CountDownAction.class);
+		CloudProcess jerry = ProcessLifecycle.mgr().createProcess(UserResource.Root, "jerry", jerry_env, null, null, CountDownAction.class);
 		dao.clear();
 		refresh();
-		addDependentOn(tom, jerry);
-		init(jerry);
+		ProcessLifecycle.mgr().addDependentOn(tom, jerry);
+		ProcessLifecycle.mgr().init(jerry);
 
 		Thread.sleep(3000);
 		dao.clear();
@@ -863,10 +864,10 @@ public class CloudProcessTest extends CloudProcessResource {
 		assertEquals(ActionState.BLOCKED, tom.getState());
 		assertEquals(ActionState.RUNABLE, jerry.getState());
 		
-		CountDownAction jerryAction = (CountDownAction) ActionResource.dao.load(jerry.getTask());
+		CountDownAction jerryAction = (CountDownAction) ActionResource.dao.load(jerry.getAction());
 		jerryAction.setCount(1);
 		ActionResource.dao.update(jerryAction);
-		dump(tom);
+		ProcessLifecycle.mgr().dump(tom);
 		dao.clear();
 		refresh();
 		Thread.sleep(1000);
@@ -875,7 +876,7 @@ public class CloudProcessTest extends CloudProcessResource {
 		jerry  = dao.load(jerry.getUri());
 		assertEquals(ActionState.CANCELLED, tom.getState());
 		assertEquals(ActionState.COMPLETE, jerry.getState());
-		CountDownAction ta = (CountDownAction) ActionResource.dao.load(tom.getTask());
+		CountDownAction ta = (CountDownAction) ActionResource.dao.load(tom.getAction());
 		assertEquals("dump has been called", 2000, ta.getCount());
 	}
 	
@@ -891,9 +892,9 @@ public class CloudProcessTest extends CloudProcessResource {
 		final Context jerry_env = new Context();
 		jerry_env.putValue("arg", "jelly rolls");
 	
-		CloudProcess tom = dao.create(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
+		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, CountDownAction.class);
 		List<URI> jerryDependency = new ArrayList<URI>();
-		init(tom);
+		ProcessLifecycle.mgr().init(tom);
 		Thread.sleep(2000);
 		dao.clear();
 		refresh();
@@ -902,11 +903,11 @@ public class CloudProcessTest extends CloudProcessResource {
 		tom  = dao.load(tom.getUri());
 		assertEquals(ActionState.RUNABLE, tom.getState());
 		//
-		CloudProcess jerry = dao.create(UserResource.Root, "jerry", jerry_env, null, null, CountDownAction.class);
+		CloudProcess jerry = ProcessLifecycle.mgr().createProcess(UserResource.Root, "jerry", jerry_env, null, null, CountDownAction.class);
 		dao.clear();
 		refresh();
-		addDependentOn(tom, jerry);
-		init(jerry);
+		ProcessLifecycle.mgr().addDependentOn(tom, jerry);
+		ProcessLifecycle.mgr().init(jerry);
 
 		Thread.sleep(3000);
 		dao.clear();
@@ -917,10 +918,10 @@ public class CloudProcessTest extends CloudProcessResource {
 		assertEquals(ActionState.BLOCKED, tom.getState());
 		assertEquals(ActionState.RUNABLE, jerry.getState());
 		
-		CountDownAction jerryAction = (CountDownAction) ActionResource.dao.load(jerry.getTask());
+		CountDownAction jerryAction = (CountDownAction) ActionResource.dao.load(jerry.getAction());
 		jerryAction.setCount(1);
 		ActionResource.dao.update(jerryAction);
-		dump(jerry);
+		ProcessLifecycle.mgr().dump(jerry);
 		dao.clear();
 		refresh();
 		Thread.sleep(1000);
@@ -929,9 +930,9 @@ public class CloudProcessTest extends CloudProcessResource {
 		jerry  = dao.load(jerry.getUri());
 		assertEquals(ActionState.CANCELLED, tom.getState());
 		assertEquals(ActionState.CANCELLED, jerry.getState());
-		CountDownAction ta = (CountDownAction) ActionResource.dao.load(tom.getTask());
+		CountDownAction ta = (CountDownAction) ActionResource.dao.load(tom.getAction());
 		assertEquals("cancel has been called", 1000, ta.getCount());
-		CountDownAction ja = (CountDownAction) ActionResource.dao.load(jerry.getTask());
+		CountDownAction ja = (CountDownAction) ActionResource.dao.load(jerry.getAction());
 		assertEquals("dump has been called", 2000, ja.getCount());
 	}
 

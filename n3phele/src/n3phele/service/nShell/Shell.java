@@ -689,7 +689,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
                    /*@bgen(jjtree) fileList */
                     SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTFILELIST);
                     boolean jjtc000 = true;
-                    jjtree.openNodeScope(jjtn000);Map<String, String> result = new HashMap<String, String>(); Token f; Token m;
+                    jjtree.openNodeScope(jjtn000);Token f; Token m;
     try {
       jj_consume_token(FILELIST);
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -714,9 +714,6 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
         ;
       }
       jj_consume_token(FILELISTEND);
-          jjtree.closeNodeScope(jjtn000, true);
-          jjtc000 = false;
-         jjtn000.jjtSetValue(result);
     } catch (Throwable jjte000) {
           if (jjtc000) {
             jjtree.clearNodeScope(jjtn000);
@@ -757,7 +754,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
       }
                                                                     jjtree.closeNodeScope(jjtn000, true);
                                                                     jjtc000 = false;
-                                                                    jjtn000.jjtSetValue(f.image+"|"+m.image);
+                                                                    jjtn000.jjtSetValue(f.image+":"+m.image);
     } finally {
           if (jjtc000) {
             jjtree.closeNodeScope(jjtn000, true);

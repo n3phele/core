@@ -169,6 +169,16 @@ public final Class<T> clazz;
 		// return ofy().load().type(clazz).filter(propName, propValue).list();
 	}
 	
+	public Collection<T> orderedCollectionByProperty(String propName, Object propValue, String sortBy) {
+		List<Key<T>> keys = ofy().load().type(clazz).filter(propName, propValue).order(sortBy).keys().list();
+		if(keys == null || keys.size() == 0) {
+			return new ArrayList<T>();
+		} else {
+			return ofy().load().keys(keys).values();
+		}
+		// return ofy().load().type(clazz).filter(propName, propValue).list();
+	}
+	
 	public T getByProperty(String propName, Object propValue) throws NotFoundException  {
 		try {
 			return ofy().load().type(clazz).filter(propName, propValue).first().safeGet();
@@ -179,6 +189,14 @@ public final Class<T> clazz;
 
 	public List<Key<T>> listKeysByProperty(String propName, Object propValue) {
 		return ofy().load().type(clazz).filter(propName, propValue).keys().list();
+	}
+	
+	public int countKeysByProperty(String propName, Object propValue) {
+		return ofy().load().type(clazz).filter(propName, propValue).count();
+	}
+	
+	public int countKeysByPropertyDuo(String propName, Object propValue, String propName2, Object propValue2) {
+		return ofy().load().type(clazz).filter(propName, propValue).filter(propName2, propValue2).count();
 	}
 	
 	public Collection<T> listByURI(Collection<URI> ids) {

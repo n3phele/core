@@ -19,7 +19,7 @@ PARSER_BEGIN(NParser)
  *  specific language governing permissions and limitations under the License.
  */
 
-package n3phele.service.n;
+package n3phele.service.nShell;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -309,6 +309,7 @@ CommandDefinition parse():
 		cd.setInputFiles(inputFiles);
 		cd.setOutputFiles(outputFiles);
 		cd.setImplementations(implementations);
+		if(implementations != null)
 		return cd;
   	}
 }
@@ -437,6 +438,8 @@ CommandImplementationDefinition implementation() : { Token c; Token t = null; To
 	  	String name = c.image;
 	  	String annotation = (t == null)? "" : t.image;
 	  	String body = (b == null)? null : b.image;
-	  	return new CommandImplementationDefinition(name, annotation, body, c.beginLine+1);
+	  	CommandImplementationDefinition cid = new CommandImplementationDefinition(name, annotation, body, c.beginLine+1);
+		cid.setCompiled(new n3phele.service.nShell.Shell(cid.getBody(), cid.getLineNo()).compile());
+	  	return cid;
 	}
 }

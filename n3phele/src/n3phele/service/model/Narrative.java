@@ -35,7 +35,7 @@ public class Narrative {
 	@Id protected Long id;
 	protected String tag;
 	@Index protected String process;
-	protected Date stamp;
+	@Index protected Date stamp;
 	protected NarrativeLevel state = NarrativeLevel.undefined;
 	protected String text;
 	private final static DateFormat formatter = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM);

@@ -1,4 +1,4 @@
-package n3phele.service.actions.tasks;
+package n3phele.service.actions;
 /**
  * (C) Copyright 2010-2013. Nigel Cook. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
@@ -20,6 +20,8 @@ import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.annotation.Unindex;
 
 import n3phele.service.core.NotFoundException;
+import n3phele.service.lifecycle.ProcessLifecycle;
+import n3phele.service.lifecycle.ProcessLifecycle.WaitForSignalRequest;
 import n3phele.service.model.Action;
 import n3phele.service.model.ActionState;
 import n3phele.service.model.CloudProcess;
@@ -27,8 +29,6 @@ import n3phele.service.model.Context;
 import n3phele.service.model.SignalKind;
 import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.User;
-import n3phele.service.rest.impl.CloudProcessResource;
-import n3phele.service.rest.impl.CloudProcessResource.WaitForSignalRequest;
 import n3phele.service.rest.impl.UserResource;
 
 
@@ -98,10 +98,9 @@ public class JobAction extends Action {
 			newArg.append(argv[i]);
 		}
 		childEnv.putValue("arg", newArg.toString());
-		CloudProcessResource cpr = new CloudProcessResource();
-		CloudProcess child = cpr.spawn(this.getOwner(), childName, childEnv, null, this.getProcess(), this.actionName);
-		cpr.init(child);
-		log.info("Created child "+child.getName()+" "+child.getUri()+" Action "+child.getTask());
+		CloudProcess child = ProcessLifecycle.mgr().spawn(this.getOwner(), childName, childEnv, null, this.getProcess(), this.actionName);
+		ProcessLifecycle.mgr().init(child);
+		log.info("Created child "+child.getName()+" "+child.getUri()+" Action "+child.getAction());
 		this.childProcess = child.getUri().toString();
 	}
 	
@@ -110,7 +109,7 @@ public class JobAction extends Action {
 	public boolean call() throws WaitForSignalRequest {
 		log.warning("Call");
 		if(!childComplete) {
-			CloudProcessResource.waitForSignal();
+			ProcessLifecycle.mgr().waitForSignal();
 			return false; // never executed
 		} else {
 			notifyOwner();
@@ -123,7 +122,7 @@ public class JobAction extends Action {
 	@Override
 	public void cancel() {
 		log.warning("Cancel");
-		CloudProcessResource.dump(URI.create(this.childProcess));
+		ProcessLifecycle.mgr().dump(URI.create(this.childProcess));
 		this.childEndState = ActionState.CANCELLED;
 		notifyOwner();
 		
@@ -132,7 +131,7 @@ public class JobAction extends Action {
 	@Override
 	public void dump() {
 		log.warning("Dump");
-		CloudProcessResource.dump(URI.create(this.childProcess));
+		ProcessLifecycle.mgr().dump(URI.create(this.childProcess));
 		this.childEndState = ActionState.CANCELLED;
 		notifyOwner();
 		
@@ -148,7 +147,7 @@ public class JobAction extends Action {
 		case Adoption:
 			log.info((isChild?"Child ":"Unknown ")+assertion+" adoption");
 			URI processURI = URI.create(assertion);
-			CloudProcessResource.dump(processURI);
+			ProcessLifecycle.mgr().dump(processURI);
 			return;
 		case Cancel:;
 			log.info((isChild?"Child ":"Unknown ")+assertion+" cancelled");
@@ -161,7 +160,6 @@ public class JobAction extends Action {
 			return;
 		case Failed:
 			log.info((isChild?"Child ":"Unknown ")+assertion+" failed");
-			log.info((isChild?"Child ":"Unknown ")+assertion+" cancelled");
 			if(isChild) {
 				this.childEndState = ActionState.FAILED;
 			}
@@ -169,7 +167,7 @@ public class JobAction extends Action {
 		case Ok:
 			log.info((isChild?"Child ":"Unknown ")+assertion+" ok");
 			if(isChild) {
-				this.childEndState = ActionState.FAILED;
+				this.childEndState = ActionState.COMPLETE;
 			}
 			break;
 		default:

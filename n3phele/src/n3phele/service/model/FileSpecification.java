@@ -16,7 +16,6 @@ import java.net.URI;
 import java.util.Date;
 
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name="FileSpecification")
@@ -24,7 +23,6 @@ import javax.xml.bind.annotation.XmlType;
 
 public class FileSpecification implements Serializable {
 	private static final long serialVersionUID = 1L;
-	private long id;
 	private String name;
 	private String description;
 	private String repository;
@@ -90,25 +88,6 @@ public class FileSpecification implements Serializable {
 		this.filename = f.filename;
 		this.isOptional = f.isOptional;
 	}
-
-	
-	/**
-	 * @return the id
-	 */
-	@XmlTransient
-	public long getId() {
-		return id;
-	}
-
-
-
-	/**
-	 * @param id the id to set
-	 */
-	public void setId(long id) {
-		this.id = id;
-	}
-
 
 	/**
 	 * @return the name
@@ -219,8 +198,8 @@ public class FileSpecification implements Serializable {
 	@Override
 	public String toString() {
 		return String
-				.format("FileSpecification [id=%s, name=%s, description=%s, repository=%s, filename=%s, canonicalPath=%s, size=%s, modified=%s, isOptional=%s]",
-						this.id, this.name, this.description, this.repository,
+				.format("FileSpecification [name=%s, description=%s, repository=%s, filename=%s, canonicalPath=%s, size=%s, modified=%s, isOptional=%s]",
+						 this.name, this.description, this.repository,
 						this.filename, this.canonicalPath, this.size,
 						this.modified, this.isOptional);
 	}

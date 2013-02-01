@@ -26,6 +26,7 @@ import n3phele.service.model.CommandDefinition;
 import n3phele.service.model.CommandImplementationDefinition;
 import n3phele.service.model.ParameterType;
 import n3phele.service.model.ShellFragment;
+import n3phele.service.nShell.NParser;
 import n3phele.service.nShell.ParseException;
 import n3phele.service.nShell.SelfCompilingNode;
 import n3phele.service.nShell.Shell;
@@ -166,7 +167,7 @@ public class ParserTest {
 		SimpleNode node = s.script();
 		String result = dump(node, "", ".");
 		String expected = "script:null\n"
-				+ ".variableAssign:\"$$DenoiseCluster\"\n"
+				+ ".variableAssign:\"DenoiseCluster\"\n"
 				+ "..createvm:null\n"
 				+ "...option:\"name\"\n"
 				+ "....literalArg:\"DenoiseCluster\"\n"
@@ -182,7 +183,7 @@ public class ParserTest {
 				+ "..........additiveExpression:\"-\"\n"
 				+ "...........multiplicativeExpression:null\n"
 				+ "............unaryExpression:null\n"
-				+ ".............identifier:\"$$n\"\n"
+				+ ".............identifier:\"n\"\n"
 				+ "...........additiveExpression:null\n"
 				+ "............multiplicativeExpression:null\n"
 				+ ".............unaryExpression:null\n"
@@ -197,7 +198,7 @@ public class ParserTest {
 				+ "..........additiveExpression:null\n"
 				+ "...........multiplicativeExpression:null\n"
 				+ "............unaryExpression:null\n"
-				+ ".............identifier:\"$$spotPrice\"\n"
+				+ ".............identifier:\"spotPrice\"\n"
 				+ "...option:\"instanceType\"\n"
 				+ "....literalArg:\"c1.xlarge\"\n"
 				+ "...option:\"securityGroups\"\n"
@@ -229,7 +230,7 @@ public class ParserTest {
 				+ ".........additiveExpression:null\n"
 				+ "..........multiplicativeExpression:null\n"
 				+ "...........unaryExpression:null\n"
-				+ "............identifier:\"$$spotPrice\"\n"
+				+ "............identifier:\"spotPrice\"\n"
 				+ "..option:\"instanceType\"\n"
 				+ "...literalArg:\"m1.xlarge\"\n"
 				+ "..option:\"securityGroups\"\n"
@@ -252,7 +253,7 @@ public class ParserTest {
 				+ "........additiveExpression:null\n"
 				+ ".........multiplicativeExpression:null\n"
 				+ "..........unaryExpression:null\n"
-				+ "...........identifier:\"$$DenoiseMaster\"\n"
+				+ "...........identifier:\"DenoiseMaster\"\n"
 				+ "..option:\"needsAll\"\n"
 				+ "..option:\"producesNone\"\n"
 				+ "..pieces:null\n"
@@ -268,9 +269,15 @@ public class ParserTest {
 				+ "..........multiplicativeExpression:null\n"
 				+ "...........unaryExpression:null\n"
 				+ "............functionExpression:\"string\"\n"
-				+ ".............list:null\n"
-				+ "..............subList:null\n"
-				+ "...............identifier:\"$$DenoiseCluster.privateIpAddressList\"\n"
+				+ ".............conditionalExpression:null\n"
+				+ "..............logicalORExpression:null\n"
+				+ "...............logicalANDExpression:null\n"
+				+ "................equalityExpression:null\n"
+				+ ".................relationalExpression:null\n"
+				+ "..................additiveExpression:null\n"
+				+ "...................multiplicativeExpression:null\n"
+				+ "....................unaryExpression:null\n"
+				+ ".....................identifier:\"DenoiseCluster.privateIpAddressList\"\n"
 				+ ".............conditionalExpression:null\n"
 				+ "..............logicalORExpression:null\n"
 				+ "...............logicalANDExpression:null\n"
@@ -301,9 +308,15 @@ public class ParserTest {
 				+ "..........multiplicativeExpression:null\n"
 				+ "...........unaryExpression:null\n"
 				+ "............functionExpression:\"string\"\n"
-				+ ".............list:null\n"
-				+ "..............subList:null\n"
-				+ "...............identifier:\"$$DenoiseCluster.privateIpAddressList\"\n"
+				+ ".............conditionalExpression:null\n"
+				+ "..............logicalORExpression:null\n"
+				+ "...............logicalANDExpression:null\n"
+				+ "................equalityExpression:null\n"
+				+ ".................relationalExpression:null\n"
+				+ "..................additiveExpression:null\n"
+				+ "...................multiplicativeExpression:null\n"
+				+ "....................unaryExpression:null\n"
+				+ ".....................identifier:\"DenoiseCluster.privateIpAddressList\"\n"
 				+ ".............conditionalExpression:null\n"
 				+ "..............logicalORExpression:null\n"
 				+ "...............logicalANDExpression:null\n"
@@ -340,7 +353,7 @@ public class ParserTest {
 				+ "........additiveExpression:\"-\"\n"
 				+ ".........multiplicativeExpression:null\n"
 				+ "..........unaryExpression:null\n"
-				+ "...........identifier:\"$$n\"\n"
+				+ "...........identifier:\"n\"\n"
 				+ ".........additiveExpression:null\n"
 				+ "..........multiplicativeExpression:null\n"
 				+ "...........unaryExpression:null\n"
@@ -356,7 +369,7 @@ public class ParserTest {
 				+ "..........additiveExpression:null\n"
 				+ "...........multiplicativeExpression:null\n"
 				+ "............unaryExpression:null\n"
-				+ ".............identifier:\"$$DenoiseCluster\"\n"
+				+ ".............identifier:\"DenoiseCluster\"\n"
 				+ ".............conditionalExpression:null\n"
 				+ "..............logicalORExpression:null\n"
 				+ "...............logicalANDExpression:null\n"
@@ -365,7 +378,7 @@ public class ParserTest {
 				+ "..................additiveExpression:null\n"
 				+ "...................multiplicativeExpression:null\n"
 				+ "....................unaryExpression:null\n"
-				+ ".....................identifier:\"$$i\"\n"
+				+ ".....................identifier:\"i\"\n"
 				+ "....pieces:null\n"
 				+ ".....passThru:\"source /home/ubuntu/qiime_software/activate.sh\n"
 				+ " cp $QIIME/qiime/support_files/qiime_config_n3phele ~/.qiime_config_default\n"
@@ -388,7 +401,7 @@ public class ParserTest {
 				+ "....................additiveExpression:null\n"
 				+ ".....................multiplicativeExpression:null\n"
 				+ "......................unaryExpression:null\n"
-				+ ".......................identifier:\"$$setupMaster.stdout\"\n"
+				+ ".......................identifier:\"setupMaster.stdout\"\n"
 				+ "...............conditionalExpression:null\n"
 				+ "................logicalORExpression:null\n"
 				+ ".................logicalANDExpression:null\n"
@@ -420,7 +433,7 @@ public class ParserTest {
 				+ "........additiveExpression:null\n"
 				+ ".........multiplicativeExpression:null\n"
 				+ "..........unaryExpression:null\n"
-				+ "...........identifier:\"$$DenoiseMaster\"\n"
+				+ "...........identifier:\"DenoiseMaster\"\n"
 				+ "..option:\"needsNone\"\n"
 				+ "..option:\"producesNone\"\n"
 				+ "..pieces:null\n"
@@ -434,7 +447,7 @@ public class ParserTest {
 				+ ".........additiveExpression:null\n"
 				+ "..........multiplicativeExpression:null\n"
 				+ "...........unaryExpression:null\n"
-				+ "............identifier:\"$$DenoiseMaster.privateIpAddressList\"\n"
+				+ "............identifier:\"DenoiseMaster.privateIpAddressList\"\n"
 				+ "............conditionalExpression:null\n"
 				+ ".............logicalORExpression:null\n"
 				+ "..............logicalANDExpression:null\n"
@@ -456,13 +469,13 @@ public class ParserTest {
 				+ "........additiveExpression:null\n"
 				+ ".........multiplicativeExpression:null\n"
 				+ "..........unaryExpression:null\n"
-				+ "...........identifier:\"$$DenoiseMaster\"\n"
+				+ "...........identifier:\"DenoiseMaster\"\n"
 				+ "..option:\"produces\"\n"
-				+ "...fileList:{}\n"
-				+ "....fileElement:\"denoiser.log|output/denoiser.log\"\n"
-				+ "....fileElement:\"centroids.fasta|output/centroids.fasta\"\n"
-				+ "....fileElement:\"singletons.fasta|output/singletons.fasta\"\n"
-				+ "....fileElement:\"denoiser_mapping.txt|output/denoiser_mapping.txt\"\n"
+				+ "...fileList:null\n"
+				+ "....fileElement:\"denoiser.log:output/denoiser.log\"\n"
+				+ "....fileElement:\"centroids.fasta:output/centroids.fasta\"\n"
+				+ "....fileElement:\"singletons.fasta:output/singletons.fasta\"\n"
+				+ "....fileElement:\"denoiser_mapping.txt:output/denoiser_mapping.txt\"\n"
 				+ "..pieces:null\n"
 				+ "...passThru:\"source /home/ubuntu/qiime_software/activate.sh\n"
 				+ " cp $QIIME/qiime/support_files/qiime_config_n3phele ~/.qiime_config_default\n"
@@ -482,7 +495,7 @@ public class ParserTest {
 				+ ".........additiveExpression:null\n"
 				+ "..........multiplicativeExpression:null\n"
 				+ "...........unaryExpression:null\n"
-				+ "............identifier:\"$$primer\"\n"
+				+ "............identifier:\"primer\"\n"
 				+ "........equalityExpression:null\n"
 				+ ".........relationalExpression:null\n"
 				+ "..........additiveExpression:null\n"
@@ -510,7 +523,7 @@ public class ParserTest {
 				+ "...........additiveExpression:null\n"
 				+ "............multiplicativeExpression:null\n"
 				+ ".............unaryExpression:null\n"
-				+ "..............identifier:\"$$primer\"\n"
+				+ "..............identifier:\"primer\"\n"
 				+ "...passThru:\" -f seqs.fna -o output -n $WORKERS\"\n"
 				+ "...expression:\" \"\n"
 				+ "....conditionalExpression:null\n"
@@ -521,7 +534,7 @@ public class ParserTest {
 				+ ".........additiveExpression:null\n"
 				+ "..........multiplicativeExpression:null\n"
 				+ "...........unaryExpression:null\n"
-				+ "............identifier:\"$$titanium\"\n"
+				+ "............identifier:\"titanium\"\n"
 				+ ".....conditionalExpression:null\n"
 				+ "......logicalORExpression:null\n"
 				+ ".......logicalANDExpression:null\n"
@@ -552,20 +565,19 @@ public class ParserTest {
 				+ "........additiveExpression:null\n"
 				+ ".........multiplicativeExpression:null\n"
 				+ "..........unaryExpression:null\n"
-				+ "...........identifier:\"$$DenoiseMaster\"\n"
+				+ "...........identifier:\"DenoiseMaster\"\n"
 				+ "..option:\"needs\"\n"
-				+ "...fileList:{}\n"
-				+ "....fileElement:\"sequence.fasta|sequence.fasta\"\n"
-				+ "....fileElement:\"centroids.fasta|centroids.fasta\"\n"
-				+ "....fileElement:\"singletons.fasta|singletons.fasta\"\n"
-				+ "....fileElement:\"denoiser_mapping.txt|denoiser_mapping.txt\"\n"
+				+ "...fileList:null\n"
+				+ "....fileElement:\"sequence.fasta:sequence.fasta\"\n"
+				+ "....fileElement:\"centroids.fasta:centroids.fasta\"\n"
+				+ "....fileElement:\"singletons.fasta:singletons.fasta\"\n"
+				+ "....fileElement:\"denoiser_mapping.txt:denoiser_mapping.txt\"\n"
 				+ "..option:\"produces\"\n"
 				+ "...literalArg:\"denoised.fasta\"\n"
 				+ "..pieces:null\n"
 				+ "...passThru:\"source /home/ubuntu/qiime_software/activate.sh\n"
 				+ " inflate_denoiser_output.py -v -c output/centroids.fasta -s output/singletons.fasta -f seqs.fna -d output/denoiser_mapping.txt -o denoised.fasta\n"
-				+ "\"\n"
-				+ "";
+				+ "\"\n";
 		
 		Assert.assertEquals(expected, result);
 	}
@@ -625,8 +637,8 @@ public class ParserTest {
 		ShellFragment sf = list.get(index);
 		String result = prefix+sf.kind.toString()+":"+sf.value+"\n";
 	    if (sf.children != null) {
-	      for (int i = 0; i < (sf.children.size()); ++i) {
-	          result += dumpCompiled(list, sf.children.get(i), prefix + fill, fill);
+	      for (int i = 0; i < (sf.children.length); ++i) {
+	          result += dumpCompiled(list, sf.children[i], prefix + fill, fill);
 	      }
 	    }
 	    return result;
@@ -656,9 +668,10 @@ public class ParserTest {
 	/** Expression exception handling, including report of line, column and offending text
 	 * @throws FileNotFoundException
 	 * @throws n3phele.service.n.ParseException
+	 * @throws n3phele.service.nShell.ParseException 
 	 */
 	@Test
-	public void exceptionTest1() throws FileNotFoundException, n3phele.service.n.ParseException {
+	public void exceptionTest1() throws FileNotFoundException, ParseException {
 		NParser n = new NParser(new FileInputStream("./test/denoiseTestException1.n"));
 
 
@@ -676,9 +689,10 @@ public class ParserTest {
 	
 	/** Test simple ON statement
 	 * @throws ParseException
+	 * @throws n3phele.service.nShell.ParseException 
 	 */
 	@Test
-	public void shellTest_ON_1() throws ParseException {
+	public void shellTest_ON_1() throws ParseException, n3phele.service.nShell.ParseException {
 		String test = "  ON $$DenoiseMaster --needsAll --producesNone\n"+
 					  "    ls -lx | sort | cat > /tmp/foo.bar\n";
 		Shell s = new Shell(test, 1);
@@ -695,7 +709,7 @@ public class ParserTest {
 				+ "........additiveExpression:null\n"
 				+ ".........multiplicativeExpression:null\n"
 				+ "..........unaryExpression:null\n"
-				+ "...........identifier:\"$$DenoiseMaster\"\n"
+				+ "...........identifier:\"DenoiseMaster\"\n"
 				+ "..option:\"needsAll\"\n"
 				+ "..option:\"producesNone\"\n"
 				+ "..pieces:null\n"
@@ -709,9 +723,10 @@ public class ParserTest {
 	
 	/** Tests the processing of a file list with both default and explicitly specified filenames.
 	 * @throws ParseException
+	 * @throws n3phele.service.nShell.ParseException 
 	 */
 	@Test
-	public void shellTest_ON_2() throws ParseException {
+	public void shellTest_ON_2() throws ParseException, n3phele.service.nShell.ParseException {
 		String test = 	"    ON $$DenoiseMaster --produces [denoiser.log,\n"+
 						"    				centroids.fasta: output/centroids.fasta,\n"+
 						"    			    singletons.fasta:output/singletons.fasta,\n"+
@@ -731,13 +746,13 @@ public class ParserTest {
 				+ "........additiveExpression:null\n"
 				+ ".........multiplicativeExpression:null\n"
 				+ "..........unaryExpression:null\n"
-				+ "...........identifier:\"$$DenoiseMaster\"\n"
+				+ "...........identifier:\"DenoiseMaster\"\n"
 				+ "..option:\"produces\"\n"
-				+ "...fileList:{}\n"
-				+ "....fileElement:\"denoiser.log|denoiser.log\"\n"
-				+ "....fileElement:\"centroids.fasta|output/centroids.fasta\"\n"
-				+ "....fileElement:\"singletons.fasta|output/singletons.fasta\"\n"
-				+ "....fileElement:\"denoiser_mapping.txt|output/denoiser_mapping.txt\"\n"
+				+ "...fileList:null\n"
+				+ "....fileElement:\"denoiser.log:denoiser.log\"\n"
+				+ "....fileElement:\"centroids.fasta:output/centroids.fasta\"\n"
+				+ "....fileElement:\"singletons.fasta:output/singletons.fasta\"\n"
+				+ "....fileElement:\"denoiser_mapping.txt:output/denoiser_mapping.txt\"\n"
 				+ "..pieces:null\n"
 				+ "...passThru:\"cp $QIIME/qiime/support_files/qiime_config_n3phele ~/.qiime_config_default\n"
 				+ "\"\n"
@@ -751,9 +766,10 @@ public class ParserTest {
 	
 	/** Test FOR statement with multiple statements defined in the FOR block and a statement following the FOR block
 	 * @throws ParseException
+	 * @throws n3phele.service.nShell.ParseException 
 	 */
 	@Test
-	public void shellTest_FOR_1() throws ParseException {
+	public void shellTest_FOR_1() throws ParseException, n3phele.service.nShell.ParseException {
 		String test = "	FOR $$i : $$n-1\n" +
 					  "		ON $$DenoiseCluster[$$i]\n" +
 					  "			first --command\n" +
@@ -776,7 +792,7 @@ public class ParserTest {
 				+ "........additiveExpression:\"-\"\n"
 				+ ".........multiplicativeExpression:null\n"
 				+ "..........unaryExpression:null\n"
-				+ "...........identifier:\"$$n\"\n"
+				+ "...........identifier:\"n\"\n"
 				+ ".........additiveExpression:null\n"
 				+ "..........multiplicativeExpression:null\n"
 				+ "...........unaryExpression:null\n"
@@ -792,7 +808,7 @@ public class ParserTest {
 				+ "..........additiveExpression:null\n"
 				+ "...........multiplicativeExpression:null\n"
 				+ "............unaryExpression:null\n"
-				+ ".............identifier:\"$$DenoiseCluster\"\n"
+				+ ".............identifier:\"DenoiseCluster\"\n"
 				+ ".............conditionalExpression:null\n"
 				+ "..............logicalORExpression:null\n"
 				+ "...............logicalANDExpression:null\n"
@@ -801,7 +817,7 @@ public class ParserTest {
 				+ "..................additiveExpression:null\n"
 				+ "...................multiplicativeExpression:null\n"
 				+ "....................unaryExpression:null\n"
-				+ ".....................identifier:\"$$i\"\n"
+				+ ".....................identifier:\"i\"\n"
 				+ "....pieces:null\n"
 				+ ".....passThru:\"first --command\n"
 				+ "\"\n"
@@ -815,7 +831,7 @@ public class ParserTest {
 				+ "..........additiveExpression:null\n"
 				+ "...........multiplicativeExpression:null\n"
 				+ "............unaryExpression:null\n"
-				+ ".............identifier:\"$$DenoiseCluster\"\n"
+				+ ".............identifier:\"DenoiseCluster\"\n"
 				+ ".............conditionalExpression:null\n"
 				+ "..............logicalORExpression:null\n"
 				+ "...............logicalANDExpression:null\n"
@@ -824,7 +840,7 @@ public class ParserTest {
 				+ "..................additiveExpression:null\n"
 				+ "...................multiplicativeExpression:null\n"
 				+ "....................unaryExpression:null\n"
-				+ ".....................identifier:\"$$i\"\n"
+				+ ".....................identifier:\"i\"\n"
 				+ "....pieces:null\n"
 				+ ".....passThru:\"second -help\n"
 				+ "\"\n"
@@ -838,7 +854,7 @@ public class ParserTest {
 				+ "........additiveExpression:null\n"
 				+ ".........multiplicativeExpression:null\n"
 				+ "..........unaryExpression:null\n"
-				+ "...........identifier:\"$$DenoiseMaster\"\n"
+				+ "...........identifier:\"DenoiseMaster\"\n"
 				+ "..pieces:null\n"
 				+ "...passThru:\"third foobar > file.txt\n"
 				+ "\"\n";
@@ -847,9 +863,10 @@ public class ParserTest {
 	
 	/** Tests multi-line CREATEVM statement with a multi-line literal for userdata. Multi-line literal has leading whitespace removal.
 	 * @throws ParseException
+	 * @throws n3phele.service.nShell.ParseException 
 	 */
 	@Test
-	public void shellTest_CREATEVM_1() throws ParseException {
+	public void shellTest_CREATEVM_1() throws ParseException, n3phele.service.nShell.ParseException {
 		String test = "	CREATEVM --name DenoiseMaster --imageId ami-e4bf1b8d --launchGroup \"denoise\" --minCount 1 --spotPrice $$spotPrice\n"+
 						"	 --instanceType m1.xlarge --securityGroups n3phele-default\n"+
 						"	 --userData %%{\n"+
@@ -883,7 +900,7 @@ public class ParserTest {
 				+ ".........additiveExpression:null\n"
 				+ "..........multiplicativeExpression:null\n"
 				+ "...........unaryExpression:null\n"
-				+ "............identifier:\"$$spotPrice\"\n"
+				+ "............identifier:\"spotPrice\"\n"
 				+ "..option:\"instanceType\"\n"
 				+ "...literalArg:\"m1.xlarge\"\n"
 				+ "..option:\"securityGroups\"\n"
@@ -897,6 +914,51 @@ public class ParserTest {
 				+ "ln -s /mnt/sandbox ~ubuntu/sandbox\n"
 				+ "\"\n"
 				+ "";
+		Assert.assertEquals(expected, result);
+	}
+	
+	@Test
+	public void shellTest_LOG() throws ParseException, n3phele.service.nShell.ParseException, FileNotFoundException {
+		NParser n = new NParser(new FileInputStream("./test/doubleLogTest.n"));
+		CommandDefinition cd = n.parse();
+		Assert.assertEquals("doubleLog", cd.getName());
+		Assert.assertEquals("produce a log message with a suffix", cd.getDescription());
+		Assert.assertTrue(cd.isPublic());
+		Assert.assertTrue(cd.isPreferred());
+		Assert.assertEquals("1.0", cd.getVersion());
+		Shell s = new Shell(cd.getImplementations().get(0).getBody(), cd.getImplementations().get(0).getLineNo());
+		SimpleNode node = s.script();
+		String result = dump(node, "", ".");
+		String expected = "script:null\n"
+				+ ".variableAssign:\"log\"\n"
+				+ "..log:null\n"
+				+ "...pieces:null\n"
+				+ "....expression:\" \"\n"
+				+ ".....conditionalExpression:null\n"
+				+ "......logicalORExpression:null\n"
+				+ ".......logicalANDExpression:null\n"
+				+ "........equalityExpression:null\n"
+				+ ".........relationalExpression:null\n"
+				+ "..........additiveExpression:null\n"
+				+ "...........multiplicativeExpression:null\n"
+				+ "............unaryExpression:null\n"
+				+ ".............identifier:\"message\"\n"
+				+ ".log:null\n"
+				+ "..pieces:null\n"
+				+ "...expression:\"  \"\n"
+				+ "....conditionalExpression:null\n"
+				+ ".....logicalORExpression:null\n"
+				+ "......logicalANDExpression:null\n"
+				+ ".......equalityExpression:null\n"
+				+ "........relationalExpression:null\n"
+				+ ".........additiveExpression:null\n"
+				+ "..........multiplicativeExpression:null\n"
+				+ "...........unaryExpression:null\n"
+				+ "............identifier:\"log.message\"\n"
+				+ "...passThru:\" and a suffix\n"
+				+ "\"\n";
+
+
 		Assert.assertEquals(expected, result);
 	}
 }

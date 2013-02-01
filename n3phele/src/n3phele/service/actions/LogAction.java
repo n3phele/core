@@ -1,4 +1,4 @@
-package n3phele.service.actions.tasks;
+package n3phele.service.actions;
 /**
  * (C) Copyright 2010-2013. Nigel Cook. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
@@ -20,6 +20,7 @@ import com.googlecode.objectify.annotation.Unindex;
 
 import n3phele.service.model.Action;
 import n3phele.service.model.Context;
+import n3phele.service.model.NarrativeLevel;
 import n3phele.service.model.SignalKind;
 import n3phele.service.model.core.User;
 
@@ -30,7 +31,7 @@ import n3phele.service.model.core.User;
 @Cache
 public class LogAction extends Action {
 	final private static java.util.logging.Logger log = java.util.logging.Logger.getLogger(LogAction.class.getName()); 
-	
+	private ActionLogger logger;
 	public LogAction() {}
 	
 	protected LogAction(User owner, String name,
@@ -40,13 +41,31 @@ public class LogAction extends Action {
 	
 	@Override
 	public void init() throws Exception {
-		log.info(this.getContext().getValue("arg"));
-		ActionLogger.name(this).info(this.getContext().getValue("arg"));
+		logger = new ActionLogger(this);
+		log.fine(this.getContext().getValue("arg"));
+		
+		String arg = this.getContext().getValue("arg");
+		NarrativeLevel level = NarrativeLevel.info;
+		if(arg.startsWith("--info ")) {
+			level = NarrativeLevel.info;
+			arg = arg.substring("--info ".length()).trim();
+		} else if(arg.startsWith("--success ")) {
+			level = NarrativeLevel.success;
+			arg = arg.substring("--success ".length()).trim();
+		} if(arg.startsWith("--warning ")) {
+			level = NarrativeLevel.warning;
+			arg = arg.substring("--warning ".length()).trim();
+		} if(arg.startsWith("--error ")) {
+			level = NarrativeLevel.error;
+			arg = arg.substring("--error ".length()).trim();
+		} 
+		
+		logger.log(level, arg);
 	}
 
 	@Override
 	public boolean call() throws Exception {
-		return false;
+		return true;
 	}
 
 	@Override
