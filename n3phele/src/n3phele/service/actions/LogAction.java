@@ -12,6 +12,7 @@ package n3phele.service.actions;
  */
 
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 import com.googlecode.objectify.annotation.Cache;
@@ -24,14 +25,23 @@ import n3phele.service.model.NarrativeLevel;
 import n3phele.service.model.SignalKind;
 import n3phele.service.model.core.User;
 
+/** logs a message
+ * <br> Processes the following context elements
+ * <br> arg [--<i>logLevel ] <i>log message text <\i>
+ * <br> where:
+ * <br> logLevel one of success, info, warning, error 
+ * 
+ * @author Nigel Cook
+ *
+ */
 @EntitySubclass
 @XmlRootElement(name = "LogAction")
-@XmlType(name = "LogAction", propOrder = { "count" })
+@XmlType(name = "LogAction", propOrder = {})
 @Unindex
 @Cache
 public class LogAction extends Action {
 	final private static java.util.logging.Logger log = java.util.logging.Logger.getLogger(LogAction.class.getName()); 
-	private ActionLogger logger;
+	@XmlTransient private ActionLogger logger;
 	public LogAction() {}
 	
 	protected LogAction(User owner, String name,
@@ -92,6 +102,37 @@ public class LogAction extends Action {
 	public String toString() {
 		return String.format("LogAction [%s]",
 				super.toString());
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((logger == null) ? 0 : logger.hashCode());
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		LogAction other = (LogAction) obj;
+		if (logger == null) {
+			if (other.logger != null)
+				return false;
+		} else if (!logger.equals(other.logger))
+			return false;
+		return true;
 	}
 
 	

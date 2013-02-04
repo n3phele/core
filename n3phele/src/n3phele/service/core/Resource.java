@@ -1,5 +1,4 @@
 package n3phele.service.core;
-
 /**
  * (C) Copyright 2010-2013. Nigel Cook. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
@@ -12,15 +11,18 @@ package n3phele.service.core;
  *  specific language governing permissions and limitations under the License.
  */
 
+import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/*
- * FIXME Warning .. prototype version
- */
+import n3phele.service.model.core.GlobalSetting;
+
+import com.googlecode.objectify.ObjectifyService;
+
 public class Resource {
 	private static Logger log = Logger.getLogger(Resource.class.getName());
 	private static Resource resource = null;
@@ -28,20 +30,24 @@ public class Resource {
 	protected Map<String, String> globalSettings = null;
 	private Resource() {
 		try {
-			bundle =
-				ResourceBundle.getBundle("n3phele.resource.service",
-				Locale.getDefault(), this.getClass().getClassLoader());	
+			globalSettings = new HashMap<String, String>();
+			bundle = ResourceBundle.getBundle("n3phele.resource.service",
+				Locale.getDefault(), this.getClass().getClassLoader());
+			for(String i : bundle.keySet()) {
+				globalSettings.put(i, bundle.getString(i));
+			}
 		} catch (Exception e) {
 		}
 		try {
-				globalSettings = getGlobalSettings();	
+				boolean intializeGlobalSettings = Boolean.valueOf(globalSettings.get("initalizeGlobalSettings"));
+				globalSettings.putAll(getGlobalSettings(intializeGlobalSettings));	
 		} catch (Exception e) {
 			log.log(Level.WARNING, "Issue getting global settings", e);
 		}
 	}
 	public static String get(String key, String defaultValue) {
 		String result = defaultValue;
-		log.info("Resource query for "+key+" with default "+defaultValue);
+		
 		if(resource == null) {
 			resource = new Resource();
 		}
@@ -49,9 +55,11 @@ public class Resource {
 			if(resource.globalSettings != null && resource.globalSettings.containsKey(key))
 				result = resource.globalSettings.get(key);
 			else
-				result = resource.bundle.getString(key);
+				result = defaultValue;
 		} catch (Exception e) {
 			result = defaultValue;
+		} finally {
+			log.info("Resource query for "+key+" with default "+defaultValue+" returns "+result);
 		}
 		return result;
 	}
@@ -59,25 +67,42 @@ public class Resource {
 	public static boolean get(String key, boolean defaultValue) {
 		boolean result = defaultValue;
 		log.info("Resource query for "+key+" with default "+defaultValue);
+		
 		if(resource == null) {
 			resource = new Resource();
 		}
 		try {
-			String field;
 			if(resource.globalSettings != null && resource.globalSettings.containsKey(key))
-				field = resource.globalSettings.get(key);
+				result = Boolean.valueOf(resource.globalSettings.get(key));
 			else
-				field = resource.bundle.getString(key);
-			result = Boolean.valueOf(field);
+				result = defaultValue;
 		} catch (Exception e) {
 			result = defaultValue;
+		} finally {
+			log.info("Resource query for "+key+" with default "+defaultValue+" returns "+result);
 		}
 		return result;
 	}
 	
-	private final Map<String, String> getGlobalSettings() {
-		Map<String, String> result = null;
+	public static Map<String,String> getResourceMap() {
+		if(resource == null) {
+			resource = new Resource();
+		}
+		return resource.globalSettings;
+		
+	}
+	
+	private final Map<String, String> getGlobalSettings(boolean initalizeGlobalSettings) {
+		Map<String, String> result = GlobalSetting.getGlobalSettings();
+		if((result == null || result.isEmpty()) && initalizeGlobalSettings) {
+			GlobalSetting.init("created", Calendar.getInstance().getTime().toString());
+			result = GlobalSetting.getGlobalSettings();
+		}
 		return result;
 	}
 	
+	static {
+		log.info("Init GlobalSetting class");
+		ObjectifyService.register(GlobalSetting.class);
+	}
 }

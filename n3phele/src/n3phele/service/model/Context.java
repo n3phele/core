@@ -1,6 +1,7 @@
 package n3phele.service.model;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,7 +14,7 @@ public class Context extends HashMap<String, Variable> {
 	public String getValue(String name) {
 		Variable v = this.get(name);
 		if(v != null)
-			return v.getValue();
+			return v.value();
 		else
 			return null;
 	}
@@ -28,6 +29,21 @@ public class Context extends HashMap<String, Variable> {
 			created = true;
 		}
 		v.setType(VariableType.String);
+		v.setValue(value);
+		this.put(name, v);
+		return created;
+	}
+	
+	public boolean putSecretValue(String name, String value) {
+		if(Helpers.isBlankOrNull(name)) throw new IllegalArgumentException("Null context name");
+		Variable v = this.get(name);
+		boolean created = false;
+		if(v == null) {
+			v = new Variable();
+			v.setName(name);
+			created = true;
+		}
+		v.setType(VariableType.Secret);
 		v.setValue(value);
 		this.put(name, v);
 		return created;
@@ -110,6 +126,21 @@ public class Context extends HashMap<String, Variable> {
 		return created;
 	}
 	
+	public boolean putValue(String name, URI[] value) {
+		if(Helpers.isBlankOrNull(name)) throw new IllegalArgumentException("Null context name");
+		Variable v = this.get(name);
+		boolean created = false;
+		if(v == null) {
+			v = new Variable();
+			v.setName(name);
+			created = true;
+		}
+		v.setType(VariableType.List);
+		v.setValue(value);
+		this.put(name, v);
+		return created;
+	}
+	
 	public boolean putValue(String name, Map<String,String> value) {
 		if(Helpers.isBlankOrNull(name)) throw new IllegalArgumentException("Null context name");
 		Variable v = this.get(name);
@@ -163,13 +194,13 @@ public class Context extends HashMap<String, Variable> {
 	
 	public long getLongValue(String name) {
 		Variable v = this.get(name);
-		if(v != null && !v.getValue().isEmpty()) {
+		if(v != null && !v.value().isEmpty()) {
 			if(v.getType() == VariableType.Long) {
-				return Long.valueOf(v.getValue());
+				return Long.valueOf(v.value());
 			} else if(v.getType() == VariableType.Double) {
-				return Double.valueOf(v.getValue()).longValue();
+				return Double.valueOf(v.value()).longValue();
 			} else if(v.getType() == VariableType.Boolean) {
-				return Boolean.valueOf(v.getValue())? 1 : 0;
+				return Boolean.valueOf(v.value())? 1 : 0;
 			}
 		}
 		return 0;
@@ -181,13 +212,13 @@ public class Context extends HashMap<String, Variable> {
 	
 	public double getDoubleValue(String name) {
 		Variable v = this.get(name);
-		if(v != null && !v.getValue().isEmpty()) {
+		if(v != null && !v.value().isEmpty()) {
 			if(v.getType() == VariableType.Long) {
-				return (double) Long.valueOf(v.getValue());
+				return (double) Long.valueOf(v.value());
 			} else if(v.getType() == VariableType.Double) {
-				return Double.valueOf(v.getValue());
+				return Double.valueOf(v.value());
 			} else if(v.getType() == VariableType.Boolean) {
-				return Boolean.valueOf(v.getValue())? 1 : 0;
+				return Boolean.valueOf(v.value())? 1 : 0;
 			}
 		}
 		return 0;
@@ -199,15 +230,15 @@ public class Context extends HashMap<String, Variable> {
 	
 	public boolean getBooleanValue(String name) {
 		Variable v = this.get(name);
-		if(v != null && !v.getValue().isEmpty()) {
+		if(v != null && !v.value().isEmpty()) {
 			if(v.getType() == VariableType.Long) {
-				return  Long.valueOf(v.getValue()) != 0;
+				return  Long.valueOf(v.value()) != 0;
 			} else if(v.getType() == VariableType.Double) {
-				return Double.valueOf(v.getValue()) != 0;
+				return Double.valueOf(v.value()) != 0;
 			} else if(v.getType() == VariableType.Boolean) {
-				return Boolean.valueOf(v.getValue());
+				return Boolean.valueOf(v.value());
 			} else if(v.getType() == VariableType.String) {
-				return Boolean.valueOf(v.getValue());
+				return Boolean.valueOf(v.value());
 			}
 		}
 		return false;
@@ -215,9 +246,9 @@ public class Context extends HashMap<String, Variable> {
 	
 	public URI getFileValue(String name) {
 		Variable v = this.get(name);
-		if(v != null && !v.getValue().isEmpty()) {
+		if(v != null && !v.value().isEmpty()) {
 			if(v.getType() == VariableType.File) {
-				return  Helpers.stringToURI(v.getValue());
+				return  Helpers.stringToURI(v.value());
 			}
 		}
 		return null;
@@ -248,5 +279,20 @@ public class Context extends HashMap<String, Variable> {
 			return null;
 		else
 			return v.getExpressionObject();
+	}
+
+	public List<String> getListValue(String name) {
+		Variable v = get(name);
+		return (Arrays.asList(v.getValue()));
+	}
+
+	public URI getURIValue(String name) {
+		Variable v = this.get(name);
+		if(v != null && !v.value().isEmpty()) {
+			if(v.getType() == VariableType.Object || v.getType() == VariableType.File || v.getType() == VariableType.Action) {
+				return URI.create(v.value());
+			} 
+		}
+		return null;
 	}
 }

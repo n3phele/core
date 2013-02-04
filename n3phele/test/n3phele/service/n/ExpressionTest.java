@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import junit.framework.Assert;
-
 import n3phele.service.core.NotFoundException;
 import n3phele.service.lifecycle.ProcessLifecycle.WaitForSignalRequest;
 import n3phele.service.model.Action;
@@ -473,6 +472,33 @@ public class ExpressionTest {
 		Assert.assertEquals("26", context.getValue("i9"));
 		Assert.assertEquals("{larry}={moe}={curly}={larry}={moe}={curly}", context.getValue("i10"));
 		Assert.assertEquals("larry, moe, curly, larry, moe, curly", context.getValue("i11"));
+
+	}
+	
+	/** Test Secret variables are masked in the expression engine
+	 * @throws IllegalArgumentException
+	 * @throws ParseException
+	 * @throws UnexpectedTypeException
+	 */
+	@Test
+	public void testSecret() throws IllegalArgumentException, ParseException, UnexpectedTypeException {
+			
+		context.putSecretValue("secret", "squirrel");
+
+		context.putObjectValue("s1", eval( "$$secret", context));
+		context.putObjectValue("s2", eval( "$$secret+\"foo\"", context));
+		context.putObjectValue("s3", eval( "$$length($$secret)", context));
+		context.putObjectValue("s4", eval( "$$regex($$secret, \"sq(.)l\",1)", context));
+		context.putObjectValue("s5", eval( "$$secret==\"squirrel\"", context));
+		context.putObjectValue("s6", eval( "$$secret==\"******\"", context));
+		
+		Assert.assertEquals("******", context.getValue("s1"));
+		Assert.assertEquals("******foo", context.getValue("s2"));
+		Assert.assertEquals(6L, context.getObjectValue("s3"));
+		Assert.assertEquals("", context.getObjectValue("s4"));
+		Assert.assertFalse(context.getBooleanValue("s5"));
+		Assert.assertTrue(context.getBooleanValue("s6"));
+		
 
 	}
 	

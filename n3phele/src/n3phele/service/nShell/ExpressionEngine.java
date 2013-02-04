@@ -596,7 +596,6 @@ public class ExpressionEngine {
 	}
 	
 	private Variable lookup(String name) throws NotFoundException {
-		Log.info("############### lookup "+name);
 		return lookupFromContext(name, name, this.context);
 	}
 	
@@ -608,7 +607,7 @@ public class ExpressionEngine {
 			String fieldName = field.substring(fieldIdx+1);
 			result = myContext.get(primaryName);
 			if(result != null && result.getType() == VariableType.Action) {
-				result = lookupFromContext(canonicalName, fieldName, getContext(URI.create(result.getValue())));
+				result = lookupFromContext(canonicalName, fieldName, getContext(URI.create(result.value())));
 				if(result != null) {
 					result.setName(primaryName+"."+result.getName());
 				}

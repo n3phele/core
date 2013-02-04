@@ -27,10 +27,10 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.core.Response.Status;
 
 import n3phele.service.core.NotFoundException;
 import n3phele.service.core.Resource;
@@ -169,10 +169,9 @@ public class CloudProcessResource {
 	public static class CloudProcessManager extends AbstractManager<CloudProcess> {		
 		public CloudProcessManager() {
 		}
-		final private URI myPath = UriBuilder.fromUri(Resource.get("baseURI", "http://localhost:8888/resources")).path(CloudProcessResource.class).build();
 		@Override
 		protected URI myPath() {
-			return myPath;
+			return UriBuilder.fromUri(Resource.get("baseURI", "http://localhost:8888/resources")).path(CloudProcessResource.class).build();
 		}
 
 		@Override

@@ -12,6 +12,8 @@ package n3phele.service.model.core;
  *  specific language governing permissions and limitations under the License.
  */
 
+import static com.googlecode.objectify.ObjectifyService.ofy;
+
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,8 +25,6 @@ import java.util.logging.Logger;
 import n3phele.service.core.NotFoundException;
 
 import com.googlecode.objectify.Key;
-
-import static com.googlecode.objectify.ObjectifyService.ofy;
 
 public class GenericModelDao<T> {
 final static Logger log = Logger.getLogger(GenericModelDao.class.getName());
@@ -105,11 +105,11 @@ public final Class<T> clazz;
 			long id = Long.valueOf(s.substring(s.lastIndexOf("/")+1));
 			return ofy().load().type(clazz).id(id).safeGet();
 		} catch (com.googlecode.objectify.NotFoundException e) {
-			throw new NotFoundException();
+			throw new NotFoundException("URI "+uri);
 		} catch (Exception e) {
 			log.log(Level.WARNING, "Exception on fetch of "+uri.toString(),e);
 		}
-		throw new NotFoundException();
+		throw new NotFoundException("URI "+uri);
 	}
 	
 	/**

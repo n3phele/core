@@ -20,8 +20,10 @@ import n3phele.service.model.NarrativeLevel;
 import n3phele.service.model.core.Helpers;
 import n3phele.service.rest.impl.NarrativeResource;
 
+import com.googlecode.objectify.annotation.Embed;
 
 
+@Embed
 public class ActionLogger {
 	private static Logger debug = Logger.getLogger(ActionLogger.class.getName()); 
 	private String id;
@@ -104,4 +106,43 @@ public class ActionLogger {
 		this.processUri = Helpers.URItoString(uri);
 		return this;
 	}
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result
+				+ ((processUri == null) ? 0 : processUri.hashCode());
+		return result;
+	}
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ActionLogger other = (ActionLogger) obj;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		if (processUri == null) {
+			if (other.processUri != null)
+				return false;
+		} else if (!processUri.equals(other.processUri))
+			return false;
+		return true;
+	}
+	
+	
+	
 }

@@ -12,20 +12,23 @@ package n3phele.service.model;
  *  specific language governing permissions and limitations under the License.
  */
 
-import com.googlecode.objectify.ObjectifyService;
-
 import n3phele.service.actions.CountDownAction;
 import n3phele.service.actions.JobAction;
 import n3phele.service.actions.LogAction;
 import n3phele.service.actions.NShellAction;
+import n3phele.service.actions.ServiceAction;
 import n3phele.service.model.core.GenericModelDao;
 import n3phele.service.model.core.User;
+
+import com.googlecode.objectify.ObjectifyService;
 
 public class ServiceModelDao<T> extends GenericModelDao<T> {
 
 	static {
 		// Register all your entity classes here
 		ObjectifyService.register(CloudProcess.class);
+		ObjectifyService.register(Cloud.class);
+		ObjectifyService.register(Account.class);
 		ObjectifyService.register(User.class);
 		ObjectifyService.register(Narrative.class);
 		
@@ -33,6 +36,7 @@ public class ServiceModelDao<T> extends GenericModelDao<T> {
 		ObjectifyService.register(LogAction.class);
 		ObjectifyService.register(CountDownAction.class);
 		ObjectifyService.register(JobAction.class);
+		ObjectifyService.register(ServiceAction.class);
 		ObjectifyService.register(NShellAction.class);
 
 	}

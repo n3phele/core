@@ -14,16 +14,17 @@ package n3phele.service.actions;
 
 
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
-
-import com.googlecode.objectify.annotation.Cache;
-import com.googlecode.objectify.annotation.EntitySubclass;
-import com.googlecode.objectify.annotation.Unindex;
 
 import n3phele.service.model.Action;
 import n3phele.service.model.Context;
 import n3phele.service.model.SignalKind;
 import n3phele.service.model.core.User;
+
+import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.EntitySubclass;
+import com.googlecode.objectify.annotation.Unindex;
 
 @EntitySubclass
 @XmlRootElement(name = "CountDownAction")
@@ -32,7 +33,7 @@ import n3phele.service.model.core.User;
 @Cache
 public class CountDownAction extends Action {
 	final private static java.util.logging.Logger log = java.util.logging.Logger.getLogger(CountDownAction.class.getName());
-	ActionLogger logger;
+	@XmlTransient ActionLogger logger;
 	private int count = 99;
 	
 	public CountDownAction() {}

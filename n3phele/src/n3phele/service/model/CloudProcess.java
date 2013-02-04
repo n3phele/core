@@ -62,8 +62,8 @@ public class CloudProcess extends Entity {
 	 * @param parent Parent to be notified on process state changes
 	 * @param taskId Reference to the action managed by the process
 	 */
-	public CloudProcess(User owner, String name, URI parent, Action task)  {
-		super(name, null, "", owner.getUri(), false);
+	public CloudProcess(URI owner, String name, URI parent, Action task)  {
+		super(name, null, "", owner, false);
 		this.action = task.getUri().toString();
 		this.parent = URItoString(parent);
 	}

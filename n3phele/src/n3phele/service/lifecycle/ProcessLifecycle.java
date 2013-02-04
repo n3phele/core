@@ -11,6 +11,7 @@ package n3phele.service.lifecycle;
  *  specific language governing permissions and limitations under the License.
  */
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -43,7 +44,7 @@ public class ProcessLifecycle {
 	public CloudProcess createProcess(User user, String name, n3phele.service.model.Context context, List<URI> dependency, URI parent, Class<? extends Action> clazz) throws IllegalArgumentException {
 		Action action;
 		try {
-			action = clazz.newInstance().create(user, name, context);
+			action = clazz.newInstance().create(user.getUri(), name, context);
 		} catch (InstantiationException e) {
 			log.log(Level.SEVERE, "Class "+clazz, e);
 			throw new IllegalArgumentException(e);
@@ -52,7 +53,7 @@ public class ProcessLifecycle {
 			throw new IllegalArgumentException(e);
 		}
 		ActionResource.dao.add(action);	
-		CloudProcess process = new CloudProcess(user, name, parent, action);
+		CloudProcess process = new CloudProcess(user.getUri(), name, parent, action);
 		CloudProcessResource.dao.add(process);
 		action.setProcess(process.getUri());
 		ActionResource.dao.update(action);
@@ -288,6 +289,7 @@ public class ProcessLifecycle {
 	private void toComplete(final CloudProcess process) {
 		final Long processId = process.getId();
 		log.info("Complete "+process.getName()+":"+process.getUri());
+		giveChildrenToParent(process);
 		final List<String> dependents = CloudProcessResource.dao.transact(new Work<List<String>>() {
 			@Override
 			public List<String> run() {
@@ -434,6 +436,7 @@ public class ProcessLifecycle {
 	 */
 	private void toFailed(CloudProcess process) {
 		final Long processId = process.getId();
+		giveChildrenToParent(process);
 		List<String> dependents = CloudProcessResource.dao.transact(new Work<List<String>>() {
 
 			@Override
@@ -472,6 +475,73 @@ public class ProcessLifecycle {
 				}
 			}
 		}
+	}
+	
+	private boolean giveChildrenToParent(CloudProcess process) {
+		URI processURI = process.getUri();
+		URI parentURI = process.getParent();
+		CloudProcess parent;
+		while(parentURI != null) {
+			parent = CloudProcessResource.dao.load(parentURI);
+			if(!parent.isFinalized()) break;
+			parentURI = parent.getParent();
+		}
+
+		List<URI> children = new ArrayList<URI>();
+		for(CloudProcess child : CloudProcessResource.dao.getChildren(processURI)) {
+			if(!child.isFinalized())
+				children.add(child.getUri());
+		}
+		if(children.isEmpty()) return false;
+		boolean result = false;
+		int chunkSize = 4;
+		for(int i = 0; i < children.size(); i += chunkSize) {
+			int lim = (i + chunkSize) < children.size()? i+ chunkSize : children.size();
+			try {
+				boolean chunkResult = giveChildrenToParent(parentURI, children.subList(i, lim));
+				result = result || chunkResult;
+			} catch (IllegalArgumentException e) {
+				return giveChildrenToParent(process);
+			}
+		}
+		return result;
+	}
+	
+	private boolean giveChildrenToParent(final URI parentURI, final List<URI>children) {
+		return CloudProcessResource.dao.transact(new Work<Boolean>(){
+
+			@Override
+			public Boolean run() {
+				boolean childrenGiven = false;
+				if(parentURI != null) {
+					CloudProcess parent = CloudProcessResource.dao.load(parentURI);
+					if(parent.isFinalized()) {
+						log.warning("Parent "+parent.getUri()+" is finalized");
+						throw new IllegalArgumentException("Parent "+parent.getUri()+" is finalized");
+					}
+				}
+				for(URI child : children) {
+					CloudProcess childProcess;
+					try {
+						childProcess = CloudProcessResource.dao.load(child);
+					} catch (NotFoundException e) {
+						throw new IllegalArgumentException("Child does exist "+child,e);
+					}
+					if(childProcess.isFinalized()) {
+						log.warning(child+" already finalized");
+					} else {
+						childProcess.setParent(parentURI);
+						CloudProcessResource.dao.update(childProcess);
+						if(parentURI != null) {
+							ProcessLifecycle.mgr().signal(parentURI, SignalKind.Adoption, childProcess.getUri().toString());
+							childrenGiven = true;
+						} else {
+							cancel(childProcess);
+						}
+					}
+				}
+				return childrenGiven;
+			}});
 	}
 	
 	/** Set process to the wait state
@@ -721,16 +791,26 @@ public class ProcessLifecycle {
 	}
 	
 
-	
 	/** Signals a process with an assertion.
+	 * @param process
+	 * @param kind
 	 * @param assertion
 	 */
-	public void signal(final CloudProcess process, final SignalKind kind, final String assertion) {
-		log.info("signal <"+kind+":"+assertion+"> to "+process.getUri());
+	public void signal(CloudProcess process, SignalKind kind, String assertion) {
+		this.signal(process.getUri(), kind, assertion);
+	}
+	
+	/** Signals a process with an assertion.
+	 * @param cloudProcessURI
+	 * @param kind
+	 * @param assertion
+	 */
+	public void signal(final URI cloudProcessURI, final SignalKind kind, final String assertion) {
+		log.info("signal <"+kind+":"+assertion+"> to "+cloudProcessURI);
 		CloudProcessResource.dao.transact(new VoidWork() {
 			@Override
 			public void vrun() {
-				CloudProcess p = CloudProcessResource.dao.load(process.getUri());
+				CloudProcess p = CloudProcessResource.dao.load(cloudProcessURI);
 				if(!p.isFinalized()) {
 					if(!p.getPendingAssertion().contains(kind+":"+assertion)) {
 						p.getPendingAssertion().add(kind+":"+assertion);
@@ -741,6 +821,38 @@ public class ProcessLifecycle {
 					}
 				} else {
 					log.severe("Signal <"+kind+":"+assertion+"> on finalized process "+p.getUri());
+				}
+
+			}});
+	}
+	
+	/** Signals a process parent with an assertion.
+	 * @param cloudProcessURI
+	 * @param kind
+	 * @param assertion
+	 */
+	public void signalParent(final URI childProcessURI, final SignalKind kind, final String assertion) {
+		log.info("signal <"+kind+":"+assertion+"> to parent of "+childProcessURI);
+		CloudProcessResource.dao.transact(new VoidWork() {
+			@Override
+			public void vrun() {
+				CloudProcess child = CloudProcessResource.dao.load(childProcessURI);
+				if(child.getParent() != null) {
+					log.info("signal <"+kind+":"+assertion+"> to parent "+child.getParent());
+					CloudProcess p = CloudProcessResource.dao.load(child.getParent());
+					if(!p.isFinalized()) {
+						if(!p.getPendingAssertion().contains(kind+":"+assertion)) {
+							p.getPendingAssertion().add(kind+":"+assertion);
+							CloudProcessResource.dao.update(p);
+							if(p.getState() == ActionState.RUNABLE) {
+								schedule(p);
+							}
+						}
+					} else {
+						log.warning("Signal <"+kind+":"+assertion+"> on finalized process "+p.getUri());
+					}
+				} else {
+					log.info("signal <"+kind+":"+assertion+"> "+childProcessURI+" has no parent");
 				}
 
 			}});

@@ -25,10 +25,12 @@ public abstract class AbstractManager<Item extends Entity> {
 
 	protected Logger log = Logger.getLogger(this.getClass().getName());
 	protected GenericModelDao<Item> itemDao;
+	final private String path;
 
 	public AbstractManager() {
 		super();
 		itemDao = itemDaoFactory();
+		path = myPath().toString();
 	}
 	
 	/**
@@ -64,7 +66,7 @@ public abstract class AbstractManager<Item extends Entity> {
 		} catch (NotFoundException e) {
 			throw e;
 		} catch (Exception e) {
-			log.log(Level.WARNING, "Exception on fetch of "+myPath()+"with name="+name,e);
+			log.log(Level.WARNING, "Exception on fetch of "+this.path+"with name="+name,e);
 		} 
 		throw new NotFoundException();
 	}
@@ -81,7 +83,7 @@ public abstract class AbstractManager<Item extends Entity> {
 			if(item != null)
 				return item;
 		} catch (Exception e) {
-			log.log(Level.WARNING, "Exception on fetch of "+myPath()+"with name="+name,e);
+			log.log(Level.WARNING, "Exception on fetch of "+this.path+"with name="+name,e);
 		}
 		throw new NotFoundException();
 	}
@@ -109,7 +111,7 @@ public abstract class AbstractManager<Item extends Entity> {
 	 * @param owner
 	 * @return the item
 	 */
-	private Item get(URI uri, URI owner) throws NotFoundException {
+	protected Item get(URI uri, URI owner) throws NotFoundException {
 		try {
 			Item item = itemDao.get(uri);
 			if(item != null && (item.isPublic() || owner.equals(item.getOwner())))
@@ -133,7 +135,7 @@ public abstract class AbstractManager<Item extends Entity> {
 			if(item != null && (item.isPublic() || owner.equals(item.getOwner())))
 				return item;
 		} catch (Exception e) {
-			log.log(Level.WARNING, "Exception on fetch of "+myPath()+"with name="+name,e);
+			log.log(Level.WARNING, "Exception on fetch of "+this.path+"with name="+name,e);
 		}
 		throw new NotFoundException();
 	}
@@ -180,9 +182,9 @@ public abstract class AbstractManager<Item extends Entity> {
 			if(item.getOwner()==null)
 				throw new IllegalArgumentException("attempt to persist a private object without owner");
 			Key<Item>key = itemDao.put(item);
-			item.setUri(URI.create(myPath()+"/"+key.getId()));
+			item.setUri(URI.create(this.path+"/"+key.getId()));
 			itemDao.put(item);
-			log.info("item "+item.getName()+" has id "+key.getId());
+			log.info("item "+item.getName()+" has id "+item.getUri());
 		} else 
 			throw new IllegalArgumentException("attempt to persist a null object");
 	}
@@ -193,7 +195,7 @@ public abstract class AbstractManager<Item extends Entity> {
 	protected void update(Item item)throws NotFoundException {
 		if(item != null) {
 			Key<Item>key = itemDao.put(item);
-			if(!URI.create(myPath()+"/"+key.getId()).equals(item.getUri())) {
+			if(!URI.create(this.path+"/"+key.getId()).equals(item.getUri())) {
 				log.severe("Update on non-existent item "+item.toString());
 				this.delete(item);
 				throw new NotFoundException("Cannot update <"+item.getName()+"> at "+item.getUri()+" non-existent item");
@@ -221,7 +223,7 @@ public abstract class AbstractManager<Item extends Entity> {
 		Collection<Item> result = null;
 		try {
 			List<Item> children = itemDao.listAll();
-			result = new Collection<Item>(itemDao.clazz.getSimpleName(), URI.create(myPath().toString()), children);
+			result = new Collection<Item>(itemDao.clazz.getSimpleName(), URI.create(this.path.toString()), children);
 		} catch (NotFoundException e) {
 		}
 		result.setTotal(result.getElements().size());
@@ -238,7 +240,7 @@ public abstract class AbstractManager<Item extends Entity> {
 			java.util.Collection<Item> owned = itemDao.collectionByProperty("owner", owner.toString());
 			java.util.Collection<Item> shared = itemDao.collectionByProperty("isPublic", true);
 			List<Item> items = mergeResults(owned, shared, owner);			
-			result = new Collection<Item>(itemDao.clazz.getSimpleName(), URI.create(myPath().toString()), items);
+			result = new Collection<Item>(itemDao.clazz.getSimpleName(), URI.create(this.path.toString()), items);
 		} catch (NotFoundException e) {
 		}
 		result.setTotal(result.getElements().size());

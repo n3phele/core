@@ -399,12 +399,13 @@ public class UserResource {
 		} catch (Exception e) {
 			if(root != null)
 				dao.delete(root);
-			root = new User("root", "n3phele", "root-administrator", Resource.get("serviceSecret", "3"));
+			root = new User("root", "n3phele", "root-administrator", Integer.toString((int)Math.random()*10000));
 			root.setAdmin(true);
 			root.setValidated(true);
 			root.setOwner(URI.create("http://www.n3phele.com"));
 			root.setValidationDate(Calendar.getInstance().getTime());  // birthday!
 			dao.add(root);
+			root.setCredential(new Credential("root", Resource.get("serviceSecret", "3")).encrypt());
 			root.setOwner(root.getUri());
 			dao.update(root);
 			log.log(Level.SEVERE, "Root object created.");

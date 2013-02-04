@@ -48,8 +48,8 @@ public abstract class Action extends Entity {
 		this.isPublic = false;
 	}
 	
-	public Action create(User owner, String name, Context context) {
-		this.owner = owner.getUri().toString();
+	public Action create(URI owner, String name, Context context) {
+		this.owner = owner.toString();
 		this.name = name;
 		this.context = context;
 		this.isPublic = false;

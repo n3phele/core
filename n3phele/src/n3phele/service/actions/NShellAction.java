@@ -29,11 +29,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
-import com.googlecode.objectify.annotation.Cache;
-import com.googlecode.objectify.annotation.Embed;
-import com.googlecode.objectify.annotation.EntitySubclass;
-import com.googlecode.objectify.annotation.Unindex;
-
 import n3phele.service.core.NotFoundException;
 import n3phele.service.lifecycle.ProcessLifecycle;
 import n3phele.service.lifecycle.ProcessLifecycle.WaitForSignalRequest;
@@ -57,9 +52,14 @@ import n3phele.service.rest.impl.ActionResource;
 import n3phele.service.rest.impl.CloudProcessResource;
 import n3phele.service.rest.impl.UserResource;
 
+import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Embed;
+import com.googlecode.objectify.annotation.EntitySubclass;
+import com.googlecode.objectify.annotation.Unindex;
+
 @EntitySubclass
 @XmlRootElement(name = "NShellAction")
-@XmlType(name = "NShellAction", propOrder = { "executableName", "pc", "watchFor", "abnormalTermination", "command", "cloud", "start", "executable" })
+@XmlType(name = "NShellAction", propOrder = { "executableName", "pc", "watchFor", "abnormalTermination", "command", "cloud", "start", "adopted", "executable" })
 @Unindex
 @Cache
 public class NShellAction extends Action {
@@ -72,9 +72,10 @@ public class NShellAction extends Action {
 	private String command;
 	private String cloud;
 	private int start;
+	private List<String> adopted = new ArrayList<String>();
 	@Embed private List<ShellFragment> executable;
 	@XmlTransient 
-	@Embed private ActionLogger logger;
+	private ActionLogger logger;
 
 	
 	public NShellAction() {}
@@ -124,12 +125,12 @@ public class NShellAction extends Action {
 		this.pc = script.children.length;
 		int myChildren = CloudProcessResource.dao.countChildren(this.getProcess());
 		log.info("waiting for children "+myChildren);
-		if(myChildren != 0) {
+		if(myChildren != this.adopted.size()) {
 			//
 			//	TODO: Possibility that with eventual consistency, the children are all finished
 			//	but not finalized state not in the database.
 			//
-			throw new ProcessLifecycle.WaitForSignalRequest(Calendar.MINUTE, (myChildren==1)?5 : 60);
+			throw new ProcessLifecycle.WaitForSignalRequest(Calendar.MINUTE, ((myChildren - this.adopted.size()) <=1)?5 : 60);
 		}
 		return true;
 	}
@@ -151,33 +152,45 @@ public class NShellAction extends Action {
 	public void signal(SignalKind kind, String assertion) {
 		log.info("Signal "+kind+":"+assertion);
 		boolean isChild = this.watchFor.equals(assertion);
+		boolean isAdopted = this.adopted.contains(assertion);
 		switch(kind) {
 		case Adoption:
 			log.info((isChild?"Child ":"Unknown ")+assertion+" adoption");
 			URI processURI = URI.create(assertion);
-			ProcessLifecycle.mgr().dump(processURI);
+			try {
+				CloudProcess child = CloudProcessResource.dao.load(processURI);
+				this.adopted.add(assertion);
+			} catch (Exception e) {
+				log.info("Assertion is not a cloudProcess");
+			}
 			return;
-		case Cancel:;
-			log.info((isChild?"Child ":"Unknown ")+assertion+" cancelled");
+		case Cancel:
+			log.info((isChild?"Child ":isAdopted?"Adopted ":"Unknown ")+assertion+" cancelled");
 			if(isChild) {
 				this.abnormalTermination = assertion;
 				this.watchFor = null;
+			} else if(isAdopted) {
+				this.adopted.remove(assertion);
 			}
 			break;
 		case Event:
 			log.warning("Ignoring event "+assertion);
 			return;
 		case Failed:
-			log.info((isChild?"Child ":"Unknown ")+assertion+" failed");
+			log.info((isChild?"Child ":isAdopted?"Adopted ":"Unknown ")+assertion+" failed");
 			if(isChild) {
 				this.abnormalTermination = assertion;
 				this.watchFor = null;
+			} else if(isAdopted) {
+				this.adopted.remove(assertion);
 			}
 			break;
 		case Ok:
-			log.info((isChild?"Child ":"Unknown ")+assertion+" ok");
+			log.info((isChild?"Child ":isAdopted?"Adopted ":"Unknown ")+assertion+" ok");
 			if(isChild) {
 				this.watchFor = null;
+			} else if(isAdopted) {
+				this.adopted.remove(assertion);
 			}
 			break;
 		default:
@@ -305,9 +318,9 @@ public class NShellAction extends Action {
 		childContext.putValue("shellCommand", assemblePieces(pieces));
 		childContext.putObjectValue("target", target.getUri());
 		
-		Map<String,FileTracker> fileTable = buildFileTableFromContext(childContext, target.getFileTable());
+		Map<String,FileTracker> fileTable = new HashMap<String, FileTracker>();// FIXME buildFileTableFromContext(childContext, target.getFileTable());
 		List<URI> inputFileCopy = new ArrayList<URI>();
-		Map<String, FileTracker> current = target.getFileTable();
+		Map<String, FileTracker> current = new HashMap<String, FileTracker>();//FIXME target.getFileTable();
 		for(FileTracker i : current.values()) {
 			if(fileTable.containsKey(i.getName())) {
 				URI producer = i.getProcess();
@@ -661,7 +674,7 @@ public class NShellAction extends Action {
 				Variable v = lookupAction(identifier);
 				if(v != null) {
 					if(v.getType() == VariableType.Action) {
-						URI actionURI = URI.create(v.getValue());
+						URI actionURI = URI.create(v.value());
 						dependencies.add(actionURI);
 					}
 				} 

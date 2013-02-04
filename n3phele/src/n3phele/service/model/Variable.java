@@ -156,18 +156,35 @@ public class Variable {
 	/**
 	 * @return the value
 	 */
-	public String getValue() {
+	public String[] getValue() {
+		if(type == VariableType.Secret) {
+			return new String[] { "**********" };
+		}
+		return this.value;
+	}
+	
+	/**
+	 * @return the value
+	 */
+	public String value() {
 		if(type == VariableType.List)
 			return Arrays.toString(value);
 		else
 			return value[0];
 	}
-
+	
 	/**
 	 * @param value the value to set
 	 */
 	public void setValue(String value) {
-		this.value = new String[] { value };
+		this.value = new String[] {value};
+	}
+
+	/**
+	 * @param value the value to set
+	 */
+	public void setValue(String[] value) {
+		this.value = value;
 	}
 	
 	/**
@@ -175,6 +192,17 @@ public class Variable {
 	 */
 	public void setValue(List<String> value) {
 		this.value = value.toArray(new String[value.size()]);
+	}
+	
+	/**
+	 * @param value the value to set
+	 */
+	public void setValue(URI[] value) {
+		String [] result = new String[value.length];
+		for(int i=0; i < value.length; i++) {
+			result[i] = Helpers.URItoString(value[i]);
+		}
+		this.value = result;
 	}
 	
 	/**
