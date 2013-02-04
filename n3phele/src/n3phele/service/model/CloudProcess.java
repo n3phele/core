@@ -12,6 +12,9 @@ package n3phele.service.model;
  *  specific language governing permissions and limitations under the License.
  */
 
+import static n3phele.service.model.core.Helpers.URItoString;
+import static n3phele.service.model.core.Helpers.stringToURI;
+
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
@@ -20,16 +23,11 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import n3phele.service.model.core.Entity;
+
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
-
-
-import n3phele.service.model.core.Entity;
-import n3phele.service.model.core.User;
-
-import static n3phele.service.model.core.Helpers.stringToURI;
-import static n3phele.service.model.core.Helpers.URItoString;
 
 @XmlRootElement(name="CloudProcess")
 @XmlType(name="Action", propOrder={"id","state", "running", "waitTimeout", "pendingInit", "pendingCall", "pendingCancel", "pendingDump", "pendingAssertion", 

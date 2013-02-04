@@ -8,7 +8,6 @@ import java.io.FileNotFoundException;
 import java.net.URI;
 
 import junit.framework.Assert;
-
 import n3phele.service.core.NotFoundException;
 import n3phele.service.lifecycle.ProcessLifecycle;
 import n3phele.service.model.Action;
@@ -17,7 +16,6 @@ import n3phele.service.model.CommandDefinition;
 import n3phele.service.model.Context;
 import n3phele.service.model.Narrative;
 import n3phele.service.model.NarrativeLevel;
-import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.User;
 import n3phele.service.nShell.NParser;
 import n3phele.service.nShell.ParseException;

@@ -38,7 +38,6 @@ import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.Credential;
 import n3phele.service.model.core.GenericModelDao;
 import n3phele.service.model.core.User;
-import n3phele.service.rest.impl.ActionResource.ActionManager;
 
 @Path("/account")
 public class AccountResource {

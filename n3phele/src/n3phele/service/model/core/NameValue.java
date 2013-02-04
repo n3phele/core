@@ -14,8 +14,6 @@ import java.util.Map.Entry;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-import n3phele.service.model.TypedParameter;
-
 @XmlRootElement(name="NameValue")
 @XmlType(name="NameValue", propOrder={"key", "value"})
 public class NameValue {

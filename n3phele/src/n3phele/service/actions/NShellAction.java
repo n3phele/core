@@ -159,6 +159,7 @@ public class NShellAction extends Action {
 			URI processURI = URI.create(assertion);
 			try {
 				CloudProcess child = CloudProcessResource.dao.load(processURI);
+				log.info("Adopting child "+child.getName()+" "+child.getClass().getSimpleName());
 				this.adopted.add(assertion);
 			} catch (Exception e) {
 				log.info("Assertion is not a cloudProcess");

@@ -20,7 +20,6 @@ import javax.xml.bind.annotation.XmlType;
 import n3phele.service.lifecycle.ProcessLifecycle.WaitForSignalRequest;
 import n3phele.service.model.core.Entity;
 import n3phele.service.model.core.Helpers;
-import n3phele.service.model.core.User;
 
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Embed;
