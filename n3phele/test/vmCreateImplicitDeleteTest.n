@@ -1,0 +1,14 @@
+# vmCreateImplicitDeleteTest.n
+# Copyright (c) 2013 Nigel Cook. All Rights reserved
+# xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+name	   :  vmCreateAndImplicitDelete
+description: create n vm and then have them terminate as part of process clean up
+version	   : 1.1
+preferred  : true
+public	   : true
+icon	   : http://www.n3phele.com/icons/custom
+parameters :						  
+	optional int n	= 2 	# how many to create
+	string account		# cloud account to use
+EC2: # Amazon EC2
+	$$my_vm = CREATEVM --name myVM --n $$n --account $$account --async

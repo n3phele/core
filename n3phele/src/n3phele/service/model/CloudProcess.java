@@ -21,12 +21,15 @@ import java.util.Date;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 import n3phele.service.model.core.Entity;
 
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
+import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.annotation.Unindex;
 
 @XmlRootElement(name="CloudProcess")
@@ -52,6 +55,8 @@ public class CloudProcess extends Entity {
 	@Index private boolean finalized = false;
 	private String action = null;
 	@Index private String parent = null;
+	@XmlTransient
+	@Parent Key<CloudProcess> root;
 	
 	
 	public CloudProcess() {}
@@ -60,10 +65,20 @@ public class CloudProcess extends Entity {
 	 * @param parent Parent to be notified on process state changes
 	 * @param taskId Reference to the action managed by the process
 	 */
-	public CloudProcess(URI owner, String name, URI parent, Action task)  {
+	public CloudProcess(URI owner, String name, CloudProcess parent, Action task)  {
 		super(name, null, "", owner, false);
 		this.action = task.getUri().toString();
-		this.parent = URItoString(parent);
+		if(parent != null) {
+			this.parent = parent.getUri().toString();
+			if(parent.root == null) {
+				this.root = Key.create(parent);
+			} else {
+				this.root = parent.root;
+			}
+		} else {
+			this.parent = null;
+			this.root = null;
+		}
 	}
 	
 	/*
@@ -84,124 +99,124 @@ public class CloudProcess extends Entity {
 	}
 	
 	/**
-	 * @return the state
+	 * @return the process state
 	 */
 	public ActionState getState() {
 		return state;
 	}
 	/**
-	 * @param state the state to set
+	 * @param state the process state to set
 	 */
 	public void setState(ActionState state) {
 		this.state = state;
 	}
 	
 	/**
-	 * @return the date process with queue to run
+	 * @return the date process was queued to run
 	 */
 	public Date getRunning() {
 		return running;
 	}
 	/**
-	 * @param running the date process with queue to run
+	 * @param running the date process was queued to run
 	 */
 	public void setRunning(Date running) {
 		this.running = running;
 	}
 	
 	/**
-	 * @return the waitTimeout
+	 * @return the time the process execution delay until, unless signalled
 	 */
 	public Date getWaitTimeout() {
 		return waitTimeout;
 	}
 	/**
-	 * @param waitTimeout the waitTimeout to set
+	 * @param waitTimeout the time the process will delay until, unless signalled
 	 */
 	public void setWaitTimeout(Date waitTimeout) {
 		this.waitTimeout = waitTimeout;
 	}
 	/**
-	 * @return the pendingInit
+	 * @return pending Init operation
 	 */
 	public boolean isPendingInit() {
 		return pendingInit;
 	}
 	/**
-	 * @return the pendingInit
+	 * @return pending Init operation
 	 */
 	public boolean getPendingInit() {
 		return pendingInit;
 	}
 	/**
-	 * @param pendingInit the pendingInit to set
+	 * @param pendingInit set pending Init state
 	 */
 	public void setPendingInit(boolean pendingInit) {
 		this.pendingInit = pendingInit;
 	}
 	/**
-	 * @return the pendingCall
+	 * @return pending Call operation
 	 */
 	public boolean isPendingCall() {
 		return pendingCall;
 	}
 	/**
-	 * @return the pendingCall
+	 * @return pending Call operation
 	 */
 	public boolean getPendingCall() {
 		return pendingCall;
 	}
 	/**
-	 * @param pendingCall the pendingCall to set
+	 * @param pendingCall set pending Call
 	 */
 	public void setPendingCall(boolean pendingCall) {
 		this.pendingCall = pendingCall;
 	}
 	/**
-	 * @return the pendingCancel
+	 * @return pending Cancel operation
 	 */
 	public boolean isPendingCancel() {
 		return pendingCancel;
 	}
 	/**
-	 * @return the pendingCancel
+	 * @return pending Cancel operation
 	 */
 	public boolean getPendingCancel() {
 		return pendingCancel;
 	}
 	/**
-	 * @param pendingCancel the pendingCancel to set
+	 * @param pendingCancel set pending Cancel state
 	 */
 	public void setPendingCancel(boolean pendingCancel) {
 		this.pendingCancel = pendingCancel;
 	}
 	/**
-	 * @return the pendingDump
+	 * @return pending Dump operation
 	 */
 	public boolean isPendingDump() {
 		return pendingDump;
 	}
 	/**
-	 * @return the pendingDump
+	 * @return pending Dump operation
 	 */
 	public boolean getPendingDump() {
 		return pendingDump;
 	}
 	/**
-	 * @param pendingDump the pendingDump to set
+	 * @param pendingDump set the pending Dump state
 	 */
 	public void setPendingDump(boolean pendingDump) {
 		this.pendingDump = pendingDump;
 	}
 	
 	/**
-	 * @return the pendingAssertion
+	 * @return pending Assertion(s)
 	 */
 	public List<String> getPendingAssertion() {
 		return pendingAssertion;
 	}
 	/**
-	 * @param pendingAssertion the pendingAssertion to set
+	 * @param pendingAssertion set pending Assertion list
 	 */
 	public void setPendingAssertion(List<String> pendingAssertion) {
 		this.pendingAssertion.clear();
@@ -245,31 +260,31 @@ public class CloudProcess extends Entity {
 		this.dependencyFor = dependencyFor;
 	}
 	/**
-	 * @return the start
+	 * @return the date execution started
 	 */
 	public Date getStart() {
 		return start;
 	}
 	/**
-	 * @param start the start to set
+	 * @param start the execution start date
 	 */
 	public void setStart(Date start) {
 		this.start = start;
 	}
 	/**
-	 * @return the complete
+	 * @return the execution complete date
 	 */
 	public Date getComplete() {
 		return complete;
 	}
 	/**
-	 * @param complete the complete to set
+	 * @param complete the execution complete date to set
 	 */
 	public void setComplete(Date complete) {
 		this.complete = complete;
 	}
 	/**
-	 * @return the finalized
+	 * @return process execution finalized
 	 */
 	public boolean isFinalized() {
 		return finalized;
@@ -305,19 +320,143 @@ public class CloudProcess extends Entity {
 		this.parent = URItoString(parent);
 	}
 	
-	
+	/**
+	 * @return the root
+	 */
+	public Key<CloudProcess> getRoot() {
+		return root;
+	}
+	/**
+	 * @param root the root to set
+	 */
+	public void setRoot(Key<CloudProcess> root) {
+		this.root = root;
+	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		return String
-				.format("CloudProcess [name=%s, uri=%s, mime=%s, owner=%s, isPublic=%s, state=%s, running=%s, waitTimeout=%s, pendingInit=%s, pendingCall=%s, pendingCancel=%s, pendingDump=%s, pendingAssertion=%s, dependentOn=%s, dependencyFor=%s, start=%s, complete=%s, finalized=%s, action=%s, parent=%s]",
-						name, uri, mime,
-						owner, isPublic, state, running, waitTimeout,
-						pendingInit, pendingCall, pendingCancel, pendingDump,
+				.format("CloudProcess [id=%s, state=%s, running=%s, waitTimeout=%s, pendingInit=%s, pendingCall=%s, pendingCancel=%s, pendingDump=%s, pendingAssertion=%s, dependentOn=%s, dependencyFor=%s, start=%s, complete=%s, finalized=%s, action=%s, parent=%s, root=%s]",
+						id, state, running, waitTimeout, pendingInit,
+						pendingCall, pendingCancel, pendingDump,
 						pendingAssertion, dependentOn, dependencyFor, start,
-						complete, finalized, action, parent );
+						complete, finalized, action, parent, root);
 	}
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((action == null) ? 0 : action.hashCode());
+		result = prime * result
+				+ ((complete == null) ? 0 : complete.hashCode());
+		result = prime * result
+				+ ((dependencyFor == null) ? 0 : dependencyFor.hashCode());
+		result = prime * result
+				+ ((dependentOn == null) ? 0 : dependentOn.hashCode());
+		result = prime * result + (finalized ? 1231 : 1237);
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + ((parent == null) ? 0 : parent.hashCode());
+		result = prime
+				* result
+				+ ((pendingAssertion == null) ? 0 : pendingAssertion.hashCode());
+		result = prime * result + (pendingCall ? 1231 : 1237);
+		result = prime * result + (pendingCancel ? 1231 : 1237);
+		result = prime * result + (pendingDump ? 1231 : 1237);
+		result = prime * result + (pendingInit ? 1231 : 1237);
+		result = prime * result + ((root == null) ? 0 : root.hashCode());
+		result = prime * result + ((running == null) ? 0 : running.hashCode());
+		result = prime * result + ((start == null) ? 0 : start.hashCode());
+		result = prime * result + ((state == null) ? 0 : state.hashCode());
+		result = prime * result
+				+ ((waitTimeout == null) ? 0 : waitTimeout.hashCode());
+		return result;
+	}
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		CloudProcess other = (CloudProcess) obj;
+		if (action == null) {
+			if (other.action != null)
+				return false;
+		} else if (!action.equals(other.action))
+			return false;
+		if (complete == null) {
+			if (other.complete != null)
+				return false;
+		} else if (!complete.equals(other.complete))
+			return false;
+		if (dependencyFor == null) {
+			if (other.dependencyFor != null)
+				return false;
+		} else if (!dependencyFor.equals(other.dependencyFor))
+			return false;
+		if (dependentOn == null) {
+			if (other.dependentOn != null)
+				return false;
+		} else if (!dependentOn.equals(other.dependentOn))
+			return false;
+		if (finalized != other.finalized)
+			return false;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		if (parent == null) {
+			if (other.parent != null)
+				return false;
+		} else if (!parent.equals(other.parent))
+			return false;
+		if (pendingAssertion == null) {
+			if (other.pendingAssertion != null)
+				return false;
+		} else if (!pendingAssertion.equals(other.pendingAssertion))
+			return false;
+		if (pendingCall != other.pendingCall)
+			return false;
+		if (pendingCancel != other.pendingCancel)
+			return false;
+		if (pendingDump != other.pendingDump)
+			return false;
+		if (pendingInit != other.pendingInit)
+			return false;
+		if (root == null) {
+			if (other.root != null)
+				return false;
+		} else if (!root.equals(other.root))
+			return false;
+		if (running == null) {
+			if (other.running != null)
+				return false;
+		} else if (!running.equals(other.running))
+			return false;
+		if (start == null) {
+			if (other.start != null)
+				return false;
+		} else if (!start.equals(other.start))
+			return false;
+		if (state != other.state)
+			return false;
+		if (waitTimeout == null) {
+			if (other.waitTimeout != null)
+				return false;
+		} else if (!waitTimeout.equals(other.waitTimeout))
+			return false;
+		return true;
+	}
+
 
 }

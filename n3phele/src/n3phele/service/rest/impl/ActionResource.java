@@ -13,7 +13,6 @@ package n3phele.service.rest.impl;
 
 import java.net.URI;
 import java.util.List;
-
 import java.util.logging.Logger;
 
 import javax.annotation.security.RolesAllowed;
@@ -33,8 +32,8 @@ import n3phele.service.core.Resource;
 import n3phele.service.model.Action;
 import n3phele.service.model.ServiceModelDao;
 import n3phele.service.model.core.AbstractManager;
-import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.BaseEntity;
+import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.GenericModelDao;
 import n3phele.service.model.core.User;
 
@@ -130,6 +129,8 @@ public class ActionResource {
 		public void update(Action action) throws NotFoundException { super.update(action); }
 		
 		public void add(Action action) { super.add(action); }
+		
+		public void delete(Action action) { super.delete(action); }
 	
 	
 		public void updateAll(List<Action> set) { super.itemDao().putAll(set); }

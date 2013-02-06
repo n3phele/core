@@ -69,12 +69,16 @@ public class CloudProcessResource {
 	@GET
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
-	@Path("{id}/children")
-	public CloudProcess[] listChildren( @PathParam ("id") Long id)  {
+	@Path("{group:.*_}{id}/children")
+	public CloudProcess[] listChildren( @PathParam ("group") String group, @PathParam ("id") Long id)  {
 
 		CloudProcess parent;
 		try {
-			parent = dao.load(id, UserResource.toUser(securityContext));
+			Key<CloudProcess> root = null;
+			if(group != null) {
+				root = Key.create(CloudProcess.class, Long.valueOf(group.substring(0,group.length()-1)));
+			}
+			parent = dao.load(root, id, UserResource.toUser(securityContext));
 		} catch (NotFoundException e) {
 			throw e;
 		}
@@ -86,22 +90,29 @@ public class CloudProcessResource {
 	@GET
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
-	@Path("{id}") 
-	public CloudProcess get( @PathParam ("id") Long id) throws NotFoundException {
-
-		CloudProcess item = dao.load(id, UserResource.toUser(securityContext));
+	@Path("{group:.*_}{id}") 
+	public CloudProcess get( @PathParam ("group") String group, @PathParam ("id") Long id) throws NotFoundException {
+		Key<CloudProcess> root = null;
+		if(group != null) {
+			root = Key.create(CloudProcess.class, Long.valueOf(group.substring(0,group.length()-1)));
+		}
+		CloudProcess item = dao.load(root, id, UserResource.toUser(securityContext));
 		return item;
 	}
 	
 	@DELETE
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
-	@Path("{id}") 
-	public Response killProcess( @PathParam ("id") Long id) throws NotFoundException {
+	@Path("{group:.*_}{id}")
+	public Response killProcess( @PathParam ("group") String group, @PathParam ("id") Long id) throws NotFoundException {
 
 		CloudProcess process = null;
+		Key<CloudProcess> root = null;
+		if(group != null) {
+			root = Key.create(CloudProcess.class, Long.valueOf(group.substring(0,group.length()-1)));
+		}
 		try {
-			process = dao.load(id, UserResource.toUser(securityContext));
+			process = dao.load(root, id, UserResource.toUser(securityContext));
 		} catch (NotFoundException e) {
 			return Response.status(Status.GONE).build();
 		}
@@ -115,13 +126,17 @@ public class CloudProcessResource {
 	 */
 	@GET
 	@Produces("text/plain")
-	@Path("{id}/event") 
-	public Response event( @PathParam ("id") Long id) {
+	@Path("{group:.*_}{id}/event") 
+	public Response event( @PathParam ("group") String group, @PathParam ("id") Long id) {
 
 		log.info(String.format("Event %s", uriInfo.getRequestUri().toString()));
 		CloudProcess a = null;
+		Key<CloudProcess> root = null;
+		if(group != null) {
+			root = Key.create(CloudProcess.class, Long.valueOf(group.substring(0,group.length()-1)));
+		}
 		try {
-			a = dao.load(id);
+			a = dao.load(root, id);
 		} catch (NotFoundException e) {
 			return Response.status(Status.GONE).build();
 		}
@@ -179,7 +194,7 @@ public class CloudProcessResource {
 			return new ServiceModelDao<CloudProcess>(CloudProcess.class);
 		}
 		public void clear() { super.itemDao.clear(); }
-		public CloudProcess load(Long id, User requestor) throws NotFoundException { return super.get(id, requestor); }
+		public CloudProcess load(Key<CloudProcess> group, Long id, User requestor) throws NotFoundException { return super.get(group, id, requestor); }
 
 		/**
 		 * Locate a item from the persistent store based on the item URI.
@@ -198,7 +213,7 @@ public class CloudProcessResource {
 		 */
 		public CloudProcess load(URI uri) throws NotFoundException { return super.get(uri); }
 		
-		public CloudProcess load(Long id) throws NotFoundException { return super.get(id); }
+		public CloudProcess load(Key<CloudProcess> group, Long id) throws NotFoundException { return super.get(group, id); }
 		
 		public CloudProcess load(Key<CloudProcess> k) throws NotFoundException { return super.itemDao.get(k); }
 		
@@ -206,12 +221,11 @@ public class CloudProcessResource {
 		public void update(CloudProcess cloudProcess) { super.update(cloudProcess); }
 		
 		public java.util.Collection<CloudProcess> getNonfinalized() { return super.itemDao.collectionByProperty("finalized", false); }
-		
 		public java.util.Collection<CloudProcess> getChildren(URI parent) { return super.itemDao.collectionByProperty("parent", parent.toString()); }
-		public int countChildren(URI parent) { return super.itemDao.countKeysByPropertyDuo("parent", parent.toString(), "finalized", false); }
 		public java.util.Collection<CloudProcess> getList(List<URI>ids) { return super.itemDao.listByURI(ids) ; }		
 		public Collection<CloudProcess> getCollection(User owner) { return super.getCollection(owner); }
 		public void add(CloudProcess process) { super.add(process); }
+		public void delete(CloudProcess process) { super.delete(process); }
 
 
 	}

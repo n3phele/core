@@ -102,12 +102,20 @@ public final Class<T> clazz;
 	public T get(URI uri) throws NotFoundException {
 		try {
 			String s = uri.getPath();
-			long id = Long.valueOf(s.substring(s.lastIndexOf("/")+1));
-			return ofy().load().type(clazz).id(id).safeGet();
+			String identity = s.substring(s.lastIndexOf("/")+1);
+			int split = identity.indexOf('_');
+			if(split == -1) {
+				long id = Long.valueOf(identity);
+				return ofy().load().type(clazz).id(id).safeGet();
+			} else {
+				long parent = Long.valueOf(identity.substring(0,split));
+				long id = Long.valueOf(identity.substring(split+1));
+				return ofy().load().key(Key.create(Key.create(clazz, parent), clazz, id)).safeGet();
+			}
 		} catch (com.googlecode.objectify.NotFoundException e) {
 			throw new NotFoundException("URI "+uri);
 		} catch (Exception e) {
-			log.log(Level.WARNING, "Exception on fetch of "+uri.toString(),e);
+			log.log(Level.WARNING, "Exception on fetch of "+uri,e);
 		}
 		throw new NotFoundException("URI "+uri);
 	}
@@ -191,13 +199,6 @@ public final Class<T> clazz;
 		return ofy().load().type(clazz).filter(propName, propValue).keys().list();
 	}
 	
-	public int countKeysByProperty(String propName, Object propValue) {
-		return ofy().load().type(clazz).filter(propName, propValue).count();
-	}
-	
-	public int countKeysByPropertyDuo(String propName, Object propValue, String propName2, Object propValue2) {
-		return ofy().load().type(clazz).filter(propName, propValue).filter(propName2, propValue2).count();
-	}
 	
 	public Collection<T> listByURI(Collection<URI> ids) {
 		List<Long> idList = new ArrayList<Long>();

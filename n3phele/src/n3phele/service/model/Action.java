@@ -152,14 +152,14 @@ public abstract class Action extends Entity {
 	}
 
 	/**
-	 * @return the context
+	 * @return the action context
 	 */
 	public Context getContext() {
 		return context == null? new Context() : context;
 	}
 
 	/**
-	 * @param context the context to set
+	 * @param context the context for the action
 	 */
 	public void setContext(Context context) {
 		this.context = context;
@@ -168,14 +168,14 @@ public abstract class Action extends Entity {
 	
 
 	/**
-	 * @return the process controlling the task
+	 * @return the process controlling the action
 	 */
 	public URI getProcess() {
 		return Helpers.stringToURI(process);
 	}
 
 	/**
-	 * @param process the process controlling the task
+	 * @param process the process controlling the action
 	 */
 	public void setProcess(URI process) {
 		this.process = Helpers.URItoString(process);

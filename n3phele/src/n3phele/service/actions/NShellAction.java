@@ -15,7 +15,8 @@ package n3phele.service.actions;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Calendar;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -30,6 +31,7 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 import n3phele.service.core.NotFoundException;
+import n3phele.service.core.UnprocessableEntityException;
 import n3phele.service.lifecycle.ProcessLifecycle;
 import n3phele.service.lifecycle.ProcessLifecycle.WaitForSignalRequest;
 import n3phele.service.model.Action;
@@ -50,8 +52,8 @@ import n3phele.service.nShell.ExpressionEngine;
 import n3phele.service.nShell.UnexpectedTypeException;
 import n3phele.service.rest.impl.ActionResource;
 import n3phele.service.rest.impl.CloudProcessResource;
-import n3phele.service.rest.impl.UserResource;
 
+import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.EntitySubclass;
@@ -59,7 +61,7 @@ import com.googlecode.objectify.annotation.Unindex;
 
 @EntitySubclass
 @XmlRootElement(name = "NShellAction")
-@XmlType(name = "NShellAction", propOrder = { "executableName", "pc", "watchFor", "abnormalTermination", "command", "cloud", "start", "adopted", "executable" })
+@XmlType(name = "NShellAction", propOrder = { "executableName", "pc", "watchFor", "abnormalTermination", "command", "cloud", "start", "active", "adopted", "executable" })
 @Unindex
 @Cache
 public class NShellAction extends Action {
@@ -73,6 +75,7 @@ public class NShellAction extends Action {
 	private String cloud;
 	private int start;
 	private List<String> adopted = new ArrayList<String>();
+	private List<String> active = new ArrayList<String>();
 	@Embed private List<ShellFragment> executable;
 	@XmlTransient 
 	private ActionLogger logger;
@@ -105,6 +108,10 @@ public class NShellAction extends Action {
 	
 	@Override
 	public boolean call() throws IllegalArgumentException, UnexpectedTypeException, NotFoundException, ClassNotFoundException, WaitForSignalRequest { 
+		if(this.abnormalTermination != null){
+			log.info("Aborting due to abnormal termination of "+this.abnormalTermination);
+			throw new UnprocessableEntityException("Abnormal termination of "+this.abnormalTermination);
+		}
 		ShellFragment script = this.executable.get(this.executable.size()-1);
 		for(int i = this.pc; i < script.children.length; i++) {
 			this.pc = i;
@@ -113,9 +120,9 @@ public class NShellAction extends Action {
 				throw new ProcessLifecycle.WaitForSignalRequest();
 			}
 
-			ShellFragment fragment = this.executable.get(this.pc);
+			ShellFragment fragment = this.executable.get(script.children[i]);
 			if(assertDependenciesAvailable(buildDependencySetFor(fragment))) {
-				log.info("execute "+i);
+				log.info("execute "+i+":"+this.executable.get(script.children[i]).kind);
 				this.execute(script.children[i], null);
 			} else {
 				log.info("has dependencies");
@@ -123,14 +130,10 @@ public class NShellAction extends Action {
 			}
 		}
 		this.pc = script.children.length;
-		int myChildren = CloudProcessResource.dao.countChildren(this.getProcess());
-		log.info("waiting for children "+myChildren);
-		if(myChildren != this.adopted.size()) {
-			//
-			//	TODO: Possibility that with eventual consistency, the children are all finished
-			//	but not finalized state not in the database.
-			//
-			throw new ProcessLifecycle.WaitForSignalRequest(Calendar.MINUTE, ((myChildren - this.adopted.size()) <=1)?5 : 60);
+		int myChildren = this.active.size();
+		log.info("waiting for "+myChildren+" children");
+		if(myChildren != 0) {
+			throw new ProcessLifecycle.WaitForSignalRequest();
 		}
 		return true;
 	}
@@ -151,11 +154,11 @@ public class NShellAction extends Action {
 	@Override
 	public void signal(SignalKind kind, String assertion) {
 		log.info("Signal "+kind+":"+assertion);
-		boolean isChild = this.watchFor.equals(assertion);
+		boolean isWatchChild = this.watchFor != null && this.watchFor.equals(assertion);
+		boolean isChild = isWatchChild || this.active.contains(assertion);
 		boolean isAdopted = this.adopted.contains(assertion);
 		switch(kind) {
 		case Adoption:
-			log.info((isChild?"Child ":"Unknown ")+assertion+" adoption");
 			URI processURI = URI.create(assertion);
 			try {
 				CloudProcess child = CloudProcessResource.dao.load(processURI);
@@ -168,8 +171,10 @@ public class NShellAction extends Action {
 		case Cancel:
 			log.info((isChild?"Child ":isAdopted?"Adopted ":"Unknown ")+assertion+" cancelled");
 			if(isChild) {
+				this.active.remove(assertion);
 				this.abnormalTermination = assertion;
-				this.watchFor = null;
+				if(isWatchChild)
+					this.watchFor = null;
 			} else if(isAdopted) {
 				this.adopted.remove(assertion);
 			}
@@ -180,8 +185,10 @@ public class NShellAction extends Action {
 		case Failed:
 			log.info((isChild?"Child ":isAdopted?"Adopted ":"Unknown ")+assertion+" failed");
 			if(isChild) {
+				this.active.remove(assertion);
 				this.abnormalTermination = assertion;
-				this.watchFor = null;
+				if(isWatchChild)
+					this.watchFor = null;
 			} else if(isAdopted) {
 				this.adopted.remove(assertion);
 			}
@@ -189,7 +196,9 @@ public class NShellAction extends Action {
 		case Ok:
 			log.info((isChild?"Child ":isAdopted?"Adopted ":"Unknown ")+assertion+" ok");
 			if(isChild) {
-				this.watchFor = null;
+				this.active.remove(assertion);
+				if(isWatchChild)
+					this.watchFor = null;
 			} else if(isAdopted) {
 				this.adopted.remove(assertion);
 			}
@@ -261,7 +270,7 @@ public class NShellAction extends Action {
 			ShellFragment option = this.executable.get(i);
 			String optionName = option.value;
 			if(option.children != null && option.children.length != 0) {
-				Variable v = optionParse(this.executable.get(option.children[0]));
+				Variable v = optionParse(this.executable.get(i));
 				childContext.put(optionName, v);
 			} else {
 				childContext.putValue(optionName, true);
@@ -295,7 +304,7 @@ public class NShellAction extends Action {
 		ShellFragment expression = this.executable.get(onFragment.children[0]);
 		ExpressionEngine ee = new ExpressionEngine(this.executable, this.context);
 		URI uri = URI.create(ee.expression(expression).toString());
-		CreateVMAction target =  (CreateVMAction) ActionResource.dao.load(uri);
+		VMAction target =  (VMAction) ActionResource.dao.load(uri);
 		
 		ShellFragment pieces = this.executable.get(onFragment.children[onFragment.children.length-1]);
 		for(int i=1; i < onFragment.children.length-1; i++){
@@ -309,9 +318,103 @@ public class NShellAction extends Action {
 			}
 		}
 		
+		/*
+		 * Input File Processing
+		 * ---------------------
+		 * 
+		 * Examine the context, command and target VM to determine
+		 * 1. neededInputFiles - the list of files on the target VM for the command to execute
+		 * 2. newEntries - those neededInputFiles not already on the target VM
+		 * 3. dependentOn - start to build the list of producer processors already placing the input files on the target VM
+		 * 
+		 */
+		
 		CommandDefinition cmd = loadCommandDefinition(this.getCommand());
-		resolveProduces(childContext, cmd);
-		resolveNeeds(childContext, cmd);
+		
+		List<FileTracker> neededInputFiles = resolveNeeds(childContext, cmd);
+		List<FileTracker> newEntries = new ArrayList<FileTracker>();
+		Map<String, FileTracker> current = target.getFileTable();
+		Set<URI> dependentOn = new HashSet<URI>();
+		for(FileTracker i : neededInputFiles) {
+			if(current.containsKey(i.getName())) {
+				FileTracker onVM = current.get(i.getName());
+				URI producer = onVM.getProcess();
+				dependentOn.add(producer);
+			} else {
+				newEntries.add(i);
+			}
+		}
+		
+		/*
+		 * Output File Processing
+		 * ----------------------
+		 * Examine the context, command and target VM to determine
+		 * 1. producedOutputFiles - the list of files produced on the VM by the process
+		 * 2. needTransfers - those producedOutputFiles that have a repo transfer target specified in the command innovation
+		 */
+		
+		List<FileTracker> needTransfers = new ArrayList<FileTracker>();
+		List<FileTracker> producedOutputFiles = resolveProduces(childContext, cmd, needTransfers);
+		
+		
+		/*
+		 * Input File Processing
+		 * ---------------------
+		 * 
+		 * For each of the new files that need to be placed on the targetVM (newEntries)
+		 * create a fileCopy process to put them there. Generate a new FileTracker object
+		 * containing details of the file transfer and the process responsible for it.
+		 * 
+		 */
+		
+		
+		Map<String, CloudProcess> inputXferProcess = new HashMap<String, CloudProcess>();
+		Context fileCopyContext = new Context();
+		for(FileTracker newEntry : newEntries) {
+			fileCopyContext.putValue("name", newEntry.getRepo().toString());
+			fileCopyContext.putValue("source", newEntry.getRepo());
+			fileCopyContext.putValue("destination", newEntry.getLocalName());
+			fileCopyContext.putValue("fileTableId", newEntry.getName());
+			CloudProcess fileCopy = forkChildProcess("FileCopy", fileCopyContext, null, null);
+			newEntry.setProcess(fileCopy.getUri());
+			inputXferProcess.put(newEntry.getName(), fileCopy);
+		}
+		
+		/*
+		 * Input File Processing
+		 * ---------------------
+		 * 
+		 * In a transaction, insert the FileTracker objects into the VM fileTable.
+		 * If any fileTracker object is already in the table due to some concurrent operation
+		 * add the filetable identifier of that process to the abortList. Outside of the
+		 * transaction, abort all processes on the abort list, and then init (start) the
+		 * remaining processes. 
+		 * 
+		 * The transaction updates the dependentOn list, and which at the end of this section
+		 * now contains the complete list of processes responsible for file placement on the
+		 * vm.
+		 * 
+		 */
+		
+		List<String> abortList = new ArrayList<String>();
+		putInputFilesIntoFileTable(target.getUri(), newEntries, abortList, dependentOn);
+
+		if(!abortList.isEmpty()) {
+			for(String fileTableId : abortList) {
+				CloudProcess p = inputXferProcess.remove(fileTableId);
+				abort(p);
+			}
+		}
+		for(CloudProcess p : inputXferProcess.values()) {
+			processLifecycle().init(p);
+		}
+		
+		
+		/*
+		 * Create the On command with execution dependencies of the file copy processes
+		 * that are transferring the needed files to the target VM.
+		 */
+		
 		
 		boolean isAsync = childContext.getBooleanValue("async");
 		
@@ -319,81 +422,97 @@ public class NShellAction extends Action {
 		childContext.putValue("shellCommand", assemblePieces(pieces));
 		childContext.putObjectValue("target", target.getUri());
 		
-		Map<String,FileTracker> fileTable = new HashMap<String, FileTracker>();// FIXME buildFileTableFromContext(childContext, target.getFileTable());
-		List<URI> inputFileCopy = new ArrayList<URI>();
-		Map<String, FileTracker> current = new HashMap<String, FileTracker>();//FIXME target.getFileTable();
-		for(FileTracker i : current.values()) {
-			if(fileTable.containsKey(i.getName())) {
-				URI producer = i.getProcess();
-				if(!i.isXfered()) {
-					inputFileCopy.add(producer);
-				}
-				fileTable.remove(i.getName());
+		Variable on = makeChildProcess("On", childContext, specifiedName, isAsync, dependentOn);
+		
+		/*
+		 * Output File Processing
+		 * ----------------------
+		 * 
+		 * In a transaction, add the FileTracker elements into the VM file table, with the
+		 * production process set to the ON command.
+		 * 
+		 */
+		
+		putOutputFilesIntoFileTable(target.getUri(), URI.create(on.value()), producedOutputFiles);
+		
+		/*
+		 * Output File Processing
+		 * ----------------------
+		 * 
+		 * Create the set of output file processes with execution dependency on the ON process. The
+		 * output file process will transfer the generated output files to the cloud repo.
+		 */
+		if(!needTransfers.isEmpty()) {
+			for(FileTracker outputXfer : needTransfers) {
+				fileCopyContext.putValue("name", outputXfer.getRepo().toString());
+				fileCopyContext.putValue("destination", outputXfer.getRepo());
+				fileCopyContext.putValue("source", outputXfer.getLocalName());
+				fileCopyContext.putValue("fileTableId", outputXfer.getName());
+				CloudProcess fileCopy = forkChildProcess("FileCopy", fileCopyContext, null, Arrays.asList(outputXfer.getProcess()));
+				processLifecycle().init(fileCopy);
 			}
 		}
-		return null; //FIXME
 		
-/*		 TODO
-		for(Entry<String,FileTracker> e : fileTable.entrySet()) {
-			List<URI>inputCopy = new ArrayList<URI>();
-			FileTracker f = e.getValue();
-			if(!f.isOutput()) {
-				if(!current.containsKey(f.getName())) {
-					URI copy = spawn();
-					inputCopy.add(copy);
-			
-					f.setProcess(copy);
-					current.put(f.getName(), f);
-				}
-			}
-			
-		}
-		CloudProcessResource.init(copy);
-		
-		
-		
-		inputFileCopy.addAll(inputCopy);
-
-		
-		CloudProcess on = makeChildProcess("On", childContext, specifiedName, isAsync, inputFileCopy);
-		 
-
-		 
-			for(Entry<String,FileTracker> e : fileTable.entrySet()) {
-				List<URI>inputCopy = new ArrayList<URI>();
-				FileTracker f = e.getValue();
-				if(f.isOutput()) {
-					if(!current.containsKey(f.getName())) {
-						URI copy = spawn(   { on });
-						
-						
-						f.setProcess(on);
-						current.put(f.getName(), f);
-					} else {
-						dependency = current.get(f.getName()).getProcess();
-						URI copy = spawn(   { dependency });
-						
-					}
-				}
-				
-			}
-			CloudProcessResource.init(copy);
-
-		 */
-		 
-		/* TODO
-		 * Ensure required files are on the vm. If not, launch copy processes to put them there.
-		 * If a command is listed as producing a required output file, then create a copy command to transfer
-		 * the output to the repo, dependent on that command completing. If vm reuse is a factory function
-		 * then the filetable can be kept in the action.
-		 */
+		return on;
 		
 	}
 	
-	protected void resolveNeeds(Context context, CommandDefinition cmd) {
-		boolean needsAll = context.getBooleanValue("needsall");
-		boolean needsNone = context.getBooleanValue("needsnone");
+	private void putOutputFilesIntoFileTable(final URI vmTarget, final URI onProcess,
+			final List<FileTracker> newEntries) {
+		ActionResource.dao.transact(new VoidWork() {
+
+			@Override
+			public void vrun() {
+				VMAction target = (VMAction) ActionResource.dao.load(vmTarget);
+				Map<String, FileTracker> workingFileTable = target.getFileTable();
+				for(FileTracker newEntry : newEntries) {
+					if(workingFileTable.containsKey(newEntry.getName())) {
+						log.severe("filetable shows multiple producers for "+newEntry.getName());
+						logger.error("multiple producers for "+newEntry.getName());
+						throw new IllegalArgumentException("multiple producers for "+newEntry.getName());
+					} else {
+						newEntry.setProcess(onProcess);
+						workingFileTable.put(newEntry.getName(), newEntry);
+					}
+				}
+				ActionResource.dao.update(target);
+			}});
+		
+	}
+
+	private void putInputFilesIntoFileTable(final URI vmTarget,  
+			final List<FileTracker> newEntries, final List<String> abortList, final Set<URI> dependentOn) {
+		ActionResource.dao.transact(new VoidWork() {
+
+			@Override
+			public void vrun() {
+				VMAction target = (VMAction) ActionResource.dao.load(vmTarget);
+				Map<String, FileTracker> workingFileTable = target.getFileTable();
+				abortList.clear();
+				for(FileTracker newEntry : newEntries) {
+					if(workingFileTable.containsKey(newEntry.getName())) {
+						abortList.add(newEntry.getName());
+						dependentOn.add(workingFileTable.get(newEntry.getName()).getProcess());
+					} else {
+						workingFileTable.put(newEntry.getName(), newEntry);
+						dependentOn.add(newEntry.getProcess());
+					}
+				}
+				ActionResource.dao.update(target);
+			}});
+	}
+	
+	/** Generate the list of input file needs for the command execution
+	 * @param context execution context including input files, and command parameters
+	 * @param cmd specification of the command including command input files
+	 * @return list of input files needed for command execution.
+	 * <br>The context has <i>needs</i> variable created for all command input files if <i>needsNone</i>=true not in the context
+	 */
+	protected List<FileTracker> resolveNeeds(Context context, CommandDefinition cmd) {
+		boolean needsNone = context.getBooleanValue("needsNone");
 		Variable needs = context.get("needs");
+		List<FileTracker> inputList = new ArrayList<FileTracker>();
+		String missing = null;
 		if(needs == null) {
 			if(!needsNone) {
 				// default is NeedsAll
@@ -402,91 +521,110 @@ public class NShellAction extends Action {
 					URI source = context.getFileValue(i.getName());
 					if(source == null && !i.isOptional()) {
 						log.warning("Missing file "+i.getName());
+						logger.error("Missing file "+i.getName());
+						if(missing == null)
+							missing = i.getName();
+						else
+							missing = missing+" "+i.getName();
 					} else {
 						inputs.put(i.getName(), i.getName());
+						FileTracker inputFile = new FileTracker();
+						inputFile.setOutput(false);
+						inputFile.setName(i.getName());
+						inputFile.setLocalName(i.getName());
+						inputFile.setRepo(source);
+						inputList.add(inputFile);
 					}
 				}
+				if(missing != null) 
+					throw new NotFoundException("Missing file(s) "+missing);
 				context.putValue("needs", inputs);
 			}
-		} 
+		} else {
+			@SuppressWarnings("unchecked")
+			Map<String, String> inputs = (Map<String, String>) context.getObjectValue("needs");
+			Set<String> optional = new HashSet<String>();
+			for(FileSpecification i : cmd.getInputFiles()) {
+				if(i.isOptional())
+					optional.add(i.getName());
+			}
+			for(Entry<String, String> i : inputs.entrySet()) {
+				URI source = context.getFileValue(i.getKey());
+				if(source == null && !optional.contains(i.getKey())) {
+					
+					log.warning("Missing file "+i.getKey());
+					logger.error("Missing file "+i.getKey());
+					if(missing == null)
+						missing = i.getKey();
+					else
+						missing = missing+" "+i.getKey();
+				} else {
+					FileTracker inputFile = new FileTracker();
+					inputFile.setOutput(false);
+					inputFile.setName(i.getKey());
+					inputFile.setLocalName(i.getValue());
+					inputFile.setRepo(source);
+					inputList.add(inputFile);
+				}
+			}
+		}
+		return inputList;
 	}
 	
-	protected void resolveProduces(Context context, CommandDefinition cmd) {
-		boolean producesall = context.getBooleanValue("producesall");
-		boolean producesnone = context.getBooleanValue("producesnone");
+	/** Generates list of output files produced by the command
+	 * @param context context containing the command invocation parameters and the produces specification
+	 * @param cmd the command definition describing the output files
+	 * @param needTransfers list of output file transfers to the cloud repo
+	 * @return list of output files produced by the command
+	 * <br> context variable <i>produces</i> is generated if absent an the context variable <i>producesAll</i>==true
+	 */
+	protected List<FileTracker> resolveProduces(Context context, CommandDefinition cmd, List<FileTracker> needTransfers) {
+		boolean producesall = context.getBooleanValue("producesAll");
 		Variable produces = context.get("produces");
-		
+		List<FileTracker> production = new ArrayList<FileTracker>();
 		if(produces == null) {
+			// producesNone is the default
 			if(producesall) {
 				Map<String,String> outputs = new HashMap<String,String>();
 				for(FileSpecification i : cmd.getOutputFiles()) {
-					URI source = context.getFileValue(i.getName());
+					URI destination = context.getFileValue(i.getName());
 					outputs.put(i.getName(), i.getName());
+					FileTracker outputFile = new FileTracker();
+					outputFile.setOutput(true);
+					outputFile.setName(i.getName());
+					outputFile.setLocalName(i.getName());
+					outputFile.setRepo(destination);
+					production.add(outputFile);
+					if(destination != null ) {
+						outputFile.setRepo(destination);
+						needTransfers.add(outputFile);
+					}
 				}
-				// default is producesNone
 				context.putValue("produces", outputs);
+				
+			}
+		} else {
+			@SuppressWarnings("unchecked")
+			Map<String, String> outputs = (Map<String, String>) context.getObjectValue("produces");
+			for(Entry<String, String> i : outputs.entrySet()) {
+				URI destination = context.getFileValue(i.getKey());
+				FileTracker outputFile = new FileTracker();
+				outputFile.setOutput(true);
+				outputFile.setName(i.getKey());
+				outputFile.setLocalName(i.getValue());
+				outputFile.setRepo(destination);
+				production.add(outputFile);
+				if(destination != null ) {
+					needTransfers.add(outputFile);
+				}
 			}
 		}
 		
-	}
-	
-	private Map<String,FileTracker> buildFileTableFromContext(Context context, Map<String,FileTracker>current) {
-		/*
-		 * copyNeededFiles plan:
-		 * 
-		 * 	compiled commmand will attach a fileList to each On command with a 
-		 * --needs and --produces statement referenceable through the context
-		 * 
-		 * The copyNeededFiles will go to the VM and look at the attached filetable.
-		 * If the needed file is in the filetable, then no action, otherwise
-		 * a copy process will be started targeted a file transfer. The filetable
-		 * will contain the neededFile entry (commandFilename and localName) and the
-		 * name of the process responsible for the copy.
-		 * 
-		 * 
-		 * 
-		 */
-
-		@SuppressWarnings("unchecked")
-		Map<String,String> inputs = (Map<String, String>) context.getObjectValue("needs");
-		@SuppressWarnings("unchecked")
-		Map<String,String> outputs = (Map<String, String>) context.getObjectValue("produces");
-		Map<String,FileTracker> fileTable = new HashMap<String,FileTracker>();
-		Set<URI> preExistingDependencies = new HashSet<URI>();
-		buildFileTable(fileTable, inputs, true, current, preExistingDependencies);
-		buildFileTable(fileTable, outputs, false, current, preExistingDependencies);
-		return fileTable;
-	}
-	
-	private void buildFileTable(Map<String,FileTracker> fileTable, Map<String,String> spec, boolean isInput, 
-		                          Map<String, FileTracker>current, Set<URI> preExistingDependency){
-		for(Entry<String,String> e: spec.entrySet()) {
-			String localName = e.getValue();
-			
-			if(current.containsKey(localName)) {
-				FileTracker preexists = current.get(localName);
-				preExistingDependency.add(preexists.getProcess());
-				continue;
-			} else {
-				URI repo = context.getFileValue(e.getKey());
-				if(repo == null) {
-					/*
-					 * File not specified (file is optional)
-					 */
-				} else {
-					FileTracker f = new FileTracker();
-					f.setName(e.getKey());
-					f.setLocalName(localName);
-					f.setOutput(!isInput);
-					f.setRepo(repo);
-					fileTable.put(f.getLocalName(), f);
-				}
-			}
-			
-		}
+		return production;
+		
 	}
 
-	private Variable optionParse(ShellFragment option) throws IllegalArgumentException, UnexpectedTypeException {
+	private Variable optionParse(ShellFragment option) throws IllegalArgumentException, UnexpectedTypeException, NotFoundException {
 		Variable result = null;
 		String optionName = option.value;
 		if(option.children != null && option.children.length == 1) {
@@ -520,13 +658,15 @@ public class NShellAction extends Action {
 	private String assemblePieces(ShellFragment pieces) throws IllegalArgumentException, UnexpectedTypeException {
 		StringBuffer result = new StringBuffer();
 		ExpressionEngine ee = new ExpressionEngine(this.executable, this.context);
+		boolean first = true;
 		for(int i : pieces.children) {
 			ShellFragment piece = this.executable.get(i);
 			if(piece.kind == ShellFragmentKind.passThru) {
 				result.append(piece.value);
 			} else {
-				result.append(ee.expression(piece).toString());
+				result.append((!first && piece.value!=null)?piece.value+ee.expression(piece).toString():ee.expression(piece).toString());
 			}
+			first = false;
 		}
 		return result.toString();
 	}
@@ -565,11 +705,12 @@ public class NShellAction extends Action {
 		childContext.putAll(context);
 		int myIndex = this.executable.indexOf(shellFragment);
 		
-		CloudProcess process = ProcessLifecycle.mgr().spawn(this.getOwner(), name, childContext, dependency, this.getProcess(), "NShell");
+		CloudProcess process = processLifecycle().spawn(this.getOwner(), name, childContext, dependency, this.getProcess(), "NShell");
 		NShellAction action = (NShellAction) ActionResource.dao.load(process.getAction());
 		action.setExecutable(this.executable.subList(0, myIndex+1));
 		this.context.putValue(name, action);
-		ProcessLifecycle.mgr().init(process);
+		this.active.add(process.getUri().toString());
+		processLifecycle().init(process);
 		return this.context.get(name);
 		
 	}
@@ -592,7 +733,7 @@ public class NShellAction extends Action {
 		String variableName = varAssign.value;
 		ShellFragment fragment = this.executable.get(varAssign.children[0]);
 		if(fragment.kind == ShellFragmentKind.expression) {
-			ExpressionEngine ee = expressionEngineFactory(varAssign.children[0]);
+			ExpressionEngine ee = expressionEngineFactory(fragment.children[0]);
 			this.context.putObjectValue(variableName, ee.run());
 			return this.context.get(variableName);
 		} else {
@@ -639,11 +780,57 @@ public class NShellAction extends Action {
 		Variable result = null;
 		ShellFragment fragment = this.executable.get(destroy.children[0]);
 		if(fragment.kind == ShellFragmentKind.expression) {
-			ExpressionEngine ee = expressionEngineFactory(destroy.children[0]);
-			URI action = URI.create((String)ee.run());
-			CreateVMAction createVMAction = (CreateVMAction) ActionResource.dao.load(action, UserResource.dao.load(this.getOwner()));
-			createVMAction.killVM();
-			result = new Variable(createVMAction.getName(), createVMAction);
+			ExpressionEngine ee = expressionEngineFactory(fragment.children[0]);
+			Object o = ee.run();
+			URI[] targets = new URI[0];
+			String name = null;
+			URI first = null;
+			if(o instanceof URI) {
+				targets = new URI[] { (URI)o };
+			} else if(o instanceof String) {
+				targets = new URI[] { URI.create((String)o) };
+			} else if(o instanceof List<?>) {
+				@SuppressWarnings("unchecked")
+				List<String> vms = (List<String>)o;
+				if(vms.isEmpty())
+					throw new IllegalArgumentException("Null list");
+				targets = new URI[vms.size()];
+				for(int i=0; i < targets.length; i++) {
+					targets[i] = URI.create(vms.get(i));
+				}		
+			} else {
+				logger.error("URI target expected, got"+(o==null?"":" "+o.getClass().getSimpleName())+"  "+o);
+				log.info("URI target expected, got"+(o==null?"":" "+o.getClass().getSimpleName())+"  "+o);
+				throw new IllegalArgumentException("URI target expected, got"+(o==null?"":" "+o.getClass().getSimpleName())+"  "+o);
+			}
+			
+			for(URI target : targets) {
+				if(target.toString().contains("process")) {
+					CloudProcess process = CloudProcessResource.dao.load(target);
+					target = process.getAction();
+				}
+				
+				Action action;
+				if(target.toString().contains("action")) {
+					action = ActionResource.dao.load(target);
+					if(name == null) {
+						name = action.getName();
+						first = target;
+					}
+					if(action instanceof CreateVMAction) {
+						CreateVMAction createVMAction = (CreateVMAction) action;
+						createVMAction.killVM();
+					} else  {
+						processLifecycle().dump(action.getProcess());
+					} 
+				} else {
+					log.warning(target+" is not a valid termination target");
+					logger.error(target+" is not a valid termination target");
+					throw new IllegalArgumentException(target+" is not a valid termination target");
+				}
+			}
+
+			result = new Variable("destroy_"+name, first);
 		}
 		return result;
 	}
@@ -670,6 +857,7 @@ public class NShellAction extends Action {
 		Set<URI> dependencies = new HashSet<URI>();
 		
 		scanExpressionTreeForDependencies(s, references);
+		log.info("Found references "+references);
 		if(!references.isEmpty()) {
 			for(String identifier : references) {
 				Variable v = lookupAction(identifier);
@@ -686,17 +874,15 @@ public class NShellAction extends Action {
 	
 	
 	private void scanExpressionTreeForDependencies(ShellFragment s, Set<String> dependencies) {
+		if(s.kind == ShellFragmentKind.identifier) {
+			dependencies.add(s.value);
+		}
 		if(s.children != null) {
 			for(int i : s.children) {
 				ShellFragment f = this.executable.get(i);
-				if(f.kind == ShellFragmentKind.identifier) {
-					dependencies.add(f.value);
-				}
-				if(f.children != null && f.children.length != 0) {
-					scanExpressionTreeForDependencies(f, dependencies);
-				}
+				scanExpressionTreeForDependencies(f, dependencies);
 			}
-		}
+		} 
 	}
 	
 	/** sets process to block until a set of dependencies is available
@@ -710,7 +896,7 @@ public class NShellAction extends Action {
 			for(Action action: ActionResource.dao.load(dependencies)) {
 				dependency.add(action.getProcess());
 			}
-			return !ProcessLifecycle.mgr().setDependentOn(this.getProcess(), dependency);
+			return !processLifecycle().setDependentOn(this.getProcess(), dependency);
 		}
 		return true;
 	}
@@ -759,30 +945,64 @@ public class NShellAction extends Action {
 	}
 	
 	private Variable makeChildProcess(String processType, Context childContext, String variableName, boolean isAsync) throws NotFoundException, IllegalArgumentException, ClassNotFoundException {
+		return makeChildProcess(processType, childContext, variableName, isAsync, null);
+	}
+	
+	private Variable makeChildProcess(String processType, Context childContext, String variableName, boolean isAsync, Set<URI> dependency) throws NotFoundException, IllegalArgumentException, ClassNotFoundException {
 		
-		String optionName = context.getValue("name");
-		
-		int created = this.context.getIntegerValue(processType+"Created");
-		this.context.putValue(processType+"Created", created+1);
-		String childName = variableName;
-		if(Helpers.isBlankOrNull(childName)) {
-			childName = optionName;
-			if(Helpers.isBlankOrNull(childName)) {
-				String nameSeed = context.getValue(processType+"NameSeed");
-				if(nameSeed == null)
-					nameSeed = processType;
-				childName = nameSeed +"_"+created;
-			}
-			variableName = childName;
-		}
-		
-		CloudProcess child = ProcessLifecycle.mgr().spawn(this.getOwner(), childName, childContext, null, this.getProcess(), processType);
+		CloudProcess child = forkChildProcess(processType, childContext, variableName, dependency);
 		if(!isAsync)
 			this.setWatchFor(child.getUri());	
-		this.context.putActionValue(variableName, child.getAction());
-		ProcessLifecycle.mgr().init(child);
-		return this.context.get(variableName);
+		processLifecycle().init(child);
+		return this.context.get(child.getName());
+	}
+	
+	
+	private CloudProcess forkChildProcess(String processType, Context childContext, String variableName, List<URI> dependency) throws NotFoundException, IllegalArgumentException, ClassNotFoundException {
 		
+		String optionName = context.getValue("name");
+		if(Helpers.isBlankOrNull(variableName)) {
+			variableName = optionName;
+			if(Helpers.isBlankOrNull(variableName)) {
+				variableName = generateUniqueName(processType);
+			}
+		}
+		CloudProcess child = processLifecycle().spawn(this.getOwner(), variableName, childContext, dependency, this.getProcess(), processType);	
+		this.context.putActionValue(variableName, child.getAction());
+		this.active.add(child.getUri().toString());
+		trackCreation(processType);
+		return child;
+		
+	}
+	
+	private CloudProcess forkChildProcess(String processType, Context childContext, String variableName, Collection<URI> dependency) throws NotFoundException, IllegalArgumentException, ClassNotFoundException {
+		List<URI>dependsOn = null;
+		if(dependency != null) {
+			dependsOn = new ArrayList<URI>();
+			dependsOn.addAll(dependency);
+		}
+		
+		return forkChildProcess(processType, childContext, variableName, dependsOn);
+		
+	}
+	
+	private void abort(CloudProcess p) {
+		this.context.remove(p.getName());
+		this.active.remove(p.getUri().toString());
+		ActionResource.dao.delete(ActionResource.dao.load(p.getAction()));
+		CloudProcessResource.dao.delete(p);
+		
+	}
+	
+	private void trackCreation(String processType) {
+		int created = this.context.getIntegerValue(processType+"Created");
+		this.context.putValue(processType+"Created", created+1);
+	}
+	private String generateUniqueName(String processType) {
+		String nameSeed = context.getValue(processType+"NameSeed");
+		if(nameSeed == null)
+			nameSeed = processType;
+		return nameSeed +"_"+this.context.getIntegerValue(processType+"Created");
 	}
 
 	/*
@@ -902,24 +1122,58 @@ public class NShellAction extends Action {
 	public void setStart(int start) {
 		this.start = start;
 	}
+	
+	
 
+	/**
+	 * @return the adopted
+	 */
+	public List<String> getAdopted() {
+		return adopted;
+	}
+
+	/**
+	 * @param adopted the adopted to set
+	 */
+	public void setAdopted(List<String> adopted) {
+		this.adopted = adopted;
+	}
+
+	/**
+	 * @return the active
+	 */
+	public List<String> getActive() {
+		return active;
+	}
+
+	/**
+	 * @param active the active to set
+	 */
+	public void setActive(List<String> active) {
+		this.active = active;
+	}
+
+	
+	
 	/*
 	 * Object housekeeping
 	 * ===================
 	 */
 	
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		return String
-				.format("NShellActionTest %s [executableName=%s, pc=%s, watchFor=%s, abnormalTermination=%s, command=%s, cloud=%s, start=%s, executable=%s]",
+				.format("NShellAction %s [executableName=%s, pc=%s, watchFor=%s, abnormalTermination=%s, command=%s, cloud=%s, start=%s, adopted=%s, active=%s, executable=%s, logger=%s]",
 						super.toString(),
-						executableName, pc, watchFor, abnormalTermination, command, cloud, start,
-						executable);
+						executableName, pc, watchFor, abnormalTermination,
+						command, cloud, start, adopted, active, executable,
+						logger);
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */
@@ -931,12 +1185,15 @@ public class NShellAction extends Action {
 				* result
 				+ ((abnormalTermination == null) ? 0 : abnormalTermination
 						.hashCode());
+		result = prime * result + ((active == null) ? 0 : active.hashCode());
+		result = prime * result + ((adopted == null) ? 0 : adopted.hashCode());
 		result = prime * result + ((cloud == null) ? 0 : cloud.hashCode());
 		result = prime * result + ((command == null) ? 0 : command.hashCode());
 		result = prime * result
 				+ ((executable == null) ? 0 : executable.hashCode());
 		result = prime * result
 				+ ((executableName == null) ? 0 : executableName.hashCode());
+		result = prime * result + ((logger == null) ? 0 : logger.hashCode());
 		result = prime * result + pc;
 		result = prime * result + start;
 		result = prime * result
@@ -961,6 +1218,16 @@ public class NShellAction extends Action {
 				return false;
 		} else if (!abnormalTermination.equals(other.abnormalTermination))
 			return false;
+		if (active == null) {
+			if (other.active != null)
+				return false;
+		} else if (!active.equals(other.active))
+			return false;
+		if (adopted == null) {
+			if (other.adopted != null)
+				return false;
+		} else if (!adopted.equals(other.adopted))
+			return false;
 		if (cloud == null) {
 			if (other.cloud != null)
 				return false;
@@ -981,6 +1248,11 @@ public class NShellAction extends Action {
 				return false;
 		} else if (!executableName.equals(other.executableName))
 			return false;
+		if (logger == null) {
+			if (other.logger != null)
+				return false;
+		} else if (!logger.equals(other.logger))
+			return false;
 		if (pc != other.pc)
 			return false;
 		if (start != other.start)
@@ -993,11 +1265,11 @@ public class NShellAction extends Action {
 		return true;
 	}
 	
-
+	
 	/*
 	 * Testing
 	 * =======
-	 */	
+	 */		
 
 	/** Fetches the command definition associated with a data store URI.
 	 * Override method for unit testing
@@ -1010,10 +1282,12 @@ public class NShellAction extends Action {
 		cmd.setUri(uri);
 		return cmd;
 	}
-	
-	
 
 	protected ExpressionEngine expressionEngineFactory(int index) {
 		return new ExpressionEngine(this.executable.subList(0, index+1), this.context);
+	}
+	
+	protected ProcessLifecycle processLifecycle() {
+		return ProcessLifecycle.mgr();
 	}
 }

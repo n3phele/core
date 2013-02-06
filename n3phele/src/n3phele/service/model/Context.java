@@ -21,13 +21,9 @@ public class Context extends HashMap<String, Variable> {
 	
 	public boolean putValue(String name, String value) {
 		if(Helpers.isBlankOrNull(name)) throw new IllegalArgumentException("Null context name");
-		Variable v = this.get(name);
-		boolean created = false;
-		if(v == null) {
-			v = new Variable();
-			v.setName(name);
-			created = true;
-		}
+		Variable v = new Variable();
+		v.setName(name);
+		boolean created = this.containsKey(name);
 		v.setType(VariableType.String);
 		v.setValue(value);
 		this.put(name, v);
@@ -36,13 +32,9 @@ public class Context extends HashMap<String, Variable> {
 	
 	public boolean putSecretValue(String name, String value) {
 		if(Helpers.isBlankOrNull(name)) throw new IllegalArgumentException("Null context name");
-		Variable v = this.get(name);
-		boolean created = false;
-		if(v == null) {
-			v = new Variable();
-			v.setName(name);
-			created = true;
-		}
+		Variable v = new Variable();
+		v.setName(name);
+		boolean created = this.containsKey(name);
 		v.setType(VariableType.Secret);
 		v.setValue(value);
 		this.put(name, v);
@@ -51,13 +43,9 @@ public class Context extends HashMap<String, Variable> {
 	
 	public boolean putValue(String name, Action value) {
 		if(Helpers.isBlankOrNull(name)) throw new IllegalArgumentException("Null context name");
-		Variable v = this.get(name);
-		boolean created = false;
-		if(v == null) {
-			v = new Variable();
-			v.setName(name);
-			created = true;
-		}
+		Variable v = new Variable();
+		v.setName(name);
+		boolean created = this.containsKey(name);
 		v.setType(VariableType.Action);
 		v.setValue(value.getUri().toString());
 		this.put(name, v);
@@ -67,13 +55,9 @@ public class Context extends HashMap<String, Variable> {
 	
 	public boolean putValue(String name, long value) {
 		if(Helpers.isBlankOrNull(name)) throw new IllegalArgumentException("Null context name");
-		Variable v = this.get(name);
-		boolean created = false;
-		if(v == null) {
-			v = new Variable();
-			v.setName(name);
-			created = true;
-		}
+		Variable v = new Variable();
+		v.setName(name);
+		boolean created = this.containsKey(name);
 		v.setType(VariableType.Long);
 		v.setValue(Long.toString(value));
 		this.put(name, v);
@@ -83,13 +67,9 @@ public class Context extends HashMap<String, Variable> {
 	
 	public boolean putValue(String name, double value) {
 		if(Helpers.isBlankOrNull(name)) throw new IllegalArgumentException("Null context name");
-		Variable v = this.get(name);
-		boolean created = false;
-		if(v == null) {
-			v = new Variable();
-			v.setName(name);
-			created = true;
-		}
+		Variable v = new Variable();
+		v.setName(name);
+		boolean created = this.containsKey(name);
 		v.setType(VariableType.Double);
 		v.setValue(Double.toString(value));
 		this.put(name, v);
@@ -98,13 +78,9 @@ public class Context extends HashMap<String, Variable> {
 	
 	public boolean putValue(String name, boolean value) {
 		if(Helpers.isBlankOrNull(name)) throw new IllegalArgumentException("Null context name");
-		Variable v = this.get(name);
-		boolean created = false;
-		if(v == null) {
-			v = new Variable();
-			v.setName(name);
-			created = true;
-		}
+		Variable v = new Variable();
+		v.setName(name);
+		boolean created = this.containsKey(name);
 		v.setType(VariableType.Boolean);
 		v.setValue(Boolean.toString(value));
 		this.put(name, v);
@@ -113,13 +89,9 @@ public class Context extends HashMap<String, Variable> {
 	
 	public boolean putValue(String name, List<String> value) {
 		if(Helpers.isBlankOrNull(name)) throw new IllegalArgumentException("Null context name");
-		Variable v = this.get(name);
-		boolean created = false;
-		if(v == null) {
-			v = new Variable();
-			v.setName(name);
-			created = true;
-		}
+		Variable v = new Variable();
+		v.setName(name);
+		boolean created = this.containsKey(name);
 		v.setType(VariableType.List);
 		v.setValue(value);
 		this.put(name, v);
@@ -128,13 +100,9 @@ public class Context extends HashMap<String, Variable> {
 	
 	public boolean putValue(String name, URI[] value) {
 		if(Helpers.isBlankOrNull(name)) throw new IllegalArgumentException("Null context name");
-		Variable v = this.get(name);
-		boolean created = false;
-		if(v == null) {
-			v = new Variable();
-			v.setName(name);
-			created = true;
-		}
+		Variable v = new Variable();
+		v.setName(name);
+		boolean created = this.containsKey(name);
 		v.setType(VariableType.List);
 		v.setValue(value);
 		this.put(name, v);
@@ -143,13 +111,9 @@ public class Context extends HashMap<String, Variable> {
 	
 	public boolean putValue(String name, Map<String,String> value) {
 		if(Helpers.isBlankOrNull(name)) throw new IllegalArgumentException("Null context name");
-		Variable v = this.get(name);
-		boolean created = false;
-		if(v == null) {
-			v = new Variable();
-			v.setName(name);
-			created = true;
-		}
+		Variable v = new Variable();
+		v.setName(name);
+		boolean created = this.containsKey(name);
 		v.setType(VariableType.FileList);
 		v.setValue(value);
 		this.put(name, v);
@@ -158,13 +122,9 @@ public class Context extends HashMap<String, Variable> {
 	
 	public boolean putActionValue(String name, URI action) {
 		if(Helpers.isBlankOrNull(name)) throw new IllegalArgumentException("Null context name");
-		Variable v = this.get(name);
-		boolean created = false;
-		if(v == null) {
-			v = new Variable();
-			v.setName(name);
-			created = true;
-		}
+		Variable v = new Variable();
+		v.setName(name);
+		boolean created = this.containsKey(name);
 		v.setType(VariableType.Action);
 		v.setValue(action.toString());
 		this.put(name, v);
@@ -173,13 +133,9 @@ public class Context extends HashMap<String, Variable> {
 	
 	public boolean putValue(String name, URI uri) {
 		if(Helpers.isBlankOrNull(name)) throw new IllegalArgumentException("Null context name");
-		Variable v = this.get(name);
-		boolean created = false;
-		if(v == null) {
-			v = new Variable();
-			v.setName(name);
-			created = true;
-		}
+		Variable v = new Variable();
+		v.setName(name);
+		boolean created = this.containsKey(name);
 		String scheme = uri.getScheme();
 		if("http".equals(scheme) || "https".equals(scheme)) {
 			v.setType(VariableType.Object);

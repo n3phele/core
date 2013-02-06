@@ -10,14 +10,21 @@ package n3phele.service.actions;
  *  an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the 
  *  specific language governing permissions and limitations under the License.
  */
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.util.Date;
+import java.util.Properties;
+import java.util.logging.Level;
 
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
-
-import com.googlecode.objectify.annotation.Cache;
-import com.googlecode.objectify.annotation.EntitySubclass;
-import com.googlecode.objectify.annotation.Unindex;
 
 import n3phele.service.core.NotFoundException;
 import n3phele.service.lifecycle.ProcessLifecycle;
@@ -29,7 +36,12 @@ import n3phele.service.model.Context;
 import n3phele.service.model.SignalKind;
 import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.User;
+import n3phele.service.rest.impl.CloudProcessResource;
 import n3phele.service.rest.impl.UserResource;
+
+import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.EntitySubclass;
+import com.googlecode.objectify.annotation.Unindex;
 
 
 /** Manages execution of a job or finite task.
@@ -112,7 +124,18 @@ public class JobAction extends Action {
 			ProcessLifecycle.mgr().waitForSignal();
 			return false; // never executed
 		} else {
-			notifyOwner();
+			switch(this.childEndState) {
+			case CANCELLED:
+				notifyOwner(true, "Processing was cancelled");
+				break;
+			case FAILED:
+				notifyOwner(true, "Processing encountered a failure");
+				break;
+			default:
+				notifyOwner(false, "");
+				break;
+			}
+			
 			return true;
 		}
 		
@@ -124,7 +147,7 @@ public class JobAction extends Action {
 		log.warning("Cancel");
 		ProcessLifecycle.mgr().dump(URI.create(this.childProcess));
 		this.childEndState = ActionState.CANCELLED;
-		notifyOwner();
+		notifyOwner(true, "Processing was requested to be cancelled");
 		
 	}
 
@@ -133,7 +156,7 @@ public class JobAction extends Action {
 		log.warning("Dump");
 		ProcessLifecycle.mgr().dump(URI.create(this.childProcess));
 		this.childEndState = ActionState.CANCELLED;
-		notifyOwner();
+		notifyOwner(true, "Processing was requested to be cancelled, and a diagnostic dump taken");
 		
 	}
 
@@ -176,12 +199,93 @@ public class JobAction extends Action {
 		childComplete = isChild;
 	}
 	
-	private void notifyOwner() {
+	private void notifyOwner(boolean failure, String reason) {
 		if(notify) {
-			User owner = UserResource.dao.load(this.getOwner());
-			String email = owner.getName();
-			log.severe("*********** Unimplemented email notificaiton to "+owner.getFirstName()+" email "+email+" end state "+childEndState);
+			sendNotificationEmail(failure, reason);
 		}
+	}
+	
+	public void sendNotificationEmail(boolean failure, String reason) {
+		User user = null;
+		try {
+			URI owner = this.getOwner();
+			if (owner == null || owner.equals(UserResource.Root.getUri()))
+				return;
+			user = UserResource.dao.load(owner);
+			StringBuilder subject = new StringBuilder();
+			StringBuilder body = new StringBuilder();
+			if (failure) {
+				subject.append("FAILURE: ");
+				subject.append(this.getName());
+				body.append(user.getFirstName());
+				body.append(",\nAn error has occured processing your activity named ");
+				body.append(this.getName());
+				body.append(". The problem description is \n\n");
+				body.append(reason);
+				body.append("\n\nMore details are available at https://n3phele.appspot.com\n\nn3phele");
+			} else {
+				subject.append(this.getName());
+				subject.append(" has completed.");
+				body.append(user.getFirstName());
+				body.append(",\n\nYour activity named ");
+				body.append(this.getName());
+				body.append(" has completed sucessfully.\n\nTotal elapsed time was ");
+				CloudProcess process = CloudProcessResource.dao.load(this.getChildProcess());
+				Date start = process.getStart();
+				Date finished = process.getComplete();
+				Long duration = finished.getTime() - start.getTime();
+				if (duration > 1000 * 60 * 60 * 24) {
+					double days =  Math.round(10 * duration / (1000 * 60 * 60 * 24)) / 10.0;
+					body.append(Double.toString(days));
+					body.append(days > 1 ? " days" : " day");
+				} else if (duration > 1000 * 60 * 60) {
+					double hours = Math.round(10 * duration
+							/ (1000 * 60 * 60.0)) / 10.0;
+					body.append(Double.toString(hours));
+					body.append(hours > 1.0 ? " hours" : " hour");
+				} else if (duration >= 1000 * 60) {
+					double minutes = Math.round(10 * duration
+							/ (1000 * 60.0)) / 10.0;
+					body.append(Double.toString(minutes));
+					body.append(minutes > 1.0 ? " minutes" : " minute");
+
+				} else if (duration >= 1000) {
+					double seconds = Math.round(10 * duration / (1000.0)) / 10.0;
+					body.append(Double.toString(seconds));
+					body.append(seconds > 1.0 ? " seconds" : " second");
+				} else {
+					body.append(Long.toString(duration));
+					body.append(duration > 1 ? " milliseconds"
+							: " millisecond");
+				}
+				body.append(".\n\nn3phele\n--\nhttps://n3phele.appspot.com\n\n");
+			}
+
+			Properties props = new Properties();
+			Session session = Session.getDefaultInstance(props, null);
+
+			Message msg = new MimeMessage(session);
+			msg.setFrom(new InternetAddress("n3phele@gmail.com", "n3phele"));
+			msg.addRecipient(Message.RecipientType.TO,
+					new InternetAddress(user.getName(), user.getFirstName()
+							+ " " + user.getLastName()));
+			msg.setSubject(subject.toString());
+			msg.setText(body.toString());
+			Transport.send(msg);
+		} catch (AddressException e) {
+			log.log(Level.SEVERE,
+					"Email to " + user.getName() + " " + user.getUri(), e);
+		} catch (MessagingException e) {
+			log.log(Level.SEVERE,
+					"Email to " + user.getName() + " " + user.getUri(), e);
+		} catch (UnsupportedEncodingException e) {
+			log.log(Level.SEVERE,
+					"Email to " + user.getName() + " " + user.getUri(), e);
+		} catch (Exception e) {
+			log.log(Level.SEVERE,
+					"Email for activity " + this.getUri(), e);
+		}
+
 	}
 
 	/**

@@ -17,8 +17,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.mortbay.log.Log;
-
 import n3phele.service.core.NotFoundException;
 import n3phele.service.model.Action;
 import n3phele.service.model.Context;

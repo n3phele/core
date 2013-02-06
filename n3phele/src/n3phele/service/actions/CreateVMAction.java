@@ -61,8 +61,8 @@ import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
  * <br> account <i> URI </i> of account on which VMs are to be created
  * <br> 
  * <br> populates its context with the following:
- * <br> vm a list length <i>n</> of virtual machine actions.
- * In the case of a single vm, this is a scalar not a list
+ * <br> cloudVM a list length <i>n</> of virtual machine actions.
+ * In the case of a single vm (n == 1), this is a scalar not a list
  * 
  * @author Nigel Cook
  *
@@ -180,7 +180,7 @@ public class CreateVMAction extends Action {
 		// FIXME: Not sure this is correct
 		// FIXME: Perhaps we should spawn a destroyAction or
 		// FIXME: directly fetch the actions and invoke killVM directly
-		List<String> vms = this.context.getListValue("vm");
+		List<String> vms = this.context.getListValue("cloudVM");
 		log.info("KillVM killing "+vms.size()+" "+vms);
 		for(String vm : vms) {
 			processLifecycle().dump(URI.create(vm));
@@ -289,7 +289,6 @@ public class CreateVMAction extends Action {
 		for(int i=0; i < refs.length; i++) {
 			Context childContext = new Context();
 			childContext.putAll(this.context);
-			childContext.remove("name");
 			childContext.putValue("name", name);
 			if(forceAgentRestart) {
 				childContext.putValue("forceAgentRestart", true);
@@ -311,9 +310,9 @@ public class CreateVMAction extends Action {
 		}
 		// processLifecycle().setDependentOn(this.getProcess(), Arrays.asList(processes));
 		if(processes.length == 1) {
-			this.context.putValue("vm", processes[0]);
+			this.context.putValue("cloudVM", processes[0]);
 		} else {
-			this.context.putValue("vm", processes);
+			this.context.putValue("cloudVM", processes);
 		}
 
 		for(CloudProcess child : children) {

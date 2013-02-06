@@ -34,7 +34,7 @@ public abstract class AbstractManager<Item extends Entity> {
 	}
 	
 	/**
-	 * Located a item from the persistent store based on the item id.
+	 * Locate an item from the persistent store based on the item id.
 	 * @param id
 	 * @return the item
 	 * @throws NotFoundException is the object does not exist
@@ -42,6 +42,21 @@ public abstract class AbstractManager<Item extends Entity> {
 	protected Item get(Long id) throws NotFoundException {
 		return itemDao.get(id);
 	 }
+	
+	/**
+	 * Locate an item from the persistent store based on the item id and parent.
+	 * @param parent
+	 * @param id
+	 * @return the item
+	 * @throws NotFoundException is the object does not exist
+	 */
+	public Item get(Key<Item> parent, Long id) {
+		if(parent == null) {
+			return itemDao.get(id);
+		} else {
+			return itemDao.get(Key.create(parent, itemDao.clazz, id));
+		}
+	}
 	
 	/**
 	 * Locate a item from the persistent store based on the item URI.
@@ -89,15 +104,33 @@ public abstract class AbstractManager<Item extends Entity> {
 	}
 	
 	/**
-	 * Located a item from the persistent store based on the item id.
+	 * Locate an item from the persistent store based on the item id.
 	 * @param id
 	 * @param owner
 	 * @return the item
 	 * @throws NotFoundException is the object does not exist
 	 */
-	protected Item get(Long id, URI owner) throws NotFoundException {
+	private Item get(Long id, URI owner) throws NotFoundException {
 
 		Item item = itemDao.get(id);
+		if(item.isPublic() || owner.equals(item.getOwner()))
+			return item;
+		else
+			throw new NotFoundException();
+
+	 }
+	
+	/**
+	 * Locate an item from the persistent store based on the item id and parent.
+	 * @param parent
+	 * @param id
+	 * @param owner
+	 * @return the item
+	 * @throws NotFoundException is the object does not exist
+	 */
+	private Item get(Key<Item> parent, Long id, URI owner) throws NotFoundException {
+
+		Item item = this.get(parent, id);
 		if(item.isPublic() || owner.equals(item.getOwner()))
 			return item;
 		else
@@ -141,7 +174,7 @@ public abstract class AbstractManager<Item extends Entity> {
 	}
 	
 	/**
-	 * Located a item from the persistent store based on the item id.
+	 * Locate an item from the persistent store based on the item id.
 	 * @param id
 	 * @param owner
 	 * @return the item
@@ -149,6 +182,18 @@ public abstract class AbstractManager<Item extends Entity> {
 	 */
 	protected Item get(Long id, User owner) throws NotFoundException {
 		return owner.isAdmin()? get(id):get(id, owner.getUri());
+	 }
+	
+	/**
+	 * Locate an item from the persistent store based on the item id and parent.
+	 * @param parent
+	 * @param id
+	 * @param owner
+	 * @return the item
+	 * @throws NotFoundException is the object does not exist
+	 */
+	protected Item get(Key<Item> parent, Long id, User owner) throws NotFoundException {
+		return owner.isAdmin()? get(parent, id):get(parent, id, owner.getUri());
 	 }
 	
 	/**
@@ -182,7 +227,11 @@ public abstract class AbstractManager<Item extends Entity> {
 			if(item.getOwner()==null)
 				throw new IllegalArgumentException("attempt to persist a private object without owner");
 			Key<Item>key = itemDao.put(item);
-			item.setUri(URI.create(this.path+"/"+key.getId()));
+			if(key.getParent() == null) {
+				item.setUri(URI.create(this.path+"/"+key.getId()));
+			} else {
+				item.setUri(URI.create(this.path+"/"+key.getParent().getId()+"_"+key.getId()));
+			}
 			itemDao.put(item);
 			log.info("item "+item.getName()+" has id "+item.getUri());
 		} else 
@@ -195,11 +244,6 @@ public abstract class AbstractManager<Item extends Entity> {
 	protected void update(Item item)throws NotFoundException {
 		if(item != null) {
 			Key<Item>key = itemDao.put(item);
-			if(!URI.create(this.path+"/"+key.getId()).equals(item.getUri())) {
-				log.severe("Update on non-existent item "+item.toString());
-				this.delete(item);
-				throw new NotFoundException("Cannot update <"+item.getName()+"> at "+item.getUri()+" non-existent item");
-			}	
 		}
 	}
 	
@@ -318,4 +362,5 @@ public abstract class AbstractManager<Item extends Entity> {
 	public Void transact(com.googlecode.objectify.VoidWork codeBody) {
 		return com.googlecode.objectify.ObjectifyService.ofy().transact(codeBody);
 	}
+
 }

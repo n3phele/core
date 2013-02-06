@@ -94,7 +94,7 @@ public class CreateVMActionTest {
 		process = CloudProcessResource.dao.load(process.getUri());
 		assertEquals(ActionState.COMPLETE, process.getState());
 		CreateVMAction cvma = (CreateVMAction) ActionResource.dao.load(process.getAction());
-		URI vm = cvma.getContext().getURIValue("vm");
+		URI vm = cvma.getContext().getURIValue("cloudVM");
 		CloudProcess childVM = CloudProcessResource.dao.load(vm);
 		
 		assertEquals("name defaults to process name", "one.CreateVM", cvma.getContext().getValue("name"));
@@ -146,7 +146,7 @@ public class CreateVMActionTest {
 		process = CloudProcessResource.dao.load(process.getUri());
 		assertEquals(ActionState.COMPLETE, process.getState());
 		CreateVMAction cvma = (CreateVMAction) ActionResource.dao.load(process.getAction());
-		URI vm = cvma.getContext().getURIValue("vm");
+		URI vm = cvma.getContext().getURIValue("cloudVM");
 		CloudProcess childVM = CloudProcessResource.dao.load(vm);
 
 		assertEquals("createVM context has child vm", childVM.getUri(), vm);
@@ -202,7 +202,7 @@ public class CreateVMActionTest {
 		assertEquals(ActionState.COMPLETE, process.getState());
 		CreateVMAction cvma = (CreateVMAction) ActionResource.dao.load(process.getAction());
 		@SuppressWarnings("unchecked")
-		List<String> vm = (List<String>)cvma.getContext().getObjectValue("vm");
+		List<String> vm = (List<String>)cvma.getContext().getObjectValue("cloudVM");
 		CloudProcess childVM = CloudProcessResource.dao.load(URI.create(vm.get(0)));
 		CloudProcess vm2 = CloudProcessResource.dao.load(URI.create(vm.get(1)));
 		
@@ -285,7 +285,7 @@ public class CreateVMActionTest {
 		assertEquals(ActionState.COMPLETE, process.getState());
 		CreateVMAction cvma = (CreateVMAction) ActionResource.dao.load(process.getAction());
 		@SuppressWarnings("unchecked")
-		List<String> vm = (List<String>)cvma.getContext().getObjectValue("vm");
+		List<String> vm = (List<String>)cvma.getContext().getObjectValue("cloudVM");
 		CloudProcess childVM = CloudProcessResource.dao.load(URI.create(vm.get(0)));
 		CloudProcess vm2 = CloudProcessResource.dao.load(URI.create(vm.get(1)));
 		
@@ -454,8 +454,8 @@ public class CreateVMActionTest {
 		VMActionWrapper.processState = null;
 		CloudProcess createVMProcess = CloudProcessResource.dao.load(action.getChildProcess());
 		CreateVMAction createVMAction = (CreateVMAction) ActionResource.dao.load(createVMProcess.getAction());
-		URI vmURI = URI.create(createVMAction.getContext().getListValue("vm").get(0));
-		URI vmURI2 = URI.create(createVMAction.getContext().getListValue("vm").get(1));
+		URI vmURI = URI.create(createVMAction.getContext().getListValue("cloudVM").get(0));
+		URI vmURI2 = URI.create(createVMAction.getContext().getListValue("cloudVM").get(1));
 		CloudProcess vmProcess = CloudProcessResource.dao.load(vmURI);
 		VMAction vm1 = (VMAction) ActionResource.dao.load(vmProcess.getAction());
 		URI childFactoryURI = vm1.getContext().getURIValue("vmFactory");
@@ -506,8 +506,8 @@ public class CreateVMActionTest {
 		VMActionWrapper.processState = null;
 		CloudProcess createVMProcess = CloudProcessResource.dao.load(action.getChildProcess());
 		CreateVMAction createVMAction = (CreateVMAction) ActionResource.dao.load(createVMProcess.getAction());
-		URI vmURI = URI.create(createVMAction.getContext().getListValue("vm").get(0));
-		URI vmURI2 = URI.create(createVMAction.getContext().getListValue("vm").get(1));
+		URI vmURI = URI.create(createVMAction.getContext().getListValue("cloudVM").get(0));
+		URI vmURI2 = URI.create(createVMAction.getContext().getListValue("cloudVM").get(1));
 		CloudProcess vmProcess = CloudProcessResource.dao.load(vmURI);
 		VMAction vm1 = (VMAction) ActionResource.dao.load(vmProcess.getAction());
 		URI childFactoryURI = vm1.getContext().getURIValue("vmFactory");
@@ -609,17 +609,25 @@ public class CreateVMActionTest {
 		public ProcessLifecycleWrapper() {}
 		
 		public CloudProcess spawn(URI owner, String name, n3phele.service.model.Context context, 
-			     List<URI> dependency, URI parent, String className) throws IllegalArgumentException, NotFoundException, ClassNotFoundException {
+			     List<URI> dependency, URI parentURI, String className) throws IllegalArgumentException, NotFoundException, ClassNotFoundException {
 
 			String canonicalClassName = "n3phele.service.actions.CreateVMActionTest$"+className+"ActionWrapper";
 			Class<? extends Action> clazz = Class.forName(canonicalClassName).asSubclass(Action.class);;
 
 			ObjectifyService.register(clazz);
 			User user;
+			CloudProcess parent=null;
 			try {
 				user = UserResource.dao.load(owner);
 			} catch (NotFoundException e) {
 
+				throw e;
+			}
+			
+			try {
+				if(parentURI != null)
+					parent = CloudProcessResource.dao.load(parentURI);
+			} catch (NotFoundException e) {
 				throw e;
 			}
 			
