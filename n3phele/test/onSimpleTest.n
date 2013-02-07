@@ -1,0 +1,23 @@
+# onSimpleTest.n
+# Copyright (c) 2013 Nigel Cook. All Rights reserved
+# xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+name	   :  onSimpleTest
+description: a simple on command
+version	   : 1.0
+preferred  : true
+public	   : true
+icon	   : http://www.n3phele.com/icons/custom
+parameters :						  
+	string account		# cloud account to use
+input files:
+	input1.txt 					# Input file 1
+    optional
+    input2.txt					# Input file 2
+    input2.txt					# Input file 3
+output files:
+	output1.log					# output file 1
+	output2.log					# output file 2
+    output3.log					# output file 3
+EC2: # Amazon EC2
+	$$my_vm = CREATEVM --name myVM --n 1 --account $$account
+	ON $$my_vm --producesAll echo hello

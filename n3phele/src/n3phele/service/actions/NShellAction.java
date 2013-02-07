@@ -373,9 +373,9 @@ public class NShellAction extends Action {
 		for(FileTracker newEntry : newEntries) {
 			fileCopyContext.putValue("name", newEntry.getRepo().toString());
 			fileCopyContext.putValue("source", newEntry.getRepo());
-			fileCopyContext.putValue("destination", newEntry.getLocalName());
+			fileCopyContext.putValue("destination", URI.create("file:///"+newEntry.getLocalName()));
 			fileCopyContext.putValue("fileTableId", newEntry.getName());
-			CloudProcess fileCopy = forkChildProcess("FileCopy", fileCopyContext, null, null);
+			CloudProcess fileCopy = forkChildProcess("FileTransfer", fileCopyContext, null, null);
 			newEntry.setProcess(fileCopy.getUri());
 			inputXferProcess.put(newEntry.getName(), fileCopy);
 		}
@@ -446,9 +446,9 @@ public class NShellAction extends Action {
 			for(FileTracker outputXfer : needTransfers) {
 				fileCopyContext.putValue("name", outputXfer.getRepo().toString());
 				fileCopyContext.putValue("destination", outputXfer.getRepo());
-				fileCopyContext.putValue("source", outputXfer.getLocalName());
+				fileCopyContext.putValue("source", URI.create("file:///"+outputXfer.getLocalName()));
 				fileCopyContext.putValue("fileTableId", outputXfer.getName());
-				CloudProcess fileCopy = forkChildProcess("FileCopy", fileCopyContext, null, Arrays.asList(outputXfer.getProcess()));
+				CloudProcess fileCopy = forkChildProcess("FileTransfer", fileCopyContext, null, Arrays.asList(outputXfer.getProcess()));
 				processLifecycle().init(fileCopy);
 			}
 		}
@@ -529,7 +529,6 @@ public class NShellAction extends Action {
 					} else {
 						inputs.put(i.getName(), i.getName());
 						FileTracker inputFile = new FileTracker();
-						inputFile.setOutput(false);
 						inputFile.setName(i.getName());
 						inputFile.setLocalName(i.getName());
 						inputFile.setRepo(source);
@@ -560,7 +559,6 @@ public class NShellAction extends Action {
 						missing = missing+" "+i.getKey();
 				} else {
 					FileTracker inputFile = new FileTracker();
-					inputFile.setOutput(false);
 					inputFile.setName(i.getKey());
 					inputFile.setLocalName(i.getValue());
 					inputFile.setRepo(source);
@@ -590,7 +588,6 @@ public class NShellAction extends Action {
 					URI destination = context.getFileValue(i.getName());
 					outputs.put(i.getName(), i.getName());
 					FileTracker outputFile = new FileTracker();
-					outputFile.setOutput(true);
 					outputFile.setName(i.getName());
 					outputFile.setLocalName(i.getName());
 					outputFile.setRepo(destination);
@@ -609,7 +606,6 @@ public class NShellAction extends Action {
 			for(Entry<String, String> i : outputs.entrySet()) {
 				URI destination = context.getFileValue(i.getKey());
 				FileTracker outputFile = new FileTracker();
-				outputFile.setOutput(true);
 				outputFile.setName(i.getKey());
 				outputFile.setLocalName(i.getValue());
 				outputFile.setRepo(destination);
