@@ -13,12 +13,17 @@ package n3phele.service.model;
  */
 
 import n3phele.service.actions.CountDownAction;
+import n3phele.service.actions.CreateVMAction;
+import n3phele.service.actions.FileTransferAction;
 import n3phele.service.actions.JobAction;
 import n3phele.service.actions.LogAction;
 import n3phele.service.actions.NShellAction;
+import n3phele.service.actions.OnAction;
 import n3phele.service.actions.ServiceAction;
+import n3phele.service.actions.VMAction;
 import n3phele.service.model.core.GenericModelDao;
 import n3phele.service.model.core.User;
+import n3phele.service.model.repository.Repository;
 
 import com.googlecode.objectify.ObjectifyService;
 
@@ -31,6 +36,8 @@ public class ServiceModelDao<T> extends GenericModelDao<T> {
 		ObjectifyService.register(Account.class);
 		ObjectifyService.register(User.class);
 		ObjectifyService.register(Narrative.class);
+		ObjectifyService.register(Origin.class);
+		ObjectifyService.register(Repository.class);
 		
 		ObjectifyService.register(Action.class);
 		ObjectifyService.register(LogAction.class);
@@ -38,6 +45,10 @@ public class ServiceModelDao<T> extends GenericModelDao<T> {
 		ObjectifyService.register(JobAction.class);
 		ObjectifyService.register(ServiceAction.class);
 		ObjectifyService.register(NShellAction.class);
+		ObjectifyService.register(CreateVMAction.class);
+		ObjectifyService.register(VMAction.class);
+		ObjectifyService.register(OnAction.class);
+		ObjectifyService.register(FileTransferAction.class);
 
 	}
 	public ServiceModelDao(Class<T> clazz) {

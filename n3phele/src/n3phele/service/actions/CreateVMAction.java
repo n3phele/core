@@ -62,7 +62,6 @@ import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
  * <br> 
  * <br> populates its context with the following:
  * <br> cloudVM a list length <i>n</> of virtual machine actions.
- * In the case of a single vm (n == 1), this is a scalar not a list
  * 
  * @author Nigel Cook
  *
@@ -183,7 +182,8 @@ public class CreateVMAction extends Action {
 		List<String> vms = this.context.getListValue("cloudVM");
 		log.info("KillVM killing "+vms.size()+" "+vms);
 		for(String vm : vms) {
-			processLifecycle().dump(URI.create(vm));
+			Action action = ActionResource.dao.load(URI.create(vm));
+			processLifecycle().dump(action.getProcess());
 		}
 		
 	}
@@ -277,7 +277,6 @@ public class CreateVMAction extends Action {
 	
 	private void createVMProcesses(URI[] refs, boolean forceAgentRestart, Credential factoryCredential, Credential agentCredential) throws NotFoundException, IllegalArgumentException, ClassNotFoundException {
 		
-		URI[] processes = new URI[refs.length];
 		CloudProcess[] children = new CloudProcess[refs.length];
 		URI[] siblingActions = new URI[refs.length];
 		String name = this.context.getValue("name");
@@ -304,20 +303,17 @@ public class CreateVMAction extends Action {
 				childContext.putValue("name", name+"_"+i );
 			children[i] = processLifecycle().spawn(this.getOwner(), childContext.getValue("name"), 
 					childContext, null, this.getProcess(), "VM");
-			processes[i] = children[i].getUri();
+			URI siblingProcess = children[i].getUri();
 			siblingActions[i] = children[i].getAction();
-			this.inProgress.add(processes[i].toString());
+			this.inProgress.add(siblingProcess.toString());
 		}
-		// processLifecycle().setDependentOn(this.getProcess(), Arrays.asList(processes));
-		if(processes.length == 1) {
-			this.context.putValue("cloudVM", processes[0]);
-		} else {
-			this.context.putValue("cloudVM", processes);
-		}
+
+		this.context.putValue("cloudVM", siblingActions);
+
 
 		for(CloudProcess child : children) {
 			VMAction action = (VMAction) ActionResource.dao.load(child.getAction());
-			action.getContext().putValue("siblings", siblingActions);
+			action.getContext().putValue("cloudVM", siblingActions);
 			ActionResource.dao.update(action);
 			processLifecycle().init(child);
 		}

@@ -32,6 +32,7 @@ import com.googlecode.objectify.annotation.Unindex;
 @XmlType(name="Repository", propOrder={ "description", "target", "root", "kind"})
 @Unindex
 @Cache
+@com.googlecode.objectify.annotation.Entity
 public class Repository extends Entity {
 	@Id private Long id;
 	private Text description;

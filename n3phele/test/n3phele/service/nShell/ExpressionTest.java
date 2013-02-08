@@ -1,4 +1,4 @@
-package n3phele.service.n;
+package n3phele.service.nShell;
 
 import java.net.URI;
 import java.util.ArrayList;

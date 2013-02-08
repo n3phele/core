@@ -103,7 +103,7 @@ public class Context extends HashMap<String, Variable> {
 		Variable v = new Variable();
 		v.setName(name);
 		boolean created = this.containsKey(name);
-		v.setType(VariableType.List);
+		v.setType(VariableType.ActionList);
 		v.setValue(value);
 		this.put(name, v);
 		return created;
@@ -224,7 +224,9 @@ public class Context extends HashMap<String, Variable> {
 			putValue(name, (List<String>)arg);
 		} else if (arg instanceof Map) {
 			putValue(name, (Map<String,String>)arg);
-		}else {
+		} else if (arg instanceof URI[]) {
+			putValue(name, (URI[])arg);
+		} else {
 			putValue(name, arg.toString());
 		}
 	}
@@ -241,13 +243,24 @@ public class Context extends HashMap<String, Variable> {
 		Variable v = get(name);
 		return (Arrays.asList(v.getValue()));
 	}
+	
+	public List<URI> getURIList(String name) {
+		Variable v = get(name);
+		URI[] result = new URI[v.getValue().length];
+		for(int i=0; i < result.length; i++) {
+			result[i] = URI.create(v.getValue()[i]);
+		}
+		return (Arrays.asList(result));
+	}
 
 	public URI getURIValue(String name) {
 		Variable v = this.get(name);
 		if(v != null && !v.value().isEmpty()) {
 			if(v.getType() == VariableType.Object || v.getType() == VariableType.File || v.getType() == VariableType.Action) {
 				return URI.create(v.value());
-			} 
+			} if(v.getType() == VariableType.ActionList) {
+				return URI.create(v.getValue()[0]);
+			}
 		}
 		return null;
 	}

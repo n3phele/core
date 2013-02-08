@@ -40,8 +40,8 @@ import n3phele.service.core.ForbiddenException;
 import n3phele.service.core.NotFoundException;
 import n3phele.service.core.Resource;
 import n3phele.service.core.UnprocessableEntityException;
-import n3phele.service.model.FileSpecification;
 import n3phele.service.model.Origin;
+import n3phele.service.model.FileSpecification;
 import n3phele.service.model.RepoListResponse;
 import n3phele.service.model.RepositoryCollection;
 import n3phele.service.model.ServiceModelDao;
@@ -251,7 +251,7 @@ public class RepositoryResource {
 		Repository item = dao.load(id, UserResource.toUser(securityContext));
 		UriBuilder ref = UriBuilder.fromUri(item.getTarget());
 		ref.path(item.getRoot()).path(path).path(name);
-		origin = null; // FIXME dao.activity().getCurrentReference(ref.build().toString());
+		origin = Origin.getCurrentReference(ref.build().toString());
 
 		return Response.ok(origin).build();
 	}

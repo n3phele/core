@@ -13,8 +13,10 @@ package n3phele.service.model;
  */
 
 import java.net.URI;
+import java.util.ArrayList;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 import n3phele.service.lifecycle.ProcessLifecycle.WaitForSignalRequest;
@@ -22,8 +24,11 @@ import n3phele.service.model.core.Entity;
 import n3phele.service.model.core.Helpers;
 
 import com.googlecode.objectify.annotation.Cache;
-import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Ignore;
+import com.googlecode.objectify.annotation.OnLoad;
+import com.googlecode.objectify.annotation.OnSave;
+import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.annotation.Unindex;
 
 @XmlRootElement(name = "Action")
@@ -35,7 +40,20 @@ public abstract class Action extends Entity {
 
 	@Id private Long id;
 	private String process;
-	@Embed protected Context context = new Context();
+	@XmlTransient
+	@Serialize
+	private ArrayList<Variable> contextList = new ArrayList<Variable>();
+	@Ignore
+	protected Context context = new Context();
+	@OnLoad void makeMap() {  
+		for(Variable v : this.contextList) { 
+			if(v != null)
+				this.context.put(v.getName(), v); 
+		} 
+	}
+	@OnSave void saveMap() { 
+		this.contextList.clear(); if(this.context.size() != 0) this.contextList.addAll(context.values()); 
+	}
 	
 	protected Action() {}
 	
@@ -155,7 +173,7 @@ public abstract class Action extends Entity {
 	 * @return the action context
 	 */
 	public Context getContext() {
-		return context == null? new Context() : context;
+		return context == null? (context = new Context()) : context;
 	}
 
 	/**

@@ -27,6 +27,7 @@ import n3phele.service.model.Context;
 import n3phele.service.model.SignalKind;
 import n3phele.service.model.core.CommandRequest;
 import n3phele.service.model.core.Credential;
+import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.Task;
 import n3phele.service.model.core.User;
 import n3phele.service.rest.impl.ActionResource;
@@ -97,30 +98,21 @@ public class OnAction extends Action {
 		client.addFilter(new HTTPBasicAuthFilter(plain.getAccount(), plain.getSecret()));
 		client.setReadTimeout(30000);
 		client.setConnectTimeout(5000);
-		WebResource resource;
 		try {
-
 				epoch = Calendar.getInstance().getTimeInMillis();
-				resource = client.resource(targetVM.getContext().getValue("agentURI"));
 				CommandRequest form = new CommandRequest();
 				form.setCmd(this.context.getValue("command"));
 				form.setStdin(this.context.getValue("stdin"));
 				form.setNotification(UriBuilder.fromUri(this.getProcess()).scheme("http").path("event").build());
 
 				try {
-					ClientResponse response = resource.type(MediaType.APPLICATION_JSON_TYPE).post(ClientResponse.class, form);
 	
-					URI location = response.getLocation();
+					URI location = sendRequest(client, targetVM.getContext().getURIValue("agentURI"), form);
 					if(location != null) {
-						log.fine(this.name+" command execution started. Factory "+location.toString()+" initiating status "+response.getStatus());
-						logger.info("command execution started.");
 						this.instance = location.toString();
-	
-					} else {
-						log.log(Level.SEVERE, this.name+" command execution initiation FAILED with status "+response.getStatus());
-						logger.error("command execution initiation FAILED with status "+response.getStatus());
-						throw new UnprocessableEntityException("command execution initiation FAILED with status "+response.getStatus());
 					}	
+				} catch (UnprocessableEntityException e) {
+					throw e;
 				} catch (Exception e) {
 					log.log(Level.SEVERE, "Command exception", e);
 					long now = Calendar.getInstance().getTimeInMillis();
@@ -146,14 +138,10 @@ public class OnAction extends Action {
 		client.addFilter(new HTTPBasicAuthFilter(plain.getAccount(), plain.getSecret()));
 		client.setReadTimeout(30000);
 		client.setConnectTimeout(5000);
-		WebResource resource;
 		try {
-
-	
-				resource = client.resource(this.instance);
 				Task t;
 				try {
-					t = resource.get(Task.class);
+					t = getTask(client, this.instance);
 					clientUnresponsive = null;
 				} catch (ClientHandlerException e) {
 					if(clientUnresponsive == null) {
@@ -191,7 +179,7 @@ public class OnAction extends Action {
 					}
 					return false;
 				}
-
+	
 				this.getContext().putValue("stdout", t.getStdout());
 				this.getContext().putValue("stderr", t.getStderr());
 				if(t.getFinished() != null) {
@@ -211,11 +199,11 @@ public class OnAction extends Action {
 							logger.info("Stdout:"+t.getStdout());
 						if(t.getStderr() != null && t.getStderr().length() > 0)
 							logger.warning("Stderr:"+t.getStderr());
-						logger.error("Command execution "+resource.getURI()+" failed with exit status "+t.getExitcode());
-						log.severe(name+" command execution "+resource.getURI()+" failed with exit status "+t.getExitcode());
+						logger.error("Command execution "+this.instance+" failed with exit status "+t.getExitcode());
+						log.severe(name+" command execution "+this.instance+" failed with exit status "+t.getExitcode());
 						log.severe("Stdout: "+t.getStdout());
 						log.severe("Stderr: "+t.getStderr());
-						throw new UnprocessableEntityException("Command execution "+resource.getURI()+" failed with exit status "+t.getExitcode());
+						throw new UnprocessableEntityException("Command execution "+this.instance+" failed with exit status "+t.getExitcode());
 					}
 				} else {
 					return false;
@@ -243,6 +231,64 @@ public class OnAction extends Action {
 	public void signal(SignalKind kind, String assertion) {
 		log.warning("Signal "+assertion);
 	}
+	
+	
+
+	/**
+	 * @return the target
+	 */
+	public URI getTarget() {
+		return Helpers.stringToURI(target);
+	}
+
+	/**
+	 * @param target the target to set
+	 */
+	public void setTarget(URI target) {
+		this.target = Helpers.URItoString(target);
+	}
+
+	/**
+	 * @return the instance
+	 */
+	public URI getInstance() {
+		return Helpers.stringToURI(instance);
+	}
+
+	/**
+	 * @param instance the instance to set
+	 */
+	public void setInstance(URI instance) {
+		this.instance = Helpers.URItoString(instance);
+	}
+
+	/**
+	 * @return the epoch
+	 */
+	public Long getEpoch() {
+		return epoch;
+	}
+
+	/**
+	 * @param epoch the epoch to set
+	 */
+	public void setEpoch(Long epoch) {
+		this.epoch = epoch;
+	}
+
+	/**
+	 * @return the clientUnresponsive
+	 */
+	public Long getClientUnresponsive() {
+		return clientUnresponsive;
+	}
+
+	/**
+	 * @param clientUnresponsive the clientUnresponsive to set
+	 */
+	public void setClientUnresponsive(Long clientUnresponsive) {
+		this.clientUnresponsive = clientUnresponsive;
+	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
@@ -254,6 +300,8 @@ public class OnAction extends Action {
 						logger, target, instance, epoch, clientUnresponsive,
 						super.toString());
 	}
+	
+	
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
@@ -322,6 +370,34 @@ public class OnAction extends Action {
 		return true;
 	}
 
+	/*
+	 * Unit testing
+	 * ============
+	 */
+	protected Task getTask(Client client, String target) {
+		WebResource resource = client.resource(target);
+		return resource.get(Task.class);
+	}
 	
+	protected URI sendRequest(Client client, URI target, CommandRequest form) {
+		WebResource resource;
+		resource = client.resource(target);
+		ClientResponse response = resource.type(MediaType.APPLICATION_JSON_TYPE).post(ClientResponse.class, form);
+		URI location = response.getLocation();
+		if(location != null) {
+			log.fine(this.name+" command execution started. Factory "+location.toString()+" initiating status "+response.getStatus());
+			logger.info("command execution started.");
+
+		} else {
+			log.log(Level.SEVERE, this.name+" command execution initiation FAILED with status "+response.getStatus());
+			logger.error("command execution initiation FAILED with status "+response.getStatus());
+			throw new UnprocessableEntityException("command execution initiation FAILED with status "+response.getStatus());
+		}	
+		
+
+		return location;
+		
+	}
+
 	
 }

@@ -7,9 +7,13 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.ws.rs.core.UriBuilder;
 
 import junit.framework.Assert;
 import n3phele.service.actions.CreateVMAction.CreateVirtualServerResult;
@@ -24,11 +28,14 @@ import n3phele.service.model.CommandDefinition;
 import n3phele.service.model.Context;
 import n3phele.service.model.Narrative;
 import n3phele.service.model.NarrativeLevel;
+import n3phele.service.model.core.CommandRequest;
 import n3phele.service.model.core.Credential;
 import n3phele.service.model.core.ExecutionFactoryCreateRequest;
 import n3phele.service.model.core.NameValue;
+import n3phele.service.model.core.Task;
 import n3phele.service.model.core.User;
 import n3phele.service.model.core.VirtualServer;
+import n3phele.service.model.repository.Repository;
 import n3phele.service.nShell.NParser;
 import n3phele.service.nShell.ParseException;
 import n3phele.service.rest.impl.AccountResource;
@@ -36,6 +43,7 @@ import n3phele.service.rest.impl.ActionResource;
 import n3phele.service.rest.impl.CloudProcessResource;
 import n3phele.service.rest.impl.CloudResource;
 import n3phele.service.rest.impl.NarrativeResource;
+import n3phele.service.rest.impl.RepositoryResource;
 import n3phele.service.rest.impl.UserResource;
 
 import org.junit.After;
@@ -281,7 +289,8 @@ public class NShellActionTest {
 		CloudProcess createVMProcess = CloudProcessResource.dao.load(vmAction.getProcess());
 		vmAction = ActionResource.dao.load(vmURI);
 		URI vm  = vmAction.getContext().getURIValue("cloudVM");
-		CloudProcess vmProcess = CloudProcessResource.dao.load(vm);
+		Action action = ActionResource.dao.load(vm);
+		CloudProcess vmProcess = CloudProcessResource.dao.load(action.getProcess());
 		
 		Assert.assertEquals(ActionState.COMPLETE, shellProcess.getState());
 		Assert.assertEquals(ActionState.COMPLETE, createVMProcess.getState());
@@ -346,10 +355,12 @@ public class NShellActionTest {
 		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
 		CloudProcess createVMProcess = CloudProcessResource.dao.load(vmAction.getProcess());
 		vmAction = ActionResource.dao.load(vmURI);
-		List<String> vm  = vmAction.getContext().getListValue("cloudVM");
+		List<URI> vm  = vmAction.getContext().getURIList("cloudVM");
 		Assert.assertEquals(2, vm.size());
-		CloudProcess vmProcess = CloudProcessResource.dao.load(URI.create(vm.get(0)));
-		CloudProcess vmProcess2 = CloudProcessResource.dao.load(URI.create(vm.get(1)));
+		Action action1 = ActionResource.dao.load(vm.get(0));
+		Action action2 = ActionResource.dao.load(vm.get(1));
+		CloudProcess vmProcess = CloudProcessResource.dao.load(action1.getProcess());
+		CloudProcess vmProcess2 = CloudProcessResource.dao.load(action2.getProcess());
 		
 		Assert.assertEquals(ActionState.COMPLETE, shellProcess.getState());
 		Assert.assertEquals(ActionState.COMPLETE, createVMProcess.getState());
@@ -357,7 +368,7 @@ public class NShellActionTest {
 		Assert.assertEquals(ActionState.CANCELLED, vmProcess2.getState());
 	}
 	
-	/** Invokes a simple command that creates a single vm and then explicitly deletes it
+	/** Invokes a simple command that creates a single vm and then implicitly deletes it
 	 * @throws InterruptedException
 	 * @throws ClassNotFoundException
 	 * @throws FileNotFoundException
@@ -415,14 +426,15 @@ public class NShellActionTest {
 		CloudProcess createVMProcess = CloudProcessResource.dao.load(vmAction.getProcess());
 		vmAction = ActionResource.dao.load(vmURI);
 		URI vm  = vmAction.getContext().getURIValue("cloudVM");
-		CloudProcess vmProcess = CloudProcessResource.dao.load(vm);
+		Action action = ActionResource.dao.load(vm);
+		CloudProcess vmProcess = CloudProcessResource.dao.load(action.getProcess());
 		
 		Assert.assertEquals(ActionState.COMPLETE, shellProcess.getState());
 		Assert.assertEquals(ActionState.COMPLETE, createVMProcess.getState());
 		Assert.assertEquals(ActionState.CANCELLED, vmProcess.getState());
 	}
 	
-	/** Invokes a simple command that creates a two vm and then explicitly deletes them
+	/** Invokes a simple command that creates a two vm and then implicitly deletes them
 	 * @throws InterruptedException
 	 * @throws ClassNotFoundException
 	 * @throws FileNotFoundException
@@ -480,10 +492,12 @@ public class NShellActionTest {
 		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
 		CloudProcess createVMProcess = CloudProcessResource.dao.load(vmAction.getProcess());
 		vmAction = ActionResource.dao.load(vmURI);
-		List<String> vm  = vmAction.getContext().getListValue("cloudVM");
+		List<URI> vm  = vmAction.getContext().getURIList("cloudVM");
 		Assert.assertEquals(2, vm.size());
-		CloudProcess vmProcess = CloudProcessResource.dao.load(URI.create(vm.get(0)));
-		CloudProcess vmProcess2 = CloudProcessResource.dao.load(URI.create(vm.get(1)));
+		Action action1 = ActionResource.dao.load(vm.get(0));
+		Action action2 = ActionResource.dao.load(vm.get(1));
+		CloudProcess vmProcess = CloudProcessResource.dao.load(action1.getProcess());
+		CloudProcess vmProcess2 = CloudProcessResource.dao.load(action2.getProcess());
 		
 		Assert.assertEquals(ActionState.COMPLETE, shellProcess.getState());
 		Assert.assertEquals(ActionState.COMPLETE, createVMProcess.getState());
@@ -491,6 +505,180 @@ public class NShellActionTest {
 		Assert.assertEquals(ActionState.CANCELLED, vmProcess2.getState());
 	}
 	
+	
+	/** Invokes an on command that has no file dependencies
+	 * @throws InterruptedException
+	 * @throws ClassNotFoundException
+	 * @throws FileNotFoundException
+	 * @throws ParseException
+	 */
+	@Test
+	public void onCommandNoFilesTest() throws InterruptedException, ClassNotFoundException, FileNotFoundException, ParseException {
+		User root = getRoot();
+		ObjectifyService.register(NShellActionTestHarness.class);
+		ObjectifyService.register(OnActionWrapper.class);
+		assertNotNull(root);
+		 URI cloud = createTestCloud();
+		 URI account = createTestAccount(cloud);
+		 CreateVMActionWrapper.initalState = "Pending";
+		 VMActionWrapper.processState = "Running";
+		 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234");
+		
+		NParser n = new NParser(new FileInputStream("./test/onCommandNoFilesTest.n"));
+		CommandDefinition cd = n.parse();
+		cd.setUri(URI.create("http://n3phele.com/test"));
+		Assert.assertEquals("onCommandNoFiles", cd.getName());
+		Assert.assertEquals("run a command that has no files", cd.getDescription());
+		Assert.assertTrue(cd.isPublic());
+		Assert.assertTrue(cd.isPreferred());
+		Assert.assertEquals("1.1", cd.getVersion());
+		Assert.assertEquals(URI.create("http://www.n3phele.com/icons/custom"), cd.getIcon());
+		testCommandDefinition = cd;
+		
+		/*
+		 * Setup agents replies
+		 */
+		OnActionWrapper.commandRequestReply = URI.create("http://123.123.123.1/task/15");
+		
+		Context context = new Context();
+		
+		context.putValue("arg", "http://n3phele.com/test#EC2");
+		context.putValue("account", account);
+		
+		CloudProcess shellProcess = ProcessLifecycleWrapper.mgr().createProcess(root, "shell", context, null, null, NShellActionTestHarness.class);
+		ProcessLifecycleWrapper.mgr().init(shellProcess);
+		Thread.sleep(2000);
+		CloudProcessResource.dao.clear();
+		
+
+		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
+		NShellAction shell = (NShellAction) ActionResource.dao.load(shellProcess.getAction());
+		URI vmURI = (URI) shell.getContext().getObjectValue("my_vm") ;
+		Action vmAction = ActionResource.dao.load(vmURI);
+		Assert.assertEquals("my_vm", vmAction.getContext().getValue("name"));
+		
+		CloudProcessResource.dao.clear();
+		String refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
+		Assert.assertEquals("{\"RUNABLE\": 1, \"RUNABLE_Wait\": 2}", refresh);
+		
+		OnAction on_0 = (OnAction) ActionResource.dao.load(shell.getContext().getURIValue("On_0"));
+		Assert.assertEquals("echo hello world!\n", on_0.getContext().getValue("command"));
+		Assert.assertEquals(OnActionWrapper.commandRequestReply, on_0.getInstance());
+		Assert.assertEquals("echo hello world!\n", OnActionWrapper.request.getCmd());
+		Assert.assertEquals(UriBuilder.fromUri(on_0.getProcess()).scheme("http").path("event").build(), OnActionWrapper.request.getNotification());
+		Assert.assertEquals(null, OnActionWrapper.request.getStdin());
+		
+		
+		Thread.sleep(1000);
+		CloudProcessResource.dao.clear();
+		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
+		Assert.assertEquals("{}", refresh);
+		
+		
+		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
+		shell = (NShellAction) ActionResource.dao.load(shellProcess.getAction());
+		CloudProcess createVMProcess = CloudProcessResource.dao.load(vmAction.getProcess());
+		vmAction = ActionResource.dao.load(vmURI);
+		URI vm  = vmAction.getContext().getURIValue("cloudVM");
+		Action action = ActionResource.dao.load(vm);
+		CloudProcess vmProcess = CloudProcessResource.dao.load(action.getProcess());
+		CloudProcess onProcess = CloudProcessResource.dao.load(on_0.getProcess());
+		
+		Assert.assertEquals(ActionState.COMPLETE, shellProcess.getState());
+		Assert.assertEquals(ActionState.COMPLETE, createVMProcess.getState());
+		Assert.assertEquals(ActionState.CANCELLED, vmProcess.getState());
+		Assert.assertEquals(ActionState.COMPLETE, onProcess.getState());
+	}
+	
+	/** Invokes an on command that has a single input file
+	 * @throws InterruptedException
+	 * @throws ClassNotFoundException
+	 * @throws FileNotFoundException
+	 * @throws ParseException
+	 */
+	@Test
+	public void onCommandSingleInputFileTest() throws InterruptedException, ClassNotFoundException, FileNotFoundException, ParseException {
+		User root = getRoot();
+		ObjectifyService.register(NShellActionTestHarness.class);
+		ObjectifyService.register(OnActionWrapper.class);
+		assertNotNull(root);
+		 URI cloud = createTestCloud();
+		 URI account = createTestAccount(cloud);
+		 CreateVMActionWrapper.initalState = "Pending";
+		 VMActionWrapper.processState = "Running";
+		 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234");
+		
+		NParser n = new NParser(new FileInputStream("./test/onCommandSingleInputFileTest.n"));
+		CommandDefinition cd = n.parse();
+		cd.setUri(URI.create("http://n3phele.com/test"));
+		Assert.assertEquals("onCommandSingleInputFile", cd.getName());
+		Assert.assertEquals("run a command that has a single input file", cd.getDescription());
+		Assert.assertTrue(cd.isPublic());
+		Assert.assertTrue(cd.isPreferred());
+		Assert.assertEquals("1.1", cd.getVersion());
+		Assert.assertEquals(URI.create("http://www.n3phele.com/icons/custom"), cd.getIcon());
+		testCommandDefinition = cd;
+		
+		Repository testRepo = new Repository("myRepo", "test repo", new Credential("foo", "secret").encrypt(), URI.create("http://s3.amazon.com"), "testBucket", "S3", UserResource.Root.getUri(), false);
+		RepositoryResource.dao.add(testRepo);
+		/*
+		 * Setup agents replies
+		 */
+		OnActionWrapper.commandRequestReply = URI.create("http://123.123.123.1/task/15");
+		
+		Context context = new Context();
+		
+		context.putValue("arg", "http://n3phele.com/test#EC2");
+		context.putValue("account", account);
+		context.putValue("flowgram.sff.txt", URI.create("myRepo:///root/file.doc"));
+		
+		CloudProcess shellProcess = ProcessLifecycleWrapper.mgr().createProcess(root, "shell", context, null, null, NShellActionTestHarness.class);
+		ProcessLifecycleWrapper.mgr().init(shellProcess);
+		Thread.sleep(2000);
+		CloudProcessResource.dao.clear();
+		
+
+		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
+		NShellAction shell = (NShellAction) ActionResource.dao.load(shellProcess.getAction());
+		URI vmURI = (URI) shell.getContext().getObjectValue("my_vm") ;
+		Action vmAction = ActionResource.dao.load(vmURI);
+		Assert.assertEquals("my_vm", vmAction.getContext().getValue("name"));
+		
+		CloudProcessResource.dao.clear();
+		String refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
+		Assert.assertEquals("{\"RUNABLE\": 1, \"RUNABLE_Wait\": 2}", refresh);
+		
+		OnAction on_0 = (OnAction) ActionResource.dao.load(shell.getContext().getURIValue("On_0"));
+		Assert.assertEquals("echo hello world!\n", on_0.getContext().getValue("command"));
+		Assert.assertEquals(OnActionWrapper.commandRequestReply, on_0.getInstance());
+		Assert.assertEquals("echo hello world!\n", OnActionWrapper.request.getCmd());
+		Assert.assertEquals(UriBuilder.fromUri(on_0.getProcess()).scheme("http").path("event").build(), OnActionWrapper.request.getNotification());
+		Assert.assertEquals(null, OnActionWrapper.request.getStdin());
+		
+		
+		Thread.sleep(1000);
+		CloudProcessResource.dao.clear();
+		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
+		Assert.assertEquals("{}", refresh);
+		
+		
+		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
+		shell = (NShellAction) ActionResource.dao.load(shellProcess.getAction());
+		CloudProcess createVMProcess = CloudProcessResource.dao.load(vmAction.getProcess());
+		vmAction = ActionResource.dao.load(vmURI);
+		URI vm  = vmAction.getContext().getURIValue("cloudVM");
+		Action action = ActionResource.dao.load(vm);
+		CloudProcess vmProcess = CloudProcessResource.dao.load(action.getProcess());
+		CloudProcess onProcess = CloudProcessResource.dao.load(on_0.getProcess());
+		
+		Assert.assertEquals(ActionState.COMPLETE, shellProcess.getState());
+		Assert.assertEquals(ActionState.COMPLETE, createVMProcess.getState());
+		Assert.assertEquals(ActionState.CANCELLED, vmProcess.getState());
+		Assert.assertEquals(ActionState.COMPLETE, onProcess.getState());
+	}
+
+
+		
 
 	public static CommandDefinition testCommandDefinition;
 	@EntitySubclass
@@ -642,6 +830,104 @@ public class NShellActionTest {
 				return result;
 			}
 	 }
+	 
+	 @EntitySubclass
+	 public static class OnActionWrapper extends OnAction {
+		 static List<Task> reply;
+		 static CommandRequest request;
+		 static URI commandRequestReply;
+		 int i = 0;
+		 protected Task getTask(WebResource r) {
+			 if(i < reply.size())
+				 i++;
+			 return reply.get(i-1);
+		 }
+		 protected Task getTask(Client client, String target) {
+			 if(i < reply.size())
+				 i++;
+			 return reply.get(i-1);
+			}
+			
+			protected URI sendRequest(Client client, URI target, CommandRequest form) {
+				
+				request = form;
+				Task reply = new Task();
+				reply.setId("1");
+				reply.setUri(commandRequestReply);
+				reply.setStarted(new Date());
+				reply.setStdin(form.getStdin());
+				reply.setStdout("stdout");
+				reply.setStderr("stderr");
+				reply.setNotification(form.getNotification());
+				
+				Task reply1 = new Task();
+				reply1.setId("1");
+				reply1.setUri(commandRequestReply);
+				reply1.setStarted(reply.getStarted());
+				reply1.setStdin(form.getStdin());
+				reply1.setStdout("stdout");
+				reply1.setStderr("stderr");
+				reply1.setNotification(form.getNotification());
+				reply1.setFinished(new Date());
+				
+				this.reply = Arrays.asList(reply, reply1);
+				
+				
+				return commandRequestReply;
+
+				
+			}
+	 }
+	 
+	 
+	 @EntitySubclass
+	 public static class FileTransferActionWrapper extends FileTransferAction {
+		 static List<Task> reply;
+		 static CommandRequest request;
+		 static URI commandRequestReply;
+		 int i = 0;
+		 protected Task getTask(WebResource r) {
+			 if(i < reply.size())
+				 i++;
+			 return reply.get(i-1);
+		 }
+		 protected Task getTask(Client client, String target) {
+			 if(i < reply.size())
+				 i++;
+			 return reply.get(i-1);
+			}
+			
+			protected URI sendRequest(Client client, URI target, CommandRequest form) {
+				
+				request = form;
+				Task reply = new Task();
+				reply.setId("1");
+				reply.setUri(commandRequestReply);
+				reply.setStarted(new Date());
+				reply.setStdin(form.getStdin());
+				reply.setStdout("stdout");
+				reply.setStderr("stderr");
+				reply.setNotification(form.getNotification());
+				
+				Task reply1 = new Task();
+				reply1.setId("1");
+				reply1.setUri(commandRequestReply);
+				reply1.setStarted(reply.getStarted());
+				reply1.setStdin(form.getStdin());
+				reply1.setStdout("stdout");
+				reply1.setStderr("stderr");
+				reply1.setNotification(form.getNotification());
+				reply1.setFinished(new Date());
+				
+				this.reply = Arrays.asList(reply, reply1);
+				
+				
+				return commandRequestReply;
+
+				
+			}
+	 }
+	 
 	 
 	 private static class CreateVirtualServerTestResult extends CreateVirtualServerResult {
 			URI location;

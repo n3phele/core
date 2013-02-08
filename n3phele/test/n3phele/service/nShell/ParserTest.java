@@ -11,7 +11,7 @@
  *  an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the 
  *  specific language governing permissions and limitations under the License.
  */
-package n3phele.service.n;
+package n3phele.service.nShell;
 
 import static org.junit.Assert.*;
 
@@ -667,7 +667,7 @@ public class ParserTest {
 	
 	/** Expression exception handling, including report of line, column and offending text
 	 * @throws FileNotFoundException
-	 * @throws n3phele.service.n.ParseException
+	 * @throws n3phele.service.nShell.ParseException
 	 * @throws n3phele.service.nShell.ParseException 
 	 */
 	@Test

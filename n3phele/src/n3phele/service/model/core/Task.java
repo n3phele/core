@@ -22,7 +22,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
-import n3phele.service.model.FileOrigin;
+import n3phele.service.model.Origin;
 
 
 
@@ -37,14 +37,14 @@ public class Task {
 	private String stdin;
 	private StringBuilder stdout;
 	private StringBuilder stderr;
-	private FileOrigin[] manifest;
+	private Origin[] manifest;
 	private int exitcode;
 	private int progress= 0; // 0.. 1000
 	private Process process;
 	private URI notification;
 
 	
-	Task() {}
+	public Task() {}
 
 	public Task(String[] cmd, String stdin, URI notification) {
 		this(null, Calendar.getInstance().getTime(), null, cmd, stdin, new StringBuilder(), new StringBuilder(),
@@ -305,14 +305,14 @@ public class Task {
 	/**
 	 * @return the manifest
 	 */
-	public FileOrigin[] getManifest() {
+	public Origin[] getManifest() {
 		return this.manifest;
 	}
 
 	/**
 	 * @param manifest the manifest to set
 	 */
-	public void setManifest(FileOrigin[] manifest) {
+	public void setManifest(Origin[] manifest) {
 		this.manifest = manifest;
 	}
 

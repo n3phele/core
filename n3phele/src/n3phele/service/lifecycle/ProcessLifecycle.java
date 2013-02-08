@@ -559,6 +559,7 @@ public class ProcessLifecycle {
 
 			@Override
 			public void vrun() {
+				log.info("toWait");
 				CloudProcess targetProcess = CloudProcessResource.dao.load(processRoot, processId);
 				logExecutionTime(targetProcess);
 				targetProcess.setRunning(null);
@@ -566,7 +567,7 @@ public class ProcessLifecycle {
 					targetProcess.setWaitTimeout(timeout);
 					if(targetProcess.getState() == ActionState.RUNABLE && targetProcess.hasPending()) {
 						CloudProcessResource.dao.update(targetProcess);
-						log.warning("Re-queue process "+targetProcess.getId());
+						log.warning("Wait Re-queue process "+targetProcess.getId());
 						schedule(targetProcess);
 					} else {
 						CloudProcessResource.dao.update(targetProcess);
@@ -588,6 +589,7 @@ public class ProcessLifecycle {
 
 			@Override
 			public void vrun() {
+				log.info("endOfTimeSlice");
 				CloudProcess targetProcess = CloudProcessResource.dao.load(processRoot, processId);
 				logExecutionTime(targetProcess);
 				targetProcess.setRunning(null);

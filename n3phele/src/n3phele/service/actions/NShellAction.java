@@ -300,11 +300,20 @@ public class NShellAction extends Action {
 	 */
 	private Variable onCommand(ShellFragment onFragment, String specifiedName) throws IllegalArgumentException, UnexpectedTypeException, NotFoundException, ClassNotFoundException {
 		Context childContext = new Context();
+		childContext.putAll(this.context);
 
 		ShellFragment expression = this.executable.get(onFragment.children[0]);
 		ExpressionEngine ee = new ExpressionEngine(this.executable, this.context);
 		URI uri = URI.create(ee.expression(expression).toString());
-		VMAction target =  (VMAction) ActionResource.dao.load(uri);
+		Action action = ActionResource.dao.load(uri);
+		if(action instanceof CreateVMAction) {
+			CreateVMAction head = (CreateVMAction) action;
+			List<String> list = head.getContext().getListValue("cloudVM");
+			uri = URI.create(list.get(0));
+			action = ActionResource.dao.load(uri);
+		}
+
+		VMAction target =  (VMAction) action;
 		
 		ShellFragment pieces = this.executable.get(onFragment.children[onFragment.children.length-1]);
 		for(int i=1; i < onFragment.children.length-1; i++){
@@ -371,6 +380,7 @@ public class NShellAction extends Action {
 		Map<String, CloudProcess> inputXferProcess = new HashMap<String, CloudProcess>();
 		Context fileCopyContext = new Context();
 		for(FileTracker newEntry : newEntries) {
+			fileCopyContext.putValue("target", target.getUri());
 			fileCopyContext.putValue("name", newEntry.getRepo().toString());
 			fileCopyContext.putValue("source", newEntry.getRepo());
 			fileCopyContext.putValue("destination", URI.create("file:///"+newEntry.getLocalName()));
@@ -419,7 +429,7 @@ public class NShellAction extends Action {
 		boolean isAsync = childContext.getBooleanValue("async");
 		
 		
-		childContext.putValue("shellCommand", assemblePieces(pieces));
+		childContext.putValue("command", assemblePieces(pieces));
 		childContext.putObjectValue("target", target.getUri());
 		
 		Variable on = makeChildProcess("On", childContext, specifiedName, isAsync, dependentOn);
@@ -444,6 +454,7 @@ public class NShellAction extends Action {
 		 */
 		if(!needTransfers.isEmpty()) {
 			for(FileTracker outputXfer : needTransfers) {
+				fileCopyContext.putValue("target", target.getUri());
 				fileCopyContext.putValue("name", outputXfer.getRepo().toString());
 				fileCopyContext.putValue("destination", outputXfer.getRepo());
 				fileCopyContext.putValue("source", URI.create("file:///"+outputXfer.getLocalName()));
@@ -517,7 +528,7 @@ public class NShellAction extends Action {
 			if(!needsNone) {
 				// default is NeedsAll
 				Map<String,String> inputs = new HashMap<String,String>();
-				for(FileSpecification i : cmd.getInputFiles()) {
+				for(FileSpecification i : Helpers.safeIterator(cmd.getInputFiles())) {
 					URI source = context.getFileValue(i.getName());
 					if(source == null && !i.isOptional()) {
 						log.warning("Missing file "+i.getName());
@@ -584,7 +595,7 @@ public class NShellAction extends Action {
 			// producesNone is the default
 			if(producesall) {
 				Map<String,String> outputs = new HashMap<String,String>();
-				for(FileSpecification i : cmd.getOutputFiles()) {
+				for(FileSpecification i : Helpers.safeIterator(cmd.getOutputFiles())) {
 					URI destination = context.getFileValue(i.getName());
 					outputs.put(i.getName(), i.getName());
 					FileTracker outputFile = new FileTracker();

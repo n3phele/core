@@ -94,14 +94,15 @@ public class CreateVMActionTest {
 		process = CloudProcessResource.dao.load(process.getUri());
 		assertEquals(ActionState.COMPLETE, process.getState());
 		CreateVMAction cvma = (CreateVMAction) ActionResource.dao.load(process.getAction());
-		URI vm = cvma.getContext().getURIValue("cloudVM");
-		CloudProcess childVM = CloudProcessResource.dao.load(vm);
+
+		VMAction vmAction = (VMAction) ActionResource.dao.load(cvma.getContext().getURIValue("cloudVM"));
+		CloudProcess childVM = CloudProcessResource.dao.load(vmAction.getProcess());
 		
 		assertEquals("name defaults to process name", "one.CreateVM", cvma.getContext().getValue("name"));
 		assertEquals("default instance count", 1L, cvma.getContext().getObjectValue("n"));
 		assertEquals("account", account, cvma.getContext().getObjectValue("account"));
 		
-		VMAction vmAction = (VMAction) ActionResource.dao.load(childVM.getAction());
+
 		assertEquals(URI.create("http://192.168.1.0:8887/task"), vmAction.getContext().getURIValue("agentURI"));
 		assertEquals("test", vmAction.getContext().getValue("agentUser"));
 		assertEquals(VariableType.Secret, vmAction.getContext().get("agentUser").getType());
@@ -146,15 +147,16 @@ public class CreateVMActionTest {
 		process = CloudProcessResource.dao.load(process.getUri());
 		assertEquals(ActionState.COMPLETE, process.getState());
 		CreateVMAction cvma = (CreateVMAction) ActionResource.dao.load(process.getAction());
-		URI vm = cvma.getContext().getURIValue("cloudVM");
-		CloudProcess childVM = CloudProcessResource.dao.load(vm);
+		
+		VMAction vmAction = (VMAction) ActionResource.dao.load(cvma.getContext().getURIValue("cloudVM"));
+		CloudProcess childVM = CloudProcessResource.dao.load(vmAction.getProcess());
 
-		assertEquals("createVM context has child vm", childVM.getUri(), vm);
+		assertEquals("createVM context has child vm", vmAction.getUri(), cvma.getContext().getURIValue("cloudVM"));
 		assertEquals("name defaults to process name", "one.CreateVM", cvma.getContext().getValue("name"));
 		assertEquals("default instance count", 1L, cvma.getContext().getObjectValue("n"));
 		assertEquals("account", account, cvma.getContext().getObjectValue("account"));
 		
-		VMAction vmAction = (VMAction) ActionResource.dao.load(childVM.getAction());
+
 		assertEquals(URI.create("http://192.168.1.0:8887/task"), vmAction.getContext().getURIValue("agentURI"));
 		assertEquals("test", vmAction.getContext().getValue("agentUser"));
 		assertEquals(VariableType.Secret, vmAction.getContext().get("agentUser").getType());
@@ -202,19 +204,18 @@ public class CreateVMActionTest {
 		assertEquals(ActionState.COMPLETE, process.getState());
 		CreateVMAction cvma = (CreateVMAction) ActionResource.dao.load(process.getAction());
 		@SuppressWarnings("unchecked")
-		List<String> vm = (List<String>)cvma.getContext().getObjectValue("cloudVM");
-		CloudProcess childVM = CloudProcessResource.dao.load(URI.create(vm.get(0)));
-		CloudProcess vm2 = CloudProcessResource.dao.load(URI.create(vm.get(1)));
+		VMAction vmAction = (VMAction) ActionResource.dao.load(cvma.getContext().getURIList("cloudVM").get(0));
+		VMAction vmAction2 = (VMAction) ActionResource.dao.load(cvma.getContext().getURIList("cloudVM").get(1));
+		CloudProcess childVM = CloudProcessResource.dao.load(vmAction.getProcess());
+		CloudProcess vm2 = CloudProcessResource.dao.load(vmAction2.getProcess());
 		
-		String[] siblings = new String[] { childVM.getAction().toString(), vm2.getAction().toString() };
+		URI[] siblings = new URI[] { childVM.getAction(), vm2.getAction() };
 		
-		assertEquals("createVM context has 2 child vm", 2, vm.size());
-		assertEquals("createVM context has child vm", childVM.getUri(), URI.create(vm.get(0)));
+		assertEquals("createVM context has 2 child vm", 2, cvma.getContext().getURIList("cloudVM").size());
 		assertEquals("name defaults to process name", "two.CreateVM", cvma.getContext().getValue("name"));
 		assertEquals("instance count", 2L, cvma.getContext().getObjectValue("n"));
 		assertEquals("account", account, cvma.getContext().getObjectValue("account"));
 		
-		VMAction vmAction = (VMAction) ActionResource.dao.load(childVM.getAction());
 		assertEquals(URI.create("http://192.168.1.0:8887/task"), vmAction.getContext().getURIValue("agentURI"));
 		assertEquals("test", vmAction.getContext().getValue("agentUser"));
 		assertEquals(VariableType.Secret, vmAction.getContext().get("agentUser").getType());
@@ -233,7 +234,7 @@ public class CreateVMActionTest {
 		assertEquals(URI.create("https://myFactory/VM/1234"), vmAction.getContext().getObjectValue("vmFactory"));
 		assertEquals("n3phele-testAccount", vmAction.getContext().getValue("keyName"));
 		assertEquals("two.CreateVM_0", vmAction.getContext().getValue("name"));
-		assertEquals(Arrays.asList(siblings), vmAction.getContext().getObjectValue("siblings"));
+		assertEquals(Arrays.asList(siblings), vmAction.getContext().getObjectValue("cloudVM"));
 		
 
 		vmAction = (VMAction) ActionResource.dao.load(vm2.getAction());
@@ -255,7 +256,7 @@ public class CreateVMActionTest {
 		assertEquals(URI.create("https://myFactory/VM/4321"), vmAction.getContext().getObjectValue("vmFactory"));
 		assertEquals("n3phele-testAccount", vmAction.getContext().getValue("keyName"));
 		assertEquals("two.CreateVM_1", vmAction.getContext().getValue("name"));
-		assertEquals(Arrays.asList(siblings), vmAction.getContext().getObjectValue("siblings"));
+		assertEquals(Arrays.asList(siblings), vmAction.getContext().getObjectValue("cloudVM"));
 	 }
 	 
 	 @Test
@@ -284,20 +285,20 @@ public class CreateVMActionTest {
 		
 		assertEquals(ActionState.COMPLETE, process.getState());
 		CreateVMAction cvma = (CreateVMAction) ActionResource.dao.load(process.getAction());
-		@SuppressWarnings("unchecked")
-		List<String> vm = (List<String>)cvma.getContext().getObjectValue("cloudVM");
-		CloudProcess childVM = CloudProcessResource.dao.load(URI.create(vm.get(0)));
-		CloudProcess vm2 = CloudProcessResource.dao.load(URI.create(vm.get(1)));
+		VMAction vmAction = (VMAction) ActionResource.dao.load(cvma.getContext().getURIList("cloudVM").get(0));
+		VMAction vmAction2 = (VMAction) ActionResource.dao.load(cvma.getContext().getURIList("cloudVM").get(1));
+		CloudProcess childVM = CloudProcessResource.dao.load(vmAction.getProcess());
+		CloudProcess vm2 = CloudProcessResource.dao.load(vmAction2.getProcess());
 		
-		String[] siblings = new String[] { childVM.getAction().toString(), vm2.getAction().toString() };
+		URI[] siblings = new URI[] { childVM.getAction(), vm2.getAction() };
 		
-		assertEquals("createVM context has 2 child vm", 2, vm.size());
+		assertEquals("createVM context has 2 child vm", 2, cvma.getContext().getURIList("cloudVM").size());
 
 		assertEquals("name defaults to process name", "two.CreateVM", cvma.getContext().getValue("name"));
 		assertEquals("instance count", 2L, cvma.getContext().getObjectValue("n"));
 		assertEquals("account", account, cvma.getContext().getObjectValue("account"));
 		
-		VMAction vmAction = (VMAction) ActionResource.dao.load(childVM.getAction());
+		vmAction = (VMAction) ActionResource.dao.load(childVM.getAction());
 		assertEquals(URI.create("http://192.168.1.0:8887/task"), vmAction.getContext().getURIValue("agentURI"));
 		assertEquals("test", vmAction.getContext().getValue("agentUser"));
 		assertEquals(VariableType.Secret, vmAction.getContext().get("agentUser").getType());
@@ -316,7 +317,7 @@ public class CreateVMActionTest {
 		assertEquals(URI.create("https://myFactory/VM/1234"), vmAction.getContext().getObjectValue("vmFactory"));
 		assertEquals("n3phele-testAccount", vmAction.getContext().getValue("keyName"));
 		assertEquals("two.CreateVM_0", vmAction.getContext().getValue("name"));
-		assertEquals(Arrays.asList(siblings), vmAction.getContext().getObjectValue("siblings"));
+		assertEquals(Arrays.asList(siblings), vmAction.getContext().getObjectValue("cloudVM"));
 		
 
 		vmAction = (VMAction) ActionResource.dao.load(vm2.getAction());
@@ -338,7 +339,7 @@ public class CreateVMActionTest {
 		assertEquals(URI.create("https://myFactory/VM/4321"), vmAction.getContext().getObjectValue("vmFactory"));
 		assertEquals("n3phele-testAccount", vmAction.getContext().getValue("keyName"));
 		assertEquals("two.CreateVM_1", vmAction.getContext().getValue("name"));
-		assertEquals(Arrays.asList(siblings), vmAction.getContext().getObjectValue("siblings"));
+		assertEquals(Arrays.asList(siblings), vmAction.getContext().getObjectValue("cloudVM"));
 	 }
 	 
 	 @Test
@@ -454,10 +455,10 @@ public class CreateVMActionTest {
 		VMActionWrapper.processState = null;
 		CloudProcess createVMProcess = CloudProcessResource.dao.load(action.getChildProcess());
 		CreateVMAction createVMAction = (CreateVMAction) ActionResource.dao.load(createVMProcess.getAction());
-		URI vmURI = URI.create(createVMAction.getContext().getListValue("cloudVM").get(0));
-		URI vmURI2 = URI.create(createVMAction.getContext().getListValue("cloudVM").get(1));
-		CloudProcess vmProcess = CloudProcessResource.dao.load(vmURI);
-		VMAction vm1 = (VMAction) ActionResource.dao.load(vmProcess.getAction());
+		
+		VMAction vm1 = (VMAction) ActionResource.dao.load(createVMAction.getContext().getURIList("cloudVM").get(0));
+		VMAction vm2 = (VMAction) ActionResource.dao.load(createVMAction.getContext().getURIList("cloudVM").get(1));
+		CloudProcess vmProcess = CloudProcessResource.dao.load(vm1.getProcess());
 		URI childFactoryURI = vm1.getContext().getURIValue("vmFactory");
 		CreateVMActionWrapper.virtualServer.get(childFactoryURI).setStatus("Terminated");
 		ProcessLifecycle.mgr().signal(vmProcess.getUri(), SignalKind.Event, vmProcess.getUri().toString());
@@ -474,9 +475,9 @@ public class CreateVMActionTest {
 		process = CloudProcessResource.dao.load(process.getUri());
 		
 		assertEquals(ActionState.COMPLETE, process.getState());
-		vmProcess = CloudProcessResource.dao.load(vmURI);
+		vmProcess = CloudProcessResource.dao.load(vm1.getProcess());
 		assertEquals(ActionState.FAILED, vmProcess.getState());
-		vmProcess = CloudProcessResource.dao.load(vmURI2);
+		vmProcess = CloudProcessResource.dao.load(vm2.getProcess());
 		assertEquals(ActionState.RUNABLE, vmProcess.getState());
 	 }
 	 
@@ -506,10 +507,10 @@ public class CreateVMActionTest {
 		VMActionWrapper.processState = null;
 		CloudProcess createVMProcess = CloudProcessResource.dao.load(action.getChildProcess());
 		CreateVMAction createVMAction = (CreateVMAction) ActionResource.dao.load(createVMProcess.getAction());
-		URI vmURI = URI.create(createVMAction.getContext().getListValue("cloudVM").get(0));
-		URI vmURI2 = URI.create(createVMAction.getContext().getListValue("cloudVM").get(1));
-		CloudProcess vmProcess = CloudProcessResource.dao.load(vmURI);
-		VMAction vm1 = (VMAction) ActionResource.dao.load(vmProcess.getAction());
+		VMAction vm1 = (VMAction) ActionResource.dao.load(createVMAction.getContext().getURIList("cloudVM").get(0));
+		VMAction vm2 = (VMAction) ActionResource.dao.load(createVMAction.getContext().getURIList("cloudVM").get(1));
+		CloudProcess vmProcess = CloudProcessResource.dao.load(vm1.getProcess());
+
 		URI childFactoryURI = vm1.getContext().getURIValue("vmFactory");
 		CreateVMActionWrapper.virtualServer.remove(childFactoryURI);
 		ProcessLifecycle.mgr().signal(vmProcess.getUri(), SignalKind.Event, vmProcess.getUri().toString());
@@ -526,9 +527,9 @@ public class CreateVMActionTest {
 		process = CloudProcessResource.dao.load(process.getUri());
 		
 		assertEquals(ActionState.COMPLETE, process.getState());
-		vmProcess = CloudProcessResource.dao.load(vmURI);
+		vmProcess = CloudProcessResource.dao.load(vm1.getProcess());
 		assertEquals(ActionState.FAILED, vmProcess.getState());
-		vmProcess = CloudProcessResource.dao.load(vmURI2);
+		vmProcess = CloudProcessResource.dao.load(vm2.getProcess());
 		assertEquals(ActionState.RUNABLE, vmProcess.getState());
 	 }
 	 

@@ -11,6 +11,7 @@ package n3phele.service.actions;
 *  specific language governing permissions and limitations under the License.
 */
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -33,8 +34,10 @@ import n3phele.service.model.core.NameValue;
 import n3phele.service.model.core.VirtualServer;
 
 import com.googlecode.objectify.annotation.Cache;
-import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.EntitySubclass;
+import com.googlecode.objectify.annotation.Ignore;
+import com.googlecode.objectify.annotation.OnLoad;
+import com.googlecode.objectify.annotation.OnSave;
 import com.googlecode.objectify.annotation.Unindex;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
@@ -51,8 +54,20 @@ import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 @Cache
 public class VMAction extends Action {
 	@XmlTransient private ActionLogger logger;
-	final protected static java.util.logging.Logger log = java.util.logging.Logger.getLogger(VMAction.class.getName()); 
-	@Embed private HashMap<String,FileTracker> fileTable = new HashMap<String,FileTracker>();
+	final protected static java.util.logging.Logger log = java.util.logging.Logger.getLogger(VMAction.class.getName());
+	@XmlTransient
+	private ArrayList<FileTracker> fileTableList = new ArrayList<FileTracker>();
+	@Ignore Map<String,FileTracker> fileTable = new HashMap<String, FileTracker>();
+	@OnLoad void makeFileMap() {  
+		for(FileTracker v : this.fileTableList) { 
+			if(v != null)
+				this.fileTable.put(v.getName(), v); 
+		} 
+	}
+	@OnSave void saveFileMap() { 
+		this.fileTableList.clear(); if(this.fileTable.size() != 0) this.fileTableList.addAll(fileTable.values()); 
+	}
+	
 	private long epoch;
 	@Override
 	public void init() throws Exception {

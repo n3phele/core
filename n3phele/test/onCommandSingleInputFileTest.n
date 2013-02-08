@@ -1,0 +1,17 @@
+# onCommandSingleInputFileTest.n
+# Copyright (c) 2013 Nigel Cook. All Rights reserved
+# xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+name	   :  onCommandSingleInputFile
+description: run a command that has a single input file
+version	   : 1.1
+preferred  : true
+public	   : true
+icon	   : http://www.n3phele.com/icons/custom
+parameters :						  
+	string account		# cloud account to use
+input files:
+	flowgram.sff.txt 	# Input flowgram file in sff.txt format
+EC2: # Amazon EC2
+	$$my_vm = CREATEVM --account $$account
+	ON $$my_vm cat < flowgram.sff.txt | wc -l
+	

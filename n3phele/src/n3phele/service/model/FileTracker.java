@@ -7,9 +7,11 @@ import javax.xml.bind.annotation.XmlType;
 
 import n3phele.service.model.core.Helpers;
 
+import com.googlecode.objectify.annotation.Embed;
+
 @XmlRootElement(name="FileTracker")
 @XmlType(name="FileTracker", propOrder={"name", "localName", "repo", "process"})
-
+@Embed
 public class FileTracker {
 	private String name;
 	private String localName;

@@ -18,17 +18,14 @@ import java.net.URI;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-import n3phele.service.model.FileTracker;
-
 
 @XmlRootElement(name="CommandRequest")
-@XmlType(name="CommandRequest", propOrder={"cmd", "stdin", "notification", "files"})
+@XmlType(name="CommandRequest", propOrder={"cmd", "stdin", "notification"})
 
 public class CommandRequest {
 	String cmd;
 	String stdin;
 	URI notification;
-	FileTracker[] files;
 	
 	public CommandRequest() {}
 
@@ -74,19 +71,6 @@ public class CommandRequest {
 		this.notification = notification;
 	}
 
-	/**
-	 * @return the files
-	 */
-	public FileTracker[] getFiles() {
-		return files;
-	}
-
-	/**
-	 * @param files the files to set
-	 */
-	public void setFiles(FileTracker[] files) {
-		this.files = files;
-	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
@@ -94,8 +78,8 @@ public class CommandRequest {
 	@Override
 	public String toString() {
 		return String.format(
-				"CommandRequest [cmd=%s, stdin=%s, notification=%s, files=%s]",
-				cmd, stdin, notification, files);
+				"CommandRequest [cmd=%s, stdin=%s, notification=%s]",
+				cmd, stdin, notification);
 	}
 	
 	

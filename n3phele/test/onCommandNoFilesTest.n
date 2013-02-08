@@ -1,0 +1,15 @@
+# onCommandNoFilesTest.n
+# Copyright (c) 2013 Nigel Cook. All Rights reserved
+# xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+name	   :  onCommandNoFiles
+description: run a command that has no files
+version	   : 1.1
+preferred  : true
+public	   : true
+icon	   : http://www.n3phele.com/icons/custom
+parameters :						  
+	string account		# cloud account to use
+EC2: # Amazon EC2
+	$$my_vm = CREATEVM --account $$account
+	ON $$my_vm --needsNone echo hello world!
+	

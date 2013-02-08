@@ -11,6 +11,7 @@ package n3phele.service.model;
  *  specific language governing permissions and limitations under the License.
  */
 
+import java.io.Serializable;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,7 +27,9 @@ import n3phele.service.model.core.Helpers;
 
 @XmlRootElement(name = "Variable")
 @XmlType(name = "Variable", propOrder = {"name", "type", "value" })
-public class Variable {
+
+public class Variable  implements Serializable {     
+	/** start with 1 for all classes */     private static final long serialVersionUID = 1L;
 	private String name;
 	private VariableType type;
 	private String[] value = new String[] { null };
@@ -240,6 +243,12 @@ public class Variable {
 			return fileList;
 		case List:
 			return new ArrayList<String>(Arrays.asList(this.value));
+		case ActionList:
+			ArrayList<URI> result = new ArrayList<URI>(this.value.length);
+			for(String u : this.value) {
+				result.add(URI.create(u));
+			}
+			return result;
 		case String:
 			default:
 			return this.value[0];
