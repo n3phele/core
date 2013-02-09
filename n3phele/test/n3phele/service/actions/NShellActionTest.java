@@ -59,6 +59,7 @@ import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.annotation.EntitySubclass;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.representation.Form;
 
 public class NShellActionTest {
 	
@@ -624,7 +625,8 @@ public class NShellActionTest {
 		/*
 		 * Setup agents replies
 		 */
-		OnActionWrapper.commandRequestReply = URI.create("http://123.123.123.1/task/15");
+		OnActionWrapper.commandRequestReply = URI.create("http://192.168.1.0:8887/task/15");
+		FileTransferActionWrapper.commandRequestReply = URI.create("http://192.168.1.0:8887/task/4");
 		
 		Context context = new Context();
 		
@@ -641,41 +643,332 @@ public class NShellActionTest {
 		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
 		NShellAction shell = (NShellAction) ActionResource.dao.load(shellProcess.getAction());
 		URI vmURI = (URI) shell.getContext().getObjectValue("my_vm") ;
-		Action vmAction = ActionResource.dao.load(vmURI);
-		Assert.assertEquals("my_vm", vmAction.getContext().getValue("name"));
+		Action createVMAction = ActionResource.dao.load(vmURI);
+		CloudProcess createVMProcess;
+		CloudProcess vmProcess;
+		CloudProcess fileTransfer_0Process;
+		OnAction on_0 = (OnAction) ActionResource.dao.load(shell.getContext().getURIValue("On_0"));
+		CloudProcess on_0Process = CloudProcessResource.dao.load(on_0.getProcess());
+		createVMProcess = CloudProcessResource.dao.load(createVMAction.getProcess());
+
+		VMAction vmAction = (VMAction) ActionResource.dao.load(createVMAction.getContext().getURIList("cloudVM").get(0));
+		vmProcess = CloudProcessResource.dao.load(vmAction.getProcess());
+		FileTransferAction fileTransfer_0 = (FileTransferAction) ActionResource.dao.load(shell.getContext().getURIValue("FileTransfer_0"));
+		fileTransfer_0Process = CloudProcessResource.dao.load(fileTransfer_0.getProcess());
+		
+		Assert.assertEquals("my_vm", createVMAction.getContext().getValue("name"));
 		
 		CloudProcessResource.dao.clear();
+		
+		on_0 = (OnAction) ActionResource.dao.load(on_0.getUri());
+		on_0Process = CloudProcessResource.dao.load(on_0.getProcess());
+
+		Assert.assertEquals("cat < flowgram.sff.txt | wc -l\n", on_0.getContext().getValue("command"));
+		Assert.assertEquals("Command line awaits file copy", ActionState.INIT, on_0Process.getState());
+		Assert.assertEquals(ActionState.INIT, on_0Process.getState());
+		Assert.assertEquals(ActionState.RUNABLE, fileTransfer_0Process.getState());
+		Assert.assertEquals(ActionState.RUNABLE, vmProcess.getState());
+		Assert.assertEquals(ActionState.COMPLETE, createVMProcess.getState());
+		Assert.assertEquals(ActionState.RUNABLE, shellProcess.getState());
+		
 		String refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
-		Assert.assertEquals("{\"RUNABLE\": 1, \"RUNABLE_Wait\": 2}", refresh);
-		
-		OnAction on_0 = (OnAction) ActionResource.dao.load(shell.getContext().getURIValue("On_0"));
-		Assert.assertEquals("echo hello world!\n", on_0.getContext().getValue("command"));
-		Assert.assertEquals(OnActionWrapper.commandRequestReply, on_0.getInstance());
-		Assert.assertEquals("echo hello world!\n", OnActionWrapper.request.getCmd());
-		Assert.assertEquals(UriBuilder.fromUri(on_0.getProcess()).scheme("http").path("event").build(), OnActionWrapper.request.getNotification());
-		Assert.assertEquals(null, OnActionWrapper.request.getStdin());
-		
+		Assert.assertEquals("file copy running", "{\"RUNABLE\": 1, \"RUNABLE_Wait\": 2, \"INIT\": 1}", refresh);
 		
 		Thread.sleep(1000);
 		CloudProcessResource.dao.clear();
-		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
-		Assert.assertEquals("{}", refresh);
-		
-		
+
+		on_0Process = CloudProcessResource.dao.load(on_0.getProcess());
+		fileTransfer_0Process = CloudProcessResource.dao.load(fileTransfer_0Process.getUri());
+		vmProcess = CloudProcessResource.dao.load(vmProcess.getUri());
+		createVMProcess = CloudProcessResource.dao.load(createVMProcess.getUri());
 		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
-		shell = (NShellAction) ActionResource.dao.load(shellProcess.getAction());
-		CloudProcess createVMProcess = CloudProcessResource.dao.load(vmAction.getProcess());
-		vmAction = ActionResource.dao.load(vmURI);
-		URI vm  = vmAction.getContext().getURIValue("cloudVM");
-		Action action = ActionResource.dao.load(vm);
-		CloudProcess vmProcess = CloudProcessResource.dao.load(action.getProcess());
-		CloudProcess onProcess = CloudProcessResource.dao.load(on_0.getProcess());
-		
-		Assert.assertEquals(ActionState.COMPLETE, shellProcess.getState());
+		Assert.assertEquals("Command line starts to run", ActionState.RUNABLE, on_0Process.getState());
+		Assert.assertEquals("File copy comlete", ActionState.COMPLETE, fileTransfer_0Process.getState());
+		Assert.assertEquals(ActionState.RUNABLE, vmProcess.getState());
 		Assert.assertEquals(ActionState.COMPLETE, createVMProcess.getState());
+		Assert.assertEquals(ActionState.RUNABLE, shellProcess.getState());	
+		
+		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
+		Assert.assertEquals("command runs", "{\"RUNABLE\": 1, \"RUNABLE_Wait\": 2}", refresh);
+		Thread.sleep(500);
+		CloudProcessResource.dao.clear();
+		
+		on_0Process = CloudProcessResource.dao.load(on_0.getProcess());
+		fileTransfer_0Process = CloudProcessResource.dao.load(fileTransfer_0Process.getUri());
+		vmProcess = CloudProcessResource.dao.load(vmProcess.getUri());
+		createVMProcess = CloudProcessResource.dao.load(createVMProcess.getUri());
+		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
+		Assert.assertEquals("Command line polls", ActionState.RUNABLE, on_0Process.getState());
+		Assert.assertEquals(ActionState.COMPLETE, fileTransfer_0Process.getState());
+		Assert.assertEquals(ActionState.RUNABLE, vmProcess.getState());
+		Assert.assertEquals(ActionState.COMPLETE, createVMProcess.getState());
+		Assert.assertEquals(ActionState.RUNABLE, shellProcess.getState());	
+
+		
+		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
+		Assert.assertEquals("command line polling", "{\"RUNABLE\": 1, \"RUNABLE_Wait\": 2}", refresh);
+		
+		Thread.sleep(500);
+		CloudProcessResource.dao.clear();
+		on_0Process = CloudProcessResource.dao.load(on_0.getProcess());
+		fileTransfer_0Process = CloudProcessResource.dao.load(fileTransfer_0Process.getUri());
+		vmProcess = CloudProcessResource.dao.load(vmProcess.getUri());
+		createVMProcess = CloudProcessResource.dao.load(createVMProcess.getUri());
+		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
+		Assert.assertEquals("Command line finishes", ActionState.COMPLETE, on_0Process.getState());
+		Assert.assertEquals(ActionState.COMPLETE, fileTransfer_0Process.getState());
+		Assert.assertEquals("VM destroyed", ActionState.CANCELLED, vmProcess.getState());
+		Assert.assertEquals(ActionState.COMPLETE, createVMProcess.getState());
+		Assert.assertEquals("Shell completes", ActionState.COMPLETE, shellProcess.getState());
+		
+		
+		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
+		Assert.assertEquals("filecopy completes, command runs", "{}", refresh);
+
+		Thread.sleep(500);
+		CloudProcessResource.dao.clear();
+		on_0Process = CloudProcessResource.dao.load(on_0.getProcess());
+		fileTransfer_0Process = CloudProcessResource.dao.load(fileTransfer_0Process.getUri());
+		vmProcess = CloudProcessResource.dao.load(vmProcess.getUri());
+		createVMProcess = CloudProcessResource.dao.load(createVMProcess.getUri());
+		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
+		Assert.assertEquals(ActionState.COMPLETE, on_0Process.getState());
+		Assert.assertEquals(ActionState.COMPLETE, fileTransfer_0Process.getState());
 		Assert.assertEquals(ActionState.CANCELLED, vmProcess.getState());
-		Assert.assertEquals(ActionState.COMPLETE, onProcess.getState());
+		Assert.assertEquals(ActionState.COMPLETE, createVMProcess.getState());
+		Assert.assertEquals(ActionState.COMPLETE, shellProcess.getState());
+
+		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
+		Assert.assertEquals("all complete", "{}", refresh);
+		
+		Thread.sleep(500);
+		CloudProcessResource.dao.clear();
+		on_0Process = CloudProcessResource.dao.load(on_0.getProcess());
+		fileTransfer_0Process = CloudProcessResource.dao.load(fileTransfer_0Process.getUri());
+		vmProcess = CloudProcessResource.dao.load(vmProcess.getUri());
+		createVMProcess = CloudProcessResource.dao.load(createVMProcess.getUri());
+		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
+		
+		on_0 = (OnAction) ActionResource.dao.load(on_0.getUri());
+		fileTransfer_0 = (FileTransferAction) ActionResource.dao.load(fileTransfer_0.getUri());
+
+		
+		Assert.assertEquals(OnActionWrapper.commandRequestReply, on_0.getInstance());
+		Assert.assertEquals("cat < flowgram.sff.txt | wc -l\n", OnActionWrapper.request.getCmd());
+		Assert.assertEquals(UriBuilder.fromUri(on_0.getProcess()).scheme("http").path("event").build(), OnActionWrapper.request.getNotification());
+		Assert.assertEquals(null, OnActionWrapper.request.getStdin());
+		Assert.assertEquals(FileTransferActionWrapper.commandRequestReply, fileTransfer_0.getInstance());
+		Assert.assertEquals(URI.create("http://192.168.1.0:8887/task"), FileTransferActionWrapper.sendRequestTarget);
+		Assert.assertEquals(URI.create("http://192.168.1.0:8887/task"), OnActionWrapper.sendRequestTarget);
+		Assert.assertEquals(URI.create("http://192.168.1.0:8887/task/4"), FileTransferActionWrapper.getTaskTarget);
+		Assert.assertEquals(URI.create("http://192.168.1.0:8887/task/15"), OnActionWrapper.getTaskTarget);	
 	}
+	
+	/** Invokes an on command that has a single input and output file
+	 * @throws InterruptedException
+	 * @throws ClassNotFoundException
+	 * @throws FileNotFoundException
+	 * @throws ParseException
+	 */
+	@Test
+	public void onCommandSingleInputSingleOutFileTest() throws InterruptedException, ClassNotFoundException, FileNotFoundException, ParseException {
+		User root = getRoot();
+		ObjectifyService.register(NShellActionTestHarness.class);
+		ObjectifyService.register(OnActionWrapper.class);
+		assertNotNull(root);
+		 URI cloud = createTestCloud();
+		 URI account = createTestAccount(cloud);
+		 CreateVMActionWrapper.initalState = "Pending";
+		 VMActionWrapper.processState = "Running";
+		 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234");
+		
+		NParser n = new NParser(new FileInputStream("./test/onCommandSingleOutputFileTest.n"));
+		CommandDefinition cd = n.parse();
+		cd.setUri(URI.create("http://n3phele.com/test"));
+		Assert.assertEquals("onCommandSingleOutputFile", cd.getName());
+		Assert.assertEquals("run a command that has a single input and file", cd.getDescription());
+		Assert.assertTrue(cd.isPublic());
+		Assert.assertTrue(cd.isPreferred());
+		Assert.assertEquals("1.1", cd.getVersion());
+		Assert.assertEquals(URI.create("http://www.n3phele.com/icons/custom"), cd.getIcon());
+		testCommandDefinition = cd;
+		
+		Repository testRepo = new Repository("myRepo", "test repo", new Credential("foo", "secret").encrypt(), URI.create("http://s3.amazon.com"), "testBucket", "S3", UserResource.Root.getUri(), false);
+		RepositoryResource.dao.add(testRepo);
+		/*
+		 * Setup agents replies
+		 */
+		OnActionWrapper.commandRequestReply = URI.create("http://192.168.1.0:8887/task/15");
+		FileTransferActionWrapper.commandRequestReply = URI.create("http://192.168.1.0:8887/task/4");
+		
+		Context context = new Context();
+		
+		context.putValue("arg", "http://n3phele.com/test#EC2");
+		context.putValue("account", account);
+		context.putValue("flowgram.sff.txt", URI.create("myRepo:///root/file.doc"));
+		context.putValue("denoiser.log", URI.create("myRepo:///root/denoiserLog.txt"));
+		
+		CloudProcess shellProcess = ProcessLifecycleWrapper.mgr().createProcess(root, "shell", context, null, null, NShellActionTestHarness.class);
+		ProcessLifecycleWrapper.mgr().init(shellProcess);
+		Thread.sleep(2000);
+		CloudProcessResource.dao.clear();
+		
+
+		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
+		NShellAction shell = (NShellAction) ActionResource.dao.load(shellProcess.getAction());
+		URI vmURI = (URI) shell.getContext().getObjectValue("my_vm") ;
+		Action createVMAction = ActionResource.dao.load(vmURI);
+		CloudProcess createVMProcess;
+		CloudProcess vmProcess;
+		CloudProcess fileTransfer_0Process;
+		CloudProcess fileTransfer_1Process;
+		OnAction on_0 = (OnAction) ActionResource.dao.load(shell.getContext().getURIValue("On_0"));
+		CloudProcess on_0Process = CloudProcessResource.dao.load(on_0.getProcess());
+		createVMProcess = CloudProcessResource.dao.load(createVMAction.getProcess());
+
+		VMAction vmAction = (VMAction) ActionResource.dao.load(createVMAction.getContext().getURIList("cloudVM").get(0));
+		vmProcess = CloudProcessResource.dao.load(vmAction.getProcess());
+		FileTransferAction fileTransfer_0 = (FileTransferAction) ActionResource.dao.load(shell.getContext().getURIValue("FileTransfer_0"));
+		fileTransfer_0Process = CloudProcessResource.dao.load(fileTransfer_0.getProcess());
+		FileTransferAction fileTransfer_1 = (FileTransferAction) ActionResource.dao.load(shell.getContext().getURIValue("FileTransfer_1"));
+		fileTransfer_1Process = CloudProcessResource.dao.load(fileTransfer_1.getProcess());
+		
+		Assert.assertEquals("my_vm", createVMAction.getContext().getValue("name"));
+		
+		CloudProcessResource.dao.clear();
+		
+		on_0 = (OnAction) ActionResource.dao.load(on_0.getUri());
+		on_0Process = CloudProcessResource.dao.load(on_0.getProcess());
+
+		Assert.assertEquals("mkdir output; cat < flowgram.sff.txt | wc -l > output/denoiser.log\n", on_0.getContext().getValue("command"));
+		Assert.assertEquals("Command line awaits file copy", ActionState.INIT, on_0Process.getState());
+		Assert.assertEquals(ActionState.INIT, on_0Process.getState());
+		Assert.assertEquals(ActionState.RUNABLE, fileTransfer_0Process.getState());
+		Assert.assertEquals(ActionState.INIT, fileTransfer_1Process.getState());
+		Assert.assertEquals(ActionState.RUNABLE, vmProcess.getState());
+		Assert.assertEquals(ActionState.COMPLETE, createVMProcess.getState());
+		Assert.assertEquals(ActionState.RUNABLE, shellProcess.getState());
+		
+		String refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
+		Assert.assertEquals("input file copy running", "{\"RUNABLE\": 1, \"RUNABLE_Wait\": 2, \"INIT\": 2}", refresh);
+		
+		Thread.sleep(1000);
+		CloudProcessResource.dao.clear();
+
+		on_0Process = CloudProcessResource.dao.load(on_0.getProcess());
+		fileTransfer_0Process = CloudProcessResource.dao.load(fileTransfer_0Process.getUri());
+		fileTransfer_1Process = CloudProcessResource.dao.load(fileTransfer_1Process.getUri());
+		vmProcess = CloudProcessResource.dao.load(vmProcess.getUri());
+		createVMProcess = CloudProcessResource.dao.load(createVMProcess.getUri());
+		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
+		Assert.assertEquals("Command line starts to run", ActionState.RUNABLE, on_0Process.getState());
+		Assert.assertEquals("File copy comlete", ActionState.COMPLETE, fileTransfer_0Process.getState());
+		Assert.assertEquals(ActionState.INIT, fileTransfer_1Process.getState());
+		Assert.assertEquals(ActionState.RUNABLE, vmProcess.getState());
+		Assert.assertEquals(ActionState.COMPLETE, createVMProcess.getState());
+		Assert.assertEquals(ActionState.RUNABLE, shellProcess.getState());	
+		
+		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
+		Assert.assertEquals("command runs", "{\"RUNABLE\": 1, \"RUNABLE_Wait\": 2, \"INIT\": 1}", refresh);
+		Thread.sleep(500);
+		CloudProcessResource.dao.clear();
+		
+		on_0Process = CloudProcessResource.dao.load(on_0.getProcess());
+		fileTransfer_0Process = CloudProcessResource.dao.load(fileTransfer_0Process.getUri());
+		fileTransfer_1Process = CloudProcessResource.dao.load(fileTransfer_1Process.getUri());
+		vmProcess = CloudProcessResource.dao.load(vmProcess.getUri());
+		createVMProcess = CloudProcessResource.dao.load(createVMProcess.getUri());
+		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
+		Assert.assertEquals("Command line polls", ActionState.RUNABLE, on_0Process.getState());
+		Assert.assertEquals(ActionState.COMPLETE, fileTransfer_0Process.getState());
+		Assert.assertEquals(ActionState.INIT, fileTransfer_1Process.getState());
+		Assert.assertEquals(ActionState.RUNABLE, vmProcess.getState());
+		Assert.assertEquals(ActionState.COMPLETE, createVMProcess.getState());
+		Assert.assertEquals(ActionState.RUNABLE, shellProcess.getState());	
+
+		
+		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
+		Assert.assertEquals("command line polling", "{\"RUNABLE\": 1, \"RUNABLE_Wait\": 2, \"INIT\": 1}", refresh);
+		
+		Thread.sleep(500);
+		CloudProcessResource.dao.clear();
+		on_0Process = CloudProcessResource.dao.load(on_0.getProcess());
+		fileTransfer_0Process = CloudProcessResource.dao.load(fileTransfer_0Process.getUri());
+		fileTransfer_1Process = CloudProcessResource.dao.load(fileTransfer_1Process.getUri());
+		vmProcess = CloudProcessResource.dao.load(vmProcess.getUri());
+		createVMProcess = CloudProcessResource.dao.load(createVMProcess.getUri());
+		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
+		Assert.assertEquals("Command line finishes", ActionState.COMPLETE, on_0Process.getState());
+		Assert.assertEquals(ActionState.COMPLETE, fileTransfer_0Process.getState());
+		Assert.assertEquals("output file copy starts", ActionState.RUNABLE, fileTransfer_1Process.getState());
+		Assert.assertEquals("VM still running", ActionState.RUNABLE, vmProcess.getState());
+		Assert.assertEquals(ActionState.COMPLETE, createVMProcess.getState());
+		Assert.assertEquals("Shell awaiting copy", ActionState.RUNABLE, shellProcess.getState());
+		
+		
+		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
+		Assert.assertEquals("output filecopy running", "{\"RUNABLE\": 1, \"RUNABLE_Wait\": 2}", refresh);
+
+		Thread.sleep(500);
+		CloudProcessResource.dao.clear();
+		on_0Process = CloudProcessResource.dao.load(on_0.getProcess());
+		fileTransfer_0Process = CloudProcessResource.dao.load(fileTransfer_0Process.getUri());
+		fileTransfer_1Process = CloudProcessResource.dao.load(fileTransfer_1Process.getUri());
+		vmProcess = CloudProcessResource.dao.load(vmProcess.getUri());
+		createVMProcess = CloudProcessResource.dao.load(createVMProcess.getUri());
+		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
+		Assert.assertEquals(ActionState.COMPLETE, on_0Process.getState());
+		Assert.assertEquals(ActionState.COMPLETE, fileTransfer_0Process.getState());
+		Assert.assertEquals("output file copy running", ActionState.RUNABLE, fileTransfer_1Process.getState());
+		Assert.assertEquals(ActionState.RUNABLE, vmProcess.getState());
+		Assert.assertEquals(ActionState.COMPLETE, createVMProcess.getState());
+		Assert.assertEquals(ActionState.RUNABLE, shellProcess.getState());
+		
+		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
+		Assert.assertEquals("output filecopy running", "{\"RUNABLE\": 1, \"RUNABLE_Wait\": 2}", refresh);
+
+		Thread.sleep(500);
+		CloudProcessResource.dao.clear();
+		
+		on_0Process = CloudProcessResource.dao.load(on_0.getProcess());
+		fileTransfer_0Process = CloudProcessResource.dao.load(fileTransfer_0Process.getUri());
+		fileTransfer_1Process = CloudProcessResource.dao.load(fileTransfer_1Process.getUri());
+		vmProcess = CloudProcessResource.dao.load(vmProcess.getUri());
+		createVMProcess = CloudProcessResource.dao.load(createVMProcess.getUri());
+		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
+		Assert.assertEquals(ActionState.COMPLETE, on_0Process.getState());
+		Assert.assertEquals(ActionState.COMPLETE, fileTransfer_0Process.getState());
+		Assert.assertEquals("output file copy finished", ActionState.COMPLETE, fileTransfer_1Process.getState());
+		Assert.assertEquals("VM deleted", ActionState.CANCELLED, vmProcess.getState());
+		Assert.assertEquals(ActionState.COMPLETE, createVMProcess.getState());
+		Assert.assertEquals("Shell exits", ActionState.COMPLETE, shellProcess.getState());
+
+		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
+		Assert.assertEquals("all complete", "{}", refresh);
+		
+		Thread.sleep(500);
+		CloudProcessResource.dao.clear();
+		on_0Process = CloudProcessResource.dao.load(on_0.getProcess());
+		fileTransfer_0Process = CloudProcessResource.dao.load(fileTransfer_0Process.getUri());
+		vmProcess = CloudProcessResource.dao.load(vmProcess.getUri());
+		createVMProcess = CloudProcessResource.dao.load(createVMProcess.getUri());
+		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
+		
+		on_0 = (OnAction) ActionResource.dao.load(on_0.getUri());
+		fileTransfer_0 = (FileTransferAction) ActionResource.dao.load(fileTransfer_0.getUri());
+
+		
+		Assert.assertEquals(OnActionWrapper.commandRequestReply, on_0.getInstance());
+		Assert.assertEquals("mkdir output; cat < flowgram.sff.txt | wc -l > output/denoiser.log\n", OnActionWrapper.request.getCmd());
+		Assert.assertEquals(UriBuilder.fromUri(on_0.getProcess()).scheme("http").path("event").build(), OnActionWrapper.request.getNotification());
+		Assert.assertEquals(null, OnActionWrapper.request.getStdin());
+		Assert.assertEquals(FileTransferActionWrapper.commandRequestReply, fileTransfer_0.getInstance());
+		Assert.assertEquals(URI.create("http://192.168.1.0:8887/task"), FileTransferActionWrapper.sendRequestTarget);
+		Assert.assertEquals(URI.create("http://192.168.1.0:8887/task"), OnActionWrapper.sendRequestTarget);
+		Assert.assertEquals(URI.create("http://192.168.1.0:8887/task/4"), FileTransferActionWrapper.getTaskTarget);
+		Assert.assertEquals(URI.create("http://192.168.1.0:8887/task/15"), OnActionWrapper.getTaskTarget);	
+	}
+
 
 
 		
@@ -836,41 +1129,40 @@ public class NShellActionTest {
 		 static List<Task> reply;
 		 static CommandRequest request;
 		 static URI commandRequestReply;
+		 static URI sendRequestTarget;
+		 static URI getTaskTarget;
 		 int i = 0;
-		 protected Task getTask(WebResource r) {
-			 if(i < reply.size())
-				 i++;
-			 return reply.get(i-1);
-		 }
+		 @Override
 		 protected Task getTask(Client client, String target) {
+			 getTaskTarget = URI.create(target);
 			 if(i < reply.size())
 				 i++;
 			 return reply.get(i-1);
-			}
-			
-			protected URI sendRequest(Client client, URI target, CommandRequest form) {
-				
+		}
+		@Override
+		protected URI sendRequest(Client client, URI target, CommandRequest form) {
+				sendRequestTarget = target;
 				request = form;
-				Task reply = new Task();
-				reply.setId("1");
-				reply.setUri(commandRequestReply);
-				reply.setStarted(new Date());
-				reply.setStdin(form.getStdin());
-				reply.setStdout("stdout");
-				reply.setStderr("stderr");
-				reply.setNotification(form.getNotification());
+				Task reply0 = new Task();
+				reply0.setId("1");
+				reply0.setUri(commandRequestReply);
+				reply0.setStarted(new Date());
+				reply0.setStdin(form.getStdin());
+				reply0.setStdout("stdout");
+				reply0.setStderr("stderr");
+				reply0.setNotification(form.getNotification());
 				
 				Task reply1 = new Task();
 				reply1.setId("1");
 				reply1.setUri(commandRequestReply);
-				reply1.setStarted(reply.getStarted());
+				reply1.setStarted(reply0.getStarted());
 				reply1.setStdin(form.getStdin());
 				reply1.setStdout("stdout");
 				reply1.setStderr("stderr");
 				reply1.setNotification(form.getNotification());
 				reply1.setFinished(new Date());
 				
-				this.reply = Arrays.asList(reply, reply1);
+				reply = Arrays.asList(reply0, reply1);
 				
 				
 				return commandRequestReply;
@@ -883,43 +1175,42 @@ public class NShellActionTest {
 	 @EntitySubclass
 	 public static class FileTransferActionWrapper extends FileTransferAction {
 		 static List<Task> reply;
-		 static CommandRequest request;
+		 static Form request;
 		 static URI commandRequestReply;
+		 static URI sendRequestTarget;
+		 static URI getTaskTarget;
 		 int i = 0;
-		 protected Task getTask(WebResource r) {
-			 if(i < reply.size())
-				 i++;
-			 return reply.get(i-1);
-		 }
+		 @Override
 		 protected Task getTask(Client client, String target) {
+			 getTaskTarget = URI.create(target);
 			 if(i < reply.size())
 				 i++;
 			 return reply.get(i-1);
 			}
-			
-			protected URI sendRequest(Client client, URI target, CommandRequest form) {
-				
+			@Override
+			protected URI sendRequest(Client client, URI target, Form form) {
+				sendRequestTarget = target;
 				request = form;
-				Task reply = new Task();
-				reply.setId("1");
-				reply.setUri(commandRequestReply);
-				reply.setStarted(new Date());
-				reply.setStdin(form.getStdin());
-				reply.setStdout("stdout");
-				reply.setStderr("stderr");
-				reply.setNotification(form.getNotification());
+				Task reply0 = new Task();
+				reply0.setId("1");
+				reply0.setUri(commandRequestReply);
+				reply0.setStarted(new Date());
+				reply0.setStdin(form.getFirst("stdin"));
+				reply0.setStdout("stdout");
+				reply0.setStderr("stderr");
+				reply0.setNotification(URI.create(form.getFirst("notification")));
 				
 				Task reply1 = new Task();
 				reply1.setId("1");
 				reply1.setUri(commandRequestReply);
-				reply1.setStarted(reply.getStarted());
-				reply1.setStdin(form.getStdin());
+				reply1.setStarted(reply0.getStarted());
+				reply0.setStdin(form.getFirst("stdin"));
 				reply1.setStdout("stdout");
 				reply1.setStderr("stderr");
-				reply1.setNotification(form.getNotification());
+				reply0.setNotification(URI.create(form.getFirst("notification")));
 				reply1.setFinished(new Date());
 				
-				this.reply = Arrays.asList(reply, reply1);
+				reply = Arrays.asList(reply0, reply1);
 				
 				
 				return commandRequestReply;

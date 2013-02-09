@@ -54,7 +54,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
 
   final public SelfCompilingNode script() throws ParseException {
                               /*@bgen(jjtree) script */
-  SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTSCRIPT);
+  SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTSCRIPT);
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
     try {
@@ -149,7 +149,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
 
   final public void forCommand() throws ParseException {
                      /*@bgen(jjtree) forCommand */
-                      SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTFORCOMMAND);
+                      SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTFORCOMMAND);
                       boolean jjtc000 = true;
                       jjtree.openNodeScope(jjtn000);Token t;
     try {
@@ -181,7 +181,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
 
   final public void variable() throws ParseException {
                    /*@bgen(jjtree) variable */
-                    SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTVARIABLE);
+                    SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTVARIABLE);
                     boolean jjtc000 = true;
                     jjtree.openNodeScope(jjtn000);Token t;
     try {
@@ -198,7 +198,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
 
   final public void block(int blockLine, int indent) throws ParseException {
                                          /*@bgen(jjtree) block */
-  SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTBLOCK);
+  SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTBLOCK);
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
     try {
@@ -235,7 +235,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
 
   final public void createvm() throws ParseException {
                   /*@bgen(jjtree) createvm */
-  SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTCREATEVM);
+  SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTCREATEVM);
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
     try {
@@ -276,7 +276,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
 
   final public void option() throws ParseException {
                  /*@bgen(jjtree) option */
-                  SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTOPTION);
+                  SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTOPTION);
                   boolean jjtc000 = true;
                   jjtree.openNodeScope(jjtn000);Token t;
     try {
@@ -342,7 +342,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
 
   final public void literalArg() throws ParseException {
                      /*@bgen(jjtree) literalArg */
-                      SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTLITERALARG);
+                      SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTLITERALARG);
                       boolean jjtc000 = true;
                       jjtree.openNodeScope(jjtn000);Token t;
     try {
@@ -373,7 +373,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
 
   final public void on() throws ParseException {
              /*@bgen(jjtree) on */
-  SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTON);
+  SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTON);
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
     try {
@@ -416,7 +416,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
 
   final public void log() throws ParseException {
               /*@bgen(jjtree) log */
-  SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTLOG);
+  SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTLOG);
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
     try {
@@ -445,7 +445,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
 
   final public void destroy() throws ParseException {
                   /*@bgen(jjtree) destroy */
-  SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTDESTROY);
+  SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTDESTROY);
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
     try {
@@ -474,7 +474,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
 
   final public void variableAssign() throws ParseException {
                          /*@bgen(jjtree) variableAssign */
-                          SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTVARIABLEASSIGN);
+                          SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTVARIABLEASSIGN);
                           boolean jjtc000 = true;
                           jjtree.openNodeScope(jjtn000);Token t;
     try {
@@ -522,7 +522,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
 
   final public void expression() throws ParseException {
                      /*@bgen(jjtree) expression */
-                      SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTEXPRESSION);
+                      SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTEXPRESSION);
                       boolean jjtc000 = true;
                       jjtree.openNodeScope(jjtn000);Token t;
     try {
@@ -575,7 +575,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
 
   final public void passThru(boolean lastWasExp) throws ParseException {
                                      /*@bgen(jjtree) passThru */
-                                      SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTPASSTHRU);
+                                      SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTPASSTHRU);
                                       boolean jjtc000 = true;
                                       jjtree.openNodeScope(jjtn000);Token t; String result=null; Token first=null; String prefix = "";
     try {
@@ -628,7 +628,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
 
   final public void pieces() throws ParseException {
                  /*@bgen(jjtree) pieces */
-                  SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTPIECES);
+                  SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTPIECES);
                   boolean jjtc000 = true;
                   jjtree.openNodeScope(jjtn000);boolean lastWasExp = false;
     try {
@@ -687,7 +687,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
 
   final public void fileList() throws ParseException {
                    /*@bgen(jjtree) fileList */
-                    SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTFILELIST);
+                    SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTFILELIST);
                     boolean jjtc000 = true;
                     jjtree.openNodeScope(jjtn000);Token f; Token m;
     try {
@@ -737,7 +737,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
 
   final public void fileElement() throws ParseException {
                       /*@bgen(jjtree) fileElement */
-                       SimpleNode jjtn000 = (SimpleNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTFILEELEMENT);
+                       SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTFILEELEMENT);
                        boolean jjtc000 = true;
                        jjtree.openNodeScope(jjtn000);Token f; Token m;
     try {

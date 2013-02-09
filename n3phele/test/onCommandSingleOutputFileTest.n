@@ -1,0 +1,19 @@
+# onCommandSingleOutputFileTest.n
+# Copyright (c) 2013 Nigel Cook. All Rights reserved
+# xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+name	   :  onCommandSingleOutputFile
+description: run a command that has a single input and file
+version	   : 1.1
+preferred  : true
+public	   : true
+icon	   : http://www.n3phele.com/icons/custom
+parameters :						  
+	string account		# cloud account to use
+input files:
+	flowgram.sff.txt 	# Input flowgram file in sff.txt format
+output files:
+	denoiser.log	 	# Input flowgram file in sff.txt format
+EC2: # Amazon EC2
+	$$my_vm = CREATEVM --account $$account
+	ON $$my_vm --produces [denoiser.log: output/denoiser.log] mkdir output; cat < flowgram.sff.txt | wc -l > output/denoiser.log
+	

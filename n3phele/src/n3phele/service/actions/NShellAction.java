@@ -270,7 +270,7 @@ public class NShellAction extends Action {
 			ShellFragment option = this.executable.get(i);
 			String optionName = option.value;
 			if(option.children != null && option.children.length != 0) {
-				Variable v = optionParse(this.executable.get(i));
+				Variable v = optionParse(option);
 				childContext.put(optionName, v);
 			} else {
 				childContext.putValue(optionName, true);
@@ -317,10 +317,10 @@ public class NShellAction extends Action {
 		
 		ShellFragment pieces = this.executable.get(onFragment.children[onFragment.children.length-1]);
 		for(int i=1; i < onFragment.children.length-1; i++){
-			ShellFragment option = this.executable.get(i);
+			ShellFragment option = this.executable.get(onFragment.children[i]);
 			String optionName = option.value;
 			if(option.children != null && option.children.length != 0) {
-				Variable v = optionParse(this.executable.get(option.children[0]));
+				Variable v = optionParse(option);
 				childContext.put(optionName, v);
 			} else {
 				childContext.putValue(optionName, true);
@@ -433,6 +433,8 @@ public class NShellAction extends Action {
 		childContext.putObjectValue("target", target.getUri());
 		
 		Variable on = makeChildProcess("On", childContext, specifiedName, isAsync, dependentOn);
+		OnAction onAction = (OnAction) ActionResource.dao.load(URI.create(on.value()));
+		
 		
 		/*
 		 * Output File Processing
@@ -443,7 +445,7 @@ public class NShellAction extends Action {
 		 * 
 		 */
 		
-		putOutputFilesIntoFileTable(target.getUri(), URI.create(on.value()), producedOutputFiles);
+		putOutputFilesIntoFileTable(target.getUri(), onAction.getProcess(), producedOutputFiles);
 		
 		/*
 		 * Output File Processing

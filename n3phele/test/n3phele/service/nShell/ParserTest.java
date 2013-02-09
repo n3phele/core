@@ -13,7 +13,7 @@
  */
 package n3phele.service.nShell;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.fail;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -21,16 +21,10 @@ import java.net.URI;
 import java.util.List;
 
 import junit.framework.Assert;
-
 import n3phele.service.model.CommandDefinition;
 import n3phele.service.model.CommandImplementationDefinition;
 import n3phele.service.model.ParameterType;
 import n3phele.service.model.ShellFragment;
-import n3phele.service.nShell.NParser;
-import n3phele.service.nShell.ParseException;
-import n3phele.service.nShell.SelfCompilingNode;
-import n3phele.service.nShell.Shell;
-import n3phele.service.nShell.SimpleNode;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -594,9 +588,177 @@ public class ParserTest {
 		Shell s = new Shell(cd.getImplementations().get(0).getBody(), cd.getImplementations().get(0).getLineNo());
 		cd.getImplementations().get(0).setCompiled(s.compile());
 		SelfCompilingNode node = new Shell(cd.getImplementations().get(0).getBody(), cd.getImplementations().get(0).getLineNo()).script();
-		transform(dump(node, "", "."));
-		transform(dumpCompiled(cd.getImplementations().get(0)));
+		
+		String result = dumpCompiled(cd.getImplementations().get(0));
+		String expected = "script:null\n"
+				+ ".variableAssign:DenoiseCluster\n"
+				+ "..createvm:null\n"
+				+ "...option:name\n"
+				+ "....literalArg:DenoiseCluster\n"
+				+ "...option:imageId\n"
+				+ "....literalArg:ami-e4bf1b8d\n"
+				+ "...option:minCount\n"
+				+ "....expression: \n"
+				+ ".....additiveExpression:-\n"
+				+ "......identifier:n\n"
+				+ "......constantLong:1\n"
+				+ "...option:spotPrice\n"
+				+ "....expression: \n"
+				+ ".....identifier:spotPrice\n"
+				+ "...option:instanceType\n"
+				+ "....literalArg:c1.xlarge\n"
+				+ "...option:securityGroups\n"
+				+ "....literalArg:n3phele-default\n"
+				+ "...option:userData\n"
+				+ "....literalArg:#!/bin/bash\n"
+				+ "chmod a+rwx /mnt\n"
+				+ "set -x\n"
+				+ "wget -q -O - https://s3.amazonaws.com/n3phele-agent/addswap | /bin/bash -s 2000\n"
+				+ "wget -q -O - https://n3phele-agent.s3.amazonaws.com/n3ph-install-tgz-basic | su - -c '/bin/bash -s ubuntu ~/agent /mnt/sandbox' ubuntu\n"
+				+ "ln -s /mnt/sandbox ~ubuntu/sandbox\n"
+				+ "\n"
+				+ ".createvm:null\n"
+				+ "..option:name\n"
+				+ "...literalArg:DenoiseMaster\n"
+				+ "..option:imageId\n"
+				+ "...literalArg:ami-e4bf1b8d\n"
+				+ "..option:launchGroup\n"
+				+ "...literalArg:denoise\n"
+				+ "..option:minCount\n"
+				+ "...literalArg:1\n"
+				+ "..option:spotPrice\n"
+				+ "...expression: \n"
+				+ "....identifier:spotPrice\n"
+				+ "..option:instanceType\n"
+				+ "...literalArg:m1.xlarge\n"
+				+ "..option:securityGroups\n"
+				+ "...literalArg:n3phele-default\n"
+				+ "..option:userData\n"
+				+ "...literalArg:#!/bin/bash\n"
+				+ "chmod a+rwx /mnt\n"
+				+ "set -x\n"
+				+ "wget -q -O - https://s3.amazonaws.com/n3phele-agent/addswap | /bin/bash -s 2000\n"
+				+ "wget -q -O - https://n3phele-agent.s3.amazonaws.com/n3ph-install-tgz-basic | su - -c '/bin/bash -s ubuntu ~/agent /mnt/sandbox' ubuntu\n"
+				+ "ln -s /mnt/sandbox ~ubuntu/sandbox\n"
+				+ "\n"
+				+ ".on:null\n"
+				+ "..expression: \n"
+				+ "...identifier:DenoiseMaster\n"
+				+ "..option:needsAll\n"
+				+ "..option:producesNone\n"
+				+ "..pieces:null\n"
+				+ "...passThru:function scan-hosts() { i=0; while [ $i -le 10 ]; do i=$(( $i+1)); ssh-keyscan -H $* > /tmp/known_hosts; if [\"`wc -l </tmp/known_hosts`\" -ne \"$#\" ]; then echo not done .. retrying >&2; sleep 5;else cat /tmp/known_hosts; break; fi; done };\n"
+				+ " function n-times() { i=0; n=$1; shift; while [ $i -lt $n ]; do $*; i=$(( $i+1)); done; }; ssh-keygen -t rsa -f cluster -P '' -q -C cluster; mv cluster cluster.pem; mv cluster.* ~/.ssh; scan-hosts\n"
+				+ "...expression: \n"
+				+ "....functionExpression:string\n"
+				+ ".....identifier:DenoiseCluster.privateIpAddressList\n"
+				+ ".....constantString: \n"
+				+ ".....constantString:\n"
+				+ "...passThru: >> ~/.ssh/known_hosts\n"
+				+ " echo -n localhost,\n"
+				+ "...expression:null\n"
+				+ "....functionExpression:string\n"
+				+ ".....identifier:DenoiseCluster.privateIpAddressList\n"
+				+ ".....constantString:,\n"
+				+ ".....constantString:\n"
+				+ "...passThru:, | sed 's/,/\\n/g' > ~/hosts\n"
+				+ " CORES=8; echo Your workers have $CORES cores.\n"
+				+ " n-times 3 echo localhost > ~/hosts.slave\n"
+				+ " n-times $CORES sed 1d ~/hosts >>~/hosts.slave\n"
+				+ " cat ~/.ssh/cluster.pub\n"
+				+ " someother command --foobar <in >out.foo\n"
+				+ "\n"
+				+ ".forCommand:null\n"
+				+ "..variable:$$i\n"
+				+ "..expression: \n"
+				+ "...additiveExpression:-\n"
+				+ "....identifier:n\n"
+				+ "....constantLong:1\n"
+				+ "..block:null\n"
+				+ "...on:null\n"
+				+ "....expression: \n"
+				+ ".....unaryExpression:null\n"
+				+ "......identifier:DenoiseCluster\n"
+				+ "......identifier:i\n"
+				+ "....pieces:null\n"
+				+ ".....passThru:source /home/ubuntu/qiime_software/activate.sh\n"
+				+ " cp $QIIME/qiime/support_files/qiime_config_n3phele ~/.qiime_config_default\n"
+				+ " echo '\n"
+				+ ".....expression:null\n"
+				+ "......functionExpression:regex\n"
+				+ ".......identifier:setupMaster.stdout\n"
+				+ ".......constantString:.*(ssh-rsa .*cluster).*\n"
+				+ ".......constantLong:1\n"
+				+ ".....passThru:' >> ~/.ssh/authorized_keys\n"
+				+ " chmod 600 ~/.ssh/authorized_keys\n"
+				+ "\n"
+				+ ".on:null\n"
+				+ "..expression: \n"
+				+ "...identifier:DenoiseMaster\n"
+				+ "..option:needsNone\n"
+				+ "..option:producesNone\n"
+				+ "..pieces:null\n"
+				+ "...passThru:for i in `grep -v localhost ~/hosts.slave`; do ssh -i ~/.ssh/cluster.pem $i ping -q -c 3\n"
+				+ "...expression: \n"
+				+ "....unaryExpression:null\n"
+				+ ".....identifier:DenoiseMaster.privateIpAddressList\n"
+				+ ".....constantLong:0\n"
+				+ "...passThru: || echo $i failed; done\n"
+				+ "\n"
+				+ ".on:null\n"
+				+ "..expression: \n"
+				+ "...identifier:DenoiseMaster\n"
+				+ "..option:produces\n"
+				+ "...fileList:null\n"
+				+ "....fileElement:denoiser.log:output/denoiser.log\n"
+				+ "....fileElement:centroids.fasta:output/centroids.fasta\n"
+				+ "....fileElement:singletons.fasta:output/singletons.fasta\n"
+				+ "....fileElement:denoiser_mapping.txt:output/denoiser_mapping.txt\n"
+				+ "..pieces:null\n"
+				+ "...passThru:source /home/ubuntu/qiime_software/activate.sh\n"
+				+ " cp $QIIME/qiime/support_files/qiime_config_n3phele ~/.qiime_config_default\n"
+				+ " sed 's/127.0.1.1/#127.0.1.1/' </etc/hosts >/tmp/hosts\n"
+				+ " cat /tmp/hosts >/etc/hosts\n"
+				+ " shopt -s nullglob; files=\"flowgram.sff.txt\"\n"
+				+ " for i in flowgram[1234].sff.txt; do files= $files, $i; done\n"
+				+ " WORKERS=`wc -l < ~/hosts.slave`\n"
+				+ " echo Run with $WORKERS workers.\n"
+				+ " denoise_wrapper.py -v -i $files\n"
+				+ "...expression: \n"
+				+ "....conditionalExpression:null\n"
+				+ ".....equalityExpression:==\n"
+				+ "......identifier:primer\n"
+				+ "......constantString:LinkerPrimerSequence\n"
+				+ ".....constantString:-m mapping.txt \n"
+				+ ".....additiveExpression:+\n"
+				+ "......constantString:-p \n"
+				+ "......identifier:primer\n"
+				+ "...passThru: -f seqs.fna -o output -n $WORKERS\n"
+				+ "...expression: \n"
+				+ "....conditionalExpression:null\n"
+				+ ".....identifier:titanium\n"
+				+ ".....constantString: --titanium \n"
+				+ ".....constantString:\n"
+				+ "...passThru: || { tail -40 output/denoiser.log; exit 1; }\n"
+				+ "\n"
+				+ ".on:null\n"
+				+ "..expression: \n"
+				+ "...identifier:DenoiseMaster\n"
+				+ "..option:needs\n"
+				+ "...fileList:null\n"
+				+ "....fileElement:sequence.fasta:sequence.fasta\n"
+				+ "....fileElement:centroids.fasta:centroids.fasta\n"
+				+ "....fileElement:singletons.fasta:singletons.fasta\n"
+				+ "....fileElement:denoiser_mapping.txt:denoiser_mapping.txt\n"
+				+ "..option:produces\n"
+				+ "...literalArg:denoised.fasta\n"
+				+ "..pieces:null\n"
+				+ "...passThru:source /home/ubuntu/qiime_software/activate.sh\n"
+				+ " inflate_denoiser_output.py -v -c output/centroids.fasta -s output/singletons.fasta -f seqs.fna -d output/denoiser_mapping.txt -o denoised.fasta\n"
+				+ "\n"
+				+ "";
 
+		Assert.assertEquals(expected, result);
 	}
 	
 	private String dump(SimpleNode node, String prefix) {
@@ -960,5 +1122,72 @@ public class ParserTest {
 
 
 		Assert.assertEquals(expected, result);
+	}
+	
+	@Test
+	public void shellTest_ON() throws ParseException, n3phele.service.nShell.ParseException, FileNotFoundException {
+		NParser n = new NParser(new FileInputStream("./test/onCommandSingleOutputFileTest.n"));
+		CommandDefinition cd = n.parse();
+		Assert.assertEquals("onCommandSingleOutputFile", cd.getName());
+		Assert.assertEquals("run a command that has a single input and file", cd.getDescription());
+		Assert.assertTrue(cd.isPublic());
+		Assert.assertTrue(cd.isPreferred());
+		Assert.assertEquals("1.1", cd.getVersion());
+		Shell s = new Shell(cd.getImplementations().get(0).getBody(), cd.getImplementations().get(0).getLineNo());
+		SimpleNode node = s.script();
+		String result = dump(node, "", ".");
+		String expected = "script:null\n"
+				+ ".variableAssign:\"my_vm\"\n"
+				+ "..createvm:null\n"
+				+ "...option:\"account\"\n"
+				+ "....expression:\" \"\n"
+				+ ".....conditionalExpression:null\n"
+				+ "......logicalORExpression:null\n"
+				+ ".......logicalANDExpression:null\n"
+				+ "........equalityExpression:null\n"
+				+ ".........relationalExpression:null\n"
+				+ "..........additiveExpression:null\n"
+				+ "...........multiplicativeExpression:null\n"
+				+ "............unaryExpression:null\n"
+				+ ".............identifier:\"account\"\n"
+				+ ".on:null\n"
+				+ "..expression:\" \"\n"
+				+ "...conditionalExpression:null\n"
+				+ "....logicalORExpression:null\n"
+				+ ".....logicalANDExpression:null\n"
+				+ "......equalityExpression:null\n"
+				+ ".......relationalExpression:null\n"
+				+ "........additiveExpression:null\n"
+				+ ".........multiplicativeExpression:null\n"
+				+ "..........unaryExpression:null\n"
+				+ "...........identifier:\"my_vm\"\n"
+				+ "..option:\"produces\"\n"
+				+ "...fileList:null\n"
+				+ "....fileElement:\"denoiser.log:output/denoiser.log\"\n"
+				+ "..pieces:null\n"
+				+ "...passThru:\"mkdir output; cat < flowgram.sff.txt | wc -l > output/denoiser.log\n"
+				+ "\"\n"
+				+ "";
+		Assert.assertEquals(expected, result);
+		
+		//transform(dump(node, "", "."));
+		String resultCompiled = dumpCompiled(cd.getImplementations().get(0));
+		String expectedCompiled = "script:null\n"
+				+ ".variableAssign:my_vm\n"
+				+ "..createvm:null\n"
+				+ "...option:account\n"
+				+ "....expression: \n"
+				+ ".....identifier:account\n"
+				+ ".on:null\n"
+				+ "..expression: \n"
+				+ "...identifier:my_vm\n"
+				+ "..option:produces\n"
+				+ "...fileList:null\n"
+				+ "....fileElement:denoiser.log:output/denoiser.log\n"
+				+ "..pieces:null\n"
+				+ "...passThru:mkdir output; cat < flowgram.sff.txt | wc -l > output/denoiser.log\n"
+				+ "\n"
+				+ "";
+		Assert.assertEquals(expectedCompiled, resultCompiled);
 	}
 }

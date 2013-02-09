@@ -144,6 +144,7 @@ public class FileTransferAction extends Action {
 			}
 			
 			form.add("tag", this.context.getValue("fileTableId"));
+			form.add("notification", this.getContext().getValue("notification"));
 	
 			try {
 	
