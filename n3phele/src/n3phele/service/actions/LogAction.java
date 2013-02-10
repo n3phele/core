@@ -15,15 +15,15 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
-import com.googlecode.objectify.annotation.Cache;
-import com.googlecode.objectify.annotation.EntitySubclass;
-import com.googlecode.objectify.annotation.Unindex;
-
 import n3phele.service.model.Action;
 import n3phele.service.model.Context;
 import n3phele.service.model.NarrativeLevel;
 import n3phele.service.model.SignalKind;
 import n3phele.service.model.core.User;
+
+import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.EntitySubclass;
+import com.googlecode.objectify.annotation.Unindex;
 
 /** logs a message
  * <br> Processes the following context elements
@@ -55,22 +55,7 @@ public class LogAction extends Action {
 		log.fine(this.getContext().getValue("arg"));
 		
 		String arg = this.getContext().getValue("arg");
-		NarrativeLevel level = NarrativeLevel.info;
-		if(arg.startsWith("--info ")) {
-			level = NarrativeLevel.info;
-			arg = arg.substring("--info ".length()).trim();
-		} else if(arg.startsWith("--success ")) {
-			level = NarrativeLevel.success;
-			arg = arg.substring("--success ".length()).trim();
-		} if(arg.startsWith("--warning ")) {
-			level = NarrativeLevel.warning;
-			arg = arg.substring("--warning ".length()).trim();
-		} if(arg.startsWith("--error ")) {
-			level = NarrativeLevel.error;
-			arg = arg.substring("--error ".length()).trim();
-		} 
-		
-		logger.log(level, arg);
+		generateLog(logger, arg);
 	}
 
 	@Override
@@ -135,5 +120,22 @@ public class LogAction extends Action {
 		return true;
 	}
 
-	
+	public static void generateLog(ActionLogger logger, String arg) {
+		NarrativeLevel level = NarrativeLevel.info;
+		if(arg.startsWith("--info ")) {
+			level = NarrativeLevel.info;
+			arg = arg.substring("--info ".length()).trim();
+		} else if(arg.startsWith("--success ")) {
+			level = NarrativeLevel.success;
+			arg = arg.substring("--success ".length()).trim();
+		} if(arg.startsWith("--warning ")) {
+			level = NarrativeLevel.warning;
+			arg = arg.substring("--warning ".length()).trim();
+		} if(arg.startsWith("--error ")) {
+			level = NarrativeLevel.error;
+			arg = arg.substring("--error ".length()).trim();
+		} 
+		
+		logger.log(level, arg);
+	}
 }

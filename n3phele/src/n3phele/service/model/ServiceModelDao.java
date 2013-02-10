@@ -14,7 +14,9 @@ package n3phele.service.model;
 
 import n3phele.service.actions.CountDownAction;
 import n3phele.service.actions.CreateVMAction;
+import n3phele.service.actions.DestroyAction;
 import n3phele.service.actions.FileTransferAction;
+import n3phele.service.actions.ForAction;
 import n3phele.service.actions.JobAction;
 import n3phele.service.actions.LogAction;
 import n3phele.service.actions.NShellAction;
@@ -42,14 +44,16 @@ public class ServiceModelDao<T> extends GenericModelDao<T> {
 		ObjectifyService.register(Action.class);
 		ObjectifyService.register(LogAction.class);
 		ObjectifyService.register(CountDownAction.class);
-		ObjectifyService.register(JobAction.class);
-		ObjectifyService.register(ServiceAction.class);
-		ObjectifyService.register(NShellAction.class);
 		ObjectifyService.register(CreateVMAction.class);
-		ObjectifyService.register(VMAction.class);
-		ObjectifyService.register(OnAction.class);
+		ObjectifyService.register(DestroyAction.class);
 		ObjectifyService.register(FileTransferAction.class);
-
+		ObjectifyService.register(ForAction.class);
+		ObjectifyService.register(JobAction.class);
+		ObjectifyService.register(LogAction.class);
+		ObjectifyService.register(NShellAction.class);
+		ObjectifyService.register(OnAction.class);
+		ObjectifyService.register(ServiceAction.class);
+		ObjectifyService.register(VMAction.class);
 	}
 	public ServiceModelDao(Class<T> clazz) {
 		super(clazz);

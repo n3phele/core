@@ -1011,9 +1011,16 @@ public class NShellActionTest {
 		assertEquals(6, logs.size());
 		assertEquals("log For_0_2 2", logs.get(4).getText());
 		assertEquals("log2 For_0_2 2", logs.get(5).getText());
+		for(Narrative log : logs) {
+			System.out.println(log.toString());
+		}
 		Assert.assertTrue("loop concurrent", 
 			(	"log For_0_0 0".equals(logs.get(0).getText()) && 
 				"log For_0_1 1".equals(logs.get(1).getText()) ) ||
+			(	"log For_0_1 1".equals(logs.get(0).getText()) && 
+				"log2 For_0_1 1".equals(logs.get(1).getText()) ) ||
+			(	"log For_0_0 0".equals(logs.get(0).getText()) && 
+				"log2 For_0_0 0".equals(logs.get(1).getText()) ) ||
 			(	"log shell For_0_0 0".equals(logs.get(1).getText()) && 
 					"log For_0_1 1".equals(logs.get(0).getText()) ));
 		

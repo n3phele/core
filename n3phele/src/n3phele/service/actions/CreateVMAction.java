@@ -173,9 +173,6 @@ public class CreateVMAction extends Action {
 
 
 	public void killVM() throws NotFoundException {
-		// FIXME: Not sure this is correct
-		// FIXME: Perhaps we should spawn a destroyAction or
-		// FIXME: directly fetch the actions and invoke killVM directly
 		List<String> vms = this.context.getListValue("cloudVM");
 		log.info("KillVM killing "+vms.size()+" "+vms);
 		for(String vm : vms) {

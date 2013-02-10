@@ -723,6 +723,16 @@ public class ProcessLifecycle {
 				schedule(targetProcess);
 			}});
 	}
+	
+	/** cancel running an existing process.
+	 * Causes the existing process to stop current processing and to close and free any resources that the
+	 * process is currently using.
+	 * 
+	 */
+	public void cancel(URI processId) throws NotFoundException {
+		CloudProcess process = CloudProcessResource.dao.load(processId);
+		cancel(process);
+	}
 
 	public void init(CloudProcess process) {
 		log.info("init "+process.getUri()+" "+process.getName());

@@ -145,15 +145,44 @@ public class NShellAction extends Action {
 	
 	@Override
 	public void cancel() {
-		// TODO Auto-generated method stub
-		
+		log.info("Cancelling "+(active.size()+adopted.size())+" children");
+		for(String vm : active) {
+			try {
+				processLifecycle().cancel(URI.create(vm));
+			} catch (NotFoundException e) {
+				log.severe("Not found: "+e.getMessage());
+			}
+		}
+		for(String vm : adopted) {
+			try {
+				processLifecycle().cancel(URI.create(vm));
+			} catch (NotFoundException e) {
+				log.severe("Not found: "+e.getMessage());
+			}
+		}
 	}
 
 	@Override
 	public void dump() {
-		// TODO Auto-generated method stub
+		log.info("Dump of "+(active.size()+adopted.size())+" children");
+		for(String vm : active) {
+			try {
+				processLifecycle().dump(URI.create(vm));
+			} catch (NotFoundException e) {
+				log.severe("Not found: "+e.getMessage());
+			}
+		}
+		for(String vm : adopted) {
+			try {
+				processLifecycle().dump(URI.create(vm));
+			} catch (NotFoundException e) {
+				log.severe("Not found: "+e.getMessage());
+			}
+		}
 		
 	}
+	
+	
 
 	@Override
 	public void signal(SignalKind kind, String assertion) {
@@ -804,11 +833,16 @@ public class NShellAction extends Action {
 	 */
 	private Variable logCommand(ShellFragment logFragment, String specifiedName) throws NotFoundException, IllegalArgumentException, ClassNotFoundException, UnexpectedTypeException {
 		
+		ShellFragment pieces = this.executable.get(logFragment.children[0]);
+		String arg = assemblePieces(pieces);
+		if(Helpers.isBlankOrNull(specifiedName)) {
+			LogAction.generateLog(logger, arg);
+			return null;
+		}
 		Context childContext = new Context();
 		childContext.putAll(this.context);
 		// Dont childContext.remove("name"); -- use the parents name
-		ShellFragment pieces = this.executable.get(logFragment.children[0]);
-		childContext.putValue("arg", assemblePieces(pieces));
+		childContext.putValue("arg", arg);
 		
 		return makeChildProcess("Log", childContext, specifiedName, false);
 	}
