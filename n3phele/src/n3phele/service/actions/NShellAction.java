@@ -92,17 +92,25 @@ public class NShellAction extends Action {
 	@Override
 	public void init() throws Exception {
 		logger = new ActionLogger(this);
-		String arg = this.getContext().getValue("arg");
-		String[] argv;
-		if(Helpers.isBlankOrNull(arg)) {
-			throw new IllegalArgumentException("executable not specified");
-		} else {
-			argv =	arg.split("[\\s]+");	// FIXME - find a better regex for shell split
-		}
 		
-		URI command = URI.create(argv[0]);
-		if(executable == null)
+		if(executable == null || executable.isEmpty()) {
+			String arg = this.getContext().getValue("arg");
+			String[] argv;
+			if(Helpers.isBlankOrNull(arg)) {
+				throw new IllegalArgumentException("executable not specified");
+			} else {
+				argv =	arg.split("[\\s]+");	// FIXME - find a better regex for shell split
+			}
+			
+			URI command = URI.create(argv[0]);
+	
 			initalizeExecutableFromCommandImplementationDefinition(command);
+		} else {
+			String name = this.context.getValue("name");
+			if(Helpers.isBlankOrNull(name)) {
+				this.context.putValue("name", this.getName());
+			}
+		}
 		this.pc = 0;
 	}
 	
@@ -240,7 +248,7 @@ public class NShellAction extends Action {
 		case log:
 			return logCommand(s, variableName);
 		case forCommand:
-			return forCommand(s);
+			return forCommand(s, variableName);
 		case variableAssign:
 			return variableAssignCommand(s);
 		default:
@@ -664,7 +672,7 @@ public class NShellAction extends Action {
 		return result;
 	}
 	
-	private String assemblePieces(ShellFragment pieces) throws IllegalArgumentException, UnexpectedTypeException {
+	private String assemblePieces(ShellFragment pieces) throws IllegalArgumentException, UnexpectedTypeException, NotFoundException {
 		StringBuffer result = new StringBuffer();
 		ExpressionEngine ee = new ExpressionEngine(this.executable, this.context);
 		boolean first = true;
@@ -673,7 +681,22 @@ public class NShellAction extends Action {
 			if(piece.kind == ShellFragmentKind.passThru) {
 				result.append(piece.value);
 			} else {
-				result.append((!first && piece.value!=null)?piece.value+ee.expression(piece).toString():ee.expression(piece).toString());
+				try {
+					result.append((!first && piece.value!=null)?piece.value+ee.expression(piece).toString():ee.expression(piece).toString());
+				} catch (IllegalArgumentException e) {
+					log.info("Illegal argument: "+e.getMessage());
+					logger.error("Illegal argument: "+e.getMessage());
+					throw e;
+				} catch (UnexpectedTypeException e) {
+					log.info("Unexpected type: "+e.getMessage());
+					logger.error("Unexpected type: "+e.getMessage());
+					throw e;
+				} catch (NotFoundException e) {
+					log.info("Not found: "+e.getMessage());
+					logger.error("Not found: "+e.getMessage());
+					
+					throw e;
+				}
 			}
 			first = false;
 		}
@@ -684,44 +707,61 @@ public class NShellAction extends Action {
 	
 	
 	/** FOR shell command
-	 * 
+	 * < FORLOOP > variable() < COLON > expression() [ <COLON > expression() ] block
+	 * block:: ( command() )*
 	 * @param shellFragment
 	 * @return
 	 * @throws NotFoundException
 	 * @throws IllegalArgumentException
 	 * @throws ClassNotFoundException
+	 * @throws UnexpectedTypeException 
 	 */
-	private Variable forCommand(ShellFragment shellFragment) throws NotFoundException, IllegalArgumentException, ClassNotFoundException {
-		int children = 0;
-		if(shellFragment.children != null && (children = shellFragment.children.length) != 3)
+	private Variable forCommand(ShellFragment shellFragment, String specifiedName) throws NotFoundException, IllegalArgumentException, ClassNotFoundException, UnexpectedTypeException {
+		int children = (shellFragment.children == null) ? 0 : shellFragment.children.length ;
+		if(!(children == 3 || children == 4))
 			throw new IllegalArgumentException("For command has "+children+" children");
+		
 		ShellFragment expression = this.executable.get(shellFragment.children[1]);
+		ExpressionEngine ee = new ExpressionEngine(this.executable, this.context);
+		Object countObject = ee.expression(expression);
+		int count;
+		if(countObject instanceof Long) {
+			count = ((Long)countObject).intValue();
+		} else if(countObject instanceof Double) {
+			count = ((Double)countObject).intValue();
+		} else {
+			throw new UnexpectedTypeException(countObject, "number");
+		}
+		int chunk = count;
+		if(children == 4) {
+			expression = this.executable.get(shellFragment.children[2]);
+			countObject = ee.expression(expression);
+			if(countObject instanceof Long) {
+				chunk = ((Long)countObject).intValue();
+			} else if(countObject instanceof Double) {
+				chunk = ((Double)countObject).intValue();
+			} else {
+				throw new UnexpectedTypeException(countObject, "number");
+			}
+		}
+		String iterator = this.executable.get(shellFragment.children[0]).value.substring(2);
 		
-		int forCreated = this.context.getIntegerValue("forCreated");
-		this.context.putValue("forCreated", forCreated+1);
-		
-		String forNameSeed = this.context.getValue("forNameSeed");
-		if(forNameSeed == null)
-			forNameSeed = "for";
-		String name = forNameSeed +"_"+forCreated;
-
-		//return makeSubshell(shellFragment, name, dependency, this.context);
-		throw new IllegalArgumentException("unimplemented");
-	}
-	
-	private Variable makeSubshell(ShellFragment shellFragment, String name, List<URI>dependency, Context context) throws NotFoundException, IllegalArgumentException, ClassNotFoundException {
 		Context childContext = new Context();
-		childContext.putAll(context);
-		int myIndex = this.executable.indexOf(shellFragment);
+		childContext.putAll(this.context);
+		childContext.putValue("iterator", iterator);
+		childContext.putValue("n", count);
+		childContext.putValue("chunkSize", chunk);
 		
-		CloudProcess process = processLifecycle().spawn(this.getOwner(), name, childContext, dependency, this.getProcess(), "NShell");
-		NShellAction action = (NShellAction) ActionResource.dao.load(process.getAction());
-		action.setExecutable(this.executable.subList(0, myIndex+1));
-		this.context.putValue(name, action);
-		this.active.add(process.getUri().toString());
-		processLifecycle().init(process);
-		return this.context.get(name);
-		
+		CloudProcess child = forkChildProcess("For", childContext, specifiedName, null);
+		ForAction forAction = (ForAction) ActionResource.dao.load(child.getAction());
+		forAction.setExecutable(this.executable.subList(0, shellFragment.children[children-1]+1));
+		forAction.setCloud(this.getCloud());
+		forAction.setCommand(this.getCommand());
+		forAction.setExecutableName(this.getExecutableName());
+		ActionResource.dao.update(forAction);
+		processLifecycle().init(child);
+		return this.context.get(child.getName());
+
 	}
 	
 
@@ -885,6 +925,8 @@ public class NShellAction extends Action {
 	private void scanExpressionTreeForDependencies(ShellFragment s, Set<String> dependencies) {
 		if(s.kind == ShellFragmentKind.identifier) {
 			dependencies.add(s.value);
+		} if(s.kind == ShellFragmentKind.block) {
+			return; // dont scan blocks
 		}
 		if(s.children != null) {
 			for(int i : s.children) {
@@ -947,6 +989,10 @@ public class NShellAction extends Action {
 				this.executableName = cid.getName()+":"+cmd.getName()+" "+cmd.getVersion()+(cmd.isPreferred()?"":"*");
 				this.command = baseURI.toString();
 				this.cloud = cid.getName();
+				String myName = this.context.getValue("name");
+				if(Helpers.isBlankOrNull(myName)) {
+					this.context.putValue("name", cmd.getName());
+				}
 				return cid;
 			}
 		}

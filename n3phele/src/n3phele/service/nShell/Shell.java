@@ -157,6 +157,15 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
       variable();
       jj_consume_token(COLON);
       expression();
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case COLON:
+        jj_consume_token(COLON);
+        expression();
+        break;
+      default:
+        jj_la1[3] = jj_gen;
+        ;
+      }
       block(t.beginLine, t.beginColumn);
     } catch (Throwable jjte000) {
       if (jjtc000) {
@@ -249,7 +258,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
           ;
           break;
         default:
-          jj_la1[3] = jj_gen;
+          jj_la1[4] = jj_gen;
           break label_3;
         }
       }
@@ -289,7 +298,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
         t = jj_consume_token(NO_ARG_OPTION);
         break;
       default:
-        jj_la1[4] = jj_gen;
+        jj_la1[5] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -334,7 +343,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
       fileList();
       break;
     default:
-      jj_la1[5] = jj_gen;
+      jj_la1[6] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -357,7 +366,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
         t = jj_consume_token(LITERALBLOCK);
         break;
       default:
-        jj_la1[6] = jj_gen;
+        jj_la1[7] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -387,7 +396,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
           ;
           break;
         default:
-          jj_la1[7] = jj_gen;
+          jj_la1[8] = jj_gen;
           break label_4;
         }
         option();
@@ -492,7 +501,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
         expression();
         break;
       default:
-        jj_la1[8] = jj_gen;
+        jj_la1[9] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -540,7 +549,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
                                                   jjtree.pushNode(getExpressionNode(t.image, t.beginLine, t.beginColumn));
         break;
       default:
-        jj_la1[9] = jj_gen;
+        jj_la1[10] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -565,7 +574,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
       t = jj_consume_token(PASSTHRUMORE);
       break;
     default:
-      jj_la1[10] = jj_gen;
+      jj_la1[11] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -598,7 +607,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
           ;
           break;
         default:
-          jj_la1[11] = jj_gen;
+          jj_la1[12] = jj_gen;
           break label_5;
         }
       }
@@ -647,7 +656,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
             lastWasExp = false;
           break;
         default:
-          jj_la1[12] = jj_gen;
+          jj_la1[13] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
@@ -660,7 +669,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
           ;
           break;
         default:
-          jj_la1[13] = jj_gen;
+          jj_la1[14] = jj_gen;
           break label_6;
         }
       }
@@ -702,7 +711,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
             ;
             break;
           default:
-            jj_la1[14] = jj_gen;
+            jj_la1[15] = jj_gen;
             break label_7;
           }
           jj_consume_token(COMMA);
@@ -710,7 +719,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
         }
         break;
       default:
-        jj_la1[15] = jj_gen;
+        jj_la1[16] = jj_gen;
         ;
       }
       jj_consume_token(FILELISTEND);
@@ -749,7 +758,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
         m = jj_consume_token(FILESPEC);
         break;
       default:
-        jj_la1[16] = jj_gen;
+        jj_la1[17] = jj_gen;
         ;
       }
                                                                     jjtree.closeNodeScope(jjtn000, true);
@@ -771,7 +780,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
   public Token jj_nt;
   private int jj_ntk;
   private int jj_gen;
-  final private int[] jj_la1 = new int[17];
+  final private int[] jj_la1 = new int[18];
   static private int[] jj_la1_0;
   static private int[] jj_la1_1;
   static {
@@ -779,10 +788,10 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
       jj_la1_init_1();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0xfc0,0xfc0,0x6c0,0x18000,0x18000,0xc0c80000,0x40480000,0x18000,0x800006c0,0x80000000,0x0,0x0,0x80000000,0x80000000,0x8000000,0x1000000,0x20000000,};
+      jj_la1_0 = new int[] {0x39c0,0x39c0,0x18c0,0x80000000,0x60000,0x60000,0x3200000,0x1200000,0x60000,0x18c0,0x0,0x0,0x0,0x0,0x0,0x20000000,0x4000000,0x80000000,};
    }
    private static void jj_la1_init_1() {
-      jj_la1_1 = new int[] {0x0,0x0,0x0,0x0,0x0,0x21,0x0,0x0,0x21,0x21,0x14,0x14,0x35,0x35,0x0,0x0,0x0,};
+      jj_la1_1 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x87,0x1,0x0,0x86,0x86,0x50,0x50,0xd6,0xd6,0x0,0x0,0x0,};
    }
 
   /** Constructor with InputStream. */
@@ -796,7 +805,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 17; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -811,7 +820,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
     jj_ntk = -1;
     jjtree.reset();
     jj_gen = 0;
-    for (int i = 0; i < 17; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
   }
 
   /** Constructor. */
@@ -821,7 +830,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 17; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -832,7 +841,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
     jj_ntk = -1;
     jjtree.reset();
     jj_gen = 0;
-    for (int i = 0; i < 17; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
   }
 
   /** Constructor with generated Token Manager. */
@@ -841,7 +850,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 17; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -851,7 +860,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
     jj_ntk = -1;
     jjtree.reset();
     jj_gen = 0;
-    for (int i = 0; i < 17; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
   }
 
   private Token jj_consume_token(int kind) throws ParseException {
@@ -902,12 +911,12 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
   /** Generate ParseException. */
   public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[38];
+    boolean[] la1tokens = new boolean[40];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
     }
-    for (int i = 0; i < 17; i++) {
+    for (int i = 0; i < 18; i++) {
       if (jj_la1[i] == jj_gen) {
         for (int j = 0; j < 32; j++) {
           if ((jj_la1_0[i] & (1<<j)) != 0) {
@@ -919,7 +928,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
         }
       }
     }
-    for (int i = 0; i < 38; i++) {
+    for (int i = 0; i < 40; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;

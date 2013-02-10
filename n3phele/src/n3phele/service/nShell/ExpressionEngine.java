@@ -44,7 +44,7 @@ public class ExpressionEngine {
 		return eval(this.executable.size()-1);
 	}
 	
-	public Object expression(ShellFragment s) throws IllegalArgumentException, UnexpectedTypeException {
+	public Object expression(ShellFragment s) throws IllegalArgumentException, UnexpectedTypeException, NotFoundException {
 		return eval(s.children[0]);
 	}
 	
@@ -555,8 +555,9 @@ public class ExpressionEngine {
 	
 	private Object identifier(ShellFragment s) {
 		Variable v = lookup(s.value);
-		if(v == null)
-			throw new NotFoundException();
+		if(v == null) {
+			throw new NotFoundException(s.value);
+		}
 		return v.getExpressionObject();
 	}
 	

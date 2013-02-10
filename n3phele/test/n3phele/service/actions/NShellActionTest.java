@@ -968,7 +968,58 @@ public class NShellActionTest {
 		Assert.assertEquals(URI.create("http://192.168.1.0:8887/task/4"), FileTransferActionWrapper.getTaskTarget);
 		Assert.assertEquals(URI.create("http://192.168.1.0:8887/task/15"), OnActionWrapper.getTaskTarget);	
 	}
+	
+	
+	/** Invokes a log command in a for loop
+	 * @throws InterruptedException
+	 * @throws ClassNotFoundException
+	 * @throws FileNotFoundException
+	 * @throws ParseException
+	 */
+	@Test
+	public void forLoopOfLogTest() throws InterruptedException, ClassNotFoundException, FileNotFoundException, ParseException {
+		User root = getRoot();
+		ObjectifyService.register(NShellActionTestHarness.class);
+		assertNotNull(root);
+		
+		NParser n = new NParser(new FileInputStream("./test/forCommandLogTest.n"));
+		CommandDefinition cd = n.parse();
+		cd.setUri(URI.create("http://n3phele.com/test"));
+		Assert.assertEquals("forCommandLog", cd.getName());
+		Assert.assertEquals("a simple for loop", cd.getDescription());
+		Assert.assertTrue(cd.isPublic());
+		Assert.assertTrue(cd.isPreferred());
+		Assert.assertEquals("1.0", cd.getVersion());
+		Assert.assertEquals(URI.create("http://www.n3phele.com/icons/custom"), cd.getIcon());
+		testCommandDefinition = cd;
+		
+		Context context = new Context();
+		
+		context.putValue("n", 3);
+		context.putValue("concurrent", 2);
+		context.putValue("arg", "http://n3phele.com/test#EC2");
+		
+		CloudProcess shellProcess = ProcessLifecycle.mgr().createProcess(root, "shell", context, null, null, NShellActionTestHarness.class);
+		ProcessLifecycle.mgr().init(shellProcess);
+		Thread.sleep(2000);
+		CloudProcessResource.dao.clear();
+		
+		String refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
+		assertEquals("{}", refresh);
+		List<Narrative> logs = new ArrayList<Narrative>();
+		logs.addAll(NarrativeResource.dao.getNarratives(shellProcess.getUri()));
+		assertEquals(6, logs.size());
+		Assert.assertTrue("loop concurrent", 
+			(	"log forCommandLog 0".equals(logs.get(0).getText()) && 
+				"log forCommandLog 1".equals(logs.get(1).getText()) ) ||
+			(	"log forCommandLog 0".equals(logs.get(1).getText()) && 
+					"log forCommandLog 1".equals(logs.get(0).getText()) ));
+		assertEquals("log forCommandLog 2", logs.get(4).getText());
+		assertEquals("log2 forCommandLog 2", logs.get(5).getText());
 
+		
+		Thread.sleep(1000);
+	}
 
 
 		
@@ -1219,6 +1270,10 @@ public class NShellActionTest {
 			}
 	 }
 	 
+	 @EntitySubclass
+	 public static class ForActionWrapper extends ForAction {
+		 
+	 }
 	 
 	 private static class CreateVirtualServerTestResult extends CreateVirtualServerResult {
 			URI location;
