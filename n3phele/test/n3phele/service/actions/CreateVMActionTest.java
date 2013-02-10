@@ -442,7 +442,7 @@ public class CreateVMActionTest {
 		 context.putValue("arg", "CreateVM");
 		 CloudProcess service = ProcessLifecycleWrapper.mgr().spawn(getRoot().getUri(), "one", context, null, null, "Service");
 		 ProcessLifecycleWrapper.mgr().init(service);
-		 Thread.sleep(1000);
+		 Thread.sleep(1500);
 		 CloudProcessResource.dao.clear();
 		 ServiceAction action = (ServiceAction) ActionResource.dao.load(service.getAction());
 		 CloudProcess process = CloudProcessResource.dao.load(action.getChildProcess());

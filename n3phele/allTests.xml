@@ -1,0 +1,33 @@
+<project name="n3phele test" basedir="." default="junit">
+<path id="test.class.path">
+<pathelement location="./test-classes"/>
+</path>
+
+<path id="build.class.path">
+<pathelement location="./war/WEB-INF/classes"/>
+</path>
+
+<path id="lib">
+<fileset dir="./war/WEB-INF/lib">
+<include name="*.jar" />
+</fileset>
+</path>
+
+<path id="google">
+<fileset dir="C:\Users\NICO1\Desktop\juno\eclipse\plugins\com.google.appengine.eclipse.sdkbundle_1.7.4\appengine-java-sdk-1.7.4\">
+<include name="lib\testing\appengine-testing.jar" />
+<include name="lib\impl\appengine-api-stubs.jar" />
+</fileset>
+</path>
+
+<target name="junit">
+    <junit printsummary="withOutAndErr" haltonfailure="yes" showoutput="no" >
+        <classpath refid="test.class.path" />
+		<classpath refid="build.class.path" />
+		<classpath refid="lib" />
+		<classpath refid="google" />
+		<formatter type="brief" usefile="false" />
+		<test name="n3phele.AllTests" />
+    </junit>
+</target>
+</project>

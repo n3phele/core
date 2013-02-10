@@ -92,7 +92,7 @@ public class NShellAction extends Action {
 	@Override
 	public void init() throws Exception {
 		logger = new ActionLogger(this);
-		
+
 		if(executable == null || executable.isEmpty()) {
 			String arg = this.getContext().getValue("arg");
 			String[] argv;
@@ -105,12 +105,8 @@ public class NShellAction extends Action {
 			URI command = URI.create(argv[0]);
 	
 			initalizeExecutableFromCommandImplementationDefinition(command);
-		} else {
-			String name = this.context.getValue("name");
-			if(Helpers.isBlankOrNull(name)) {
-				this.context.putValue("name", this.getName());
-			}
 		}
+		
 		this.pc = 0;
 	}
 	
@@ -274,6 +270,7 @@ public class NShellAction extends Action {
 	private Variable createVMCommand(ShellFragment createVMFragment, String specifiedName) throws IllegalArgumentException, UnexpectedTypeException, NotFoundException, ClassNotFoundException {
 		Context childContext = new Context();
 		childContext.putAll(this.context);
+		childContext.remove("name");
 		for(int i : createVMFragment.children){
 			ShellFragment option = this.executable.get(i);
 			String optionName = option.value;
@@ -309,7 +306,8 @@ public class NShellAction extends Action {
 	private Variable onCommand(ShellFragment onFragment, String specifiedName) throws IllegalArgumentException, UnexpectedTypeException, NotFoundException, ClassNotFoundException {
 		Context childContext = new Context();
 		childContext.putAll(this.context);
-
+		childContext.remove("name");
+		
 		ShellFragment expression = this.executable.get(onFragment.children[0]);
 		ExpressionEngine ee = new ExpressionEngine(this.executable, this.context);
 		URI uri = URI.create(ee.expression(expression).toString());
@@ -393,7 +391,7 @@ public class NShellAction extends Action {
 			fileCopyContext.putValue("source", newEntry.getRepo());
 			fileCopyContext.putValue("destination", URI.create("file:///"+newEntry.getLocalName()));
 			fileCopyContext.putValue("fileTableId", newEntry.getName());
-			CloudProcess fileCopy = forkChildProcess("FileTransfer", fileCopyContext, null, null);
+			CloudProcess fileCopy = forkChildProcess("FileTransfer", fileCopyContext, generateUniqueName("FileTransfer"), null);
 			newEntry.setProcess(fileCopy.getUri());
 			inputXferProcess.put(newEntry.getName(), fileCopy);
 		}
@@ -469,7 +467,7 @@ public class NShellAction extends Action {
 				fileCopyContext.putValue("destination", outputXfer.getRepo());
 				fileCopyContext.putValue("source", URI.create("file:///"+outputXfer.getLocalName()));
 				fileCopyContext.putValue("fileTableId", outputXfer.getName());
-				CloudProcess fileCopy = forkChildProcess("FileTransfer", fileCopyContext, null, Arrays.asList(outputXfer.getProcess()));
+				CloudProcess fileCopy = forkChildProcess("FileTransfer", fileCopyContext, generateUniqueName("FileTransfer"), Arrays.asList(outputXfer.getProcess()));
 				processLifecycle().init(fileCopy);
 			}
 		}
@@ -748,6 +746,7 @@ public class NShellAction extends Action {
 		
 		Context childContext = new Context();
 		childContext.putAll(this.context);
+		childContext.remove("name");
 		childContext.putValue("iterator", iterator);
 		childContext.putValue("n", count);
 		childContext.putValue("chunkSize", chunk);
@@ -807,6 +806,7 @@ public class NShellAction extends Action {
 		
 		Context childContext = new Context();
 		childContext.putAll(this.context);
+		// Dont childContext.remove("name"); -- use the parents name
 		ShellFragment pieces = this.executable.get(logFragment.children[0]);
 		childContext.putValue("arg", assemblePieces(pieces));
 		
@@ -989,10 +989,6 @@ public class NShellAction extends Action {
 				this.executableName = cid.getName()+":"+cmd.getName()+" "+cmd.getVersion()+(cmd.isPreferred()?"":"*");
 				this.command = baseURI.toString();
 				this.cloud = cid.getName();
-				String myName = this.context.getValue("name");
-				if(Helpers.isBlankOrNull(myName)) {
-					this.context.putValue("name", cmd.getName());
-				}
 				return cid;
 			}
 		}
@@ -1015,7 +1011,7 @@ public class NShellAction extends Action {
 	
 	private CloudProcess forkChildProcess(String processType, Context childContext, String variableName, List<URI> dependency) throws NotFoundException, IllegalArgumentException, ClassNotFoundException {
 		
-		String optionName = context.getValue("name");
+		String optionName = childContext.getValue("name");
 		if(Helpers.isBlankOrNull(variableName)) {
 			variableName = optionName;
 			if(Helpers.isBlankOrNull(variableName)) {

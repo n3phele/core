@@ -73,6 +73,7 @@ public class OnAction extends Action {
 	@Override
 	public void init() throws Exception {
 		logger = new ActionLogger(this);
+		
 		log.info(this.getContext().getValue("arg"));
 		
 		this.target = this.getContext().getValue("target");

@@ -1009,13 +1009,14 @@ public class NShellActionTest {
 		List<Narrative> logs = new ArrayList<Narrative>();
 		logs.addAll(NarrativeResource.dao.getNarratives(shellProcess.getUri()));
 		assertEquals(6, logs.size());
+		assertEquals("log For_0_2 2", logs.get(4).getText());
+		assertEquals("log2 For_0_2 2", logs.get(5).getText());
 		Assert.assertTrue("loop concurrent", 
-			(	"log forCommandLog 0".equals(logs.get(0).getText()) && 
-				"log forCommandLog 1".equals(logs.get(1).getText()) ) ||
-			(	"log forCommandLog 0".equals(logs.get(1).getText()) && 
-					"log forCommandLog 1".equals(logs.get(0).getText()) ));
-		assertEquals("log forCommandLog 2", logs.get(4).getText());
-		assertEquals("log2 forCommandLog 2", logs.get(5).getText());
+			(	"log For_0_0 0".equals(logs.get(0).getText()) && 
+				"log For_0_1 1".equals(logs.get(1).getText()) ) ||
+			(	"log shell For_0_0 0".equals(logs.get(1).getText()) && 
+					"log For_0_1 1".equals(logs.get(0).getText()) ));
+		
 
 		
 		Thread.sleep(1000);

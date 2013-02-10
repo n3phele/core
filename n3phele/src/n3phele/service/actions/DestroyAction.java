@@ -59,10 +59,7 @@ public class DestroyAction extends Action {
 	@Override
 	public void init() throws Exception {
 		logger = new ActionLogger(this);
-		String name = this.context.getValue("name");
-		if(Helpers.isBlankOrNull(name)) {
-			this.context.putValue("name", this.getName());
-		}
+	
 		this.target = this.getContext().getValue("target");
 		String arg = this.getContext().getValue("arg");
 		if(Helpers.isBlankOrNull(this.target)) {

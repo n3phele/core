@@ -29,7 +29,6 @@ import n3phele.service.lifecycle.ProcessLifecycle;
 import n3phele.service.model.Action;
 import n3phele.service.model.FileTracker;
 import n3phele.service.model.SignalKind;
-import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.NameValue;
 import n3phele.service.model.core.VirtualServer;
 
@@ -72,10 +71,6 @@ public class VMAction extends Action {
 	@Override
 	public void init() throws Exception {
 		logger = new ActionLogger(this);
-		String name = this.context.getValue("name");
-		if(Helpers.isBlankOrNull(name)) {
-			this.context.putValue("name", this.getName());
-		}
 		this.epoch = new Date().getTime();
 	}
 	

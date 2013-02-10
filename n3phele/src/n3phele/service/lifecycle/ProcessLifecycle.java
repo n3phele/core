@@ -26,6 +26,7 @@ import n3phele.service.model.Action;
 import n3phele.service.model.ActionState;
 import n3phele.service.model.CloudProcess;
 import n3phele.service.model.SignalKind;
+import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.User;
 import n3phele.service.rest.impl.ActionResource;
 import n3phele.service.rest.impl.CloudProcessResource;
@@ -58,6 +59,10 @@ public class ProcessLifecycle {
 		CloudProcess process = new CloudProcess(user.getUri(), name, parent, action);
 		CloudProcessResource.dao.add(process);
 		action.setProcess(process.getUri());
+		String contextName = action.getContext().getValue("name");
+		if(Helpers.isBlankOrNull(contextName)) {
+			action.getContext().putValue("name", name);
+		}
 		ActionResource.dao.update(action);
 		setDependentOn(process.getUri(), dependency);
 		return process;

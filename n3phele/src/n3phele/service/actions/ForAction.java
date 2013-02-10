@@ -74,10 +74,7 @@ public class ForAction extends Action {
 	@Override
 	public void init() throws Exception {
 		logger = new ActionLogger(this);
-		String name = this.context.getValue("name");
-		if(Helpers.isBlankOrNull(name)) {
-			this.context.putValue("name", this.getName());
-		}
+		
 		int n = this.context.getIntegerValue("n");
 		if(n <= 0) {
 			n = 1;
@@ -192,9 +189,11 @@ public class ForAction extends Action {
 		
 			Context childContext = new Context();
 			childContext.putAll(this.context);
+			
 			for(; i < lim; i++) {
 				childContext.putValue(iterator, i);
-
+				childContext.remove("name");
+				
 				CloudProcess process = processLifecycle().spawn(this.getOwner(), this.getName()+"_"+i, childContext, null, this.getProcess(), "NShell");
 				NShellAction action = (NShellAction) ActionResource.dao.load(process.getAction());
 				

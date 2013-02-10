@@ -79,10 +79,7 @@ public class CreateVMAction extends Action {
 	@Override
 	public void init() throws Exception {
 		logger = new ActionLogger(this);
-		String name = this.context.getValue("name");
-		if(Helpers.isBlankOrNull(name)) {
-			this.context.putValue("name", this.getName());
-		}
+
 		int n = this.context.getIntegerValue("n");
 		if(n <= 0) {
 			n = 1;

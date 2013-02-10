@@ -91,17 +91,14 @@ public class JobAction extends Action {
 		
 		Context childEnv = new Context();
 		childEnv.putAll(this.getContext());
+		childEnv.remove("name");
 		
 		if(Helpers.isBlankOrNull(this.actionName) && argv.length > 0) {
 			this.actionName = argv[0];
 			childEnv.putValue("action", this.actionName);
 		}
 		
-		String childName = childEnv.getValue("name");
-		if(Helpers.isBlankOrNull(childName)) {
-			childName = this.getName()+"."+this.actionName;
-			childEnv.putValue("name", childName);
-		}
+		String childName = this.getName()+"."+this.actionName;
 
 		StringBuilder newArg = new StringBuilder();
 		for(int i = 1; i < argv.length; i++) {
