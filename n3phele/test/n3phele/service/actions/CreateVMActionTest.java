@@ -47,6 +47,7 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
 
 public class CreateVMActionTest {
+	final private static java.util.logging.Logger log = java.util.logging.Logger.getLogger(CreateVMActionTest.class.getName()); 
 
 	private final LocalServiceTestHelper helper =   new LocalServiceTestHelper(
 			new LocalDatastoreServiceTestConfig()
@@ -72,6 +73,7 @@ public class CreateVMActionTest {
 	 
 	 @Test
 	 public void oneVmCreation() throws NotFoundException, IllegalArgumentException, ClassNotFoundException, InterruptedException {
+		 log.info("test1");
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
 		 CreateVMActionWrapper.initalState = "Running";
@@ -125,6 +127,7 @@ public class CreateVMActionTest {
 	 
 	 @Test
 	 public void oneVmCreationNotAZombie() throws NotFoundException, IllegalArgumentException, ClassNotFoundException, InterruptedException {
+		 log.info("test2");
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
 		 CreateVMActionWrapper.initalState = "Pending";
@@ -179,6 +182,7 @@ public class CreateVMActionTest {
 	 
 	 @Test
 	 public void twoVmCreation() throws NotFoundException, IllegalArgumentException, ClassNotFoundException, InterruptedException {
+		 log.info("test3");
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
 		 CreateVMActionWrapper.initalState = "Running";
@@ -261,6 +265,7 @@ public class CreateVMActionTest {
 	 
 	 @Test
 	 public void twoVmCreationNotAZombie() throws NotFoundException, IllegalArgumentException, ClassNotFoundException, InterruptedException {
+		 log.info("test4");
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
 		 CreateVMActionWrapper.initalState = "Pending";
@@ -344,6 +349,7 @@ public class CreateVMActionTest {
 	 
 	 @Test
 	 public void oneVmCreationTimeout() throws NotFoundException, IllegalArgumentException, ClassNotFoundException, InterruptedException {
+		 log.info("test5");
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
 		 CreateVMActionWrapper.initalState = "Pending";
@@ -376,6 +382,7 @@ public class CreateVMActionTest {
 	 
 	 @Test
 	 public void twoVmCreationTimeout() throws NotFoundException, IllegalArgumentException, ClassNotFoundException, InterruptedException {
+		 log.info("test6");
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
 		 CreateVMActionWrapper.initalState = "Pending";
@@ -423,14 +430,16 @@ public class CreateVMActionTest {
 		
 		process = CloudProcessResource.dao.load(process.getUri());
 		assertEquals(ActionState.FAILED, process.getState());
-		childVM = CloudProcessResource.dao.getChildren(process.getUri()).toArray(new CloudProcess[1])[0];
-		assertEquals(ActionState.CANCELLED, childVM.getState());
-		childVM = CloudProcessResource.dao.getChildren(process.getUri()).toArray(new CloudProcess[1])[1];
-		assertEquals(ActionState.FAILED, childVM.getState());
+		CloudProcess childVM1 = CloudProcessResource.dao.getChildren(process.getUri()).toArray(new CloudProcess[1])[0];
+		CloudProcess childVM2 = CloudProcessResource.dao.getChildren(process.getUri()).toArray(new CloudProcess[2])[1];
+		assertEquals(ActionState.CANCELLED, childVM1.getState());
+		assertEquals(ActionState.FAILED, childVM2.getState());
+
 	 }
 	 
 	 @Test
 	 public void twoVmCreationOneVMDies() throws NotFoundException, IllegalArgumentException, ClassNotFoundException, InterruptedException {
+		 log.info("test7");
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
 		 CreateVMActionWrapper.initalState = "Pending";
@@ -483,6 +492,7 @@ public class CreateVMActionTest {
 	 
 	 @Test
 	 public void twoVmCreationOneVMDisappears() throws NotFoundException, IllegalArgumentException, ClassNotFoundException, InterruptedException {
+		 log.info("test8");
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
 		 CreateVMActionWrapper.initalState = "Pending";

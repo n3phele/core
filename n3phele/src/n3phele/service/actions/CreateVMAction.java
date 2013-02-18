@@ -139,7 +139,8 @@ public class CreateVMAction extends Action {
 				// FIXME: --onFailure: killAll
 				// FIXME: --onFailure: continue
 				this.inProgress.remove(assertion);
-				this.killVM();
+				if(!failed)
+					this.killVM();
 				failed = true;
 			}
 			break;
@@ -155,7 +156,8 @@ public class CreateVMAction extends Action {
 			log.info((isChild?"Child ":"Unknown ")+assertion+" failed");
 			if(isChild) {
 				this.inProgress.remove(assertion);
-				this.killVM();
+				if(!failed)
+					this.killVM();
 				failed = true;
 			}
 			break;
@@ -177,7 +179,9 @@ public class CreateVMAction extends Action {
 		log.info("KillVM killing "+vms.size()+" "+vms);
 		for(String vm : vms) {
 			Action action = ActionResource.dao.load(URI.create(vm));
-			processLifecycle().dump(action.getProcess());
+			CloudProcess process = processLifecycle().dump(action.getProcess());
+			if(!process.isFinalized() &&  !inProgress.contains(process.getUri().toString()))
+				inProgress.add(process.getUri().toString());
 		}
 		
 	}

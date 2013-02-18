@@ -13,12 +13,17 @@ package n3phele.service.lifecycle;
 import static com.googlecode.objectify.ObjectifyService.ofy;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Level;
 
 import n3phele.service.core.NotFoundException;
@@ -90,7 +95,7 @@ public class ProcessLifecycle {
 			log.info("Process "+process.getUri()+" "+processState+" "+process.getRunning());
 			if(process.getRunning() == null && processState != ActionState.NEWBORN) {
 				if(process.hasPending() || processState == ActionState.RUNABLE)
-					schedule(process);
+					schedule(process, false);
 			} 
 		} 
 		
@@ -101,7 +106,7 @@ public class ProcessLifecycle {
 	 * @param process
 	 * @return TRUE if process queued
 	 */
-	public boolean schedule(CloudProcess process) {
+	public boolean schedule(CloudProcess process, final boolean forceWrite) {
 		final URI processURI = process.getUri();
 		final Long processId = process.getId();
 		final Key<CloudProcess> processRoot = process.getRoot();
@@ -109,10 +114,11 @@ public class ProcessLifecycle {
 
 			@Override
 			public Boolean run() {
+				log.info(">>>>>>>>>>Schedule "+processURI);
 				boolean result = false;
-				boolean dirty = false;
+				boolean dirty = forceWrite;
 				CloudProcess process = CloudProcessResource.dao.load(processRoot, processId);
-				if(process.getRunning() == null) {
+				if(process.getRunning() == null && !process.isFinalized()) {
 					if(process.getWaitTimeout() != null) {
 						Date now = new Date();
 						if(process.hasPendingAssertions() || now.after(process.getWaitTimeout())) {
@@ -120,21 +126,25 @@ public class ProcessLifecycle {
 							dirty = true;
 						}
 					}
-					
-					if(process.getWaitTimeout() == null && !process.isPendingCall() && !(process.isPendingInit() || process.isPendingCancel() || process.isPendingDump()) ) {
+					if(process.getState().equals(ActionState.RUNABLE) && !process.isPendingCall() 
+							&& !(process.isPendingCancel() || process.isPendingDump())
+							&& process.hasPendingAssertions() || process.getWaitTimeout() == null ) {
 						dirty = true;
+						log.info("===========>Pending call of "+processURI);
 						process.setPendingCall(true);
 					}
 					if(process.hasPending()) {
+						log.info("Queued "+processURI);
 						process.setRunning(new Date());
 						QueueFactory.getDefaultQueue().add(ofy().getTxn(),
-								TaskOptions.Builder.withPayload(new Schedule(processURI)));
+								TaskOptions.Builder.withPayload(new Schedule(processURI, process.getRunning())));
 						result = true;
 						dirty = true;
 					}
-					if(dirty)
-						CloudProcessResource.dao.update(process);
 				}
+				if(dirty)
+					CloudProcessResource.dao.update(process);
+				log.info("<<<<<<<<Schedule "+processURI);
 				return result;
 			}});
 		
@@ -142,17 +152,23 @@ public class ProcessLifecycle {
 	private static class Schedule implements DeferredTask {
 		private static final long serialVersionUID = 1L;
 		final private URI process;
-		public Schedule(URI process) {
+		final private Date stamp;
+		public Schedule(URI process, Date stamp) {
 			this.process = process;
+			this.stamp = stamp;
 		}
 
 		@Override
 		public void run(){
-			CloudProcessResource.dao.clear();
 			try {
-				mgr().dispatch(process);
+				boolean redispatch = true;
+				while(redispatch) {
+					CloudProcessResource.dao.clear();
+					redispatch = mgr().dispatch(process, stamp);
+				}
 			} catch (Exception e) {
 				log.log(Level.SEVERE, "Dispatch exception", e);
+				mgr().dump(process);
 			}
 		}
 	}
@@ -161,14 +177,23 @@ public class ProcessLifecycle {
 	
 	/** Dispatches execution to a task's entry points
 	 * @param processId
+	 * @return true if additional dispatch requested
 	 */
-	private void dispatch(final URI processId) {
+	private boolean dispatch(final URI processId, final Date stamp) {
 		
 		NextStep dispatchCode = CloudProcessResource.dao.transact(new Work<NextStep>() {
 		    public NextStep run() {
+		    	log.info(">>>>>>>>>Dispatch "+processId);
 		        CloudProcess process = CloudProcessResource.dao.load(processId);
 				if(process.isFinalized()) {
 					log.warning("Processing called on process "+processId+" finalized="+process.isFinalized()+" state="+process.getState());
+					log.info("<<<<<<<<Dispatch "+processId);
+					return new NextStep(DoNext.nothing);
+				}
+				
+				if(!process.getRunning().equals(stamp)) {
+					log.severe("Processing stamp is "+process.getRunning()+" expected "+stamp);
+					log.info("<<<<<<<<Dispatch "+processId);
 					return new NextStep(DoNext.nothing);
 				}
 				
@@ -178,25 +203,33 @@ public class ProcessLifecycle {
 			        if(process.isPendingCancel()) { 
 			        	process.setPendingCancel(false);
 			        	process.setPendingDump(false);
+			        	log.info("<<<<<<<<Dispatch "+processId);
 			        	return new NextStep(DoNext.cancel);
 			        } else {
 			        	process.setPendingCancel(false);
 			        	process.setPendingDump(false);
+			        	log.info("<<<<<<<<Dispatch "+processId);
 			        	return new NextStep(DoNext.dump);
 			        } 
 				} else if(process.isPendingInit()) {
 					process.setPendingInit(false);
 			        CloudProcessResource.dao.update(process);
+			        log.info("<<<<<<<<Dispatch "+processId);
 			        return new NextStep(DoNext.init);
 				} else if(process.hasPendingAssertions()) {
-						String assertion = process.getPendingAssertion().remove(0);
-						 CloudProcessResource.dao.update(process);
-						return new NextStep(DoNext.assertion, assertion);
+						ArrayList<String> assertions = new ArrayList<String>(process.getPendingAssertion().size());
+						assertions.addAll(process.getPendingAssertion());
+						process.getPendingAssertion().clear();
+						CloudProcessResource.dao.update(process);
+						log.info("<<<<<<<<Dispatch "+processId);
+						return new NextStep(DoNext.assertion, assertions);
 				} else if(process.isPendingCall()) {
 						process.setPendingCall(false);
 						CloudProcessResource.dao.update(process);
+						log.info("<<<<<<<<Dispatch "+processId);
 						return new NextStep(DoNext.call);	
 				}
+				log.info("<<<<<<<<Dispatch "+processId);
 		        return new NextStep(DoNext.nothing);
 		} });
 		CloudProcess process = CloudProcessResource.dao.load(processId);
@@ -206,24 +239,25 @@ public class ProcessLifecycle {
 		} catch (Exception e) {
 			log.log(Level.SEVERE, "Failed to access task "+process.getAction(), e);
 			toFailed(process);
-			return;
+			return false;
 		}
 		log.info("Dispatch "+dispatchCode+": process "+process.getName()+" "+process.getUri()+" task "+task.getUri());
 		
 		boolean error = false;
 		switch(dispatchCode.todo){
 		case assertion:
-			try {
-				
-				int index = dispatchCode.assertion.indexOf(":");
-				SignalKind kind = SignalKind.valueOf(dispatchCode.assertion.substring(0,index));
-				task.signal(kind, dispatchCode.assertion.substring(index+1));
-			} catch (Exception e) {
-				log.log(Level.WARNING, "Assertion "+ dispatchCode.assertion + " exception for process "+process.getUri()+" task "+task.getUri(), e);
-			}
+				for(String assertion : dispatchCode.assertion) {
+					try {
+						int index = assertion.indexOf(":");
+						SignalKind kind = SignalKind.valueOf(assertion.substring(0,index));
+						task.signal(kind, assertion.substring(index+1));
+					} catch (Exception e) {
+						log.log(Level.WARNING, "Assertion "+ assertion + " exception for process "+process.getUri()+" task "+task.getUri(), e);
+					}
+				}
 			writeOnChange(task);
-			endOfTimeSlice(process);
-			break;
+			return endOfTimeSlice(process);
+
 		case init:
 			try {
 				task.init();
@@ -235,7 +269,7 @@ public class ProcessLifecycle {
 			if(error) {
 				toFailed(process);
 			} else {
-				endOfTimeSlice(process);
+				return endOfTimeSlice(process);
 			}
 			break;
 		case call:
@@ -255,7 +289,7 @@ public class ProcessLifecycle {
 			} else if(complete) {
 				toComplete(process);
 			} else {
-				endOfTimeSlice(process);
+				return endOfTimeSlice(process);
 			}
 			break;
 		case cancel:
@@ -278,10 +312,11 @@ public class ProcessLifecycle {
 			break;
 		case nothing:
 		default:
-			log.severe("Nothing to do for "+process.getName()+":"+process.toString());
-			toFailed(process);
+			log.severe("******Nothing to do for "+process.getName()+":"+process.toString());
+			// Likely concurrency bug. Process gets dispatched twice.
 			break;
 		}
+		return false;
 		
 	}
 	
@@ -298,34 +333,41 @@ public class ProcessLifecycle {
 		final Long processId = process.getId();
 		final Key<CloudProcess> processRoot = process.getRoot();
 		log.info("Complete "+process.getName()+":"+process.getUri());
-		giveChildrenToParent(process);
+		giveChildrenToGrandparent(process);
 		final List<String> dependents = CloudProcessResource.dao.transact(new Work<List<String>>() {
 			@Override
 			public List<String> run() {
+				log.info(">>>>>>>>>toComplete "+processId);
 				CloudProcess targetProcess = CloudProcessResource.dao.load(processRoot, processId);
 				logExecutionTime(targetProcess);
 				targetProcess.setState(ActionState.COMPLETE);
 				targetProcess.setComplete(new Date());
 				targetProcess.setRunning(null);
 				targetProcess.setFinalized(true);
-				if(targetProcess.getParent() != null) {
-					CloudProcess parent;
-					try {
-						parent = CloudProcessResource.dao.load(targetProcess.getParent());
-						signal(parent, SignalKind.Ok, targetProcess.getUri().toString());
-					} catch (NotFoundException e) {
-						log.severe("Unknown parent "+targetProcess);
-					} catch (Exception e) {
-						log.log(Level.SEVERE, "Signal failure "+targetProcess, e);
-					}
-					
+				List<String> result = new ArrayList<String>();
+				result.add(Helpers.URItoString(targetProcess.getParent()));
+				if(targetProcess.getDependencyFor() != null) {
+					result.addAll(targetProcess.getDependencyFor());
 				}
 				CloudProcessResource.dao.update(targetProcess);
-				return targetProcess.getDependencyFor();
+				log.info("<<<<<<<<toComplete "+processId);
+				return result;
 			}
 		});
-		if(dependents != null && dependents.size() > 0) {
-			for(String dependent : dependents) {
+		URI parentURI = Helpers.stringToURI(dependents.get(0));
+		if(parentURI != null) {
+			CloudProcess parent;
+			try {
+				parent = CloudProcessResource.dao.load(parentURI);
+				signal(parent, SignalKind.Ok, process.getUri().toString());
+			} catch (NotFoundException e) {
+				log.severe("Unknown parent "+ process);
+			} catch (Exception e) {
+				log.log(Level.SEVERE, "Signal failure to "+parentURI+" "+process, e);
+			}
+		}
+		if(dependents != null && dependents.size() > 1) {
+			for(String dependent : dependents.subList(1, dependents.size())) {
 				signalDependentProcessIsComplete(process, URI.create(dependent));
 			}
 		}
@@ -340,6 +382,7 @@ public class ProcessLifecycle {
 		CloudProcessResource.dao.transact(new VoidWork(){
 			@Override
 			public void vrun() {
+			log.info(">>>>>>>>>signalDependentProcessIsComplete "+processUri);
 			String hasFinalized = processUri.toString();
 			CloudProcess dprocess = CloudProcessResource.dao.load(depender);
 			if(dprocess.getDependentOn() != null && dprocess.getDependentOn().size() > 0) {
@@ -350,8 +393,7 @@ public class ProcessLifecycle {
 								dprocess.setPendingInit(true);
 						} 
 						dprocess.setState(ActionState.RUNABLE);
-						CloudProcessResource.dao.update(dprocess);
-						schedule(dprocess);
+						schedule(dprocess, true);
 					}
 				} else {
 					if(dprocess.getState() == ActionState.NEWBORN){
@@ -361,7 +403,8 @@ public class ProcessLifecycle {
 					}
 					
 				}
-			}				
+			}
+			log.info("<<<<<<<<signalDependentProcessIsComplete "+processUri);
 		}});
 		
 	}
@@ -396,22 +439,23 @@ public class ProcessLifecycle {
 	}
 	
 	/** Adds a set of dependency such that process runs dependent on the successful execution of dependentOnList members
-	 * @param process 
+	 * @param processUri 
 	 * @param dependentOnList
 	 * @return TRUE if dependency causes process execution to block
 	 * @throws IllegalArgumentException if the dependency is non-existent or has terminated abnormally
 	 */
-	private boolean setListOfDependentOn(final URI process, final List<URI> dependentOnList) {
+	private boolean setListOfDependentOn(final URI processUri, final List<URI> dependentOnList) {
 		
 		return CloudProcessResource.dao.transact(new Work<Boolean>(){
 
 			@Override
 			public Boolean run() {
+				log.info(">>>>>>>>>setListOfDependentOn "+processUri);
 				boolean willBlock = false;
-				CloudProcess depender = CloudProcessResource.dao.load(process);
+				CloudProcess depender = CloudProcessResource.dao.load(processUri);
 				if(depender.isFinalized()) {
-					log.warning("Cannot add dependencies to finalized process "+process+" state "+depender.getState());
-					throw new IllegalArgumentException("Cannot add dependencies to finalized process "+process+" state "+depender.getState());
+					log.warning("Cannot add dependencies to finalized process "+processUri+" state "+depender.getState());
+					throw new IllegalArgumentException("Cannot add dependencies to finalized process "+processUri+" state "+depender.getState());
 				}
 				for(URI dependentOn : dependentOnList) {
 					CloudProcess dependency;
@@ -422,9 +466,9 @@ public class ProcessLifecycle {
 					}
 					if(dependency.isFinalized()) {
 						if(dependency.getState().equals(ActionState.COMPLETE)) {
-							log.warning(dependentOn+" already finalized, removing dependency constraint from "+process);
+							log.warning(dependentOn+" already finalized, removing dependency constraint from "+processUri);
 						} else {
-							throw new IllegalArgumentException("Process "+process+" has a dependency on "+dependentOn+" which is "+dependency.getState());
+							throw new IllegalArgumentException("Process "+processUri+" has a dependency on "+dependentOn+" which is "+dependency.getState());
 						}
 					} else {
 						if(!depender.getDependentOn().contains(dependency.getUri().toString())) {
@@ -433,12 +477,13 @@ public class ProcessLifecycle {
 							CloudProcessResource.dao.update(dependency);
 							willBlock = true;
 						} else {
-							log.severe(dependentOn+" already in list for "+process);
+							log.severe(dependentOn+" already in list for "+processUri);
 						}
 						
 					}
 				}
 				CloudProcessResource.dao.update(depender);
+				log.info("<<<<<<<<setListOfDependentsOn "+processUri);
 				return willBlock;
 			}});
 	}
@@ -450,11 +495,12 @@ public class ProcessLifecycle {
 	private void toFailed(CloudProcess process) {
 		final Long processId = process.getId();
 		final Key<CloudProcess> processRoot = process.getRoot();
-		giveChildrenToParent(process);
+		giveChildrenToGrandparent(process);
 		List<String> dependents = CloudProcessResource.dao.transact(new Work<List<String>>() {
 
 			@Override
 			public List<String> run() {
+				log.info(">>>>>>>>>toFailed "+processId);
 				CloudProcess targetProcess = CloudProcessResource.dao.load(processRoot, processId);
 				List<String> result = null;
 				if(!targetProcess.isFinalized()) {
@@ -463,26 +509,32 @@ public class ProcessLifecycle {
 					targetProcess.setComplete(new Date());
 					targetProcess.setRunning(null);
 					targetProcess.setFinalized(true);
-					if(targetProcess.getParent() != null) {
-						CloudProcess parent;
-						try {
-							parent = CloudProcessResource.dao.load(targetProcess.getParent());
-							signal(parent, SignalKind.Failed, targetProcess.getUri().toString());
-						} catch (NotFoundException e) {
-							log.severe("Unknown parent "+targetProcess);
-						} catch (Exception e) {
-							log.log(Level.SEVERE, "Signal failure "+targetProcess, e);
-						}
+					result = new ArrayList<String>();
+					result.add(Helpers.URItoString(targetProcess.getParent()));
+					if(targetProcess.getDependencyFor() != null) {
+						result.addAll(targetProcess.getDependencyFor());
 					}
-					result = targetProcess.getDependencyFor();
 					CloudProcessResource.dao.update(targetProcess);
 				} else {
 					log.warning("Failed process "+targetProcess.getUri()+" is finalized");
 				}
+				log.info("<<<<<<<<toFailed "+processId);
 				return result;
 			}});
-		if(dependents != null && dependents.size() > 0) {
-			for(String dependent : dependents) {
+		URI parentURI = Helpers.stringToURI(dependents.get(0));
+		if(parentURI != null) {
+			CloudProcess parent;
+			try {
+				parent = CloudProcessResource.dao.load(parentURI);
+				signal(parent, SignalKind.Failed, process.getUri().toString());
+			} catch (NotFoundException e) {
+				log.severe("Unknown parent "+ process);
+			} catch (Exception e) {
+				log.log(Level.SEVERE, "Signal failure to "+parentURI+" "+process, e);
+			}
+		}
+		if(dependents != null && dependents.size() > 1) {
+			for(String dependent : dependents.subList(1, dependents.size())) {
 				CloudProcess dprocess = CloudProcessResource.dao.load(URI.create(dependent));
 				if(!dprocess.isFinalized()) {
 					toCancelled(dprocess);
@@ -491,31 +543,31 @@ public class ProcessLifecycle {
 		}
 	}
 	
-	private void giveChildrenToParent(final CloudProcess process) {
+	private void giveChildrenToGrandparent(final CloudProcess process) {
 		URI uri = process.getParent();
-		CloudProcess parent=null;
+		CloudProcess grandParent=null;
 		while(uri != null) {
-			parent = CloudProcessResource.dao.load(uri);
-			if(!parent.isFinalized()) break;
-			uri = parent.getParent();
+			grandParent = CloudProcessResource.dao.load(uri);
+			if(!grandParent.isFinalized()) break;
+			uri = grandParent.getParent();
 		}
-		final URI parentURI = uri;
+		final URI grandParentURI = uri;
 		/*
 		 * 
 		 */
 		boolean moreToDo = true;
 		while(moreToDo) {
 			moreToDo = CloudProcessResource.dao.transact(new Work<Boolean>(){
-
 			@Override
 			public Boolean run() {
+				log.info(">>>>>>>>>giveChildToGrandparent "+grandParentURI);
 				boolean goAgain = false;
-				CloudProcess parent = null;
-				if(parentURI != null) {
-					parent = CloudProcessResource.dao.load(parentURI);
-					if(parent.isFinalized()) {
-						log.warning("Parent "+parent.getUri()+" is finalized");
-						throw new IllegalArgumentException("Parent "+parent.getUri()+" is finalized");
+				CloudProcess grandParent = null;
+				if(grandParentURI != null) {
+					grandParent = CloudProcessResource.dao.load(grandParentURI);
+					if(grandParent.isFinalized()) {
+						log.warning("Grandparent "+grandParent.getUri()+" is finalized");
+						throw new IllegalArgumentException("Grandparent "+grandParent.getUri()+" is finalized");
 					}
 				}
 				List<CloudProcess> children = getNonfinalizedChildren(process);
@@ -526,29 +578,29 @@ public class ProcessLifecycle {
 						goAgain = true;
 						break;
 					}
-					if(parent != null) {
-						childProcess.setParent(parentURI);
+					if(grandParent != null) {
+						childProcess.setParent(grandParentURI);
 						CloudProcessResource.dao.update(childProcess);
 						final String typedAssertion = SignalKind.Adoption+":"+childProcess.getUri().toString();
-						if(!parent.getPendingAssertion().contains(typedAssertion)) {
-							parent.getPendingAssertion().add(typedAssertion);
+						if(!grandParent.getPendingAssertion().contains(typedAssertion)) {
+							grandParent.getPendingAssertion().add(typedAssertion);
 							parentUpdate = true;
 						}
 					} else {
 						childProcess.setPendingCancel(true);
-						childProcess.setParent(parentURI);
-						CloudProcessResource.dao.update(childProcess);
-						schedule(childProcess);
+						childProcess.setParent(null);
+						schedule(childProcess, true);
 					}
 				}
 				if(parentUpdate) {
-					CloudProcessResource.dao.update(parent);
+					CloudProcessResource.dao.update(grandParent);
 				}
+				log.info("<<<<<<<<giveChildToGrandparent "+grandParentURI);
 				return goAgain;
 			}});
 		}
-		if(parentURI != null)
-			schedule(parent);
+		if(grandParentURI != null)
+			schedule(grandParent, false);
 		
 	}
 	
@@ -564,52 +616,66 @@ public class ProcessLifecycle {
 
 			@Override
 			public void vrun() {
-				log.info("toWait");
+				log.info(">>>>>>>>>toWait "+processId);
 				CloudProcess targetProcess = CloudProcessResource.dao.load(processRoot, processId);
-				logExecutionTime(targetProcess);
-				targetProcess.setRunning(null);
 				if(!targetProcess.isFinalized()) {
+					logExecutionTime(targetProcess);
+					targetProcess.setRunning(null);
 					targetProcess.setWaitTimeout(timeout);
 					if(targetProcess.getState() == ActionState.RUNABLE && targetProcess.hasPending()) {
-						CloudProcessResource.dao.update(targetProcess);
 						log.warning("Wait Re-queue process "+targetProcess.getId());
-						schedule(targetProcess);
+						schedule(targetProcess, true);
 					} else {
 						CloudProcessResource.dao.update(targetProcess);
 					}
 				} else {
 					log.warning("Wait process "+targetProcess.getUri()+" is finalized");
 				}
+				log.info("<<<<<<<<toWait "+processId);
 			}});
 
 	}
 	
 	/** Re-evaluate process state at normal end of execution. 
 	 * @param process
+	 * @return true if redispatch requested
 	 */
-	private void endOfTimeSlice(CloudProcess process) {
+	private boolean endOfTimeSlice(CloudProcess process) {
 		final Long processId = process.getId();
 		final Key<CloudProcess> processRoot = process.getRoot();
-		CloudProcessResource.dao.transact(new VoidWork() {
+		boolean redispatch = CloudProcessResource.dao.transact(new Work<Boolean>() {
 
 			@Override
-			public void vrun() {
-				log.info("endOfTimeSlice");
+			public Boolean run() {
+				log.info(">>>>>>>>>endOfTimeSlice "+processId);
+				boolean redispatch = false;
 				CloudProcess targetProcess = CloudProcessResource.dao.load(processRoot, processId);
-				logExecutionTime(targetProcess);
-				targetProcess.setRunning(null);
 				if(!targetProcess.isFinalized()) {
-					if(targetProcess.getDependentOn() != null && targetProcess.getDependentOn().size() > 0) {
-						targetProcess.setState(ActionState.BLOCKED);
-					} else if(targetProcess.getState() == ActionState.RUNABLE && targetProcess.hasPending()) {
+					if(targetProcess.getState() == ActionState.RUNABLE && targetProcess.hasPending()) {
+						long now = new Date().getTime(); 
+						if(targetProcess.getRunning().getTime()+(60*1000) < now) {
+							// process has run too long .. re queue
+							logExecutionTime(targetProcess);
+							targetProcess.setRunning(null);
+							log.warning("Re-queue process "+targetProcess.getId());
+							schedule(targetProcess, true);
+						} else {
+							log.info("Re-dispatch process "+targetProcess);
+							redispatch = true;
+						}
+					} else {
+						logExecutionTime(targetProcess);
+						targetProcess.setRunning(null);
+						if(targetProcess.getDependentOn() != null && targetProcess.getDependentOn().size() > 0) {
+							targetProcess.setState(ActionState.BLOCKED);
+						} 
 						CloudProcessResource.dao.update(targetProcess);
-						log.warning("Re-queue process "+targetProcess.getId());
-						schedule(targetProcess);
-						return;
 					}
 				} 
-				CloudProcessResource.dao.update(targetProcess);
+				log.info("<<<<<<<<endOfTimeSlice "+processId+(redispatch?" -- redispatch":""));
+				return redispatch;
 			}});
+			return redispatch;
 	}
 	
 	
@@ -618,19 +684,30 @@ public class ProcessLifecycle {
 	 * @param process
 	 */
 	private void toCancelled(CloudProcess process) {
+		final Map<URI, Set<String>>notifications = new HashMap<URI, Set<String>>();
+		final Set<String> priorDependents = new HashSet<String>();
+		canceller(process, notifications, priorDependents);
+		if(!notifications.isEmpty()) {
+			for(Entry<URI, Set<String>> notification : notifications.entrySet()) {
+				addSignalList(notification.getKey(), SignalKind.Cancel, notification.getValue());
+			}
+		}
+	}
+	
+	private void canceller(CloudProcess process, final Map<URI, Set<String>>notifications, final Set<String> priorDependents) {
 		final Long processId = process.getId();
 		final Key<CloudProcess> processRoot = process.getRoot();
-		List<String> dependents = CloudProcessResource.dao.transact(new Work<List<String>>() {
+		Set<String> dependents = CloudProcessResource.dao.transact(new Work<Set<String>>() {
 
 			@Override
-			public List<String> run() {
+			public Set<String> run() {
+				log.info(">>>>>>>>>toCancelled "+processId);
 				CloudProcess targetProcess = CloudProcessResource.dao.load(processRoot, processId);
-				List<String> result = null;
-				if(!targetProcess.isFinalized()) {
+				Set<String> result = null;
+				if(!targetProcess.isFinalized()) {					
 					if(targetProcess.getState().equals(ActionState.BLOCKED)){
 						targetProcess.setPendingCancel(true);
-						CloudProcessResource.dao.update(targetProcess);
-						schedule(targetProcess);
+						schedule(targetProcess, true);
 					} else {
 						logExecutionTime(targetProcess);
 						targetProcess.setState(ActionState.CANCELLED);
@@ -641,32 +718,45 @@ public class ProcessLifecycle {
 						targetProcess.setRunning(null);
 						targetProcess.setFinalized(true);
 						if(targetProcess.getParent() != null) {
-							CloudProcess parent;
 							try {
-								parent = CloudProcessResource.dao.load(targetProcess.getParent());
-								signal(parent, SignalKind.Cancel, targetProcess.getUri().toString());
-							} catch (NotFoundException e) {
-								log.severe("Unknown parent "+targetProcess);
+								Set<String> notifyList = notifications.get(targetProcess.getParent());
+								if(notifyList == null) {
+									notifyList = new HashSet<String>();
+									notifications.put(targetProcess.getParent(), notifyList);
+								}
+								notifyList.add(targetProcess.getUri().toString());
+
 							} catch (Exception e) {
 								log.log(Level.SEVERE, "Signal failure "+targetProcess, e);
 							}
 						}
-						result = targetProcess.getDependencyFor();
+						if(targetProcess.getDependencyFor() != null) {
+							result = new HashSet<String>();
+							for(String target : targetProcess.getDependencyFor()) {
+								if(!priorDependents.contains(target)) {
+									result.add(target);
+								}
+							}
+						}
 						CloudProcessResource.dao.update(targetProcess);
 					}
 					
 				} else {
 					log.warning("Cancelled process "+targetProcess.getUri()+" is finalized");
 				}
+				log.info("<<<<<<<<toCancelled "+processId);
 				return result;
 			}});
-		if(dependents == null) {
-			schedule(process);
-		} else if(dependents.size() > 0) {
+		if(dependents != null && !dependents.isEmpty()) {
 			for(String dependent : dependents) {
-				CloudProcess dprocess = CloudProcessResource.dao.load(URI.create(dependent));
-				if(!dprocess.isFinalized()) {
-					toCancelled(dprocess);
+				CloudProcess dprocess;
+				try {
+					dprocess = CloudProcessResource.dao.load(URI.create(dependent));
+					if(!dprocess.isFinalized()) {
+						canceller(dprocess, notifications, priorDependents);
+					}
+				} catch (NotFoundException e) {
+					log.severe("Process "+dependent+" not found");
 				}
 			}
 		}
@@ -713,14 +803,16 @@ public class ProcessLifecycle {
 		CloudProcessResource.dao.transact(new VoidWork() {
 			@Override
 			public void vrun() {
+				log.info(">>>>>>>>>cancel "+processId);
 				CloudProcess targetProcess = CloudProcessResource.dao.load(groupId, processId);
 				if(!targetProcess.isFinalized()) {
 					targetProcess.setPendingCancel(true);
-					CloudProcessResource.dao.update(targetProcess);
+					schedule(targetProcess, true);
 				} else {
 					log.severe("Cancel on finalized process "+targetProcess.getUri());
 				}
-				schedule(targetProcess);
+
+				log.info("<<<<<<<<cancel "+processId);
 			}});
 	}
 	
@@ -741,6 +833,7 @@ public class ProcessLifecycle {
 		CloudProcessResource.dao.transact(new VoidWork() {
 			@Override
 			public void vrun() {
+				log.info(">>>>>>>>>init "+processId);
 				CloudProcess targetProcess = CloudProcessResource.dao.load(processRoot, processId);
 				if(!targetProcess.isFinalized() && targetProcess.getState() == ActionState.NEWBORN) {
 					if(targetProcess.getDependentOn() != null && targetProcess.getDependentOn().size() != 0) {
@@ -756,11 +849,12 @@ public class ProcessLifecycle {
 						 *    in the schedule transaction
 						 * 2. The pendingInit will cause schedule to write the CloudProcess object
 						 */
-						schedule(targetProcess); 
+						schedule(targetProcess, true); 
 					}
 				} else {
 					log.severe("Init on finalized or non-newborn process "+targetProcess.getUri()+" "+targetProcess.getState());
 				}
+				log.info("<<<<<<<<init "+processId);
 			}});
 	}
 	
@@ -769,21 +863,24 @@ public class ProcessLifecycle {
 	 * can be later reviews.
 	 * 
 	 */
-	public void dump(CloudProcess process) {
+	public CloudProcess dump(CloudProcess process) {
 		final Long processId = process.getId();
 		final Key<CloudProcess> processRoot = process.getRoot();
 		log.info("dump "+process.getUri());
-		CloudProcessResource.dao.transact(new VoidWork() {
+		return CloudProcessResource.dao.transact(new Work<CloudProcess>() {
 			@Override
-			public void vrun() {
+			public CloudProcess run() {
+				log.info(">>>>>>>>>dump "+processId);
 				CloudProcess targetProcess = CloudProcessResource.dao.load(processRoot, processId);
 				if(!targetProcess.isFinalized()) {
 					targetProcess.setPendingDump(true);
-					CloudProcessResource.dao.update(targetProcess);
+					schedule(targetProcess, true);
 				} else {
 					log.severe("Dump on finalized process "+targetProcess.getUri());
 				}
-				schedule(targetProcess);
+
+				log.info("<<<<<<<<dump "+processId);
+				return targetProcess;
 			}});
 		
 	}
@@ -793,10 +890,10 @@ public class ProcessLifecycle {
 	 * can be later reviews.
 	 * 
 	 */
-	public void dump(URI processId) throws NotFoundException {
+	public CloudProcess dump(URI processId) throws NotFoundException {
 
 		CloudProcess process = CloudProcessResource.dao.load(processId);
-		dump(process);
+		return dump(process);
 		
 	}
 	
@@ -843,53 +940,42 @@ public class ProcessLifecycle {
 	 * @param assertion
 	 */
 	public void signal(final URI cloudProcessURI, final SignalKind kind, final String assertion) {
-		log.info("signal <"+kind+":"+assertion+"> to "+cloudProcessURI);
-		CloudProcessResource.dao.transact(new VoidWork() {
-			@Override
-			public void vrun() {
-				CloudProcess p = CloudProcessResource.dao.load(cloudProcessURI);
-				if(!p.isFinalized()) {
-					if(!p.getPendingAssertion().contains(kind+":"+assertion)) {
-						p.getPendingAssertion().add(kind+":"+assertion);
-						CloudProcessResource.dao.update(p);
-						if(p.getState() == ActionState.RUNABLE) {
-							schedule(p);
-						}
-					}
-				} else {
-					log.severe("Signal <"+kind+":"+assertion+"> on finalized process "+p.getUri());
-				}
-
-			}});
+		addSignalList(cloudProcessURI, kind, Arrays.asList(assertion));
 	}
 	
-	/** Signals a process with a set of assertion.
+	/** Signals a process with an assertion.
 	 * @param cloudProcessURI
 	 * @param kind
 	 * @param assertion
 	 */
-	private void signal(final URI cloudProcessURI, final SignalKind kind, final List<String> assertionList) {
-		log.info("signal <"+kind+":"+assertionList+"> to "+cloudProcessURI);
+	public void addSignalList(final URI cloudProcessURI, final SignalKind kind, final Collection<String> assertions) {
+		log.info("signal <"+kind+":"+assertions+"> to "+cloudProcessURI);
 		CloudProcessResource.dao.transact(new VoidWork() {
 			@Override
 			public void vrun() {
+				log.info(">>>>>>>>>signalList "+cloudProcessURI);
 				CloudProcess p = CloudProcessResource.dao.load(cloudProcessURI);
-				boolean updated = false;
 				if(!p.isFinalized()) {
-					for(String assertion : assertionList) {
-						if(!p.getPendingAssertion().contains(kind+":"+assertion)) {
-							p.getPendingAssertion().add(kind+":"+assertion);
+					boolean added = false;
+					if(!assertions.isEmpty()) {
+						for(String assertion : assertions) {
+							if(!p.getPendingAssertion().contains(kind+":"+assertion)) {
+								p.getPendingAssertion().add(kind+":"+assertion);
+								added = true;
+							}
 						}
-					}
-					if(updated) {
-						CloudProcessResource.dao.update(p);
-						if(p.getState() == ActionState.RUNABLE) {
-							schedule(p);
-						}
+						if(added) {
+							if(p.getState() == ActionState.RUNABLE) {
+								schedule(p, true);
+							} else {
+								CloudProcessResource.dao.update(p);
+							}
+						}	
 					}
 				} else {
-					log.severe("Signal <"+kind+":"+assertionList+"> on finalized process "+p.getUri());
+					log.severe("Signal <"+kind+":"+assertions+"> on finalized process "+p.getUri());
 				}
+				log.info("<<<<<<<<signalList "+cloudProcessURI);
 
 			}});
 	}
@@ -904,16 +990,18 @@ public class ProcessLifecycle {
 		CloudProcessResource.dao.transact(new VoidWork() {
 			@Override
 			public void vrun() {
+				log.info(">>>>>>>>>signalParent "+childProcessURI);
 				CloudProcess child = CloudProcessResource.dao.load(childProcessURI);
 				if(child.getParent() != null) {
-					log.info("signal <"+kind+":"+assertion+"> to parent "+child.getParent());
+					log.info("signal <"+kind+":"+assertion+"> to "+child.getParent());
 					CloudProcess p = CloudProcessResource.dao.load(child.getParent());
 					if(!p.isFinalized()) {
 						if(!p.getPendingAssertion().contains(kind+":"+assertion)) {
 							p.getPendingAssertion().add(kind+":"+assertion);
-							CloudProcessResource.dao.update(p);
 							if(p.getState() == ActionState.RUNABLE) {
-								schedule(p);
+								schedule(p, true);
+							} else {
+								CloudProcessResource.dao.update(p);
 							}
 						}
 					} else {
@@ -922,7 +1010,7 @@ public class ProcessLifecycle {
 				} else {
 					log.info("signal <"+kind+":"+assertion+"> "+childProcessURI+" has no parent");
 				}
-
+				log.info("<<<<<<<<signalParent "+childProcessURI);
 			}});
 	}
 	
@@ -940,9 +1028,9 @@ public class ProcessLifecycle {
 	}
 	
 	private static class NextStep {
-		public String assertion;
+		public List<String> assertion;
 		public DoNext todo;
-		public NextStep(DoNext todo, String assertion) {
+		public NextStep(DoNext todo, List<String> assertion) {
 			this.todo = todo;
 			this.assertion = assertion;
 		}
@@ -974,6 +1062,7 @@ public class ProcessLifecycle {
 		boolean result = ActionResource.dao.transact(new Work<Boolean>() {
 			@Override
 			public Boolean run() {
+				log.info(">>>>>>>>>writeOnChange "+action.getUri());
 				Action db = ActionResource.dao.load(action.getUri());
 				if(!db.equals(action)) {
 					ActionResource.dao.update(action);
@@ -982,6 +1071,7 @@ public class ProcessLifecycle {
 				return false;
 			}});
 		log.info("Action "+action.getName()+" "+action.getUri()+" write "+result);
+		log.info("<<<<<<<<writeOnChange "+action.getUri());
 		return result;
 	}
 	

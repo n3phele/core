@@ -167,6 +167,24 @@ public final Class<T> clazz;
 	 */
 
 
+	public Collection<T> collectionByProperty(URI member, String propName, Object propValue) {
+		String s = member.getPath();
+		String identity = s.substring(s.lastIndexOf("/")+1);
+		int split = identity.indexOf('_');
+		if(split == -1) {
+			return collectionByProperty(propName, propValue);
+		} else {
+			long parent = Long.valueOf(identity.substring(0,split));
+			List<Key<T>> keys = ofy().load().type(clazz).ancestor(Key.create(clazz, parent)).filter(propName, propValue).keys().list();
+			if(keys == null || keys.size() == 0) {
+				return new ArrayList<T>();
+			} else {
+				return ofy().load().keys(keys).values();
+			}
+		}
+		// return ofy().load().type(clazz).filter(propName, propValue).list();
+	}
+	
 	public Collection<T> collectionByProperty(String propName, Object propValue) {
 		List<Key<T>> keys = ofy().load().type(clazz).filter(propName, propValue).keys().list();
 		if(keys == null || keys.size() == 0) {

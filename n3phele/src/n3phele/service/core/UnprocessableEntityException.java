@@ -33,5 +33,12 @@ public class UnprocessableEntityException extends WebApplicationException {
     public UnprocessableEntityException(String message) {
         super(Response.status(422).
                 entity(message).type("text/plain").build());
+        myDetailMessage = message;
+    }
+    
+    private String myDetailMessage;
+    
+    public String getMessage() {
+    	return myDetailMessage;
     }
 }

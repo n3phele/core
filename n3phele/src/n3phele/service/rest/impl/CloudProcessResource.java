@@ -221,7 +221,7 @@ public class CloudProcessResource {
 		public void update(CloudProcess cloudProcess) { super.update(cloudProcess); }
 		
 		public java.util.Collection<CloudProcess> getNonfinalized() { return super.itemDao.collectionByProperty("finalized", false); }
-		public java.util.Collection<CloudProcess> getChildren(URI parent) { return super.itemDao.collectionByProperty("parent", parent.toString()); }
+		public java.util.Collection<CloudProcess> getChildren(URI parent) { return super.itemDao.collectionByProperty(parent, "parent", parent.toString()); }
 		public java.util.Collection<CloudProcess> getList(List<URI>ids) { return super.itemDao.listByURI(ids) ; }		
 		public Collection<CloudProcess> getCollection(User owner) { return super.getCollection(owner); }
 		public void add(CloudProcess process) { super.add(process); }
