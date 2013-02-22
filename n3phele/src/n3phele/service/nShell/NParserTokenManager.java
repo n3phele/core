@@ -18,7 +18,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import n3phele.service.model.CommandDefinition;
+import n3phele.service.model.Command;
 import n3phele.service.model.CommandImplementationDefinition;
 import n3phele.service.model.FileSpecification;
 import n3phele.service.model.ParameterType;

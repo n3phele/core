@@ -24,7 +24,7 @@ import n3phele.service.model.Action;
 import n3phele.service.model.ActionState;
 import n3phele.service.model.Cloud;
 import n3phele.service.model.CloudProcess;
-import n3phele.service.model.CommandDefinition;
+import n3phele.service.model.Command;
 import n3phele.service.model.Context;
 import n3phele.service.model.Narrative;
 import n3phele.service.model.NarrativeLevel;
@@ -101,7 +101,7 @@ public class NShellActionTest {
 
 		
 		NParser n = new NParser(new FileInputStream("./test/logTest.n"));
-		CommandDefinition cd = n.parse();
+		Command cd = n.parse();
 		cd.setUri(URI.create("http://n3phele.com/test"));
 		Assert.assertEquals("log", cd.getName());
 		Assert.assertEquals("produce a log message", cd.getDescription());
@@ -143,7 +143,7 @@ public class NShellActionTest {
 
 		
 		NParser n = new NParser(new FileInputStream("./test/expressionTest.n"));
-		CommandDefinition cd = n.parse();
+		Command cd = n.parse();
 		cd.setUri(URI.create("http://n3phele.com/test"));
 		Assert.assertEquals("expressionTest", cd.getName());
 		Assert.assertEquals("produce a log message", cd.getDescription());
@@ -189,7 +189,7 @@ public class NShellActionTest {
 
 		
 		NParser n = new NParser(new FileInputStream("./test/doubleLogTest.n"));
-		CommandDefinition cd = n.parse();
+		Command cd = n.parse();
 		cd.setUri(URI.create("http://n3phele.com/test"));
 		Assert.assertEquals("doubleLog", cd.getName());
 		Assert.assertEquals("produce a log message with a suffix", cd.getDescription());
@@ -252,7 +252,7 @@ public class NShellActionTest {
 		 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234");
 		
 		NParser n = new NParser(new FileInputStream("./test/vmCreateExplicitDeleteTest.n"));
-		CommandDefinition cd = n.parse();
+		Command cd = n.parse();
 		cd.setUri(URI.create("http://n3phele.com/test"));
 		Assert.assertEquals("vmCreateAndDelete", cd.getName());
 		Assert.assertEquals("create n vm and then kill them", cd.getDescription());
@@ -315,7 +315,7 @@ public class NShellActionTest {
 		 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234", "https://myFactory/VM/4321");
 		
 		NParser n = new NParser(new FileInputStream("./test/vmCreateExplicitDeleteTest.n"));
-		CommandDefinition cd = n.parse();
+		Command cd = n.parse();
 		cd.setUri(URI.create("http://n3phele.com/test"));
 		Assert.assertEquals("vmCreateAndDelete", cd.getName());
 		Assert.assertEquals("create n vm and then kill them", cd.getDescription());
@@ -386,7 +386,7 @@ public class NShellActionTest {
 		 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234");
 		
 		NParser n = new NParser(new FileInputStream("./test/vmCreateImplicitDeleteTest.n"));
-		CommandDefinition cd = n.parse();
+		Command cd = n.parse();
 		cd.setUri(URI.create("http://n3phele.com/test"));
 		Assert.assertEquals("vmCreateAndImplicitDelete", cd.getName());
 		Assert.assertEquals("create n vm and then have them terminate as part of process clean up", cd.getDescription());
@@ -452,7 +452,7 @@ public class NShellActionTest {
 		 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234", "https://myFactory/VM/4321");
 		
 		NParser n = new NParser(new FileInputStream("./test/vmCreateImplicitDeleteTest.n"));
-		CommandDefinition cd = n.parse();
+		Command cd = n.parse();
 		cd.setUri(URI.create("http://n3phele.com/test"));
 		Assert.assertEquals("vmCreateAndImplicitDelete", cd.getName());
 		Assert.assertEquals("create n vm and then have them terminate as part of process clean up", cd.getDescription());
@@ -525,7 +525,7 @@ public class NShellActionTest {
 		 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234");
 		
 		NParser n = new NParser(new FileInputStream("./test/onCommandNoFilesTest.n"));
-		CommandDefinition cd = n.parse();
+		Command cd = n.parse();
 		cd.setUri(URI.create("http://n3phele.com/test"));
 		Assert.assertEquals("onCommandNoFiles", cd.getName());
 		Assert.assertEquals("run a command that has no files", cd.getDescription());
@@ -609,7 +609,7 @@ public class NShellActionTest {
 		 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234");
 		
 		NParser n = new NParser(new FileInputStream("./test/onCommandSingleInputFileTest.n"));
-		CommandDefinition cd = n.parse();
+		Command cd = n.parse();
 		cd.setUri(URI.create("http://n3phele.com/test"));
 		Assert.assertEquals("onCommandSingleInputFile", cd.getName());
 		Assert.assertEquals("run a command that has a single input file", cd.getDescription());
@@ -782,7 +782,7 @@ public class NShellActionTest {
 		 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234");
 		
 		NParser n = new NParser(new FileInputStream("./test/onCommandSingleOutputFileTest.n"));
-		CommandDefinition cd = n.parse();
+		Command cd = n.parse();
 		cd.setUri(URI.create("http://n3phele.com/test"));
 		Assert.assertEquals("onCommandSingleOutputFile", cd.getName());
 		Assert.assertEquals("run a command that has a single input and file", cd.getDescription());
@@ -982,7 +982,7 @@ public class NShellActionTest {
 		assertNotNull(root);
 		
 		NParser n = new NParser(new FileInputStream("./test/forCommandLogTest.n"));
-		CommandDefinition cd = n.parse();
+		Command cd = n.parse();
 		cd.setUri(URI.create("http://n3phele.com/test"));
 		Assert.assertEquals("forCommandLog", cd.getName());
 		Assert.assertEquals("a simple for loop", cd.getDescription());
@@ -1031,11 +1031,11 @@ public class NShellActionTest {
 
 		
 
-	public static CommandDefinition testCommandDefinition;
+	public static Command testCommandDefinition;
 	@EntitySubclass
 	public static class NShellActionTestHarness extends NShellAction {
 		@Override
-		protected CommandDefinition loadCommandDefinition(URI uri) throws NotFoundException {
+		protected Command loadCommandDefinition(URI uri) throws NotFoundException {
 			return testCommandDefinition;
 		}
 		@Override

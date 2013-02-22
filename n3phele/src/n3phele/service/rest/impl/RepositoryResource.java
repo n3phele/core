@@ -40,13 +40,13 @@ import n3phele.service.core.ForbiddenException;
 import n3phele.service.core.NotFoundException;
 import n3phele.service.core.Resource;
 import n3phele.service.core.UnprocessableEntityException;
-import n3phele.service.model.Origin;
+import n3phele.service.model.CachingAbstractManager;
 import n3phele.service.model.FileSpecification;
+import n3phele.service.model.Origin;
 import n3phele.service.model.RepoListResponse;
 import n3phele.service.model.RepositoryCollection;
 import n3phele.service.model.ServiceModelDao;
 import n3phele.service.model.ValidationResponse;
-import n3phele.service.model.core.AbstractManager;
 import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.Credential;
 import n3phele.service.model.core.GenericModelDao;
@@ -451,7 +451,7 @@ public class RepositoryResource {
 	}
 	
 	
-	public static class RepositoryManager extends AbstractManager<Repository> {
+	public static class RepositoryManager extends CachingAbstractManager<Repository> {
 		public RepositoryManager() {
 		}
 		@Override

@@ -75,9 +75,10 @@ public class CloudProcessTest  {
 	 */
 	@Test
 	public void oneProcessTest() throws InterruptedException, ClassNotFoundException {
-		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 		User root = UserResource.Root;
 		assertNotNull(root);
+		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
+
 		Response result;
 
 		result = cpr.exec("CountDown", "now is the time");
@@ -103,6 +104,8 @@ public class CloudProcessTest  {
 	 */
 	@Test
 	public void oneProcessJobOkExitTest() throws InterruptedException, ClassNotFoundException {
+		User root = UserResource.Root;
+		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 		CloudResourceTestWrapper.dao.clear();
 		Response result;
@@ -148,6 +151,8 @@ public class CloudProcessTest  {
 	 */
 	@Test
 	public void oneProcessCancellationTest() throws InterruptedException, ClassNotFoundException {
+		User root = UserResource.Root;
+		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 		Response result = cpr.exec("CountDown", "doomed to die");
 		assertEquals(201, result.getStatus());
@@ -173,6 +178,8 @@ public class CloudProcessTest  {
 	 */
 	@Test
 	public void oneProcessJobCancellationTest() throws InterruptedException, ClassNotFoundException {
+		User root = UserResource.Root;
+		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 		Response result;
 		result = cpr.exec("Job", "CountDown doomed2die2");
@@ -210,6 +217,8 @@ public class CloudProcessTest  {
 	 */
 	@Test
 	public void oneProcessJobParentCancellationTest() throws InterruptedException, ClassNotFoundException {
+		User root = UserResource.Root;
+		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 		Response result;
 		result = cpr.exec("Job", "CountDown doomed2die2");
@@ -246,6 +255,8 @@ public class CloudProcessTest  {
 	 */
 	@Test
 	public void oneProcessInitExceptionTest() throws InterruptedException, ClassNotFoundException {
+		User root = UserResource.Root;
+		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 		Response result = cpr.exec("CountDown", "throwInit");
 		assertEquals(201, result.getStatus());
@@ -266,6 +277,8 @@ public class CloudProcessTest  {
 	 */
 	@Test
 	public void oneProcessJobInitExceptionTest() throws InterruptedException, ClassNotFoundException {
+		User root = UserResource.Root;
+		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 		Response result;
 		result = cpr.exec("Job", "CountDown throwInit");
@@ -298,6 +311,8 @@ public class CloudProcessTest  {
 	 */
 	@Test
 	public void oneProcessRunExceptionTest() throws InterruptedException, ClassNotFoundException {
+		User root = UserResource.Root;
+		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 		Response result = cpr.exec("CountDown", "throw5");
 		assertEquals(201, result.getStatus());
@@ -318,6 +333,8 @@ public class CloudProcessTest  {
 	 */
 	@Test
 	public void oneProcessJobRunExceptionTest() throws InterruptedException, ClassNotFoundException {
+		User root = UserResource.Root;
+		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 		Response result = cpr.exec("Job", "CountDown throw5");
 		assertEquals(201, result.getStatus());
@@ -350,6 +367,8 @@ public class CloudProcessTest  {
 	 */
 	@Test
 	public void twoProcessWithPreestablishedDependency() throws InterruptedException {
+		User root = UserResource.Root;
+		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 		Context tom_env = new Context();
 		tom_env.putValue("arg", "tom rocks!");
@@ -396,6 +415,8 @@ public class CloudProcessTest  {
 	 */
 	@Test
 	public void twoProcessWithDependencyAddedAfterDependentCompleted() throws InterruptedException {
+		User root = UserResource.Root;
+		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 		Context tom_env = new Context();
 		tom_env.putValue("arg", "tom rocks!");
@@ -439,6 +460,8 @@ public class CloudProcessTest  {
 	 */
 	@Test
 	public void twoProcessWithPreestablishedDependencyCancelTest() throws InterruptedException {
+		User root = UserResource.Root;
+		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 		Context tom_env = new Context();
 		tom_env.putValue("arg", "tom rocks!");
@@ -482,6 +505,8 @@ public class CloudProcessTest  {
 	 */
 	@Test
 	public void twoProcessWithDependencyAddedAfterDependentCancelled() throws InterruptedException {
+		User root = UserResource.Root;
+		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 		Context tom_env = new Context();
 		tom_env.putValue("arg", "tom rocks!");
@@ -520,6 +545,8 @@ public class CloudProcessTest  {
 	 */
 	@Test
 	public void twoProcessWithPreestablishedDependencyInitFailTest() throws InterruptedException {
+		User root = UserResource.Root;
+		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 		
 		Context tom_env = new Context();
@@ -553,6 +580,8 @@ public class CloudProcessTest  {
 	 */
 	@Test
 	public void twoProcessWithPreestablishedDependencyFailTest() throws InterruptedException {
+		User root = UserResource.Root;
+		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 
 		Context tom_env = new Context();
@@ -586,6 +615,8 @@ public class CloudProcessTest  {
 	 */
 	@Test
 	public void twoProcessWithPreestablishedDependencyGetsDump() throws InterruptedException {
+		User root = UserResource.Root;
+		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 		Context tom_env = new Context();
 		tom_env.putValue("arg", "tom rocks!");
@@ -634,6 +665,8 @@ public class CloudProcessTest  {
 	 */
 	@Test
 	public void runningProcessGetsDependencyAdded() throws InterruptedException {
+		User root = UserResource.Root;
+		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 		Context tom_env = new Context();
 		tom_env.putValue("arg", "tom rocks!");
@@ -673,6 +706,8 @@ public class CloudProcessTest  {
 	 */
 	@Test
 	public void runningProcessGetsDependencyAddedAndResumesOnCompletion() throws InterruptedException {
+		User root = UserResource.Root;
+		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 		Context tom_env = new Context();
 		tom_env.putValue("arg", "tom rocks!");
@@ -726,6 +761,8 @@ public class CloudProcessTest  {
 	 */
 	@Test
 	public void runningProcessGetsDependencyAddedAndCancelled() throws InterruptedException {
+		User root = UserResource.Root;
+		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 		Context tom_env = new Context();
 		tom_env.putValue("arg", "tom rocks!");
@@ -778,6 +815,8 @@ public class CloudProcessTest  {
 	 */
 	@Test
 	public void runningProcessGetsDependencyAddedAndRunningProcessCancelled() throws InterruptedException {
+		User root = UserResource.Root;
+		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 		Context tom_env = new Context();
 		tom_env.putValue("arg", "tom rocks!");
@@ -834,6 +873,8 @@ public class CloudProcessTest  {
 	 */
 	@Test
 	public void runningProcessGetsDependencyAddedAndDumped() throws InterruptedException {
+		User root = UserResource.Root;
+		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 		Context tom_env = new Context();
 		tom_env.putValue("arg", "tom rocks!");
@@ -888,6 +929,8 @@ public class CloudProcessTest  {
 	 */
 	@Test
 	public void runningProcessGetsDependencyAddedAndRunningProcessDumped() throws InterruptedException {
+		User root = UserResource.Root;
+		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 		Context tom_env = new Context();
 		tom_env.putValue("arg", "tom rocks!");

@@ -1,6 +1,7 @@
 package n3phele.service.actions;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -74,6 +75,8 @@ public class CreateVMActionTest {
 	 @Test
 	 public void oneVmCreation() throws NotFoundException, IllegalArgumentException, ClassNotFoundException, InterruptedException {
 		 log.info("test1");
+			User root = UserResource.Root;
+			assertNotNull(root);
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
 		 CreateVMActionWrapper.initalState = "Running";
@@ -128,6 +131,8 @@ public class CreateVMActionTest {
 	 @Test
 	 public void oneVmCreationNotAZombie() throws NotFoundException, IllegalArgumentException, ClassNotFoundException, InterruptedException {
 		 log.info("test2");
+			User root = UserResource.Root;
+			assertNotNull(root);
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
 		 CreateVMActionWrapper.initalState = "Pending";
@@ -183,6 +188,8 @@ public class CreateVMActionTest {
 	 @Test
 	 public void twoVmCreation() throws NotFoundException, IllegalArgumentException, ClassNotFoundException, InterruptedException {
 		 log.info("test3");
+			User root = UserResource.Root;
+			assertNotNull(root);
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
 		 CreateVMActionWrapper.initalState = "Running";
@@ -266,6 +273,8 @@ public class CreateVMActionTest {
 	 @Test
 	 public void twoVmCreationNotAZombie() throws NotFoundException, IllegalArgumentException, ClassNotFoundException, InterruptedException {
 		 log.info("test4");
+			User root = UserResource.Root;
+			assertNotNull(root);
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
 		 CreateVMActionWrapper.initalState = "Pending";
@@ -350,6 +359,8 @@ public class CreateVMActionTest {
 	 @Test
 	 public void oneVmCreationTimeout() throws NotFoundException, IllegalArgumentException, ClassNotFoundException, InterruptedException {
 		 log.info("test5");
+			User root = UserResource.Root;
+			assertNotNull(root);
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
 		 CreateVMActionWrapper.initalState = "Pending";
@@ -383,6 +394,8 @@ public class CreateVMActionTest {
 	 @Test
 	 public void twoVmCreationTimeout() throws NotFoundException, IllegalArgumentException, ClassNotFoundException, InterruptedException {
 		 log.info("test6");
+			User root = UserResource.Root;
+			assertNotNull(root);
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
 		 CreateVMActionWrapper.initalState = "Pending";
@@ -440,6 +453,8 @@ public class CreateVMActionTest {
 	 @Test
 	 public void twoVmCreationOneVMDies() throws NotFoundException, IllegalArgumentException, ClassNotFoundException, InterruptedException {
 		 log.info("test7");
+			User root = UserResource.Root;
+			assertNotNull(root);
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
 		 CreateVMActionWrapper.initalState = "Pending";
@@ -493,6 +508,8 @@ public class CreateVMActionTest {
 	 @Test
 	 public void twoVmCreationOneVMDisappears() throws NotFoundException, IllegalArgumentException, ClassNotFoundException, InterruptedException {
 		 log.info("test8");
+			User root = UserResource.Root;
+			assertNotNull(root);
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
 		 CreateVMActionWrapper.initalState = "Pending";

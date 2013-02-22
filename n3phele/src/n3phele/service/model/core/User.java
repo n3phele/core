@@ -15,11 +15,9 @@ package n3phele.service.model.core;
 import java.security.Principal;
 import java.util.Date;
 
-
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
-
 
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Embed;
@@ -44,6 +42,12 @@ public class User extends Entity implements Principal {
 	
 	public User() {}
 	
+	public User(String email, String firstName, String lastName) {
+		super(email, null, "factory/vnd.com.n3phele.User+json", null, false);
+		this.id = null;
+		this.firstName = firstName;
+		this.lastName = lastName;
+	}
 
 	public User(String email, String firstName, String lastName, String secret) {
 		super(email, null, "factory/vnd.com.n3phele.User+json", null, false);

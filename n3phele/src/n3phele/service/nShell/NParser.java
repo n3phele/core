@@ -20,7 +20,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import n3phele.service.model.CommandDefinition;
+import n3phele.service.model.Command;
 import n3phele.service.model.CommandImplementationDefinition;
 import n3phele.service.model.FileSpecification;
 import n3phele.service.model.ParameterType;
@@ -32,7 +32,7 @@ public class NParser implements NParserConstants {
                 this(new BlockStreamer(s));
         }
 
-  final public CommandDefinition parse() throws ParseException {
+  final public Command parse() throws ParseException {
         String name = null;
         String description = null;
         String version = "";
@@ -96,7 +96,7 @@ public class NParser implements NParserConstants {
       ;
     }
     jj_consume_token(0);
-                CommandDefinition cd = new CommandDefinition();
+                Command cd = new Command();
                 cd.setName(name);
                 cd.setDescription(description);
                 cd.setVersion(version);

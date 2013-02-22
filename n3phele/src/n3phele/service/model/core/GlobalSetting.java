@@ -101,11 +101,16 @@ public class GlobalSetting {
 		return globalSettings;
 	}
 	
-	public static boolean init(String initialName, String initialValue) {
+	public static boolean init(String ... nameValue) {
 		int count = ofy().load().type(GlobalSetting.class).count();
 		if(count == 0) {
-			GlobalSetting i = new GlobalSetting(initialName, initialValue);
-			ofy().save().entity(i).now();
+			for(int i=0; i < nameValue.length; i += 2) {
+				String name = nameValue[i];
+				String value = nameValue[i+1];
+				GlobalSetting g = new GlobalSetting(name, value);
+				ofy().save().entity(g).now();
+			}
+			
 		}
 		return count == 0;
 	}

@@ -39,8 +39,7 @@ public class Resource {
 		} catch (Exception e) {
 		}
 		try {
-				boolean intializeGlobalSettings = Boolean.valueOf(globalSettings.get("initalizeGlobalSettings"));
-				globalSettings.putAll(getGlobalSettings(intializeGlobalSettings));	
+				globalSettings.putAll(getGlobalSettings());	
 		} catch (Exception e) {
 			log.log(Level.WARNING, "Issue getting global settings", e);
 		}
@@ -92,10 +91,10 @@ public class Resource {
 		
 	}
 	
-	private final Map<String, String> getGlobalSettings(boolean initalizeGlobalSettings) {
+	private final Map<String, String> getGlobalSettings() {
 		Map<String, String> result = GlobalSetting.getGlobalSettings();
-		if((result == null || result.isEmpty()) && initalizeGlobalSettings) {
-			GlobalSetting.init("created", Calendar.getInstance().getTime().toString());
+		if((result == null || result.isEmpty()) ) {
+			GlobalSetting.init("created", Calendar.getInstance().getTime().toString(), "seed", Integer.toString((int)(Math.random()*100000)));
 			result = GlobalSetting.getGlobalSettings();
 		}
 		return result;

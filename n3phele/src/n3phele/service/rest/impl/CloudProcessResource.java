@@ -11,6 +11,8 @@ package n3phele.service.rest.impl;
  *  specific language governing permissions and limitations under the License.
  */
 
+import static com.googlecode.objectify.ObjectifyService.ofy;
+
 import java.net.URI;
 import java.util.Date;
 import java.util.List;
@@ -36,11 +38,11 @@ import n3phele.service.core.NotFoundException;
 import n3phele.service.core.Resource;
 import n3phele.service.lifecycle.ProcessLifecycle;
 import n3phele.service.model.Action;
+import n3phele.service.model.CachingAbstractManager;
 import n3phele.service.model.CloudProcess;
+import n3phele.service.model.CloudProcessCollection;
 import n3phele.service.model.ServiceModelDao;
 import n3phele.service.model.SignalKind;
-import n3phele.service.model.core.AbstractManager;
-import n3phele.service.model.core.BaseEntity;
 import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.GenericModelDao;
 import n3phele.service.model.core.User;
@@ -59,11 +61,24 @@ public class CloudProcessResource {
 	@GET
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
-	public Collection<BaseEntity> list(
-			@DefaultValue("false") @QueryParam("summary") Boolean summary)  {
+	public CloudProcessCollection list(
+			@DefaultValue("false") @QueryParam("summary") Boolean summary,
+			@DefaultValue("0") @QueryParam("start") int start,
+			@DefaultValue("-1") @QueryParam("end") int end) throws NotFoundException {
 
-		Collection<BaseEntity> result = dao.getCollection(UserResource.toUser(securityContext)).collection(summary);
-		return result;
+		log.info("getProgress entered with summary "+summary+" from start="+start+" to end="+end);
+		
+		int n = 0;
+		if(start < 0)
+			start = 0;
+		if(end >= 0) {
+			n = end - start + 1;
+			if(n <= 0)
+				n = 1;
+		}
+		Collection<CloudProcess> result = dao.getCollection(start, n, UserResource.toUser(securityContext));// .collection(summary);
+
+		return new CloudProcessCollection(result);
 	}
 	
 	@GET
@@ -181,7 +196,7 @@ public class CloudProcessResource {
 	/*
 	 * Data Access
 	 */
-	public static class CloudProcessManager extends AbstractManager<CloudProcess> {		
+	public static class CloudProcessManager extends CachingAbstractManager<CloudProcess> {		
 		public CloudProcessManager() {
 		}
 		@Override
@@ -223,9 +238,55 @@ public class CloudProcessResource {
 		public java.util.Collection<CloudProcess> getNonfinalized() { return super.itemDao.collectionByProperty("finalized", false); }
 		public java.util.Collection<CloudProcess> getChildren(URI parent) { return super.itemDao.collectionByProperty(parent, "parent", parent.toString()); }
 		public java.util.Collection<CloudProcess> getList(List<URI>ids) { return super.itemDao.listByURI(ids) ; }		
-		public Collection<CloudProcess> getCollection(User owner) { return super.getCollection(owner); }
+
 		public void add(CloudProcess process) { super.add(process); }
 		public void delete(CloudProcess process) { super.delete(process); }
+		
+		public Collection<CloudProcess> getCollection2(User owner) { return super.getCollection(owner); }
+		
+		/**
+		 * Collection of resources of a particular class in the persistent store. The will be extended
+		 * in the future to return the collection of resources accessible to a particular user.
+		 * @return the collection
+		 */
+		public Collection<CloudProcess> getCollection(int start, int n, User owner) {
+			return owner.isAdmin()? getCollection(start, n):getCollection(start, n, owner.getUri());
+		}
+		
+		/**
+		 * Collection of resources of a particular class in the persistent store. The will be extended
+		 * in the future to return the collection of resources accessible to a particular user.
+		 * @return the collection
+		 */
+		public Collection<CloudProcess> getCollection(int start, int n) {
+			log.info("admin query");
+			Collection<CloudProcess> result = null;
+			List<CloudProcess> items = ofy().load().type(CloudProcess.class).filter("root", null).order("-started").offset(start).limit(n).list();
+
+			result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, items);
+
+			result.setTotal(ofy().load().type(CloudProcess.class).filter("root", null).count());
+
+			log.info("admin query total (with sort) -is- "+result.getTotal());
+
+			return result;
+		}
+		
+		/**
+		 * Collection of resources of a particular class in the persistent store. The will be extended
+		 * in the future to return the collection of resources accessible to a particular user.
+		 * @return the collection
+		 */
+		public Collection<CloudProcess> getCollection(int start, int n, URI owner) {
+			log.info("non-admin query");
+			Collection<CloudProcess> result = null;
+			List<CloudProcess> items = ofy().load().type(CloudProcess.class).filter("owner", owner.toString()).filter("root", null).order("-started").offset(start).limit(n).list();
+
+			result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, items);
+
+			result.setTotal(ofy().load().type(CloudProcess.class).filter("owner", owner.toString()).filter("root", null).count());
+			return result;
+		}
 
 
 	}

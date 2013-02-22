@@ -136,5 +136,65 @@ public class Narrative {
 	public void setProcess(URI process) {
 		this.process = Helpers.URItoString(process);
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + ((process == null) ? 0 : process.hashCode());
+		result = prime * result + ((stamp == null) ? 0 : stamp.hashCode());
+		result = prime * result + ((state == null) ? 0 : state.hashCode());
+		result = prime * result + ((tag == null) ? 0 : tag.hashCode());
+		result = prime * result + ((text == null) ? 0 : text.hashCode());
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Narrative other = (Narrative) obj;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		if (process == null) {
+			if (other.process != null)
+				return false;
+		} else if (!process.equals(other.process))
+			return false;
+		if (stamp == null) {
+			if (other.stamp != null)
+				return false;
+		} else if (!stamp.equals(other.stamp))
+			return false;
+		if (state != other.state)
+			return false;
+		if (tag == null) {
+			if (other.tag != null)
+				return false;
+		} else if (!tag.equals(other.tag))
+			return false;
+		if (text == null) {
+			if (other.text != null)
+				return false;
+		} else if (!text.equals(other.text))
+			return false;
+		return true;
+	}
+	
+	
 	
 }

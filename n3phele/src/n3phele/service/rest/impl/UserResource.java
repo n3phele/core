@@ -11,6 +11,8 @@ package n3phele.service.rest.impl;
  *  specific language governing permissions and limitations under the License.
  */
 
+import static com.googlecode.objectify.ObjectifyService.ofy;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.Calendar;
@@ -44,13 +46,16 @@ import javax.ws.rs.core.UriInfo;
 
 import n3phele.service.core.NotFoundException;
 import n3phele.service.core.Resource;
+import n3phele.service.model.CachingAbstractManager;
 import n3phele.service.model.ServiceModelDao;
-import n3phele.service.model.core.AbstractManager;
 import n3phele.service.model.core.BaseEntity;
 import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.Credential;
 import n3phele.service.model.core.GenericModelDao;
 import n3phele.service.model.core.User;
+
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.ObjectifyService;
 
 @Path("/user")
 public class UserResource {
@@ -297,7 +302,7 @@ public class UserResource {
 		dao.delete(item);
 	}
 
-	public static class UserManager extends AbstractManager<User> {
+	public static class UserManager extends CachingAbstractManager<User> {
 		public UserManager() {	
 		}
 		@Override
@@ -381,12 +386,12 @@ public class UserResource {
 			return false;
 		}
 	}
-	final public static UserManager dao = new UserManager();
-	public static final User Root;
+
 	static {
 		User root = null;
 		try {
-			root = dao.get("root");
+			ObjectifyService.register(User.class);
+			root = ofy().load().type(User.class).filter("name", "root").first().safeGet();
 			if(!(root.getCredential().decrypt().getAccount().equals("root") ||
 					root.isAdmin() ||
 					!root.isPublic() ||
@@ -398,20 +403,25 @@ public class UserResource {
 			log.log(Level.INFO, "Root exists.");
 		} catch (Exception e) {
 			if(root != null)
-				dao.delete(root);
-			root = new User("root", "n3phele", "root-administrator", Integer.toString((int)Math.random()*10000));
+				ofy().delete().entity(root).now();
+			root = new User("root", "n3phele", "root-administrator");
 			root.setAdmin(true);
 			root.setValidated(true);
 			root.setOwner(URI.create("http://www.n3phele.com"));
 			root.setValidationDate(Calendar.getInstance().getTime());  // birthday!
-			dao.add(root);
-			root.setCredential(new Credential("root", Resource.get("serviceSecret", "3")).encrypt());
+			Key<User> rootKey = ofy().save().entity(root).now();
+			root.setUri(UriBuilder.fromUri(Resource.get("baseURI", "http://localhost:8888/resources")).path(UserResource.class).path("/"+rootKey.getId()).build());
 			root.setOwner(root.getUri());
-			dao.update(root);
+			root.setCredential(new Credential("root", Resource.get("serviceSecret", "3")).encrypt());
+			ofy().save().entity(root).now();
 			log.log(Level.SEVERE, "Root object created.");
 		}
 		Root = root;
 	}
+	public static final User Root;
+	final public static UserManager dao = new UserManager();
+
+	
 	public static User toUser(SecurityContext securityContext) {
 		return Root;
 //		Principal principal = securityContext.getUserPrincipal();

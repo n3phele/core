@@ -21,7 +21,7 @@ import java.net.URI;
 import java.util.List;
 
 import junit.framework.Assert;
-import n3phele.service.model.CommandDefinition;
+import n3phele.service.model.Command;
 import n3phele.service.model.CommandImplementationDefinition;
 import n3phele.service.model.ParameterType;
 import n3phele.service.model.ShellFragment;
@@ -59,7 +59,7 @@ public class ParserTest {
 	public void denoiseTest() throws FileNotFoundException, ParseException, Exception {
 
 		NParser n = new NParser(new FileInputStream("./test/denoiseTest.n"));
-		CommandDefinition cd = n.parse();
+		Command cd = n.parse();
 		Assert.assertEquals("denoise", cd.getName());
 		Assert.assertEquals("denoise an aggregate of up to 5 files in .sff.txt format, which is the output of sffinfo", cd.getDescription());
 		Assert.assertTrue(cd.isPublic());
@@ -580,7 +580,7 @@ public class ParserTest {
 	public void denoiseCompileTest() throws FileNotFoundException, ParseException, Exception {
 
 		NParser n = new NParser(new FileInputStream("./test/denoiseTest.n"));
-		CommandDefinition cd = n.parse();
+		Command cd = n.parse();
 
 		//
 		//	Shell parsing
@@ -838,7 +838,7 @@ public class ParserTest {
 
 
 		try {
-		 CommandDefinition cd = n.parse();
+		 Command cd = n.parse();
 			Shell s = new Shell(cd.getImplementations().get(0).getBody(), cd.getImplementations().get(0).getLineNo());
 			SimpleNode node = s.script();
 			fail("Exception expected");
@@ -1082,7 +1082,7 @@ public class ParserTest {
 	@Test
 	public void shellTest_LOG() throws ParseException, n3phele.service.nShell.ParseException, FileNotFoundException {
 		NParser n = new NParser(new FileInputStream("./test/doubleLogTest.n"));
-		CommandDefinition cd = n.parse();
+		Command cd = n.parse();
 		Assert.assertEquals("doubleLog", cd.getName());
 		Assert.assertEquals("produce a log message with a suffix", cd.getDescription());
 		Assert.assertTrue(cd.isPublic());
@@ -1127,7 +1127,7 @@ public class ParserTest {
 	@Test
 	public void shellTest_ON() throws ParseException, n3phele.service.nShell.ParseException, FileNotFoundException {
 		NParser n = new NParser(new FileInputStream("./test/onCommandSingleOutputFileTest.n"));
-		CommandDefinition cd = n.parse();
+		Command cd = n.parse();
 		Assert.assertEquals("onCommandSingleOutputFile", cd.getName());
 		Assert.assertEquals("run a command that has a single input and file", cd.getDescription());
 		Assert.assertTrue(cd.isPublic());

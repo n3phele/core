@@ -28,7 +28,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import n3phele.service.model.CommandDefinition;
+import n3phele.service.model.Command;
 import n3phele.service.model.CommandImplementationDefinition;
 import n3phele.service.model.FileSpecification;
 import n3phele.service.model.ParameterType;
@@ -272,7 +272,7 @@ TOKEN :
 }
 
 
-CommandDefinition parse():
+Command parse():
 { 	
 	String name = null;
 	String description = null;
@@ -298,7 +298,7 @@ CommandDefinition parse():
   	[ implementations = implementations() ]
   	 <EOF >
   	{
-		CommandDefinition cd = new CommandDefinition();
+		Command cd = new Command();
 		cd.setName(name);
 		cd.setDescription(description);
 		cd.setVersion(version);

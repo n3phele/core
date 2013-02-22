@@ -25,12 +25,12 @@ public abstract class AbstractManager<Item extends Entity> {
 
 	protected Logger log = Logger.getLogger(this.getClass().getName());
 	protected GenericModelDao<Item> itemDao;
-	final private String path;
+	final protected URI path;
 
 	public AbstractManager() {
 		super();
 		itemDao = itemDaoFactory();
-		path = myPath().toString();
+		path = myPath();
 	}
 	
 	/**
@@ -267,7 +267,7 @@ public abstract class AbstractManager<Item extends Entity> {
 		Collection<Item> result = null;
 		try {
 			List<Item> children = itemDao.listAll();
-			result = new Collection<Item>(itemDao.clazz.getSimpleName(), URI.create(this.path.toString()), children);
+			result = new Collection<Item>(itemDao.clazz.getSimpleName(), this.path, children);
 		} catch (NotFoundException e) {
 		}
 		result.setTotal(result.getElements().size());
@@ -284,7 +284,7 @@ public abstract class AbstractManager<Item extends Entity> {
 			java.util.Collection<Item> owned = itemDao.collectionByProperty("owner", owner.toString());
 			java.util.Collection<Item> shared = itemDao.collectionByProperty("isPublic", true);
 			List<Item> items = mergeResults(owned, shared, owner);			
-			result = new Collection<Item>(itemDao.clazz.getSimpleName(), URI.create(this.path.toString()), items);
+			result = new Collection<Item>(itemDao.clazz.getSimpleName(), this.path, items);
 		} catch (NotFoundException e) {
 		}
 		result.setTotal(result.getElements().size());

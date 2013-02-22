@@ -26,7 +26,7 @@ import n3phele.service.core.UnprocessableEntityException;
 import n3phele.service.lifecycle.ProcessLifecycle;
 import n3phele.service.model.Action;
 import n3phele.service.model.CloudProcess;
-import n3phele.service.model.CommandDefinition;
+import n3phele.service.model.Command;
 import n3phele.service.model.CommandImplementationDefinition;
 import n3phele.service.model.Context;
 import n3phele.service.model.ShellFragment;
@@ -249,7 +249,7 @@ public class ForAction extends Action {
 		log.info("Uri ="+uri.toString());
 		String name = uri.getFragment(); 
 		String start = uri.getQuery();
-		CommandDefinition cmd = loadCommandDefinition(baseURI);
+		Command cmd = loadCommandDefinition(baseURI);
 		for(CommandImplementationDefinition cid : Helpers.safeIterator(cmd.getImplementations())) {
 			log.info("looking for "+name+" against "+cid.getName());
 			if(cid.getName().equals(name)) {
@@ -497,8 +497,8 @@ public class ForAction extends Action {
 	 * @return
 	 * @throws NotFoundException
 	 */
-	protected CommandDefinition loadCommandDefinition(URI uri) throws NotFoundException {
-		CommandDefinition cmd = new CommandDefinition();
+	protected Command loadCommandDefinition(URI uri) throws NotFoundException {
+		Command cmd = new Command();
 		cmd.setUri(uri);
 		return cmd;
 	}

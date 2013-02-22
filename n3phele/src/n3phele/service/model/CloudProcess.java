@@ -17,6 +17,7 @@ import static n3phele.service.model.core.Helpers.stringToURI;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -28,13 +29,14 @@ import n3phele.service.model.core.Entity;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.annotation.Unindex;
 
 @XmlRootElement(name="CloudProcess")
 @XmlType(name="Action", propOrder={"id","state", "running", "waitTimeout", "pendingInit", "pendingCall", "pendingCancel", "pendingDump", "pendingAssertion", 
-		"dependentOn", "dependencyFor", "start", "complete", "finalized", "action", "parent"})
+		"dependentOn", "dependencyFor", "start", "complete", "finalized", "action", "actionType", "parent", "narrative"})
 @Unindex
 @com.googlecode.objectify.annotation.Entity
 public class CloudProcess extends Entity {
@@ -54,6 +56,9 @@ public class CloudProcess extends Entity {
 	private Date complete = null;
 	@Index private boolean finalized = false;
 	private String action = null;
+	private String actionType = null;
+	@Ignore
+	private Narrative[] narrative = null;
 	@Index private String parent = null;
 	@XmlTransient
 	@Parent Key<CloudProcess> root;
@@ -68,6 +73,7 @@ public class CloudProcess extends Entity {
 	public CloudProcess(URI owner, String name, CloudProcess parent, Action task)  {
 		super(name, null, "", owner, false);
 		this.action = task.getUri().toString();
+		this.actionType = task.getClass().getSimpleName();
 		if(parent != null) {
 			this.parent = parent.getUri().toString();
 			if(parent.root == null) {
@@ -332,17 +338,43 @@ public class CloudProcess extends Entity {
 	public void setRoot(Key<CloudProcess> root) {
 		this.root = root;
 	}
+	/**
+	 * @return the actionType
+	 */
+	public String getActionType() {
+		return actionType;
+	}
+	/**
+	 * @param actionType the actionType to set
+	 */
+	public void setActionType(String actionType) {
+		this.actionType = actionType;
+	}
+	/**
+	 * @return the narrative
+	 */
+	public Narrative[] getNarrative() {
+		return narrative;
+	}
+	/**
+	 * @param narrative the narrative to set
+	 */
+	public void setNarrative(Narrative[] narrative) {
+		this.narrative = narrative;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		return String
-				.format("CloudProcess [id=%s, state=%s, running=%s, waitTimeout=%s, pendingInit=%s, pendingCall=%s, pendingCancel=%s, pendingDump=%s, pendingAssertion=%s, dependentOn=%s, dependencyFor=%s, start=%s, complete=%s, finalized=%s, action=%s, parent=%s, root=%s]",
+				.format("CloudProcess [id=%s, state=%s, running=%s, waitTimeout=%s, pendingInit=%s, pendingCall=%s, pendingCancel=%s, pendingDump=%s, pendingAssertion=%s, dependentOn=%s, dependencyFor=%s, start=%s, complete=%s, finalized=%s, action=%s, actionType=%s, narrative=%s, parent=%s, root=%s]",
 						id, state, running, waitTimeout, pendingInit,
 						pendingCall, pendingCancel, pendingDump,
 						pendingAssertion, dependentOn, dependencyFor, start,
-						complete, finalized, action, parent, root);
+						complete, finalized, action, actionType,
+						Arrays.toString(narrative), parent, root);
 	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
@@ -353,6 +385,8 @@ public class CloudProcess extends Entity {
 		int result = super.hashCode();
 		result = prime * result + ((action == null) ? 0 : action.hashCode());
 		result = prime * result
+				+ ((actionType == null) ? 0 : actionType.hashCode());
+		result = prime * result
 				+ ((complete == null) ? 0 : complete.hashCode());
 		result = prime * result
 				+ ((dependencyFor == null) ? 0 : dependencyFor.hashCode());
@@ -360,6 +394,7 @@ public class CloudProcess extends Entity {
 				+ ((dependentOn == null) ? 0 : dependentOn.hashCode());
 		result = prime * result + (finalized ? 1231 : 1237);
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + Arrays.hashCode(narrative);
 		result = prime * result + ((parent == null) ? 0 : parent.hashCode());
 		result = prime
 				* result
@@ -393,6 +428,11 @@ public class CloudProcess extends Entity {
 				return false;
 		} else if (!action.equals(other.action))
 			return false;
+		if (actionType == null) {
+			if (other.actionType != null)
+				return false;
+		} else if (!actionType.equals(other.actionType))
+			return false;
 		if (complete == null) {
 			if (other.complete != null)
 				return false;
@@ -414,6 +454,8 @@ public class CloudProcess extends Entity {
 			if (other.id != null)
 				return false;
 		} else if (!id.equals(other.id))
+			return false;
+		if (!Arrays.equals(narrative, other.narrative))
 			return false;
 		if (parent == null) {
 			if (other.parent != null)

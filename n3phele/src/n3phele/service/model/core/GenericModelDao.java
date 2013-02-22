@@ -212,6 +212,14 @@ public final Class<T> clazz;
 			throw new NotFoundException();
 		}
 	}
+	
+	public T getByPropertyOrdered(String propName, Object propValue, String sortBy) throws NotFoundException  {
+		try {
+			return ofy().load().type(clazz).filter(propName, propValue).order(sortBy).first().safeGet();
+		} catch (com.googlecode.objectify.NotFoundException e) {
+			throw new NotFoundException();
+		}
+	}
 
 	public List<Key<T>> listKeysByProperty(String propName, Object propValue) {
 		return ofy().load().type(clazz).filter(propName, propValue).keys().list();

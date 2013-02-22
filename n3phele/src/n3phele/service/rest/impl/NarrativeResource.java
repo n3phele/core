@@ -15,14 +15,13 @@ import java.net.URI;
 import java.util.Collection;
 import java.util.Date;
 
-import com.googlecode.objectify.VoidWork;
-
 import n3phele.service.core.NotFoundException;
-
 import n3phele.service.model.Narrative;
 import n3phele.service.model.NarrativeLevel;
 import n3phele.service.model.ServiceModelDao;
 import n3phele.service.model.core.Helpers;
+
+import com.googlecode.objectify.VoidWork;
 
 
 public class NarrativeResource {
@@ -53,7 +52,8 @@ public class NarrativeResource {
 				@Override
 				public void vrun() {
 					Narrative n = dao.get(msgId);
-					n.setText(message);					
+					n.setText(message);	
+					dao.put(n);
 				}});
 			return msgId;
 		}
@@ -73,6 +73,10 @@ public class NarrativeResource {
 		public Collection<Narrative> getNarratives(URI processUri) {
 			return dao.orderedCollectionByProperty("process", Helpers.URItoString(processUri), "stamp");
 			
+		}
+		
+		public Narrative getLastNarrative(URI processUri) {
+			return  dao.getByPropertyOrdered("process", Helpers.URItoString(processUri), "stamp") ;
 		}
 	}
 	final public static NarrativeManager dao = new NarrativeManager();

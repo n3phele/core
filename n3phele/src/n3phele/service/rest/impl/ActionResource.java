@@ -30,8 +30,8 @@ import javax.ws.rs.core.UriInfo;
 import n3phele.service.core.NotFoundException;
 import n3phele.service.core.Resource;
 import n3phele.service.model.Action;
+import n3phele.service.model.CachingAbstractManager;
 import n3phele.service.model.ServiceModelDao;
-import n3phele.service.model.core.AbstractManager;
 import n3phele.service.model.core.BaseEntity;
 import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.GenericModelDao;
@@ -76,7 +76,7 @@ public class ActionResource {
 	 * ------------------------------------------------------------------------------------------ *
 	 */
 	
-	public static class ActionManager extends AbstractManager<Action> {
+	public static class ActionManager extends CachingAbstractManager<Action> {
 		public ActionManager() {
 		}
 		@Override

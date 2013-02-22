@@ -31,11 +31,11 @@ import javax.ws.rs.core.UriInfo;
 import n3phele.service.core.NotFoundException;
 import n3phele.service.core.Resource;
 import n3phele.service.model.Account;
+import n3phele.service.model.CachingAbstractManager;
 import n3phele.service.model.Cloud;
 import n3phele.service.model.CloudCollection;
 import n3phele.service.model.ServiceModelDao;
 import n3phele.service.model.TypedParameter;
-import n3phele.service.model.core.AbstractManager;
 import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.Credential;
 import n3phele.service.model.core.GenericModelDao;
@@ -158,7 +158,7 @@ public class CloudResource {
 		return result;
 	}
 
-	public static class CloudManager extends AbstractManager<Cloud> {		
+	public static class CloudManager extends CachingAbstractManager<Cloud> {		
 		public CloudManager() {
 		}
 		@Override

@@ -36,7 +36,7 @@ import n3phele.service.lifecycle.ProcessLifecycle;
 import n3phele.service.lifecycle.ProcessLifecycle.WaitForSignalRequest;
 import n3phele.service.model.Action;
 import n3phele.service.model.CloudProcess;
-import n3phele.service.model.CommandDefinition;
+import n3phele.service.model.Command;
 import n3phele.service.model.CommandImplementationDefinition;
 import n3phele.service.model.Context;
 import n3phele.service.model.FileSpecification;
@@ -83,7 +83,7 @@ public class NShellAction extends Action {
 	
 	public NShellAction() {}
 	
-	public NShellAction(User owner, String name, Context context, CommandDefinition command, int commandImplementation) {
+	public NShellAction(User owner, String name, Context context, Command command, int commandImplementation) {
 		super(owner.getUri(), name, context);
 		this.command = command.getUri().toString();
 		this.executable = command.getImplementations().get(commandImplementation).getCompiled();
@@ -373,7 +373,7 @@ public class NShellAction extends Action {
 		 * 
 		 */
 		
-		CommandDefinition cmd = loadCommandDefinition(this.getCommand());
+		Command cmd = loadCommandDefinition(this.getCommand());
 		
 		List<FileTracker> neededInputFiles = resolveNeeds(childContext, cmd);
 		List<FileTracker> newEntries = new ArrayList<FileTracker>();
@@ -556,7 +556,7 @@ public class NShellAction extends Action {
 	 * @return list of input files needed for command execution.
 	 * <br>The context has <i>needs</i> variable created for all command input files if <i>needsNone</i>=true not in the context
 	 */
-	protected List<FileTracker> resolveNeeds(Context context, CommandDefinition cmd) {
+	protected List<FileTracker> resolveNeeds(Context context, Command cmd) {
 		boolean needsNone = context.getBooleanValue("needsNone");
 		Variable needs = context.get("needs");
 		List<FileTracker> inputList = new ArrayList<FileTracker>();
@@ -624,7 +624,7 @@ public class NShellAction extends Action {
 	 * @return list of output files produced by the command
 	 * <br> context variable <i>produces</i> is generated if absent an the context variable <i>producesAll</i>==true
 	 */
-	protected List<FileTracker> resolveProduces(Context context, CommandDefinition cmd, List<FileTracker> needTransfers) {
+	protected List<FileTracker> resolveProduces(Context context, Command cmd, List<FileTracker> needTransfers) {
 		boolean producesall = context.getBooleanValue("producesAll");
 		Variable produces = context.get("produces");
 		List<FileTracker> production = new ArrayList<FileTracker>();
@@ -1007,7 +1007,7 @@ public class NShellAction extends Action {
 		log.info("Uri ="+uri.toString());
 		String name = uri.getFragment(); 
 		String start = uri.getQuery();
-		CommandDefinition cmd = loadCommandDefinition(baseURI);
+		Command cmd = loadCommandDefinition(baseURI);
 		for(CommandImplementationDefinition cid : Helpers.safeIterator(cmd.getImplementations())) {
 			log.info("looking for "+name+" against "+cid.getName());
 			if(cid.getName().equals(name)) {
@@ -1362,8 +1362,8 @@ public class NShellAction extends Action {
 	 * @return
 	 * @throws NotFoundException
 	 */
-	protected CommandDefinition loadCommandDefinition(URI uri) throws NotFoundException {
-		CommandDefinition cmd = new CommandDefinition();
+	protected Command loadCommandDefinition(URI uri) throws NotFoundException {
+		Command cmd = new Command();
 		cmd.setUri(uri);
 		return cmd;
 	}

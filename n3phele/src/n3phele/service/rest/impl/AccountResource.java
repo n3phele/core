@@ -31,9 +31,9 @@ import n3phele.service.core.NotFoundException;
 import n3phele.service.core.Resource;
 import n3phele.service.model.Account;
 import n3phele.service.model.AccountCollection;
+import n3phele.service.model.CachingAbstractManager;
 import n3phele.service.model.Cloud;
 import n3phele.service.model.ServiceModelDao;
-import n3phele.service.model.core.AbstractManager;
 import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.Credential;
 import n3phele.service.model.core.GenericModelDao;
@@ -54,7 +54,7 @@ public class AccountResource {
 
 		log.warning("list Accounts entered with summary "+summary);
 		
-		Collection<Account> result = getAccountList(UserResource.toUser(securityContext), summary);
+		Collection<Account> result = dao.getAccountList(UserResource.toUser(securityContext), summary);
 
 		return new AccountCollection(result,0,-1);
 	}
@@ -152,6 +152,10 @@ public class AccountResource {
 		Account item = dao.load(id, UserResource.toUser(securityContext));
 		dao.delete(item);
 	}
+	
+	/*
+	 * Helpers
+	 */
 
 	public String createAccountForUser(User user, String accountId,
 			String secret) throws NotFoundException {
@@ -166,39 +170,9 @@ public class AccountResource {
 		return result;
 	}
 	
-	public Collection<Account> getAccountList(User user, boolean summary) {
-
-		log.warning("list Accounts entered with summary "+summary);
-		
-		Collection<Account> result = dao.getCollection(user);
-		Map<URI, String> cloudMap = new HashMap<URI, String>();
-		
-		if(result.getElements() != null) {
-			for(int i=0; i < result.getElements().size(); i++) {
-				Account account = result.getElements().get(i);
-				URI cloud = account.getCloud();
-				if(cloud != null) {
-					String cloudName = cloudMap.get(cloud);
-					if(cloudName == null) {
-						try {
-							Cloud c = CloudResource.dao.load(cloud);
-							cloudName = c.getName();
-							cloudMap.put(cloud, cloudName);
-						} catch (NotFoundException nfe) {
-							log.severe("Unknown cloud on account "+account.getUri());
-							cloudName = cloud.toString();
-						}
-					}
-					account.setCloudName(cloudName);
-				}
-				if(summary)
-					result.getElements().set(i, Account.summary(account));
-			}
-		}
-		return result;
-	}
 	
-	static public class AccountManager extends AbstractManager<Account> {
+	
+	static public class AccountManager extends CachingAbstractManager<Account> {
 		public AccountManager() {
 		}
 		@Override
@@ -233,6 +207,38 @@ public class AccountResource {
 		public void update(Account account) { super.update(account); }
 		public void delete(Account account) { super.delete(account); }
 		public Collection<Account> getCollection(User user) { return super.getCollection(user); }
+		
+		public Collection<Account> getAccountList(User user, boolean summary) {
+
+			log.warning("list Accounts entered with summary "+summary);
+			
+			Collection<Account> result = getCollection(user);
+			Map<URI, String> cloudMap = new HashMap<URI, String>();
+			
+			if(result.getElements() != null) {
+				for(int i=0; i < result.getElements().size(); i++) {
+					Account account = result.getElements().get(i);
+					URI cloud = account.getCloud();
+					if(cloud != null) {
+						String cloudName = cloudMap.get(cloud);
+						if(cloudName == null) {
+							try {
+								Cloud c = CloudResource.dao.load(cloud);
+								cloudName = c.getName();
+								cloudMap.put(cloud, cloudName);
+							} catch (NotFoundException nfe) {
+								log.severe("Unknown cloud on account "+account.getUri());
+								cloudName = cloud.toString();
+							}
+						}
+						account.setCloudName(cloudName);
+					}
+					if(summary)
+						result.getElements().set(i, Account.summary(account));
+				}
+			}
+			return result;
+		}
 	}
 	final public static AccountManager dao = new AccountManager();
 }
