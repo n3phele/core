@@ -25,6 +25,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
+import n3phele.service.actions.JobAction;
 import n3phele.service.model.core.Entity;
 
 import com.googlecode.objectify.Key;
@@ -33,10 +34,11 @@ import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.annotation.Unindex;
+import com.googlecode.objectify.condition.IfTrue;
 
 @XmlRootElement(name="CloudProcess")
 @XmlType(name="Action", propOrder={"id","state", "running", "waitTimeout", "pendingInit", "pendingCall", "pendingCancel", "pendingDump", "pendingAssertion", 
-		"dependentOn", "dependencyFor", "start", "complete", "finalized", "action", "actionType", "parent", "narrative"})
+		"dependentOn", "dependencyFor", "start", "complete", "finalized", "action", "actionType", "parent", "topLevel", "narrative"})
 @Unindex
 @com.googlecode.objectify.annotation.Entity
 public class CloudProcess extends Entity {
@@ -62,6 +64,7 @@ public class CloudProcess extends Entity {
 	@Index private String parent = null;
 	@XmlTransient
 	@Parent Key<CloudProcess> root;
+	@Index(IfTrue.class) boolean topLevel = false; 
 	
 	
 	public CloudProcess() {}
@@ -71,9 +74,12 @@ public class CloudProcess extends Entity {
 	 * @param taskId Reference to the action managed by the process
 	 */
 	public CloudProcess(URI owner, String name, CloudProcess parent, Action task)  {
-		super(name, null, "", owner, false);
+		super(name, null, owner, false);
 		this.action = task.getUri().toString();
 		this.actionType = task.getClass().getSimpleName();
+		if(task instanceof JobAction) {
+			this.topLevel = true;
+		}
 		if(parent != null) {
 			this.parent = parent.getUri().toString();
 			if(parent.root == null) {
@@ -84,6 +90,7 @@ public class CloudProcess extends Entity {
 		} else {
 			this.parent = null;
 			this.root = null;
+			this.topLevel = true;
 		}
 	}
 	
@@ -362,19 +369,39 @@ public class CloudProcess extends Entity {
 	public void setNarrative(Narrative[] narrative) {
 		this.narrative = narrative;
 	}
-
+	
+	/**
+	 * @return the topLevel
+	 */
+	public boolean isTopLevel() {
+		return topLevel;
+	}
+	
+	/**
+	 * @return the topLevel
+	 */
+	public boolean getTopLevel() {
+		return topLevel;
+	}
+	
+	/**
+	 * @param topLevel the topLevel to set
+	 */
+	public void setTopLevel(boolean topLevel) {
+		this.topLevel = topLevel;
+	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		return String
-				.format("CloudProcess [id=%s, state=%s, running=%s, waitTimeout=%s, pendingInit=%s, pendingCall=%s, pendingCancel=%s, pendingDump=%s, pendingAssertion=%s, dependentOn=%s, dependencyFor=%s, start=%s, complete=%s, finalized=%s, action=%s, actionType=%s, narrative=%s, parent=%s, root=%s]",
+				.format("CloudProcess [id=%s, state=%s, running=%s, waitTimeout=%s, pendingInit=%s, pendingCall=%s, pendingCancel=%s, pendingDump=%s, pendingAssertion=%s, dependentOn=%s, dependencyFor=%s, start=%s, complete=%s, finalized=%s, action=%s, actionType=%s, narrative=%s, parent=%s, root=%s, topLevel=%s]",
 						id, state, running, waitTimeout, pendingInit,
 						pendingCall, pendingCancel, pendingDump,
 						pendingAssertion, dependentOn, dependencyFor, start,
 						complete, finalized, action, actionType,
-						Arrays.toString(narrative), parent, root);
+						Arrays.toString(narrative), parent, root, topLevel);
 	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
@@ -407,6 +434,7 @@ public class CloudProcess extends Entity {
 		result = prime * result + ((running == null) ? 0 : running.hashCode());
 		result = prime * result + ((start == null) ? 0 : start.hashCode());
 		result = prime * result + ((state == null) ? 0 : state.hashCode());
+		result = prime * result + (topLevel ? 1231 : 1237);
 		result = prime * result
 				+ ((waitTimeout == null) ? 0 : waitTimeout.hashCode());
 		return result;
@@ -492,6 +520,8 @@ public class CloudProcess extends Entity {
 			return false;
 		if (state != other.state)
 			return false;
+		if (topLevel != other.topLevel)
+			return false;
 		if (waitTimeout == null) {
 			if (other.waitTimeout != null)
 				return false;
@@ -500,5 +530,6 @@ public class CloudProcess extends Entity {
 		return true;
 	}
 
+	
 
 }

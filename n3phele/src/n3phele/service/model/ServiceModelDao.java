@@ -33,13 +33,14 @@ public class ServiceModelDao<T> extends GenericModelDao<T> {
 
 	static {
 		// Register all your entity classes here
-		ObjectifyService.register(CloudProcess.class);
-		ObjectifyService.register(Cloud.class);
 		ObjectifyService.register(Account.class);
-		ObjectifyService.register(User.class);
+		ObjectifyService.register(Cloud.class);
+		ObjectifyService.register(CloudProcess.class);
+		ObjectifyService.register(Command.class);
 		ObjectifyService.register(Narrative.class);
 		ObjectifyService.register(Origin.class);
 		ObjectifyService.register(Repository.class);
+		ObjectifyService.register(User.class);
 		
 		ObjectifyService.register(Action.class);
 		ObjectifyService.register(LogAction.class);

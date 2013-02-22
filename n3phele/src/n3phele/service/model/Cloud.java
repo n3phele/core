@@ -40,7 +40,7 @@ public class Cloud extends Entity {
 
 	public Cloud(String name, String description,
 		 URI location, URI factory, Credential factoryCredential, URI owner, boolean isPublic) {
-		super(name, null, "application/vnd.com.n3phele.Cloud+json", owner, isPublic);
+		super(name, null, owner, isPublic);
 		this.id = null;
 		setDescription(description);
 		this.location = (location==null)? null : location.toString();

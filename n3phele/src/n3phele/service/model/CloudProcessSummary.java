@@ -14,6 +14,8 @@ public class CloudProcessSummary extends Entity {
 	private String actionType;
 	private Narrative[] narrative;
 	
+	public CloudProcessSummary() {}
+	
 	public CloudProcessSummary(CloudProcess full) {
 		this.name = full.getName();
 		this.uri = Helpers.URItoString(full.getUri());

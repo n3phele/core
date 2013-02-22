@@ -94,7 +94,7 @@ public class Resource {
 	private final Map<String, String> getGlobalSettings() {
 		Map<String, String> result = GlobalSetting.getGlobalSettings();
 		if((result == null || result.isEmpty()) ) {
-			GlobalSetting.init("created", Calendar.getInstance().getTime().toString(), "seed", Integer.toString((int)(Math.random()*100000)));
+			GlobalSetting.init("created", Calendar.getInstance().getTime().toString(), "seed", Long.toString((long)(Math.random()*10000000000L)));
 			result = GlobalSetting.getGlobalSettings();
 		}
 		return result;

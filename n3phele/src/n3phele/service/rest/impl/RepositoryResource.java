@@ -181,7 +181,6 @@ public class RepositoryResource {
 		RepoListResponse result = new RepoListResponse();
 		List<FileNode> crumbs = new ArrayList<FileNode>();
 		FileNode f = FileNode.newFolder(item.getName(), null, item, false);
-		f.setMime(item.getMime());
 		crumbs.add(f);
 		if(prefix != null) {
 			String bits[] = prefix.split("/");

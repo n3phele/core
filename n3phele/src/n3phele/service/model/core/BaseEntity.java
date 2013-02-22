@@ -18,14 +18,13 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name="BaseEntity")
 @XmlType(name="BaseEntity")
-public class BaseEntity extends Entity {;
+public class BaseEntity extends Entity {
 	
 	public BaseEntity() {}
 	
 	public BaseEntity(Entity entity) {
 		this.name = entity.name;
 		this.uri = entity.uri;
-		this.mime = entity.mime;
 		this.owner = entity.owner;
 		this.isPublic = entity.isPublic;
 	}
@@ -36,8 +35,8 @@ public class BaseEntity extends Entity {;
 	@Override
 	public String toString() {
 		return String
-				.format("BaseEntity [name=%s, uri=%s, mime=%s, owner=%s, isPublic=%s]",
-						name, uri, mime, owner, isPublic);
+				.format("BaseEntity [name=%s, uri=%s, owner=%s, isPublic=%s]",
+						name, uri, owner, isPublic);
 	}
 
 }

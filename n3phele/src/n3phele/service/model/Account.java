@@ -36,7 +36,7 @@ public class Account extends Entity {
 
 	public Account(String name, String description,
 		 URI cloud, Credential credential, URI owner, boolean isPublic) {
-		super(name, null, "factory/vnd.com.n3phele.Account+json", owner, isPublic);
+		super(name, null, owner, isPublic);
 		this.id = null;
 		setDescription(description);
 		this.cloud = (cloud == null) ? null : cloud.toString();

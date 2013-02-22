@@ -42,7 +42,7 @@ public class CommandCollection  extends Entity  {
 	 * @param end
 	 */
 	public CommandCollection(Collection<Command> pc, int start, int end) {
-		super(pc.getName(), pc.getUri(), pc.getMime(), pc.getOwner(), pc.isPublic());
+		super(pc.getName(), pc.getUri(), pc.getOwner(), pc.isPublic());
 		this.elements = pc.getElements();
 		Collections.sort(this.elements, new Comparator<Command>() {
 			// Sort by ascending name, ascending owner, descending version
@@ -60,7 +60,7 @@ public class CommandCollection  extends Entity  {
 	 * @param pc
 	 */
 	public CommandCollection(Collection<Command> pc) {
-		super(pc.getName(), pc.getUri(), pc.getMime(), pc.getOwner(), pc.isPublic());
+		super(pc.getName(), pc.getUri(), pc.getOwner(), pc.isPublic());
 		this.elements = pc.getElements();
 		this.total = pc.getTotal();
 	}

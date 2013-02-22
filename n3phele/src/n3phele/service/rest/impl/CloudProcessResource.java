@@ -67,7 +67,7 @@ public class CloudProcessResource {
 			@DefaultValue("-1") @QueryParam("end") int end) throws NotFoundException {
 
 		log.info("getProgress entered with summary "+summary+" from start="+start+" to end="+end);
-		
+
 		int n = 0;
 		if(start < 0)
 			start = 0;
@@ -261,11 +261,12 @@ public class CloudProcessResource {
 		public Collection<CloudProcess> getCollection(int start, int n) {
 			log.info("admin query");
 			Collection<CloudProcess> result = null;
-			List<CloudProcess> items = ofy().load().type(CloudProcess.class).filter("root", null).order("-started").offset(start).limit(n).list();
+			
+			List<CloudProcess> items = ofy().load().type(CloudProcess.class).filter("topLevel", true).order("-started").offset(start).limit(n).list();
 
 			result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, items);
 
-			result.setTotal(ofy().load().type(CloudProcess.class).filter("root", null).count());
+			result.setTotal(ofy().load().type(CloudProcess.class).filter("topLevel", true).count());
 
 			log.info("admin query total (with sort) -is- "+result.getTotal());
 
@@ -280,16 +281,17 @@ public class CloudProcessResource {
 		public Collection<CloudProcess> getCollection(int start, int n, URI owner) {
 			log.info("non-admin query");
 			Collection<CloudProcess> result = null;
-			List<CloudProcess> items = ofy().load().type(CloudProcess.class).filter("owner", owner.toString()).filter("root", null).order("-started").offset(start).limit(n).list();
+			List<CloudProcess> items = ofy().load().type(CloudProcess.class).filter("owner", owner.toString()).filter("topLevel", true).order("-started").offset(start).limit(n).list();
 
 			result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, items);
 
-			result.setTotal(ofy().load().type(CloudProcess.class).filter("owner", owner.toString()).filter("root", null).count());
+			result.setTotal(ofy().load().type(CloudProcess.class).filter("owner", owner.toString()).filter("topLevel", true).count());
 			return result;
 		}
 
 
 	}
 	final public static CloudProcessManager dao = new CloudProcessManager();
+	final private static Key<CloudProcess> nullAncestor = Key.create(Key.create(CloudProcess.class, 1), CloudProcess.class, 1);
 	
 }

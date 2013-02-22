@@ -205,7 +205,7 @@ public abstract class Action extends Entity {
 	@Override
 	public String toString() {
 		return String
-				.format("Action [id=%s, uri=%s, name=%s, context=%s,  mime=%s, owner=%s, isPublic=%s, process=%s]",
-						id, uri, name, context, mime, owner, isPublic, process);
+				.format("Action [id=%s, uri=%s, name=%s, context=%s, owner=%s, isPublic=%s, process=%s]",
+						id, uri, name, context, owner, isPublic, process);
 	}
 }

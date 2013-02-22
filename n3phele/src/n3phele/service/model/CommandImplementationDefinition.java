@@ -21,6 +21,8 @@ public class CommandImplementationDefinition {
 	private String body;
 	private int lineNo;
 	private ArrayList<ShellFragment> compiled = new ArrayList<ShellFragment>();
+	
+	public CommandImplementationDefinition() {}
 
 	public CommandImplementationDefinition(String name, String annotation,
 			String body, int lineNo) {

@@ -36,7 +36,7 @@ public class CloudProcessCollection extends Entity  {
 	}
 	
 	public CloudProcessCollection(Collection<CloudProcess> pc) {
-		super(pc.getName(), pc.getUri(), pc.getMime(), pc.getOwner(), pc.isPublic());
+		super(pc.getName(), pc.getUri(), pc.getOwner(), pc.isPublic());
 		this.total = pc.getTotal();
 		if(pc.getElements() != null) {
 			this.elements = new ArrayList<CloudProcessSummary>(pc.getElements().size());

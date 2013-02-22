@@ -31,25 +31,19 @@ public class Collection<T extends Entity> extends Entity {
 	public Collection() {  }
 	
 	public Collection(String name, URI uri) {
-		super(name, uri, "application/vnd.com.n3phele.Collection+json", null, true);
+		super(name, uri, null, true);
 		this.total = 0;
 		this.elements = new ArrayList<T>();
 	}
 	
 	public Collection(String name, URI uri, List<T> elements) {
-		super(name, uri, "application/vnd.com.n3phele.Collection+json", null, true);
+		super(name, uri, null, true);
 		this.total = 0;
 		this.elements = elements;
 	}
 	
-	public Collection(String name, URI uri, String mime, List<T> elements) {
-		super(name, uri, mime, null, true);
-		this.total = 0;
-		this.elements = elements;
-	}
-	
-	public Collection(String name, URI uri, String mime, long total) {
-		super(name, uri, mime, null, true);
+	public Collection(String name, URI uri, long total) {
+		super(name, uri, null, true);
 		this.total = total;
 		this.elements = null;
 	}
@@ -59,7 +53,6 @@ public class Collection<T extends Entity> extends Entity {
 		Collection<BaseEntity> condensed = new Collection<BaseEntity>();
 		condensed.name = this.name;
 		condensed.uri = this.uri;
-		condensed.mime = this.mime;
 		condensed.total = this.total;
 		condensed.isPublic = this.isPublic;
 		if(!summary) {

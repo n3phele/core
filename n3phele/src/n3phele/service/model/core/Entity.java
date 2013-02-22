@@ -22,12 +22,11 @@ import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 
 @XmlRootElement(name="Entity")
-@XmlType(name="Entity", propOrder={"name", "uri", "mime", "owner", "public"})
+@XmlType(name="Entity", propOrder={"name", "uri", "owner", "public"})
 public class Entity {
 	
 	@Index protected String name;
 	@Unindex protected String uri;
-	@Unindex protected String mime;
 	@Index protected String owner;
 	@Index protected boolean isPublic;
 
@@ -39,14 +38,12 @@ public class Entity {
 	/**
 	 * @param name
 	 * @param uri
-	 * @param mime
 	 * @param owner
 	 * @param isPublic
 	 */
-	public Entity(String name, URI uri, String mime, URI owner, boolean isPublic) {
+	public Entity(String name, URI uri, URI owner, boolean isPublic) {
 		this.name = name;
 		this.uri = (uri == null)? null : uri.toString();
-		this.mime = mime;
 		this.owner = (owner == null)?null:owner.toString();
 		this.isPublic = isPublic;
 	}
@@ -92,22 +89,6 @@ public class Entity {
 			this.uri = uri.toString();
 		else
 			uri = null;
-	}
-
-
-	/**
-	 * @return the mime
-	 */
-	public String getMime() {
-		return mime;
-	}
-
-
-	/**
-	 * @param mime the mime to set
-	 */
-	public void setMime(String mime) {
-		this.mime = mime;
 	}
 	
 	/**
@@ -155,7 +136,6 @@ public class Entity {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + (isPublic ? 1231 : 1237);
-		result = prime * result + ((mime == null) ? 0 : mime.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + ((owner == null) ? 0 : owner.hashCode());
 		result = prime * result + ((uri == null) ? 0 : uri.hashCode());
@@ -176,11 +156,6 @@ public class Entity {
 			return false;
 		Entity other = (Entity) obj;
 		if (isPublic != other.isPublic)
-			return false;
-		if (mime == null) {
-			if (other.mime != null)
-				return false;
-		} else if (!mime.equals(other.mime))
 			return false;
 		if (name == null) {
 			if (other.name != null)

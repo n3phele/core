@@ -17,6 +17,7 @@ import java.text.DateFormat;
 import java.util.Date;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 import n3phele.service.model.core.Helpers;
@@ -26,9 +27,8 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 
-
 @XmlRootElement(name="Narrative")
-@XmlType(name = "Narrative", propOrder = { "text", "state", "tag", "stamp", "process"}) 
+@XmlType(name = "Narrative", propOrder = { "stamp", "text", "state", "tag", "process"}) 
 @Entity
 @Unindex
 public class Narrative {
@@ -51,6 +51,7 @@ public class Narrative {
 	/**
 	 * @return the id
 	 */
+	@XmlTransient
 	public Long getId() {
 		return id;
 	}

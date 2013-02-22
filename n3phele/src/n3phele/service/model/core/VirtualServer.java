@@ -73,7 +73,7 @@ public class VirtualServer extends Entity {
 		 URI location, ArrayList<NameValue> parametersList, URI notification,
 		 String instanceId, String spotId,
 		 String accessKey, String encryptedKey, URI owner, String idempotencyKey) {
-		super(name, null, "factory/vnd.com.n3phele.VirtualServer+json", owner, false);
+		super(name, null, owner, false);
 		this.id = null;
 		this.description = description;
 		this.location = (location==null)?null:location.toString();

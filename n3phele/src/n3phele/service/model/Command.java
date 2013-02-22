@@ -21,11 +21,16 @@ import javax.xml.bind.annotation.XmlType;
 
 import n3phele.service.model.core.Entity;
 
+import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Unindex;
 
 
 @XmlRootElement(name="Command")
 @XmlType(name="Command", propOrder={"description", "preferred", "version", "icon", "ownerName", "inputFiles", "outputFiles", "executionParameters", "cloudAccounts", "implementations"})
+@Unindex
+@Cache
+@com.googlecode.objectify.annotation.Entity
 public class Command extends Entity {
 	@Id private Long id;
 	private String description;

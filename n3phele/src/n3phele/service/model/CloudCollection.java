@@ -31,7 +31,7 @@ public class CloudCollection extends Entity {
 	 * @param elements
 	 */
 	public CloudCollection(Collection<Cloud> pc, int start, int end) {
-		super(pc.getName(), pc.getUri(), pc.getMime(), pc.getOwner(), pc.isPublic());
+		super(pc.getName(), pc.getUri(), pc.getOwner(), pc.isPublic());
 		this.total =( pc.getTotal());
 		this.elements = pc.getElements();
 		if(end < 0 || end > this.elements.size()) end = this.elements.size();

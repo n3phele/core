@@ -43,14 +43,14 @@ public class User extends Entity implements Principal {
 	public User() {}
 	
 	public User(String email, String firstName, String lastName) {
-		super(email, null, "factory/vnd.com.n3phele.User+json", null, false);
+		super(email, null, null, false);
 		this.id = null;
 		this.firstName = firstName;
 		this.lastName = lastName;
 	}
 
 	public User(String email, String firstName, String lastName, String secret) {
-		super(email, null, "factory/vnd.com.n3phele.User+json", null, false);
+		super(email, null, null, false);
 		this.id = null;
 		this.firstName = firstName;
 		this.lastName = lastName;

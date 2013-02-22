@@ -54,7 +54,7 @@ public class Repository extends Entity {
 	 */
 	public Repository(String name, String description,
 			Credential credential, URI target, String root, String kind, URI user, boolean isPublic) {
-		super(name, null, "application/vnd.com.n3phele.Repository+json", user, isPublic);
+		super(name, null, user, isPublic);
 		this.id = null;
 		setDescription(description);
 		this.credential = credential;
@@ -175,8 +175,8 @@ public class Repository extends Entity {
 	@Override
 	public String toString() {
 		return String
-				.format("Repository [name=%s, uri=%s, mime=%s, id=%s, description=%s, credential=%s, target=%s, root=%s, kind=%s]",
-						name, uri, mime, id, getDescription(), credential, target,
+				.format("Repository [name=%s, uri=%s, id=%s, description=%s, credential=%s, target=%s, root=%s, kind=%s]",
+						name, uri, id, getDescription(), credential, target,
 						root, kind);
 	}
 
