@@ -163,7 +163,7 @@ public class CloudResource {
 		}
 		@Override
 		protected URI myPath() {
-			return UriBuilder.fromUri(Resource.get("baseURI", "http://localhost:8888/resources")).path(CloudResource.class).build();
+			return UriBuilder.fromUri(Resource.get("baseURI", "http://127.0.0.1:8888/resources")).path(CloudResource.class).build();
 		}
 
 		@Override

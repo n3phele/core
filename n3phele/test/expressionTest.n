@@ -2,7 +2,7 @@
 # Copyright (c) 2013 Nigel Cook. All Rights reserved
 # xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 name	   :  expressionTest
-description: produce a log message
+description: test expression handling
 version	   : 1.0
 preferred  : true
 public	   : true

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<datastore-indexes
+  autoGenerate="true">
+    <datastore-index kind="Command" ancestor="false">
+        <property name="preferred" direction="asc" />
+        <property name="name" direction="asc" />
+    </datastore-index>
+
+</datastore-indexes>
+
+<!-- indexes:
+- kind: Command
+  ancestor: no
+  properties:
+  - name: preferred
+    direction: asc
+  - name: name
+    direction: asc
+    
+- kind: Command
+  ancestor: no
+  properties:
+  - name: isPublic
+    direction: asc
+  - name: owner
+    direction: asc
+  - name: preferred
+    direction: asc
+  - name: name
+    direction: asc
+    
+- kind: Command
+  ancestor: no
+  properties:
+  - name: isPublic
+    direction: asc
+  - name: preferred
+    direction: asc
+  - name: name
+    direction: asc -->

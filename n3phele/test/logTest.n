@@ -11,3 +11,5 @@ parameters :
 	optional string message	= "hello world!" # log message
 EC2: # Amazon EC2
 	LOG $$message
+hp-cloud: # western region
+	LOG $$message

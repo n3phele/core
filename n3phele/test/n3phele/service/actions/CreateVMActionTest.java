@@ -711,7 +711,7 @@ public class CreateVMActionTest {
 		}
 	 
 	 private URI createTestAccount(URI cloud) {
-		 Account account = new Account("testAccount", "Account for testing", cloud, new Credential("account", "accountSecret").encrypt(), getRoot().getUri(), false);
+		 Account account = new Account("testAccount", "Account for testing", cloud, "testCloud", new Credential("account", "accountSecret").encrypt(), getRoot().getUri(), false);
 		 AccountResource.dao.add(account);
 		 return account.getUri();
 	 }

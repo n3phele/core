@@ -8,24 +8,24 @@ import javax.xml.bind.annotation.XmlType;
 import n3phele.service.model.core.Helpers;
 
 @XmlRootElement(name="CommandCloudAccount")
-@XmlType(name="CommandCloudAccount", propOrder={"accountName", "cloudName", "accountUri"})
+@XmlType(name="CommandCloudAccount", propOrder={"accountName", "implementation", "accountUri"})
 public class CommandCloudAccount {
 	private String accountName;
-	private String cloudName;
+	private String implementation;
 	private String accountUri;
 	
 	public CommandCloudAccount() {}
 	
 	/**
 	 * @param accountName
-	 * @param cloudName
+	 * @param implementation
 	 * @param accountUri
 	 */
-	public CommandCloudAccount(String accountName, String cloudName,
+	public CommandCloudAccount(String implementation, String accountName, 
 			URI accountUri) {
 		super();
 		this.accountName = accountName;
-		this.cloudName = cloudName;
+		this.implementation = implementation;
 		this.accountUri = Helpers.URItoString(accountUri);
 	}
 
@@ -46,16 +46,16 @@ public class CommandCloudAccount {
 		this.accountName = accountName;
 	}
 	/**
-	 * @return the cloudName
+	 * @return the implementation
 	 */
-	public String getCloudName() {
-		return cloudName;
+	public String getImplementation() {
+		return implementation;
 	}
 	/**
-	 * @param cloudName the cloudName to set
+	 * @param implementation the implementation to set
 	 */
-	public void setCloudName(String cloudName) {
-		this.cloudName = cloudName;
+	public void setImplementation(String implementation) {
+		this.implementation = implementation;
 	}
 	/**
 	 * @return the accountUri

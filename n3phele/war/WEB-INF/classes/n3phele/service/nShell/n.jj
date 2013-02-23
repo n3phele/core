@@ -39,6 +39,10 @@ public class NParser {
 	{
 		this(new BlockStreamer(s));
 	}
+
+	public NParser(org.apache.commons.fileupload.FileItemStream item) throws IOException {
+                this(new BlockStreamer(item.openStream()));
+    }
 }
 /*
 * BlockStream must be applied to input streams sent to the parser for correct operation. The grammar processing

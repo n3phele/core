@@ -1,8 +1,7 @@
 package n3phele.service.model;
 
+import java.io.Serializable;
 import java.util.Arrays;
-
-import com.googlecode.objectify.annotation.Serialize;
 
 /**
 *
@@ -19,10 +18,11 @@ import com.googlecode.objectify.annotation.Serialize;
 */
 
 
-public class ShellFragment {
+public class ShellFragment implements Serializable {
+	private static final long serialVersionUID = 1L;
 	public ShellFragmentKind kind;
 	public String value;
-	@Serialize public Integer[] children;
+	public Integer[] children;
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */

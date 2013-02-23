@@ -1,0 +1,139 @@
+.cellTableWidget {
+  
+}
+
+.cellTableFirstColumn {
+  
+}
+
+.cellTableLastColumn {
+  
+}
+
+@sprite .cellTableFooter {
+  gwt-image: 'cellTableFooterBackground';
+  background-color: #b4d0f8;
+  border-top: 1px solid #88b0f2;
+ 
+  padding: 0px 10px;
+  text-align: left;
+  color: #000000;
+}
+
+.cellTableHeader {
+ 
+  border-bottom: 1px solid #88b0f2;
+  
+  padding: 10px 0px;
+  text-align: left;
+  color: #000000;
+}
+
+.cellTableCell {
+  padding: 4px 10px;
+  cursor: pointer;
+  cursor: hand;
+  overflow: hidden;
+  border: 0;
+}
+
+.cellTableFirstColumnFooter {
+  border-left: 0px;
+}
+
+.cellTableFirstColumnHeader {
+  border-left: 0px;
+}
+
+.cellTableLastColumnFooter {
+  
+}
+
+.cellTableLastColumnHeader {
+  
+}
+
+.cellTableSortableHeader {
+  cursor: pointer;
+  cursor: hand;
+}
+
+.cellTableSortableHeader:hover {
+  color: #6c6b6b;
+}
+
+.cellTableSortedHeaderAscending {
+
+}
+
+.cellTableSortedHeaderDescending {
+
+}
+
+.cellTableEvenRow {
+  background: #ffffff;
+  
+}
+
+.cellTableEvenRowCell {
+	white-space: pre;           /* CSS 2.0 */
+	white-space: pre-wrap;      /* CSS 2.1 */
+	white-space: pre-line;      /* CSS 3.0 */
+	white-space: -pre-wrap;     /* Opera 4-6 */
+	white-space: -o-pre-wrap;   /* Opera 7 */
+	white-space: -moz-pre-wrap; /* Mozilla */
+	white-space: -hp-pre-wrap;  /* HP Printers */
+	word-wrap: break-word;      /* IE 5+ */
+}
+
+.cellTableOddRow {
+  background: #eef4fb;
+}
+
+.cellTableOddRowCell {
+	white-space: pre;           /* CSS 2.0 */
+	white-space: pre-wrap;      /* CSS 2.1 */
+	white-space: pre-line;      /* CSS 3.0 */
+	white-space: -pre-wrap;     /* Opera 4-6 */
+	white-space: -o-pre-wrap;   /* Opera 7 */
+	white-space: -moz-pre-wrap; /* Mozilla */
+	white-space: -hp-pre-wrap;  /* HP Printers */
+	word-wrap: break-word;      /* IE 5+ */
+}
+
+.cellTableHoveredRow {
+  background: #eee;
+}
+
+.cellTableHoveredRowCell {
+    text-decoration:underline;
+}
+
+.cellTableKeyboardSelectedRow {
+  background: #ffc;
+}
+
+.cellTableKeyboardSelectedRowCell {
+  
+}
+
+@sprite .cellTableSelectedRow {
+  gwt-image: 'cellTableSelectedBackground';
+  background-color: #628cd5;
+  color: white;
+  height: auto;
+  overflow: auto;
+}
+
+.cellTableSelectedRowCell {
+  background: #628cd5;
+}
+
+.cellTableKeyboardSelectedCell {
+  background: #d7dde8;
+}
+
+@sprite .cellTableLoading {
+  gwt-image: 'cellTableLoading';
+  margin: 30px;
+}

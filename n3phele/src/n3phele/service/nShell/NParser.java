@@ -32,6 +32,10 @@ public class NParser implements NParserConstants {
                 this(new BlockStreamer(s));
         }
 
+        public NParser(org.apache.commons.fileupload.FileItemStream item) throws IOException {
+                this(new BlockStreamer(item.openStream()));
+    }
+
   final public Command parse() throws ParseException {
         String name = null;
         String description = null;

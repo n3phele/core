@@ -146,7 +146,7 @@ public class NShellActionTest {
 		Command cd = n.parse();
 		cd.setUri(URI.create("http://n3phele.com/test"));
 		Assert.assertEquals("expressionTest", cd.getName());
-		Assert.assertEquals("produce a log message", cd.getDescription());
+		Assert.assertEquals("test expression handling", cd.getDescription());
 		Assert.assertTrue(cd.isPublic());
 		Assert.assertTrue(cd.isPreferred());
 		Assert.assertEquals("1.0", cd.getVersion());
@@ -1061,7 +1061,7 @@ public class NShellActionTest {
 	}
 	
 	 private URI createTestAccount(URI cloud) {
-		 Account account = new Account("testAccount", "Account for testing", cloud, new Credential("account", "accountSecret").encrypt(), getRoot().getUri(), false);
+		 Account account = new Account("testAccount", "Account for testing", cloud, "testCloud", new Credential("account", "accountSecret").encrypt(), getRoot().getUri(), false);
 		 AccountResource.dao.add(account);
 		 return account.getUri();
 	 }

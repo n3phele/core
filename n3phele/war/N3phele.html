@@ -1,8 +1,9 @@
 <!doctype html>
-<!-- The DOCTYPE declaration above will set the     -->
-<!-- browser's rendering engine into                -->
-<!-- "Standards Mode". Replacing this declaration   -->
-<!-- with a "Quirks Mode" doctype is not supported. -->
+<!-- The DOCTYPE declaration above will set the    -->
+<!-- browser's rendering engine into               -->
+<!-- "Standards Mode". Replacing this declaration  -->
+<!-- with a "Quirks Mode" doctype may lead to some -->
+<!-- differences in layout.                        -->
 
 <html>
   <head>
@@ -16,13 +17,16 @@
     <!--                                           -->
     <!-- Any title is fine                         -->
     <!--                                           -->
-    <title>Web Application Starter Project</title>
+    <title>n3phele</title>
     
     <!--                                           -->
     <!-- This script loads your compiled module.   -->
     <!-- If you add any GWT meta tags, they must   -->
     <!-- be added before this line.                -->
     <!--                                           -->
+<!--
+    <script type="text/javascript" language="javascript">function __gwt_login() { alert('Login failed') }</script>
+ -->   
     <script type="text/javascript" language="javascript" src="n3phele/n3phele.nocache.js"></script>
   </head>
 
@@ -33,9 +37,9 @@
   <!--                                           -->
   <body>
 
-    <!-- OPTIONAL: include this if you want history support -->
+    <!-- OPTIONAL: include this if you want history support     -->
     <iframe src="javascript:''" id="__gwt_historyFrame" tabIndex='-1' style="position:absolute;width:0;height:0;border:0"></iframe>
-    
+
     <!-- RECOMMENDED if your web app will not function without JavaScript enabled -->
     <noscript>
       <div style="width: 22em; position: absolute; left: 50%; margin-left: -11em; color: red; background-color: white; border: 1px solid red; padding: 4px; font-family: sans-serif">
@@ -43,20 +47,28 @@
         in order for this application to display correctly.
       </div>
     </noscript>
-
-    <h1>Web Application Starter Project</h1>
-
-    <table align="center">
-      <tr>
-        <td colspan="2" style="font-weight:bold;">Please enter your name:</td>        
-      </tr>
-      <tr>
-        <td id="nameFieldContainer"></td>
-        <td id="sendButtonContainer"></td>
-      </tr>
-      <tr>
-        <td colspan="2" style="color:red;" id="errorLabelContainer"></td>
-      </tr>
-    </table>
+    
+    <!-- In order for the browser auto-complete feature to work, -->
+	<!-- we must define the login form in the original HTML markup -->
+	<!-- action="javascript:__gwt_login()"  -->
+	<div id="loginDiv" style="display:none">
+	<form action="resources/user/login" id="loginForm" method="post">
+	<table id="loginTable" valign="center">
+	  <tr>
+	  <td id="loginLabel" style="width:80px;">Email:</td>
+	  <td><input type="text" id="loginUsername" name="u" tabindex="1" autocomplete="on" style="margin-top:0px; width:200px;"></td>
+	  </tr>
+	  <tr>
+	  <td id="loginLabel" style="width:80px;">Password:</td>
+	  <td><input id="loginPassword" name="pw" type="password" autocomplete="on" tabindex="2" style="margin:0px;  width:200px;"></td>
+	  </tr>
+	  <tr>
+	  <tr></tr>
+	  <td></td>
+	  <td><button id="loginSubmit" tabindex="3" type="submit">Login</button></td>
+	  </tr>
+	</table></form>
+	</div>
+    
   </body>
 </html>

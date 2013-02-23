@@ -6,8 +6,7 @@
 package n3phele.service.rest.impl;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.annotation.security.RolesAllowed;
@@ -72,7 +71,7 @@ public class AccountResource {
 		if(name == null || name.trim().length()==0) {
 			throw new IllegalArgumentException("bad name");
 		}
-		Account account = new Account(name, description, cloud, new Credential(accountId, secret).encrypt(),
+		Account account = new Account(name, description, cloud, myCloud.getName(), new Credential(accountId, secret).encrypt(),
 				UserResource.toUser(securityContext).getUri(), false);
 
 		dao.add(account);
@@ -164,7 +163,7 @@ public class AccountResource {
 		if(secret != null && secret.trim().length() != 0) {
 			credential = new Credential(accountId, secret).encrypt();
 		}
-		Account defaultEC2 = new Account("EC2", "Amazon EC2 account", ec2.getUri(), credential, user.getUri(), false);
+		Account defaultEC2 = new Account("EC2", "Amazon EC2 account", ec2.getUri(), ec2.getName(), credential, user.getUri(), false);
 		dao.add(defaultEC2);
 		String result = CloudResource.testAccount(ec2, user, defaultEC2, true);
 		return result;
@@ -177,7 +176,7 @@ public class AccountResource {
 		}
 		@Override
 		protected URI myPath() {
-			return UriBuilder.fromUri(Resource.get("baseURI", "http://localhost:8888/resources")).path(AccountResource.class).build();
+			return UriBuilder.fromUri(Resource.get("baseURI", "http://127.0.0.1:8888/resources")).path(AccountResource.class).build();
 		}
 
 		@Override
@@ -213,31 +212,19 @@ public class AccountResource {
 			log.warning("list Accounts entered with summary "+summary);
 			
 			Collection<Account> result = getCollection(user);
-			Map<URI, String> cloudMap = new HashMap<URI, String>();
 			
 			if(result.getElements() != null) {
 				for(int i=0; i < result.getElements().size(); i++) {
 					Account account = result.getElements().get(i);
-					URI cloud = account.getCloud();
-					if(cloud != null) {
-						String cloudName = cloudMap.get(cloud);
-						if(cloudName == null) {
-							try {
-								Cloud c = CloudResource.dao.load(cloud);
-								cloudName = c.getName();
-								cloudMap.put(cloud, cloudName);
-							} catch (NotFoundException nfe) {
-								log.severe("Unknown cloud on account "+account.getUri());
-								cloudName = cloud.toString();
-							}
-						}
-						account.setCloudName(cloudName);
-					}
 					if(summary)
 						result.getElements().set(i, Account.summary(account));
 				}
 			}
 			return result;
+		}
+		
+		public List<Account> getAccountsForCloud(User user, String cloudName) {
+			return super.itemDao().listByPropertyForUser(user.getUri(), "cloudName", cloudName);
 		}
 	}
 	final public static AccountManager dao = new AccountManager();

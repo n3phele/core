@@ -14,7 +14,6 @@
 package n3phele.service.rest.impl;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.ArrayList;
@@ -45,8 +44,10 @@ import javax.ws.rs.core.UriInfo;
 
 import n3phele.service.core.NotFoundException;
 import n3phele.service.core.Resource;
+import n3phele.service.core.UnprocessableEntityException;
 import n3phele.service.model.Account;
 import n3phele.service.model.CachingAbstractManager;
+import n3phele.service.model.ChangeManager;
 import n3phele.service.model.Command;
 import n3phele.service.model.CommandCloudAccount;
 import n3phele.service.model.CommandCollection;
@@ -58,6 +59,7 @@ import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.User;
 import n3phele.service.nShell.NParser;
 import n3phele.service.nShell.ParseException;
+import n3phele.service.nShell.TokenMgrError;
 
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
@@ -91,13 +93,10 @@ public class CommandResource {
 									@QueryParam("search") String search) {
 
 		log.warning("list entered with summary "+summary+" start "+start+" end "+end+" preferred "+preferred);
-		int n = 0;
+
 		if(start < 0)
 			start = 0;
-		if(end >= 0) {
-			n = end - start + 1;
-			if(n <= 0) n = 1;
-		}
+
 		if(search != null) {
 			search = search.trim().toLowerCase(Locale.ENGLISH);
 			if(search.length()==0)
@@ -117,16 +116,24 @@ public class CommandResource {
 					   (item.getDescription()!=null && 
 					   (descriptionMatch=item.getDescription().toLowerCase(Locale.ENGLISH).contains(search)))) {
 						log.info("Adding "+item.getName()+" under "+search+" nameMatch "+nameMatch+" descriptionMatch "+descriptionMatch);
+						if(summary) {
+							item.setImplementations(null);
+						}
 						filtered.add(item);
 					}
 				}
 				result.setElements(filtered);
-			} 
+			} else {
+				if(summary)
+					for(Command item : result.getElements()) {
+						item.setImplementations(null);
+					}
+			}
 
 
 			return new CommandCollection(result, start, end);
 		} else {
-			result = getPreferredCommandDefinitionFromCache(UserResource.toUser(securityContext), start, n);
+			result = getPreferredCommandDefinitionFromCache(UserResource.toUser(securityContext), start, end);
 			CommandCollection reply = new CommandCollection(result);
 			return reply;
 		}
@@ -162,14 +169,13 @@ public class CommandResource {
 			ServletFileUpload upload = new ServletFileUpload();              
 			FileItemIterator iterator = upload.getItemIterator(request);       
 			while (iterator.hasNext()) {         
-				FileItemStream item = iterator.next();         
-				InputStream stream = item.openStream();          
+				FileItemStream item = iterator.next();                  
 				if (item.isFormField()) {           
 					log.warning("Got a form field: " + item.getFieldName());         
 				} else {           
 					log.warning("Got an uploaded file: " + item.getFieldName() +", name = " + item.getName()); 
 					
-					NParser n = new NParser(stream);
+					NParser n = new NParser(item);
 					Command command = n.parse();
 					User owner = UserResource.toUser(securityContext);
 					command.setOwner(owner.getUri());
@@ -222,7 +228,11 @@ public class CommandResource {
 		} catch (IOException e) {
 			log.log(Level.WARNING, "IOException", e);
 		} catch (ParseException e) {
-			return Response.notModified(e.getMessage()+" cause:"+e.getCause().getMessage()).build();
+			log.info("Parse failed:"+e.getMessage());
+			throw new UnprocessableEntityException(e.getMessage());
+		} catch (TokenMgrError e) {
+			log.info("TokenMgrError:"+e.getMessage());
+			throw new UnprocessableEntityException(e.getMessage());
 		}
 		return Response.notModified().build();
 	}
@@ -239,30 +249,14 @@ public class CommandResource {
 		Command item = dao.load(id, UserResource.toUser(securityContext));
 		
 		User user = UserResource.toUser(securityContext);
-		Map<URI, List<Account>> accountMap = new HashMap<URI, List<Account>>();
+
 		if(item.getImplementations() != null) {
-			Collection<Account> accounts = AccountResource.dao.getAccountList(user, false);
-			if(accounts != null && accounts.getElements() != null) {
-				for(Account account : accounts.getElements()) {
-					if(accountMap.containsKey(account.getCloud())) {
-						List<Account> list = accountMap.get(account.getCloud());
-						list.add(account);
-					} else {
-						List<Account> list = new ArrayList<Account>();
-						list.add(account);
-						accountMap.put(account.getCloud(), list);
-					}
-				}
-			}
-			List<CommandImplementationDefinition> profiles = item.getImplementations();
 			ArrayList<CommandCloudAccount> decoratedProfiles = new ArrayList<CommandCloudAccount>();
-			for(CommandImplementationDefinition profile : profiles) {
-				if(accountMap.containsKey(profile.getName())) {
-					for(Account account : accountMap.get(profile.getName())) {
-						decoratedProfiles.add(new CommandCloudAccount(account.getName(), 
-																	  account.getCloudName(), 
-																	  account.getUri()));
-					}
+			for(CommandImplementationDefinition implementation : item.getImplementations()) {
+				for(Account account : AccountResource.dao.getAccountsForCloud(user,implementation.getName())) {
+					decoratedProfiles.add(new CommandCloudAccount(implementation.getName(),
+																  account.getName(), 
+																  account.getUri()));
 				}
 			}
 			if(!full) item.setImplementations(null);
@@ -270,6 +264,7 @@ public class CommandResource {
 		}
 		return item;
 	}
+	
 
 	@DELETE
 	@RolesAllowed("authenticated")
@@ -287,12 +282,14 @@ public class CommandResource {
 	
 	private final static String commandCacheKey = "n3phele-command-cache";
 
-	private Collection<Command> getPreferredCommandDefinitionFromCache(User user, int start, int n) {
+	private Collection<Command> getPreferredCommandDefinitionFromCache(User user, int start, int end) {
 		MemcacheService memcache = MemcacheServiceFactory.getMemcacheService();
 		CmdLet[] cachedCommandDefinitions = (CmdLet[]) memcache.get(commandCacheKey);
-		if(cachedCommandDefinitions == null) {
+		if(cachedCommandDefinitions == null || cachedCommandDefinitions.length == 0) {
 			log.info("Command cache miss");
 			cachedCommandDefinitions = loadCommandDefinitionCache();
+		} else {
+			log.info("Cache has "+cachedCommandDefinitions.length);
 		}
 
 		List<Command> commands = new ArrayList<Command>();
@@ -311,8 +308,8 @@ public class CommandResource {
 				commands.add(c);
 			}
 		}
-		int end = start+n;
-		if(end > commands.size()) end = commands.size(); 
+
+		if(end > commands.size() || end < 0) end = commands.size(); 
 		Collection<Command> collection = dao.collectionFactory(commands.subList(start, end));
 		collection.setTotal(commands.size());
 		return collection;
@@ -363,7 +360,7 @@ public class CommandResource {
 		}
 		@Override
 		protected URI myPath() {
-			return UriBuilder.fromUri(Resource.get("baseURI", "http://localhost:8888/resources")).path(CommandResource.class).build();
+			return UriBuilder.fromUri(Resource.get("baseURI", "http://127.0.0.1:8888/resources")).path(CommandResource.class).build();
 		}
 
 		@Override
@@ -405,6 +402,7 @@ public class CommandResource {
 		public void update(Command item)throws NotFoundException { 
 			MemcacheServiceFactory.getMemcacheService().delete(commandCacheKey); 
 			super.update(item);
+			ChangeManager.factory().addChange(super.path);
 			MemcacheServiceFactory.getMemcacheService().delete(commandCacheKey);
 		}
 

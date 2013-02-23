@@ -15,14 +15,14 @@
       <param-name>com.sun.jersey.config.property.packages</param-name>  
       <param-value>n3phele.service.rest.impl;n3phele.service.core</param-value>  
       </init-param> 
-      <!--  init-param> 
+      <init-param> 
       <param-name>com.sun.jersey.spi.container.ContainerRequestFilters</param-name>  
       <param-value>n3phele.service.rest.impl.BasicSecurityFilter</param-value> 
       </init-param>
       <init-param> 
       <param-name>com.sun.jersey.spi.container.ResourceFilters</param-name>  
       <param-value>com.sun.jersey.api.container.filter.RolesAllowedResourceFilterFactory</param-value>    
-      </init-param> --> 
+      </init-param> 
  
       <load-on-startup>1</load-on-startup>  
    </servlet>  

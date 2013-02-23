@@ -17,6 +17,7 @@ import n3phele.service.model.core.Entity;
 import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Embed;
+import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 
 @XmlRootElement(name="Account")
@@ -28,16 +29,17 @@ public class Account extends Entity {
 	@com.googlecode.objectify.annotation.Id private Long id;
 	private Text description;
 	private String cloud;
-	private String cloudName;
+	@Index private String cloudName;
 	@Embed private Credential credential;
 	
 	public Account() {}
 	
 
 	public Account(String name, String description,
-		 URI cloud, Credential credential, URI owner, boolean isPublic) {
+		 URI cloud, String cloudName, Credential credential, URI owner, boolean isPublic) {
 		super(name, null, owner, isPublic);
 		this.id = null;
+		this.cloudName = cloudName;
 		setDescription(description);
 		this.cloud = (cloud == null) ? null : cloud.toString();
 		this.credential = credential;
@@ -132,7 +134,7 @@ public class Account extends Entity {
 
 	public static Account summary(Account c) {
 		if(c == null) return null;
-		Account result = new Account(c.name, null, null, null, c.getOwner(), c.isPublic);
+		Account result = new Account(c.name, null, null, null, null, c.getOwner(), c.isPublic);
 		result.uri = c.uri;
 		return result;
 	}

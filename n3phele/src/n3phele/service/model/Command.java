@@ -20,9 +20,12 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 import n3phele.service.model.core.Entity;
+import n3phele.service.model.core.Helpers;
 
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 
 
@@ -34,15 +37,15 @@ import com.googlecode.objectify.annotation.Unindex;
 public class Command extends Entity {
 	@Id private Long id;
 	private String description;
-	private boolean isPreferred;
+	@Index private boolean preferred;
 	private String version;
-	private URI icon;
+	private String icon;
 	private String ownerName;
-	private List<FileSpecification> inputFiles;
-	private List<TypedParameter> executionParameters;
-	private List<FileSpecification> outputFiles;
-	private List<CommandImplementationDefinition> implementations = new ArrayList<CommandImplementationDefinition>();
-	private List<CommandCloudAccount> cloudAccounts = new ArrayList<CommandCloudAccount>();
+	@Embed private List<FileSpecification> inputFiles;
+	@Embed private List<TypedParameter> executionParameters;
+	@Embed private List<FileSpecification> outputFiles;
+	@Embed private List<CommandImplementationDefinition> implementations = new ArrayList<CommandImplementationDefinition>();
+	@Embed private List<CommandCloudAccount> cloudAccounts = new ArrayList<CommandCloudAccount>();
 	
 	public Command() {}
 	
@@ -77,24 +80,24 @@ public class Command extends Entity {
 	}
 
 	/**
-	 * @return the isPreferred
+	 * @return the preferred
 	 */
 	public boolean isPreferred() {
-		return this.isPreferred;
+		return this.preferred;
 	}
 	
 	/**
 	 * @return the preferred
 	 */
 	public boolean getPreferred() {
-		return this.isPreferred;
+		return this.preferred;
 	}
 
 	/**
-	 * @param isPreferred the isPreferred to set
+	 * @param preferred the preferred to set
 	 */
 	public void setPreferred(boolean isPreferred) {
-		this.isPreferred = isPreferred;
+		this.preferred = isPreferred;
 	}
 
 	/**
@@ -115,14 +118,14 @@ public class Command extends Entity {
 	 * @return the icon
 	 */
 	public URI getIcon() {
-		return this.icon;
+		return Helpers.stringToURI(this.icon);
 	}
 
 	/**
 	 * @param icon the icon to set
 	 */
 	public void setIcon(URI icon) {
-		this.icon = icon;
+		this.icon = Helpers.URItoString(icon);
 	}
 
 	/**
@@ -220,8 +223,8 @@ public class Command extends Entity {
 	@Override
 	public String toString() {
 		return String
-				.format("Command [id=%s, description=%s, isPreferred=%s, version=%s, icon=%s, ownerName=%s, inputFiles=%s, executionParameters=%s, outputFiles=%s, implementations=%s, cloudAccounts=%s]",
-						id, description, isPreferred, version, icon, ownerName,
+				.format("Command [id=%s, description=%s, preferred=%s, version=%s, icon=%s, ownerName=%s, inputFiles=%s, executionParameters=%s, outputFiles=%s, implementations=%s, cloudAccounts=%s]",
+						id, description, preferred, version, icon, ownerName,
 						inputFiles, executionParameters, outputFiles,
 						implementations, cloudAccounts);
 	}

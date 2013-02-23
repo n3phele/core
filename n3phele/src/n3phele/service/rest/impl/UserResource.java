@@ -15,6 +15,7 @@ import static com.googlecode.objectify.ObjectifyService.ofy;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.security.Principal;
 import java.util.Calendar;
 import java.util.Properties;
 import java.util.UUID;
@@ -307,7 +308,7 @@ public class UserResource {
 		}
 		@Override
 		protected URI myPath() {
-			return UriBuilder.fromUri(Resource.get("baseURI", "http://localhost:8888/resources")).path(UserResource.class).build();
+			return UriBuilder.fromUri(Resource.get("baseURI", "http://127.0.0.1:8888/resources")).path(UserResource.class).build();
 		}
 
 		@Override
@@ -410,7 +411,7 @@ public class UserResource {
 			root.setOwner(URI.create("http://www.n3phele.com"));
 			root.setValidationDate(Calendar.getInstance().getTime());  // birthday!
 			Key<User> rootKey = ofy().save().entity(root).now();
-			root.setUri(UriBuilder.fromUri(Resource.get("baseURI", "http://localhost:8888/resources")).path(UserResource.class).path("/"+rootKey.getId()).build());
+			root.setUri(UriBuilder.fromUri(Resource.get("baseURI", "http://127.0.0.1:8888/resources")).path(UserResource.class).path("/"+rootKey.getId()).build());
 			root.setOwner(root.getUri());
 			root.setCredential(new Credential("root", Resource.get("serviceSecret", "3")).encrypt());
 			ofy().save().entity(root).now();
@@ -423,12 +424,11 @@ public class UserResource {
 
 	
 	public static User toUser(SecurityContext securityContext) {
-		return Root;
-//		Principal principal = securityContext.getUserPrincipal();
-//		if(principal instanceof User) {
-//			return (User) principal;
-//		}
-//		throw new IllegalArgumentException();	
+		Principal principal = securityContext.getUserPrincipal();
+		if(principal instanceof User) {
+			return (User) principal;
+		}
+		throw new IllegalArgumentException();	
 	}
 
 }
