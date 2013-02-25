@@ -2,6 +2,7 @@ package n3phele;
 
 import java.net.URI;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import n3phele.service.model.core.BaseEntity;
@@ -34,8 +35,9 @@ public class UserWebServiceTest  {
 
 	@Before
 	public void setUp() throws Exception {
+
 		client = Client.create();
-		client.addFilter(new HTTPBasicAuthFilter("signup", "newuser"));
+		client.addFilter(new HTTPBasicAuthFilter("test-user@gmail.com", "testit!"));
 		webResource = client.resource(UriBuilder.fromUri("http://127.0.0.1:8888/resources").path(UserResource.class).build());
 	}
 
@@ -61,14 +63,18 @@ public class UserWebServiceTest  {
 
     	
     	if(user == null) {
+	    	client.removeAllFilters();
+	    	client.addFilter(new HTTPBasicAuthFilter("signup", "newuser"));
     		ClientResponse result = webResource.post(ClientResponse.class, form);
 	    	user = result.getLocation();
 	 
 	
-	    	Assert.assertEquals(201, result.getStatus()); 
+	    	Assert.assertEquals(201, result.getStatus()); ;
+	    	client.removeAllFilters();
+	    	client.addFilter(new HTTPBasicAuthFilter(myName, mySecret));
     	}
     	
-    	n3phele.service.model.core.User result = webResource.get(n3phele.service.model.core.User.class);
+    	n3phele.service.model.core.User result = webResource.uri(user).get(n3phele.service.model.core.User.class);
     	Assert.assertEquals(myName, result.getName());
     	Assert.assertEquals(firstName, result.getFirstName());
     	Assert.assertEquals(lastName, result.getLastName());
@@ -109,7 +115,7 @@ public class UserWebServiceTest  {
 	    	client.addFilter(new HTTPBasicAuthFilter(myName, mySecret));
     	}
     	
-    	n3phele.service.model.core.User result = webResource.get(n3phele.service.model.core.User.class);
+    	n3phele.service.model.core.User result = webResource.uri(user).get(n3phele.service.model.core.User.class);
     	Assert.assertEquals(myName, result.getName());
     	Assert.assertEquals(firstName, result.getFirstName());
     	Assert.assertEquals(lastName, result.getLastName());
@@ -118,12 +124,8 @@ public class UserWebServiceTest  {
 	
  @Test
   public void testAccountDelete() throws Exception {
- 	String myName = "test-user@gmail.com";
-	String mySecret = "testit!";
-	client.removeAllFilters();
-	client.addFilter(new HTTPBasicAuthFilter(myName, mySecret));
-
-	User user = webResource.path("byName").queryParam("id",myName).get(User.class);
+	 String myName = "test-user@gmail.com";
+	User user = webResource.path("byName").queryParam("id",myName).accept(MediaType.APPLICATION_JSON_TYPE).get(User.class);
   	ClientResponse response = webResource.uri(user.getUri()).delete(ClientResponse.class);
 
   	Assert.assertEquals(204, response.getStatus()); 

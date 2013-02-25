@@ -212,7 +212,6 @@ public abstract class AbstractManager<Item extends Entity> {
 	 * @param owner
 	 * @return the item
 	 */
-	@Deprecated
 	protected Item get(String name, User owner) throws NotFoundException {
 		return owner.isAdmin()? get(name):get(name, owner.getUri());
 	}

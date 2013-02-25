@@ -129,20 +129,30 @@ public class AccountResource {
 	}
 	
 	@GET
-	@Path("{id}/init")
-	@Produces("text/plain")
+	@Produces("application/json")
+	@Path("byName")
 	@RolesAllowed("authenticated")
-	public Response init(@PathParam ("id") Long id) throws NotFoundException {
+	public Account get( @QueryParam ("id") String id) throws NotFoundException {
+
 		Account item = dao.load(id, UserResource.toUser(securityContext));
-		Cloud myCloud = CloudResource.dao.load(item.getCloud(), UserResource.toUser(securityContext));
-		String result = CloudResource.testAccount(myCloud, UserResource.toUser(securityContext), item, true);
-		if(result == null || result.trim().length()==0) {
-			return Response.ok("ok",MediaType.TEXT_PLAIN_TYPE).location(item.getUri()).build();
-		} else {
-			log.warning("Init "+item.getUri()+" with warnings "+result);
-			return Response.ok(result,MediaType.TEXT_PLAIN_TYPE).location(item.getUri()).build();
-		}	
+		return item;
 	}
+	
+//	@GET
+//	@Path("{id}/init")
+//	@Produces("text/plain")
+//	@RolesAllowed("authenticated")
+//	public Response init(@PathParam ("id") Long id) throws NotFoundException {
+//		Account item = dao.load(id, UserResource.toUser(securityContext));
+//		Cloud myCloud = CloudResource.dao.load(item.getCloud(), UserResource.toUser(securityContext));
+//		String result = CloudResource.testAccount(myCloud, UserResource.toUser(securityContext), item, true);
+//		if(result == null || result.trim().length()==0) {
+//			return Response.ok("ok",MediaType.TEXT_PLAIN_TYPE).location(item.getUri()).build();
+//		} else {
+//			log.warning("Init "+item.getUri()+" with warnings "+result);
+//			return Response.ok(result,MediaType.TEXT_PLAIN_TYPE).location(item.getUri()).build();
+//		}	
+//	}
 
 	@DELETE
 	@Path("{id}")

@@ -2,8 +2,10 @@ package n3phele;
 
 import java.net.URI;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
+import n3phele.service.model.Cloud;
 import n3phele.service.model.core.BaseEntity;
 import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.Entity;
@@ -71,13 +73,25 @@ public class CloudWebServiceTest  {
 			form.add("secret", mySecret);
 			form.add("isPublic", true);
 
-			ClientResponse result = webResource.path("cloud").post(ClientResponse.class, form);
+			ClientResponse result = webResource.post(ClientResponse.class, form);
 			cloud = result.getLocation();
 
 
-			Assert.assertEquals(result.getStatus(), 201);  
+			Assert.assertEquals(201, result.getStatus());  
 		}
+		
+
 
 	}
+	
+	 //@Test
+	  public void testCloudDelete() throws Exception {
+
+		Cloud cloud = webResource.path("byName").queryParam("id","EC2").accept(MediaType.APPLICATION_JSON_TYPE).get(Cloud.class);
+	  	ClientResponse response = webResource.uri(cloud.getUri()).delete(ClientResponse.class);
+
+	  	Assert.assertEquals(204, response.getStatus()); 
+	  	 
+	  }
 
 }

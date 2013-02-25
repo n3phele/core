@@ -25,6 +25,7 @@ import n3phele.client.model.FileNode;
 import n3phele.client.model.FileSpecification;
 import n3phele.client.model.Repository;
 import n3phele.client.model.TypedParameter;
+import n3phele.client.model.Variable;
 import n3phele.client.presenter.CommandActivity;
 import n3phele.client.presenter.helpers.StyledTextCellRenderer;
 import n3phele.client.widgets.FileNodeBrowser;
@@ -95,9 +96,7 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 	final private List<CommandCloudAccount> accounts = new ArrayList<CommandCloudAccount>();
 	final private CellTable<CommandCloudAccount> accountTable;
 	final private List<Repository> repos = new ArrayList<Repository>();
-//	final private Map<String, Repository> nameToRepoMap = new HashMap<String, Repository>();
 	final private Map<String,Repository> uriToRepoMap = new HashMap<String, Repository>();
-//	final private List<String> repoNames = new ArrayList<String>();
 	final private Column<FileSpecification, FileSpecification> nullRepoColumnIn;
 	final private Column<FileSpecification,FileSpecification> nullRepoColumnOut;
 	private Column<FileSpecification,FileSpecification> inputRepoColumn;
@@ -182,6 +181,7 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 		divider.setWidth("100%");
 		clouds.add(divider);
 		gotExecutionSelection = new CellWidget<String>(new ValidInputIndicatorCell(N3phele.n3pheleResource.inputErrorIcon()),"+Execution target selection required");
+		gotExecutionSelection.setPixelSize(20, 20);
 		divider.add(gotExecutionSelection);
 		divider.setCellVerticalAlignment(gotExecutionSelection, HorizontalPanel.ALIGN_MIDDLE);
 		divider.setCellWidth(gotExecutionSelection, "20px");
@@ -215,8 +215,10 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 		run.setEnabled(false);
 		buttons.add(run);
 		errorsOnPage = new CellWidget<String>(new ValidInputIndicatorCell(N3phele.n3pheleResource.inputErrorIcon()),"+check for missing or invalid parameters marked with this icon");
+		errorsOnPage.setPixelSize(20, 20);
+		buttons.setCellHeight(errorsOnPage, "20px");
 		buttons.add(errorsOnPage);
-		buttons.setCellWidth(errorsOnPage, "20px");
+		
 		
 		cancel = new Button(cancelButtonText);
 		cancel.addClickHandler(new ClickHandler() {
@@ -241,11 +243,7 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 			allValid = checkParameterValues(data.getExecutionParameters());
 		}
 		if(allValid && data.getInputFiles() != null && data.getInputFiles().size() > 0) {
-//			if(nameToRepoMap.isEmpty()) {
-//				allValid = false;
-//			} else {
-				allValid = validateRepoRefs(data.getInputFiles(), true);
-//			}
+			allValid = validateRepoRefs(data.getInputFiles(), true);
 		}
 		if(allValid && data.getOutputFiles() != null && data.getOutputFiles().size() > 0) {
 			allValid = validateRepoRefs(data.getOutputFiles(), false);
@@ -265,35 +263,39 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 	}
 	
 	
-	public Map<String,String> getParameterValuesAndClear(List<TypedParameter> paramList) {
-		Map<String, String> result = new HashMap<String, String>();
+	public n3phele.client.model.Context getParameterValuesAndClear(List<TypedParameter> paramList, n3phele.client.model.Context context) {
+		n3phele.client.model.Context result = context;
 		if(this.parameterTextInputCell != null) {
 			for(TypedParameter p : paramList) {
 				String name = p.getName();
 				if(p.getType().equalsIgnoreCase("boolean")) {
 					Boolean vd = this.parameterCheckboxCell.getViewData(name);
 					if(vd != null) {
-						result.put(name, vd.toString());
+						if(result != null)
+							result.put(name, Variable.newInstance(name, "Boolean", vd.toString()));
 						this.parameterCheckboxCell.clearViewData(name);
 					} else {
 						String value = p.getValue();
 						if(value == null || value.length()==0) {
 							value = p.getDefaultValue();
 						}
-						result.put(name, value);
+						if(result != null)
+							result.put(name, Variable.newInstance(name, "Boolean", Boolean.valueOf(value).toString()));
 					}
 					
 				} else {
 					ViewData vd = this.parameterTextInputCell.getViewData(name);
 					if(vd != null) {
-						result.put(name, vd.getCurrentValue());
+						if(result != null)
+							result.put(name, Variable.newInstance(name, p.getType(), vd.getCurrentValue()));
 						this.parameterTextInputCell.clearViewData(name);
 					} else {
 						String value = p.getValue();
 						if(value == null || value.length()==0) {
 							value = p.getDefaultValue();
 						}
-						result.put(name, value);
+						if(result != null)
+							result.put(name, Variable.newInstance(name, p.getType(), value));
 					}
 				}
 			}
@@ -311,24 +313,21 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 		return true;
 	}
 	
-	public List<FileSpecification> getRepoRefs(List<FileSpecification> fileSpecs) {
-	List<FileSpecification> result = new ArrayList<FileSpecification>();
-
+	public n3phele.client.model.Context getRepoRefs(List<FileSpecification> fileSpecs, n3phele.client.model.Context context) {
 
 	for(FileSpecification p : fileSpecs) {
 		String repoURI = p.getRepository();
 		String repoFile = p.getFilename();
 		if(repoURI != null) {
-			GWT.log("File "+p.getName()+" maps to "+repoURI+"("+uriToRepoMap.get(repoURI)+")"+" path "+repoFile);
+			GWT.log("File "+p.getName()+" maps to "+repoURI+" path "+repoFile);
 			if(repoFile!=null)
 				repoFile = repoFile.trim();
-			p.setFilename(repoFile);
-			result.add(p);
+			context.put(p.getName(), Variable.newInstance(p.getName(), "File", p.getRepository()));
 		} else {
 			GWT.log("File "+p.getName()+" not used");
 		}
 	}
-	return result;
+	return context;
 }
 	
 	private boolean getSendEmail() {
@@ -350,7 +349,7 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 		CommandDetailView.this.selectedAccountURI = accountURI;
 		if(this.accounts != null && this.accounts.size() > 0) {
 			for(CommandCloudAccount ep : this.accounts) {
-				if(implementationId == ep.getImplementation() && ep.getAccountUri().equals(accountURI)) {
+				if(ep.getImplementation().equals(implementationId) && ep.getAccountUri().equals(accountURI)) {
 						this.accountTable.redraw();
 						String visible = "-";
 
@@ -365,16 +364,21 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 	
 	private void doCancel() {
 		if(presenter != null) {
-			if(data != null) getParameterValuesAndClear(data.getExecutionParameters());
+			if(data != null) getParameterValuesAndClear(data.getExecutionParameters(), null);
 			this.presenter.goToPrevious();
 		}
 	}
 	
 	private void doRun() {
 		if(presenter != null) {
-			this.run.setEnabled(false);		
-			this.presenter.run(data, jobName.getText(), getParameterValuesAndClear(data.getExecutionParameters()),
-					getRepoRefs(data.getInputFiles()), getRepoRefs(data.getOutputFiles()), getSendEmail(), getSelectedAccount(), getSelectedImplementation());
+			this.run.setEnabled(false);
+			n3phele.client.model.Context context = new n3phele.client.model.Context();
+			getParameterValuesAndClear(data.getExecutionParameters(), context);
+			getRepoRefs(data.getInputFiles(), context);
+			getRepoRefs(data.getOutputFiles(), context);
+			context.put("notify", Variable.newInstance("notify", "Boolean", Boolean.valueOf(getSendEmail()).toString()));
+			context.put("account", Variable.newInstance("account", "Object", getSelectedAccount()));
+			this.presenter.exec("Job", jobName.getText(), "NShell "+data.getUri()+"#"+getSelectedImplementation(), context);
 		}
 	}
 	
@@ -456,22 +460,22 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 			String accountURI = CommandDetailView.this.selectedAccountURI;
 			setSelectedImplementation(profileId, accountURI);
 		} else {
-			String visible = "+";
-			CommandDetailView.this.gotExecutionSelection.setValue(visible+CommandDetailView.this.gotExecutionSelection.getValue().substring(1));
+			String visible;
+			if(accounts != null && accounts.size()==1) {
+				setSelectedImplementation(accounts.get(0).getImplementation(), accounts.get(0).getAccountUri());
+			} else {
+				visible = "+";
+				CommandDetailView.this.gotExecutionSelection.setValue(visible+CommandDetailView.this.gotExecutionSelection.getValue().substring(1));
+			}
 		}
 	}
 	
 	public void setRepositories(List<Repository>repos) {
 		this.repos.clear();
 		this.repos.addAll(repos);
-//		this.repoNames.clear();
-//		this.repoNames.add("none");
-//		this.nameToRepoMap.clear();
 		this.uriToRepoMap.clear();
 		for(Repository r : repos) {
-//			nameToRepoMap.put(r.getName(), r);
 			uriToRepoMap.put(r.getUri(), r);
-//			repoNames.add(r.getName());
 		}
 		if(repos.size() > 0) {
 			inputRepoColumn = replaceSelectionRepoColumn(inputTable, inputRepoColumn, true);
@@ -947,15 +951,15 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 					 * @see n3phele.client.widgets.FileNodeBrowser.BrowserPresenter#save(java.lang.String)
 					 */
 					@Override
-					public void save(String repoURI, String filename) {
+					public void save(String repoName, String filename) {
 						fileSpecification.setFilename(filename);
-						fileSpecification.setRepository(repoURI);
+						fileSpecification.setRepository(repoName+":///"+filename);
 						if(isInput)
 							inputTable.redraw();
 						else
 							outputTable.redraw();
 						updateRunButton(true);
-						CommandDetailView.this.lastRepo = repoURI;
+						CommandDetailView.this.lastRepo = repoName;
 						CommandDetailView.this.lastPath = getPath(filename);						
 						popup.hide();
 					}
@@ -1225,7 +1229,7 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 	 */
 	
 	
-	public CellTable<CommandCloudAccount> createAccountTable(/*final SingleSelectionModel<ExtendedCloudProfile> selectionModel*/) {
+	public CellTable<CommandCloudAccount> createAccountTable() {
 		final SensitiveCheckBoxCell checkbox = new SensitiveCheckBoxCell(true, true);
 		final ProvidesKey<CommandCloudAccount> KEY_PROVIDER = new ProvidesKey<CommandCloudAccount>() {
 
@@ -1239,8 +1243,7 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 		{
 			@Override
 		      public Boolean getValue(CommandCloudAccount profile) {
-				return (profile.getAccountUri().equals(CommandDetailView.this.selectedImplementation))
-				&& (profile.getAccountUri().equals(CommandDetailView.this.selectedAccountURI));
+				return (profile.getImplementation().equals(CommandDetailView.this.selectedImplementation));
 		      }
 
 		};
@@ -1251,10 +1254,10 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 					Boolean value) {
 				if(profile != null) {
 					if(value) {
-						/*CommandDetailView.this.selectedProfile = profile.getAccountUri(); */
+						CommandDetailView.this.selectedImplementation = profile.getImplementation();
 					    CommandDetailView.this.selectedAccountURI = profile.getAccountUri();
 					} else {
-						if(profile.getAccountUri().equals(CommandDetailView.this.selectedImplementation)) {
+						if(profile.getImplementation().equals(CommandDetailView.this.selectedImplementation)) {
 							CommandDetailView.this.selectedImplementation = null;
 							CommandDetailView.this.selectedAccountURI = null;
 						}
@@ -1285,7 +1288,7 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 			}
 		};
 		table.addColumn(accountColumn);
-		table.setColumnWidth(accountColumn, "150px");
+		//table.setColumnWidth(accountColumn, "150px");
 		TextColumn<CommandCloudAccount> nameColumn = new TextColumn<CommandCloudAccount>() {
 			@Override
 			public String getValue(CommandCloudAccount profile) {
@@ -1297,18 +1300,6 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 			}
 		};
 		table.addColumn(nameColumn);
-		table.setColumnWidth(nameColumn, "105px");
-		TextColumn<CommandCloudAccount> descriptionColumn = new TextColumn<CommandCloudAccount>() {
-			@Override
-			public String getValue(CommandCloudAccount profile) {
-				if(profile != null)
-					return profile.getAccountName();
-				else
-					return null;
-			}
-		};
-		table.addColumn(descriptionColumn);
-		table.setColumnWidth(descriptionColumn, "105px");
 		table.setWidth("400px");
 		table.addStyleName(N3phele.n3pheleResource.css().lineBreakStyle());
 		table.setTableLayoutFixed(true);

@@ -52,11 +52,12 @@ import n3phele.service.nShell.ExpressionEngine;
 import n3phele.service.nShell.UnexpectedTypeException;
 import n3phele.service.rest.impl.ActionResource;
 import n3phele.service.rest.impl.CloudProcessResource;
+import n3phele.service.rest.impl.CommandResource;
 
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.annotation.Cache;
-import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.EntitySubclass;
+import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.annotation.Unindex;
 
 @EntitySubclass
@@ -76,7 +77,7 @@ public class NShellAction extends Action {
 	private int start;
 	private List<String> adopted = new ArrayList<String>();
 	private List<String> active = new ArrayList<String>();
-	@Embed private List<ShellFragment> executable;
+	@Serialize private List<ShellFragment> executable;
 	@XmlTransient 
 	private ActionLogger logger;
 
@@ -1363,8 +1364,7 @@ public class NShellAction extends Action {
 	 * @throws NotFoundException
 	 */
 	protected Command loadCommandDefinition(URI uri) throws NotFoundException {
-		Command cmd = new Command();
-		cmd.setUri(uri);
+		Command cmd = CommandResource.dao.load(uri);
 		return cmd;
 	}
 

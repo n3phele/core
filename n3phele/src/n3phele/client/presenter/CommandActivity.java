@@ -23,9 +23,8 @@ import n3phele.client.ClientFactory;
 import n3phele.client.N3phele;
 import n3phele.client.model.Collection;
 import n3phele.client.model.Command;
-import n3phele.client.model.ExecuteCommandRequest;
+import n3phele.client.model.Context;
 import n3phele.client.model.FileNode;
-import n3phele.client.model.FileSpecification;
 import n3phele.client.model.RepoListResponse;
 import n3phele.client.model.Repository;
 import n3phele.client.model.ValidationResponse;
@@ -257,29 +256,40 @@ public class CommandActivity extends AbstractActivity {
 //		}
 //	}
 
-	public void run(Command data, String name, Map<String, String> paramMap, List<FileSpecification> inputFiles, List<FileSpecification> outputFiles, boolean sendEmail, String account, String implementationId) {
-		ExecuteCommandRequest request = new ExecuteCommandRequest();
-		if(name == null || name.trim().length() == 0) {
-			name = data.getName();
-		} else {
-			name = name.trim();
+	public void exec(String action, String name, String arg, Context context) {
+		List<String> params = new ArrayList<String>();
+		if(action != null && action.trim().length()==0) {
+			action = null;
 		}
-		request.setName(name);
-		request.setAccount(account);
-		request.setParameters(paramMap);
-		request.setInputFiles(inputFiles);
-		request.setOutputFiles(outputFiles);
-		request.setNotify(sendEmail);
-		request.setUser(AuthenticatedRequestFactory.getDefaultUsername());
-		request.setCommand(data.getUri());
-		request.setImplementationId(implementationId);
-		String url = cacheManager.ServiceAddress+"activity";
+		if(action != null) {
+			params.add("action="+URL.encodeQueryString(action));
+		}
+		if(name == null || name.trim().length() == 0) {
+			name = null;
+		} 
+		if(name != null)
+			params.add("name="+URL.encodeQueryString(name.trim()));
+		
+		if(arg != null && arg.trim().length() == 0)
+			arg = null;
+		if(arg != null)
+			params.add("arg="+URL.encodeQueryString(arg.trim()));
+		
+		String url = cacheManager.ServiceAddress+"process/exec";
+		String seperator = "?";
+		for(String param : params) {
+			url = url+seperator+param;
+			seperator = "&";
+		}
+		
+		
 		 // Send request to server and catch any errors.
 	    RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.POST, url);
 	    builder.setHeader("Content-type", "application/json");
 	    
 	    try {
-	      Request msg = builder.sendRequest(request.toString(), new RequestCallback() {
+	    	GWT.log("Context :"+context.toJSON().toString());
+	      Request msg = builder.sendRequest(context==null?null:context.toJSON().toString(), new RequestCallback() {
 				public void onError(Request request, Throwable exception) {
 					GWT.log("Couldn't retrieve JSON " + exception.getMessage());
 					Window.alert("Couldn't retrieve JSON " + exception.getMessage());

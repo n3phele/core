@@ -81,7 +81,7 @@ public class CloudProcessTest  {
 
 		Response result;
 
-		result = cpr.exec("CountDown", "now is the time");
+		result = cpr.exec("CountDown", "CountDown", "now is the time");
 
 		assertEquals(201, result.getStatus());
 		URI processId = (URI) result.getMetadata().getFirst("Location");
@@ -109,7 +109,7 @@ public class CloudProcessTest  {
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 		CloudResourceTestWrapper.dao.clear();
 		Response result;
-		result = cpr.exec("Job", "CountDown foo");
+		result = cpr.exec("Job", "Job", "CountDown foo");
 		
 		assertEquals(201, result.getStatus());
 		URI processId = (URI) result.getMetadata().getFirst("Location");
@@ -154,7 +154,7 @@ public class CloudProcessTest  {
 		User root = UserResource.Root;
 		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
-		Response result = cpr.exec("CountDown", "doomed to die");
+		Response result = cpr.exec("CountDown", "CountDown", "doomed to die");
 		assertEquals(201, result.getStatus());
 		URI processId = (URI) result.getMetadata().getFirst("Location");
 		CloudProcess process = CloudResourceTestWrapper.dao.load(processId);
@@ -182,7 +182,7 @@ public class CloudProcessTest  {
 		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 		Response result;
-		result = cpr.exec("Job", "CountDown doomed2die2");
+		result = cpr.exec("Job", "Job", "CountDown doomed2die2");
 		
 		assertEquals(201, result.getStatus());
 		URI processId = (URI) result.getMetadata().getFirst("Location");
@@ -221,7 +221,7 @@ public class CloudProcessTest  {
 		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 		Response result;
-		result = cpr.exec("Job", "CountDown doomed2die2");
+		result = cpr.exec("Job", "Job", "CountDown doomed2die2");
 		
 		assertEquals(201, result.getStatus());
 		URI processId = (URI) result.getMetadata().getFirst("Location");
@@ -258,7 +258,7 @@ public class CloudProcessTest  {
 		User root = UserResource.Root;
 		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
-		Response result = cpr.exec("CountDown", "throwInit");
+		Response result = cpr.exec("CountDown", "CountDown", "throwInit");
 		assertEquals(201, result.getStatus());
 		URI processId = (URI) result.getMetadata().getFirst("Location");
 		Thread.sleep(3000);
@@ -281,7 +281,7 @@ public class CloudProcessTest  {
 		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 		Response result;
-		result = cpr.exec("Job", "CountDown throwInit");
+		result = cpr.exec("Job", "Job", "CountDown throwInit");
 		assertEquals(201, result.getStatus());
 		URI processId = (URI) result.getMetadata().getFirst("Location");
 		Thread.sleep(3000);
@@ -314,7 +314,7 @@ public class CloudProcessTest  {
 		User root = UserResource.Root;
 		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
-		Response result = cpr.exec("CountDown", "throw5");
+		Response result = cpr.exec("CountDown", "CountDown", "throw5");
 		assertEquals(201, result.getStatus());
 		URI processId = (URI) result.getMetadata().getFirst("Location");
 		Thread.sleep(3000);
@@ -336,7 +336,7 @@ public class CloudProcessTest  {
 		User root = UserResource.Root;
 		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
-		Response result = cpr.exec("Job", "CountDown throw5");
+		Response result = cpr.exec("Job", "Job", "CountDown throw5");
 		assertEquals(201, result.getStatus());
 		URI processId = (URI) result.getMetadata().getFirst("Location");
 		Thread.sleep(3000);

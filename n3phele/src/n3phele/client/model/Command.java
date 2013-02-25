@@ -121,7 +121,7 @@ public class Command extends Entity {
 	public native final JavaScriptObject cloudAccounts() /*-{
 		var array = [];
 		if(this.cloudAccounts != undefined && this.cloudAccounts !=null) {
-			if(this.cloudProfiles.length==undefined) {
+			if(this.cloudAccounts.length==undefined) {
 				array[0] = this.cloudAccounts;
 			} else {
 				array = this.cloudAccounts;

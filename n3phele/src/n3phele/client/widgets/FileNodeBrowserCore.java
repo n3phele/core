@@ -16,12 +16,16 @@ package n3phele.client.widgets;
 import java.util.ArrayList;
 import java.util.List;
 
+import n3phele.client.N3phele;
+import n3phele.client.model.FileNode;
+import n3phele.client.model.Repository;
+import n3phele.client.presenter.helpers.StyledTextCellRenderer;
+
 import com.google.gwt.cell.client.AbstractSafeHtmlCell;
 import com.google.gwt.cell.client.Cell;
 import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.cell.client.IconCellDecorator;
 import com.google.gwt.cell.client.ValueUpdater;
-
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.NativeEvent;
@@ -47,24 +51,18 @@ import com.google.gwt.user.cellview.client.CellWidget;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.HasKeyboardSelectionPolicy.KeyboardSelectionPolicy;
 import com.google.gwt.user.client.ui.AbstractImagePrototype;
+import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DisclosurePanel;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.ScrollPanel;
-import com.google.gwt.user.client.ui.VerticalPanel;
-
-import n3phele.client.N3phele;
-import n3phele.client.model.FileNode;
-import n3phele.client.model.Repository;
-import n3phele.client.presenter.helpers.StyledTextCellRenderer;
-
 import com.google.gwt.user.client.ui.TextBox;
-import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.VerticalPanel;
 
 public class FileNodeBrowserCore extends VerticalPanel {
 	final private HorizontalPanel header;
@@ -253,13 +251,13 @@ public class FileNodeBrowserCore extends VerticalPanel {
 		public void onClick(ClickEvent event) {
 			if(FileNodeBrowserCore.this.presenter != null) {
 				int index = FileNodeBrowserCore.this.repoList.getSelectedIndex();
-				String repoURI = FileNodeBrowserCore.this.repoList.getValue(index);
-				if(isBlankOrNull(repoURI))
-					repoURI = null;
+				String repoName = FileNodeBrowserCore.this.repoList.getValue(index);
+				if(isBlankOrNull(repoName))
+					repoName = null;
 				String filename = getCanonicalFilename(FileNodeBrowserCore.this.filename.getText());
 				if(isBlankOrNull(filename))
 					filename = null;
-				FileNodeBrowserCore.this.presenter.save(repoURI, filename);
+				FileNodeBrowserCore.this.presenter.save(repoName, filename);
 			}	
 		}});
 		openButton.setWidth("80px");
@@ -371,10 +369,10 @@ public class FileNodeBrowserCore extends VerticalPanel {
 			enableOpenButton(b && this.presenter != null);
 		} else {
 			if(this.presenter != null) {
-				String repoURI = FileNodeBrowserCore.this.repoList.getValue(FileNodeBrowserCore.this.repoList.getSelectedIndex());
+				String repoName = FileNodeBrowserCore.this.repoList.getValue(FileNodeBrowserCore.this.repoList.getSelectedIndex());
 				String filename = FileNodeBrowserCore.this.filename.getText();
-				GWT.log("Save "+filename+" from "+FileNodeBrowserCore.this.filename.getText()+" on "+repoURI);
-				validateAndEnableOpenButton(filename, repoURI);
+				GWT.log("Save "+filename+" from "+FileNodeBrowserCore.this.filename.getText()+" on "+repoName);
+				validateAndEnableOpenButton(filename, repoName);
 			}
 		}
 		
@@ -437,13 +435,13 @@ public class FileNodeBrowserCore extends VerticalPanel {
 			this.repoList.addItem(isInput?"unspecified" : "no output", "");
 		}
 		for(Repository r : repos) {
-			this.repoList.addItem(r.getName(), r.getUri());
+			this.repoList.addItem(r.getName(), r.getName());
 		}
 	}
 	public void show(List<FileNode> crumbs, List<FileNode> files) {
 		if(crumbs.size() > 0) {
 			String firstCrumb = crumbs.get(0).getRepository();
-			selectRepoByUri(firstCrumb);
+			selectRepoByName(firstCrumb);
 			
 			int delta = match(crumbElements, crumbs);
 			GWT.log("delta = "+delta);
@@ -490,11 +488,11 @@ public class FileNodeBrowserCore extends VerticalPanel {
 		@Override
 		public void onClick(ClickEvent event) {
 			if(path.getName() != null) {
-				boolean valid = scope.selectRepoByUri(path.getRepository());
+				boolean valid = scope.selectRepoByName(path.getRepository());
 				GWT.log(path.getName()+" "+valid);
 				scope.filename.setText(null);
 			} else {
-				boolean valid = scope.selectRepoByUri(path.getRepository());
+				boolean valid = scope.selectRepoByName(path.getRepository());
 				GWT.log("Repo name "+valid);
 				scope.filename.setText(null);
 			}
@@ -506,29 +504,13 @@ public class FileNodeBrowserCore extends VerticalPanel {
 		}
 		
 	}
-
-//	private boolean selectRepoByName(String name) {
-//		boolean result = false;
-//		if(name != null && this.repos != null) {
-//			int index = this.isOptional? 1: 0;
-//			for(Repository r : this.repos){
-//				if(r.getName().equals(name)) {
-//					this.repoList.setItemSelected(index, true);
-//					return true;
-//				}
-//				index++;
-//			}
-//		}
-//		
-//		return result;
-//	}
 	
-	private boolean selectRepoByUri(String uri) {
+	private boolean selectRepoByName(String name) {
 		boolean result = false;
-		if(uri != null && this.repos != null) {
+		if(name != null && this.repos != null) {
 			int index = this.isOptional? 1: 0;
 			for(Repository r : this.repos){
-				if(uri.equals(r.getUri())) {
+				if(name.equals(r.getName())) {
 					this.repoList.setItemSelected(index, true);
 					return true;
 				}

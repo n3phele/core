@@ -22,6 +22,7 @@ import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -43,8 +44,10 @@ import n3phele.service.model.CloudProcess;
 import n3phele.service.model.CloudProcessCollection;
 import n3phele.service.model.ServiceModelDao;
 import n3phele.service.model.SignalKind;
+import n3phele.service.model.Variable;
 import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.GenericModelDao;
+import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.User;
 
 import com.googlecode.objectify.Key;
@@ -159,17 +162,45 @@ public class CloudProcessResource {
 		return Response.ok().build();
 	}
 	
+	@POST
+	@Produces("application/json")
+	@RolesAllowed("authenticated")
+	@Path("exec")
+	public Response exec(@DefaultValue("Log") @QueryParam("action") String action,
+						 					  @QueryParam("name") String name,
+						 @DefaultValue("hello world!") @QueryParam("arg") String arg, 
+						 List<Variable> context) throws ClassNotFoundException  {
+
+		n3phele.service.model.Context env = new n3phele.service.model.Context();
+		env.putValue("arg", arg);
+		for(Variable v : Helpers.safeIterator(context)) {
+			env.put(v.getName(), v);
+		}
+		
+	
+		Class<? extends Action> clazz = Class.forName("n3phele.service.actions."+action+"Action").asSubclass(Action.class);
+		if(clazz != null) {
+			CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), name, env, null, null, clazz);
+			ProcessLifecycle.mgr().init(p);
+			return Response.created(p.getUri()).build();
+		} else {
+			return Response.noContent().build();
+		}
+	}
+	
+	
 	@GET
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
 	@Path("exec") 
-	public Response exec(@DefaultValue("Log") @QueryParam("name") String name,
+	public Response exec(@DefaultValue("Log") @QueryParam("action") String action,
+										      @QueryParam("name") String name,
 						 @DefaultValue("hello world!") @QueryParam("arg") String arg) throws ClassNotFoundException  {
 
 		n3phele.service.model.Context env = new n3phele.service.model.Context();
 		env.putValue("arg", arg);
 	
-		Class<? extends Action> clazz = Class.forName("n3phele.service.actions."+name+"Action").asSubclass(Action.class);
+		Class<? extends Action> clazz = Class.forName("n3phele.service.actions."+action+"Action").asSubclass(Action.class);
 		if(clazz != null) {
 			CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), name, env, null, null, clazz);
 			ProcessLifecycle.mgr().init(p);

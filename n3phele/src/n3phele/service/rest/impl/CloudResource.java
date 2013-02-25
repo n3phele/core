@@ -101,6 +101,16 @@ public class CloudResource {
 		Cloud item = dao.load(id, UserResource.toUser(securityContext));
 		return item;
 	}
+	
+	@GET
+	@RolesAllowed("authenticated")
+	@Produces("application/json")
+	@Path("byName") 
+	public Cloud get( @QueryParam ("id") String id) throws NotFoundException {
+
+		Cloud item = dao.load(id, UserResource.toUser(securityContext));
+		return item;
+	}
 
 	@DELETE
 	@RolesAllowed("authenticated")

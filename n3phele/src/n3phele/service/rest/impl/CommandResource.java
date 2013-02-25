@@ -17,10 +17,8 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -138,22 +136,6 @@ public class CommandResource {
 			return reply;
 		}
 
-	}
-	
-	
-	
-	private Map<URI, String> cache=null;
-	private String getOwnerName(URI owner) throws NotFoundException {
-		String result=null;
-		if(cache == null) cache = new HashMap<URI, String>();
-		if(cache.containsKey(owner))
-				result = cache.get(owner);
-		else {
-			User user = UserResource.dao.load(owner);
-			result = user.toString();
-			cache.put(owner, result);
-		}
-		return result;
 	}
 	
 
@@ -326,7 +308,7 @@ public class CommandResource {
 			cl.URI = Helpers.URItoString(c.getUri());
 			cl.name = c.getName();
 			cl.description = c.getDescription();
-			cl.ownerName = getOwnerName(c.getOwner());
+			cl.ownerName = c.getOwnerName();
 			cl.version = c.getVersion();
 			cl.icon = Helpers.URItoString(c.getIcon());
 			cl.owner = Helpers.URItoString(c.getOwner());
