@@ -1156,14 +1156,14 @@ public class NShellAction extends Action {
 	/**
 	 * @return the abnormally terminating child URI
 	 */
-	public URI getAbnormallyTermination() {
+	public URI getAbnormalTermination() {
 		return Helpers.stringToURI(abnormalTermination);
 	}
 
 	/**
 	 * @param child set the abnormally terminating child
 	 */
-	public void setAbnormallyTermination(URI child) {
+	public void setAbnormalTermination(URI child) {
 		this.abnormalTermination = Helpers.URItoString(child);
 	}
 	

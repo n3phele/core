@@ -5,6 +5,15 @@
         <property name="preferred" direction="asc" />
         <property name="name" direction="asc" />
     </datastore-index>
+    <datastore-index kind="CloudProcess" ancestor="false" source="auto">
+        <property name="owner" direction="asc"/>
+        <property name="topLevel" direction="asc"/>
+        <property name="start" direction="desc"/>
+    </datastore-index>
+    <datastore-index kind="CloudProcess" ancestor="false" source="auto">
+        <property name="topLevel" direction="asc"/>
+        <property name="start" direction="desc"/>
+    </datastore-index>
 
 </datastore-indexes>
 

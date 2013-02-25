@@ -14,7 +14,9 @@ package n3phele.service.model;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
@@ -32,7 +34,7 @@ import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.annotation.Unindex;
 
 @XmlRootElement(name = "Action")
-@XmlType(name = "Action", propOrder = {"id", "context", "process" })
+@XmlType(name = "Action", propOrder = {"contextList", "process" })
 @Unindex
 @Cache
 @com.googlecode.objectify.annotation.Entity
@@ -40,7 +42,6 @@ public abstract class Action extends Entity {
 
 	@Id private Long id;
 	private String process;
-	@XmlTransient
 	@Serialize
 	private ArrayList<Variable> contextList = new ArrayList<Variable>();
 	@Ignore
@@ -158,6 +159,7 @@ public abstract class Action extends Entity {
 	/**
 	 * @return the id
 	 */
+	@XmlTransient
 	public Long getId() {
 		return id;
 	}
@@ -172,6 +174,7 @@ public abstract class Action extends Entity {
 	/**
 	 * @return the action context
 	 */
+	@XmlTransient
 	public Context getContext() {
 		return context == null? (context = new Context()) : context;
 	}
@@ -183,6 +186,23 @@ public abstract class Action extends Entity {
 		this.context = context;
 	}
 	
+	/**
+	 * @return the action context
+	 */
+	@XmlElement(name="context")
+	public Collection<Variable> getContextList() {
+		return this.context.values();
+	}
+
+	/**
+	 * @param context the context for the action
+	 */
+	public void setContextList(Collection<Variable> context) {
+		this.context.clear();
+		for(Variable v: context) {
+			this.context.put(v.getName(), v);
+		}
+	}
 	
 
 	/**

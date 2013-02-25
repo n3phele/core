@@ -37,7 +37,7 @@ import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.condition.IfTrue;
 
 @XmlRootElement(name="CloudProcess")
-@XmlType(name="Action", propOrder={"id","state", "running", "waitTimeout", "pendingInit", "pendingCall", "pendingCancel", "pendingDump", "pendingAssertion", 
+@XmlType(name="Action", propOrder={"state", "running", "waitTimeout", "pendingInit", "pendingCall", "pendingCancel", "pendingDump", "pendingAssertion", 
 		"dependentOn", "dependencyFor", "start", "complete", "finalized", "action", "actionType", "parent", "topLevel", "narrative"})
 @Unindex
 @com.googlecode.objectify.annotation.Entity
@@ -62,7 +62,6 @@ public class CloudProcess extends Entity {
 	@Ignore
 	private Narrative[] narrative = null;
 	@Index private String parent = null;
-	@XmlTransient
 	@Parent Key<CloudProcess> root;
 	@Index(IfTrue.class) boolean topLevel = false; 
 	
@@ -101,6 +100,7 @@ public class CloudProcess extends Entity {
 	/**
 	 * @return the id
 	 */
+	@XmlTransient
 	public Long getId() {
 		return id;
 	}
@@ -336,6 +336,7 @@ public class CloudProcess extends Entity {
 	/**
 	 * @return the root
 	 */
+	@XmlTransient
 	public Key<CloudProcess> getRoot() {
 		return root;
 	}

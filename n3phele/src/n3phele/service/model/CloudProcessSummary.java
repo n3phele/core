@@ -3,6 +3,7 @@ package n3phele.service.model;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import n3phele.service.core.NotFoundException;
 import n3phele.service.model.core.Entity;
 import n3phele.service.model.core.Helpers;
 import n3phele.service.rest.impl.NarrativeResource;
@@ -19,9 +20,15 @@ public class CloudProcessSummary extends Entity {
 	public CloudProcessSummary(CloudProcess full) {
 		this.name = full.getName();
 		this.uri = Helpers.URItoString(full.getUri());
+		this.isPublic = full.getPublic();
+		this.owner = full.getOwner().toString();
 		this.state = full.getState();
 		this.actionType = full.getActionType();
-		this.narrative = new Narrative[] {NarrativeResource.dao.getLastNarrative(full.getUri()) };
+		try {
+			this.narrative = new Narrative[] {NarrativeResource.dao.getLastNarrative(full.getUri()) };
+		} catch (NotFoundException e) {
+			this.narrative = new Narrative[0];
+		}
 	}
 
 	/**

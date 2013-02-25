@@ -71,15 +71,10 @@ public class CloudProcessResource {
 
 		log.info("getProgress entered with summary "+summary+" from start="+start+" to end="+end);
 
-		int n = 0;
 		if(start < 0)
 			start = 0;
-		if(end >= 0) {
-			n = end - start + 1;
-			if(n <= 0)
-				n = 1;
-		}
-		Collection<CloudProcess> result = dao.getCollection(start, n, UserResource.toUser(securityContext));// .collection(summary);
+		
+		Collection<CloudProcess> result = dao.getCollection(start, end, UserResource.toUser(securityContext));// .collection(summary);
 
 		return new CloudProcessCollection(result);
 	}
@@ -87,7 +82,7 @@ public class CloudProcessResource {
 	@GET
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
-	@Path("{group:.*_}{id}/children")
+	@Path("{group:[0-9]+_}{id:[0-9]+}/children") 
 	public CloudProcess[] listChildren( @PathParam ("group") String group, @PathParam ("id") Long id)  {
 
 		CloudProcess parent;
@@ -104,11 +99,20 @@ public class CloudProcessResource {
 		java.util.Collection<CloudProcess> result = dao.getChildren(parent.getUri());
 		return result.toArray(new CloudProcess[result.size()]);
 	}
+	
+	@GET
+	@Produces("application/json")
+	@RolesAllowed("authenticated")
+	@Path("{id:[0-9]+}/children") 
+	public CloudProcess[] listChildren( @PathParam ("id") Long id)  {
+
+		return listChildren(null, id);
+	}
 
 	@GET
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
-	@Path("{group:.*_}{id}") 
+	@Path("{group:[0-9]+_}{id:[0-9]+}") 
 	public CloudProcess get( @PathParam ("group") String group, @PathParam ("id") Long id) throws NotFoundException {
 		Key<CloudProcess> root = null;
 		if(group != null) {
@@ -118,10 +122,18 @@ public class CloudProcessResource {
 		return item;
 	}
 	
+	@GET
+	@Produces("application/json")
+	@RolesAllowed("authenticated")
+	@Path("{id:[0-9]+}") 
+	public CloudProcess get( @PathParam ("id") Long id) throws NotFoundException {
+		return get(null, id);
+	}
+	
 	@DELETE
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
-	@Path("{group:.*_}{id}")
+	@Path("{group:[0-9]+_}{id:[0-9]+}") 
 	public Response killProcess( @PathParam ("group") String group, @PathParam ("id") Long id) throws NotFoundException {
 
 		CloudProcess process = null;
@@ -136,6 +148,15 @@ public class CloudProcessResource {
 		}
 		ProcessLifecycle.mgr().cancel(process);
 		return Response.status(Status.NO_CONTENT).build();
+	}
+	
+	@DELETE
+	@Produces("application/json")
+	@RolesAllowed("authenticated")
+	@Path("{id:[0-9]+}") 
+	public Response killProcess( @PathParam ("id") Long id) throws NotFoundException {
+
+		return killProcess(null, id);
 	}
 		
 	/*
@@ -280,8 +301,8 @@ public class CloudProcessResource {
 		 * in the future to return the collection of resources accessible to a particular user.
 		 * @return the collection
 		 */
-		public Collection<CloudProcess> getCollection(int start, int n, User owner) {
-			return owner.isAdmin()? getCollection(start, n):getCollection(start, n, owner.getUri());
+		public Collection<CloudProcess> getCollection(int start, int end, User owner) {
+			return owner.isAdmin()? getCollection(start, end):getCollection(start, end, owner.getUri());
 		}
 		
 		/**
@@ -289,11 +310,18 @@ public class CloudProcessResource {
 		 * in the future to return the collection of resources accessible to a particular user.
 		 * @return the collection
 		 */
-		public Collection<CloudProcess> getCollection(int start, int n) {
+		public Collection<CloudProcess> getCollection(int start, int end) {
 			log.info("admin query");
 			Collection<CloudProcess> result = null;
-			
-			List<CloudProcess> items = ofy().load().type(CloudProcess.class).filter("topLevel", true).order("-started").offset(start).limit(n).list();
+			List<CloudProcess> items;
+			if(end > 0) {
+				int n = end - start;
+				if(n <= 0)
+					n = 0;
+				items = ofy().load().type(CloudProcess.class).filter("topLevel", true).order("-start").offset(start).limit(n).list();
+			} else {
+				items = ofy().load().type(CloudProcess.class).filter("topLevel", true).order("-start").offset(start).list();
+			}
 
 			result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, items);
 
@@ -309,10 +337,18 @@ public class CloudProcessResource {
 		 * in the future to return the collection of resources accessible to a particular user.
 		 * @return the collection
 		 */
-		public Collection<CloudProcess> getCollection(int start, int n, URI owner) {
+		public Collection<CloudProcess> getCollection(int start, int end, URI owner) {
 			log.info("non-admin query");
 			Collection<CloudProcess> result = null;
-			List<CloudProcess> items = ofy().load().type(CloudProcess.class).filter("owner", owner.toString()).filter("topLevel", true).order("-started").offset(start).limit(n).list();
+			List<CloudProcess> items;
+			if(end > 0) {
+				int n = end - start;
+				if(n <= 0)
+					n = 0;
+				items = ofy().load().type(CloudProcess.class).filter("owner", owner.toString()).filter("topLevel", true).order("-start").offset(start).limit(n).list();
+			} else {
+				items = ofy().load().type(CloudProcess.class).filter("owner", owner.toString()).filter("topLevel", true).offset(start).list();
+			}
 
 			result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, items);
 

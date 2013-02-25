@@ -213,6 +213,7 @@ public class ProcessLifecycle {
 			        } 
 				} else if(process.isPendingInit()) {
 					process.setPendingInit(false);
+					process.setStart(new Date());
 			        CloudProcessResource.dao.update(process);
 			        log.info("<<<<<<<<Dispatch "+processId);
 			        return new NextStep(DoNext.init);

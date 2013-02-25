@@ -58,7 +58,7 @@ import com.googlecode.objectify.annotation.Unindex;
  */
 @EntitySubclass
 @XmlRootElement(name = "JobAction")
-@XmlType(name = "JobAction", propOrder = { "notify", "actionName", "childProcess", "childComplete", "childStatus" })
+@XmlType(name = "JobAction", propOrder = { "notify", "actionName", "childProcess", "childComplete", "childEndState" })
 @Unindex
 @Cache
 public class JobAction extends Action {
