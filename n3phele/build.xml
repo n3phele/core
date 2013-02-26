@@ -57,7 +57,7 @@
         <pathelement location="src"/>
         <path refid="project.classpath"/>
       </classpath>
-      <jvmarg value="-Xmx256M" />
+      <jvmarg value="-Xss16M" />
       <arg value="n3phele.N3phele"/>
     </java>
   </target>
