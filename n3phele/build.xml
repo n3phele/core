@@ -104,11 +104,9 @@
        <http url="http://15.185.173.105:8888"/>
     </waitfor>
     <junit haltonerror="yes" printsummary="withOutAndErr" haltonfailure="true" showoutput="yes" >
-        <classpath refid="test.class.path" />
- 	<classpath refid="build.class.path" />
-		<classpath refid="lib" />
-		<formatter type="plain" usefile="false" />
-		<test name="n3phele.AllUnitTests" />
+       <test name="n3phele.AllUnitTests" />
+       <formatter type="plain" usefile="false" />
+       <classpath refid="test.classpath" />
     </junit>
 </target>
 </project>
