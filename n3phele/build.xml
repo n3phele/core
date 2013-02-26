@@ -107,7 +107,6 @@
         <classpath refid="test.class.path" />
  	<classpath refid="build.class.path" />
 		<classpath refid="lib" />
-		<classpath refid="google" />
 		<formatter type="plain" usefile="false" />
 		<test name="n3phele.AllUnitTests" />
     </junit>
