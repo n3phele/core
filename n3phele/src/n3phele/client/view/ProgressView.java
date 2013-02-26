@@ -116,7 +116,7 @@ public class ProgressView extends WorkspaceVerticalPanel {
 		table.setWidget(3, 1, completedate);
 		table.getFlexCellFormatter().setColSpan(3, 1, 2);
 
-		Label lblNewLabel_7 = new Label("estimated duration", true);
+		Label lblNewLabel_7 = new Label("duration", true);
 		table.setWidget(4, 0, lblNewLabel_7);
 
 		duration = new Label(".duration");
@@ -203,7 +203,10 @@ public class ProgressView extends WorkspaceVerticalPanel {
 			this.startdate.setValue(this.process.getStart());
 			this.completedate.setValue(this.process.getComplete());
 			this.description.setText("this.process.getDescription()xxx");
-			this.duration.setText(durationText(12345)); //FIXME
+			if(this.process.getComplete() != null) {
+				long duration = this.process.getComplete().getTime() - this.process.getStart().getTime();
+				this.duration.setText(durationText(duration));
+			}
 			
 			this.iconStatus.setValue(getIconText(this.process));
 			this.narrativeTable.setRowData(this.process.getNarrative()); 
@@ -215,24 +218,28 @@ public class ProgressView extends WorkspaceVerticalPanel {
 	
 	protected String durationText(long duration) {
 		StringBuilder body = new StringBuilder();
-		if (duration >= 60 * 60 * 24) {
-			double days = Math.round((duration * 10.0) / (60 * 60 * 24))/10.0;
+		if (duration >= 60 * 60 * 24 * 1000) {
+			double days = Math.round(((duration / 1000) * 10.0) / (60 * 60 * 24))/10.0;
 			body.append(Double.toString(days));
 			body.append(days > 1 ? " days" : " day");
-		} else if (duration > 60 * 60) {
-			double hours = Math.round(10 * duration
+		} else if (duration > 60 * 60 * 1000) {
+			double hours = Math.round(10 * (duration / 1000) 
 					/ (60 * 60.0)) / 10.0;
 			body.append(Double.toString(hours));
 			body.append(hours > 1.0 ? " hours" : " hour");
-		} else if (duration > 60) {
-			double minutes = Math.round(10 * duration
+		} else if (duration > 60 * 1000) {
+			double minutes = Math.round(10 * (duration/1000)
 					/ (60.0)) / 10.0;
 			body.append(Double.toString(minutes));
 			body.append(minutes > 1.0 ? " minutes" : " minute");
-		} else {
-			long seconds = duration;
-			body.append(Long.toString(seconds));
-			body.append(seconds > 1 ? " seconds" : " second");
+		} else if (duration > 1000) {
+			double seconds = Math.round( duration/100.0 ) / 10.0;
+			body.append(Double.toString(seconds));
+			body.append(seconds > 1.0 ? " seconds" : " second");
+		} else{
+			long milliseconds = duration;
+			body.append(Long.toString(milliseconds));
+			body.append(milliseconds > 1 ? " milliseconds" : " millisecond");
 		} 
 		return body.toString();
 	}
