@@ -6,14 +6,6 @@
 		<pathelement location="test-classes"/>
 	</path>
 
-	<path id="test.classpath">
-		<pathelement location="test-classes" />
-		<pathelement path="war/WEB-INF/classes" />
-		<fileset dir="war/WEB-INF/lib">
-			<include name="**/*.jar" />
-		</fileset>
-	</path>
-
 	<path id="build.class.path">
 		<pathelement location="war/WEB-INF/classes"/>
 	</path>
@@ -60,17 +52,6 @@
         debug="on" />
 	</target>
 
-	<target name="gwt_compile" depends="compile_tests" description="GWT compile to JavaScript">
-		<java failonerror="true" fork="true" classname="com.google.gwt.dev.Compiler">
-			<classpath>
-				<pathelement location="src"/>
-				<path refid="project.classpath"/>
-			</classpath>
-			<!-- add jvmarg -Xss16M or similar if you see a StackOverflowError -->
-			<arg value="n3phele.N3phele"/>
-		</java>
-	</target>
-
 	<target name="compile_tests" depends="compile"
       description="Compiles Java source tests.">
 		<mkdir dir="test-classes" />
@@ -82,21 +63,11 @@
 		<javac
       srcdir="test"
       destdir="test-classes"
-      classpathref="test.classpath"
+      classpathref="test.class.path"
       debug="on" />
 	</target>
-
-	<target name="datanucleusenhance" depends="gwt_compile"
-      description="Performs JDO enhancement on compiled data classes.">
-		<enhance_war war="war" />
-	</target>
-
-	<target name="update" depends="datanucleusenhance"
-		description="Uploads the application to App Engine.">
-		<appcfg action="update" war="war" />
-	</target>
-
-	<target name="junit" depends="datanucleusenhance">
+	
+	<target name="junit" depends="compile_tests">
 		<waitfor maxwait="2" maxwaitunit="minute" checkevery="500">
 			<http url="http://15.185.173.105:8888"/>
 		</waitfor>
