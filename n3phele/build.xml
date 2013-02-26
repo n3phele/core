@@ -45,6 +45,21 @@
       <fileset dir="${sdk.dir}/lib/impl">
         <include name="**/*.jar" />
       </fileset>
+       <fileset dir="${sdk.dir}/lib/agent">
+        <include name="**/*.jar" />
+      </fileset>
+       <fileset dir="${sdk.dir}/lib/opt">
+        <include name="**/*.jar" />
+      </fileset>
+       <fileset dir="${sdk.dir}/lib/override">
+        <include name="**/*.jar" />
+      </fileset>
+       <fileset dir="${sdk.dir}/lib/shared">
+        <include name="**/*.jar" />
+      </fileset>
+       <fileset dir="${sdk.dir}/lib/tools">
+        <include name="**/*.jar" />
+      </fileset>
     </copy>
   </target>
 
