@@ -106,6 +106,7 @@
 	    <junit fork="no" haltonfailure="yes">
 	      <test name="n3phele.AllUnitTests" />
 	      <formatter type="plain" usefile="false" />
+	      <classpath refid="google" />
 	      <classpath refid="test.classpath" />
 	    </junit>
 </target>
