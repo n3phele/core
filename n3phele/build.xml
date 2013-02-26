@@ -1,129 +1,112 @@
 <project name="n3phele test" basedir="." default="junit">
- <property name="sdk.dir" location="/home/ubuntu/appengine-java-sdk-1.7.5" />
-  <property name="gwt.dir" location="/home/ubuntu/gwt-2.4.0" />
-<path id="test.class.path">
-<pathelement location="test-classes"/>
-</path>
+	<property name="sdk.dir" location="/home/ubuntu/appengine-java-sdk-1.7.5" />
+	<property name="gwt.dir" location="/home/ubuntu/gwt-2.4.0" />
 
- <path id="test.classpath">
-    <pathelement location="test-classes" />
-    <pathelement path="war/WEB-INF/classes" />
-   <fileset dir="war/WEB-INF/lib">
-      <include name="**/*.jar" />
-   </fileset>
-  </path>
-  
-<path id="build.class.path">
-<pathelement location="war/WEB-INF/classes"/>
-</path>
+	<path id="test.class.path">
+		<pathelement location="test-classes"/>
+	</path>
 
-<path id="lib">
-<fileset dir="war/WEB-INF/lib">
-<include name="*.jar" />
-</fileset>
-</path>
+	<path id="test.classpath">
+		<pathelement location="test-classes" />
+		<pathelement path="war/WEB-INF/classes" />
+		<fileset dir="war/WEB-INF/lib">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
 
-<path id="google">
-<fileset dir="/home/ubuntu/appengine-java-sdk-1.7.5/">
-<include name="lib/testing/appengine-testing.jar" />
-<include name="lib/impl/appengine-api-stubs.jar" />
-</fileset>
-</path>
+	<path id="build.class.path">
+		<pathelement location="war/WEB-INF/classes"/>
+	</path>
 
-<target name="copyjars"
-      description="Copies the App Engine JARs to the WAR.">
-    <copy
-        todir="war/WEB-INF/lib"
-        flatten="true">
-      <fileset dir="${sdk.dir}/lib/user">
-        <include name="**/*.jar" />
-      </fileset>
-    </copy>
-  </target>
+	<path id="lib">
+		<fileset dir="war/WEB-INF/lib">
+			<include name="*.jar" />
+		</fileset>
+	</path>
 
-  <path id="project.classpath">
-    <pathelement path="war/WEB-INF/classes" />
-    <fileset dir="war/WEB-INF/lib">
-      <include name="**/*.jar" />
-    </fileset>
-    <fileset dir="${sdk.dir}/lib">
-      <include name="shared/**/*.jar" />
-    </fileset>
-    <fileset dir="${gwt.dir}">
-      <include name="**/*.jar" />
-    </fileset>
-  </path>
-  
-   <path id="test.classpath">
-    <pathelement location="test-classes" />
-    <pathelement path="war/WEB-INF/classes" />
-   <fileset dir="war/WEB-INF/lib">
-      <include name="**/*.jar" />
-   </fileset>
-  </path>
+	<path id="google">
+		<fileset dir="/home/ubuntu/appengine-java-sdk-1.7.5/">
+			<include name="lib/testing/appengine-testing.jar" />
+			<include name="lib/impl/appengine-api-stubs.jar" />
+		</fileset>
+	</path>
 
-  <target name="compile" depends="copyjars"
+
+	<path id="project.classpath">
+		<pathelement path="war/WEB-INF/classes" />
+		<fileset dir="war/WEB-INF/lib">
+			<include name="**/*.jar" />
+		</fileset>
+		<fileset dir="${sdk.dir}/lib">
+			<include name="shared/**/*.jar" />
+		</fileset>
+		<fileset dir="${gwt.dir}">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+	
+	<target name="compile"
       description="Compiles Java source and copies other source files to the WAR.">
-    <mkdir dir="war/WEB-INF/classes" />
-    <copy todir="war/WEB-INF/classes">
-      <fileset dir="src">
-        <exclude name="**/*.java" />
-      </fileset>
-    </copy>
-    <javac
+		<mkdir dir="war/WEB-INF/classes" />
+		<copy todir="war/WEB-INF/classes">
+			<fileset dir="src">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+		<javac
         srcdir="src"
         destdir="war/WEB-INF/classes"
         classpathref="project.classpath"
         debug="on" />
-  </target>
-  
-  <target name="gwt_compile" depends="compile_tests" description="GWT compile to JavaScript">
-    <java failonerror="true" fork="true" classname="com.google.gwt.dev.Compiler">
-      <classpath>
-        <pathelement location="src"/>
-        <path refid="project.classpath"/>
-      </classpath>
-      <!-- add jvmarg -Xss16M or similar if you see a StackOverflowError -->
-      <arg value="n3phele.N3phele"/>
-    </java>
-  </target>
-  
-   <target name="compile_tests" depends="compile"
+	</target>
+
+	<target name="gwt_compile" depends="compile_tests" description="GWT compile to JavaScript">
+		<java failonerror="true" fork="true" classname="com.google.gwt.dev.Compiler">
+			<classpath>
+				<pathelement location="src"/>
+				<path refid="project.classpath"/>
+			</classpath>
+			<!-- add jvmarg -Xss16M or similar if you see a StackOverflowError -->
+			<arg value="n3phele.N3phele"/>
+		</java>
+	</target>
+
+	<target name="compile_tests" depends="compile"
       description="Compiles Java source tests.">
-    <mkdir dir="test-classes" />
-    <copy todir="test-classes">
-      <fileset dir="test">
-        <exclude name="**/*.java" />
-      </fileset>
-    </copy>
-    <javac
+		<mkdir dir="test-classes" />
+		<copy todir="test-classes">
+			<fileset dir="test">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+		<javac
       srcdir="test"
       destdir="test-classes"
       classpathref="test.classpath"
       debug="on" />
-  </target>
+	</target>
 
-<target name="datanucleusenhance" depends="gwt_compile"
+	<target name="datanucleusenhance" depends="gwt_compile"
       description="Performs JDO enhancement on compiled data classes.">
-    <enhance_war war="war" />
-  </target>
+		<enhance_war war="war" />
+	</target>
 
-<target name="update" depends="datanucleusenhance"
+	<target name="update" depends="datanucleusenhance"
 		description="Uploads the application to App Engine.">
 		<appcfg action="update" war="war" />
 	</target>
 
-<target name="junit" depends="datanucleusenhance">
- <waitfor maxwait="2" maxwaitunit="minute" checkevery="500">
-       <http url="http://15.185.173.105:8888"/>
-    </waitfor>
-    <junit haltonerror="yes" printsummary="withOutAndErr" haltonfailure="true" showoutput="yes" >
-        <classpath refid="test.class.path" />
- 	<classpath refid="build.class.path" />
-		<classpath refid="lib" />
-		<classpath refid="google" />
-		<formatter type="plain" usefile="false" />
-		<test name="n3phele.AllTests" />
-    </junit>
-</target>
+	<target name="junit" depends="datanucleusenhance">
+		<waitfor maxwait="2" maxwaitunit="minute" checkevery="500">
+			<http url="http://15.185.173.105:8888"/>
+		</waitfor>
+		<junit haltonerror="yes" printsummary="withOutAndErr" haltonfailure="true" showoutput="yes" >
+			<classpath refid="test.class.path" />
+			<classpath refid="build.class.path" />
+			<classpath refid="lib" />
+			<classpath refid="google" />
+			<formatter type="plain" usefile="false" />
+			<test name="n3phele.AllUnitsTests" />
+		</junit>
+	</target>
 </project>
