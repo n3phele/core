@@ -104,7 +104,7 @@
 	       <http url="http://15.185.173.105:8888"/>
 	    </waitfor>
 	    <junit fork="no" haltonfailure="yes">
-	      <test name="n3pheleTests.AllUnitTests" />
+	      <test name="n3phele.AllUnitTests" />
 	      <formatter type="plain" usefile="false" />
 	      <classpath refid="test.classpath" />
 	    </junit>
