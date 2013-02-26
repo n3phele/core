@@ -15,18 +15,18 @@ package n3phele.client.view;
 
 import java.util.List;
 
-import n3phele.client.model.Progress;
-import n3phele.client.presenter.AbstractActivityProgressActivity;
+import n3phele.client.model.CloudProcessSummary;
+import n3phele.client.presenter.AbstractCloudProcessActivity;
 
 import com.google.gwt.user.client.ui.IsWidget;
 
-public interface ActivityView extends IsWidget {
+public interface CloudProcessView extends IsWidget {
 
-	public abstract void setDisplayList(List<Progress> progressList, int start, int max);
+	public abstract void setDisplayList(List<CloudProcessSummary> processList, int start, int max);
 
-	public abstract void setPresenter(AbstractActivityProgressActivity presenter);
+	public abstract void setPresenter(AbstractCloudProcessActivity presenter);
 
-	public abstract void refresh(int i, Progress update);
+	public abstract void refresh(int i, CloudProcessSummary update);
 	
 	public abstract int getPageSize();
 

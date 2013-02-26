@@ -20,11 +20,11 @@ import java.util.Set;
 import n3phele.client.AppPlaceHistoryMapper;
 import n3phele.client.CacheManager;
 import n3phele.client.ClientFactory;
+import n3phele.client.model.CloudProcessSummary;
 import n3phele.client.model.Collection;
-import n3phele.client.model.Progress;
 import n3phele.client.presenter.helpers.AuthenticatedRequestFactory;
 import n3phele.client.presenter.helpers.ProgressUpdateHelper;
-import n3phele.client.view.ActivityView;
+import n3phele.client.view.CloudProcessView;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
@@ -44,14 +44,14 @@ import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 
-public abstract class AbstractActivityProgressActivity extends AbstractActivity {
+public abstract class AbstractCloudProcessActivity extends AbstractActivity {
 
 	protected final String name;
 	protected final CacheManager cacheManager;
 	protected EventBus eventBus;
 	protected final PlaceController placeController;
-	protected final ActivityView display;
-	private List<Progress> progressList = null;
+	protected final CloudProcessView display;
+	private List<CloudProcessSummary> cloudProcessSummaryList = null;
 	private HandlerRegistration handlerRegistration;
 	private Set<String> interests = new HashSet<String>();
 	private final String collectionUrl;
@@ -62,14 +62,14 @@ public abstract class AbstractActivityProgressActivity extends AbstractActivity 
 	private int max;
 	private int pageSize;
 
-	public AbstractActivityProgressActivity(String name, ClientFactory factory, ActivityView activityView) {
+	public AbstractCloudProcessActivity(String name, ClientFactory factory, CloudProcessView activityView) {
 		super();
 		this.name = name;
 		this.cacheManager = factory.getCacheManager();
 		this.placeController = factory.getPlaceController();
 		this.display = activityView;
 		this.historyMapper = factory.getHistoryMapper();
-		this.collectionUrl = URL.encode(cacheManager.ServiceAddress + "progress");
+		this.collectionUrl = URL.encode(cacheManager.ServiceAddress + "process");
 	}
 	
 	
@@ -84,7 +84,7 @@ public abstract class AbstractActivityProgressActivity extends AbstractActivity 
 		start = 0;
 		max = 0;
 		pageSize = display.getPageSize();
-		display.setDisplayList(progressList, start, max);
+		display.setDisplayList(cloudProcessSummaryList, start, max);
 		display.setPresenter(this);
 		panel.setWidget(display);
 		
@@ -112,16 +112,16 @@ public abstract class AbstractActivityProgressActivity extends AbstractActivity 
 		Timer refreshTimer = new Timer() {
 			public void run()
 			{
-				if(progressList != null) {
-					for(int i=0; i < progressList.size(); i++) {
-						Progress progress = progressList.get(i);
-						String status = progress.getStatus();
-						if(!"COMPLETE".equals(status) && !"FAILED".equals(status) && !"CANCELLED".equals(status)) {
-							int update = updateProgress(progress);
-							if(update != progress.getPercentx10Complete()) {
+				if(cloudProcessSummaryList != null) {
+					for(int i=0; i < cloudProcessSummaryList.size(); i++) {
+						CloudProcessSummary summary = cloudProcessSummaryList.get(i);
+						String state = summary.getState();
+						if(!"COMPLETE".equals(state) && !"FAILED".equals(state) && !"CANCELLED".equals(state)) {
+							//int update = updateProgress(summary);
+							// if(update != summary.getPercentx10Complete()) {
 								//progress.setPercentagex10Complete(update);
-								display.refresh(i, progress);
-							}
+								display.refresh(i, summary);
+							//}
 						}
 					}
 				}
@@ -138,8 +138,8 @@ public abstract class AbstractActivityProgressActivity extends AbstractActivity 
 		}
 	}
 
-	private int updateProgress(Progress progress) {
-		return ProgressUpdateHelper.updateProgress(progress);
+	private int updateProgress(CloudProcessSummary process) {
+		return ProgressUpdateHelper.updateProcess(process);
 	}
 
 	@Override
@@ -163,7 +163,7 @@ public abstract class AbstractActivityProgressActivity extends AbstractActivity 
 		this.placeController.goTo(place);
 	}
 	
-	public void onSelect(Progress selected) {
+	public void onSelect(CloudProcessSummary selected) {
 		History.newItem(historyMapper.getToken(new ProgressPlace(selected.getUri())));
 	}
 
@@ -174,19 +174,19 @@ public abstract class AbstractActivityProgressActivity extends AbstractActivity 
 				return new ProgressListUpdate();
 			}
 		};
-		cacheManager.register(cacheManager.ServiceAddress + "progress", this.name, change);
+		cacheManager.register(cacheManager.ServiceAddress + "process", this.name, change);
 		this.refresh(start);
 	}
 
 	protected void unregister() {
-		cacheManager.unregister(cacheManager.ServiceAddress + "progress", this.name);
+		cacheManager.unregister(cacheManager.ServiceAddress + "process", this.name);
 		for(String s : interests) {
 			cacheManager.unregister(s, this.name);
 		}
 		//this.handlerRegistration.removeHandler();
 	}
 
-	protected void updateData(String uri, List<Progress> update, int max) {
+	protected void updateData(String uri, List<CloudProcessSummary> update, int max) {
 		GWT.log("Max activities is "+max);
 		if(update != null) {
 			CacheManager.EventConstructor constructor = new CacheManager.EventConstructor() {
@@ -197,7 +197,7 @@ public abstract class AbstractActivityProgressActivity extends AbstractActivity 
 			};
 			Set<String> nonInterests = new HashSet<String>();
 			nonInterests.addAll(interests);
-			for(Progress p : update) {
+			for(CloudProcessSummary p : update) {
 				if(!interests.contains(p.getUri())) {
 					cacheManager.register(p.getUri(), this.name, constructor);
 					interests.add(p.getUri());
@@ -210,16 +210,16 @@ public abstract class AbstractActivityProgressActivity extends AbstractActivity 
 				interests.remove(outOfView);
 			}
 		}
-		progressList = update;
-		display.setDisplayList(progressList, start, max);
+		cloudProcessSummaryList = update;
+		display.setDisplayList(cloudProcessSummaryList, start, max);
 	}
 
-	protected void updateData(String uri, Progress update) {
+	protected void updateData(String uri, CloudProcessSummary update) {
 		if(update != null) {
-			for(int i=0; i < progressList.size(); i++) {
-				Progress p = progressList.get(i);
+			for(int i=0; i < cloudProcessSummaryList.size(); i++) {
+				CloudProcessSummary p = cloudProcessSummaryList.get(i);
 				if(p.getUri().equals(update.getUri())) {
-					progressList.set(i, update);
+					cloudProcessSummaryList.set(i, update);
 					display.refresh(i, update);
 					return;
 				}
@@ -230,7 +230,7 @@ public abstract class AbstractActivityProgressActivity extends AbstractActivity 
 	public void refresh(int start) {
 	
 		String url = collectionUrl;
-		url += "?summary=true&start="+start+"&end="+(start+pageSize-1);
+		url += "?summary=true&start="+start+"&end="+(start+pageSize);
 		this.start = start;
 		// Send request to server and catch any errors.
 		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, url);
@@ -242,8 +242,8 @@ public abstract class AbstractActivityProgressActivity extends AbstractActivity 
 	
 				public void onResponseReceived(Request request, Response response) {
 					if (200 == response.getStatusCode()) {
-						GWT.log("got progress");
-						Collection<Progress> c = Progress.asCollection(response.getText());
+						GWT.log("got cloudProcess");
+						Collection<CloudProcessSummary> c = CloudProcessSummary.asCollection(response.getText());
 						updateData(c.getUri(), c.getElements(), c.getTotal());
 					} else {
 						GWT.log("Couldn't retrieve JSON ("
@@ -269,7 +269,7 @@ public abstract class AbstractActivityProgressActivity extends AbstractActivity 
 	
 				public void onResponseReceived(Request request, Response response) {
 					if (200 == response.getStatusCode()) {
-						Progress p = Progress.asProgress(response.getText());
+						CloudProcessSummary p = CloudProcessSummary.asCloudProcessSummary(response.getText());
 						updateData(p.getUri(), p);
 					} else {
 						GWT.log("Couldn't retrieve JSON ("

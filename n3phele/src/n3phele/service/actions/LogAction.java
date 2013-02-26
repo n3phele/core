@@ -12,7 +12,6 @@ package n3phele.service.actions;
  */
 
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 import n3phele.service.model.Action;
@@ -41,7 +40,7 @@ import com.googlecode.objectify.annotation.Unindex;
 @Cache
 public class LogAction extends Action {
 	final private static java.util.logging.Logger log = java.util.logging.Logger.getLogger(LogAction.class.getName()); 
-	@XmlTransient private ActionLogger logger;
+	private ActionLogger logger;
 	public LogAction() {}
 	
 	protected LogAction(User owner, String name,

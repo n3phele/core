@@ -52,6 +52,8 @@ public class ProcessLifecycle {
 	public CloudProcess createProcess(User user, String name, n3phele.service.model.Context context, List<URI> dependency, CloudProcess parent, Class<? extends Action> clazz) throws IllegalArgumentException {
 		Action action;
 		try {
+			if(Helpers.isBlankOrNull(name))
+				name = user.getLastName();
 			action = clazz.newInstance().create(user.getUri(), name, context);
 		} catch (InstantiationException e) {
 			log.log(Level.SEVERE, "Class "+clazz, e);

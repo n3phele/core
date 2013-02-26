@@ -16,28 +16,28 @@ package n3phele.client.view;
 import java.util.ArrayList;
 import java.util.List;
 
+import n3phele.client.model.CloudProcessSummary;
+import n3phele.client.presenter.AbstractCloudProcessActivity;
+import n3phele.client.widgets.SectionPanel;
+
 import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
 
-import n3phele.client.model.Progress;
-import n3phele.client.presenter.AbstractActivityProgressActivity;
-import n3phele.client.widgets.SectionPanel;
-
-public class RecentActivityView extends SectionPanel implements ActivityView {
+public class RecentActivityView extends SectionPanel implements CloudProcessView {
 	private ActivityStatusList cellTable;
-	private List<Progress> data = null;
-	private AbstractActivityProgressActivity presenter;
+	private List<CloudProcessSummary> data = null;
+	private AbstractCloudProcessActivity presenter;
 	public RecentActivityView() {
 		super();
 		//setSize("100%", "100%");
 		this.cellTable = new ActivityStatusList();
 		this.setWidget(this.cellTable);
 		this.setHeading("Recent activities");
-		final SingleSelectionModel<Progress> selectionModel = new SingleSelectionModel<Progress>();
+		final SingleSelectionModel<CloudProcessSummary> selectionModel = new SingleSelectionModel<CloudProcessSummary>();
 	    cellTable.setSelectionModel(selectionModel);
 	    selectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
 	      public void onSelectionChange(SelectionChangeEvent event) {
-	        Progress selected = selectionModel.getSelectedObject();
+	        CloudProcessSummary selected = selectionModel.getSelectedObject();
 	        if (selected != null) {
 	          if(presenter != null) {
 	        	 presenter.onSelect(selected);
@@ -49,26 +49,26 @@ public class RecentActivityView extends SectionPanel implements ActivityView {
 		
 	}
 	@Override
-	public void setDisplayList(List<Progress> progressList, int start, int max) {
-		if(progressList == null)
-			progressList = new ArrayList<Progress>();
-		this.cellTable.setRowCount(progressList.size(), true);
-		this.cellTable.setRowData(data=progressList);
+	public void setDisplayList(List<CloudProcessSummary> processList, int start, int max) {
+		if(processList == null)
+			processList = new ArrayList<CloudProcessSummary>();
+		this.cellTable.setRowCount(processList.size(), true);
+		this.cellTable.setRowData(data=processList);
 	}
 	@Override
-	public void setPresenter(AbstractActivityProgressActivity presenter) {
+	public void setPresenter(AbstractCloudProcessActivity presenter) {
 		this.presenter = presenter;
 		
 	}
 
 	@Override
-	public void refresh(int i, Progress update) {
+	public void refresh(int i, CloudProcessSummary update) {
 		this.cellTable.setRowData(i, data.subList(i, i+1));
 	}
 
 	@Override
 	public int getPageSize() {
-		return 10;
+		return 8;
 	}
 	
 }

@@ -266,7 +266,7 @@ public class CommandActivity extends AbstractActivity {
 		}
 		if(name == null || name.trim().length() == 0) {
 			name = null;
-		} 
+		}
 		if(name != null)
 			params.add("name="+URL.encodeQueryString(name.trim()));
 		

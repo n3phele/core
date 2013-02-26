@@ -25,7 +25,7 @@ public abstract class AbstractManager<Item extends Entity> {
 
 	protected Logger log = Logger.getLogger(this.getClass().getName());
 	protected GenericModelDao<Item> itemDao;
-	final protected URI path;
+	public final URI path;
 
 	public AbstractManager() {
 		super();

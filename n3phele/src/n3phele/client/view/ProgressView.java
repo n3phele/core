@@ -18,11 +18,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import n3phele.client.N3phele;
+import n3phele.client.model.CloudProcess;
 import n3phele.client.model.Narrative;
-import n3phele.client.model.Progress;
 import n3phele.client.presenter.ActivityPlace;
 import n3phele.client.presenter.ProgressActivity;
-import n3phele.client.presenter.helpers.ProgressUpdateHelper;
 import n3phele.client.resource.NarrativeListCellTableResource;
 import n3phele.client.widgets.IconText;
 import n3phele.client.widgets.IconTextCell;
@@ -39,21 +38,20 @@ import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.CellWidget;
 import com.google.gwt.user.cellview.client.Column;
-import com.google.gwt.user.client.ui.FlexTable;
-
-import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.cellview.client.TextColumn;
-import com.google.gwt.user.client.ui.HasVerticalAlignment;
+import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
+import com.google.gwt.user.client.ui.HasVerticalAlignment;
 import com.google.gwt.user.client.ui.Hyperlink;
 import com.google.gwt.user.client.ui.Image;
+import com.google.gwt.user.client.ui.Label;
 
 
 public class ProgressView extends WorkspaceVerticalPanel {
 	final private FlexTable table;
 	final private CellTable<Narrative> narrativeTable;
 	private ProgressActivity presenter;
-	private Progress progress;
+	private CloudProcess process;
 	private Column<Narrative,ImageResource> state;
 	private Label name;
 	private CellWidget<IconText> iconStatus;
@@ -83,11 +81,11 @@ public class ProgressView extends WorkspaceVerticalPanel {
 		iconStatus = new CellWidget<IconText>(new IconTextCell<IconText>(32,32,15));
 //		{
 //			@Override
-//			public IconText getValue(Progress progress) {
-//				String status = progress.getStatus();
+//			public IconText getValue(Progress process) {
+//				String status = process.getStatus();
 //				ImageResource icon = statusVizualization.get(status);
-//				if(icon != null) return new IconText(icon, progress.getName());
-//				return new IconText(getTemplate().statusBar(getPercentComplete(progress), barUrl ), progress.getName()); // make progress bar
+//				if(icon != null) return new IconText(icon, process.getName());
+//				return new IconText(getTemplate().statusBar(getPercentComplete(process), barUrl ), process.getName()); // make process bar
 //			}
 //		};
 
@@ -157,7 +155,7 @@ public class ProgressView extends WorkspaceVerticalPanel {
 		TextColumn<Narrative> id = new TextColumn<Narrative>() {
 			@Override
 			public String getValue(Narrative object) {
-				return object.getId();
+				return object.getTag();
 			}
 		};
 		id.setVerticalAlignment(HasVerticalAlignment.ALIGN_MIDDLE);
@@ -186,8 +184,8 @@ public class ProgressView extends WorkspaceVerticalPanel {
 		this.presenter.goToPrevious();
 	}
 
-	public void setData(Progress progress) {
-		this.progress = progress;
+	public void setData(CloudProcess process) {
+		this.process = process;
 		if(statusVizualization == null) {
 			statusVizualization = new HashMap<String, ImageResource>();
 			statusVizualization.put("COMPLETE",N3phele.n3pheleResource.completedIcon());
@@ -197,18 +195,18 @@ public class ProgressView extends WorkspaceVerticalPanel {
 			statusVizualization.put("BLOCKED",N3phele.n3pheleResource.blockedIcon());
 			barUrl = new Image(N3phele.n3pheleResource.barBackground()).getUrl();
 		}
-		if(this.progress != null) {
-			ActivityPlace place = new ActivityPlace(this.progress.getActivity());
-			this.name.setText(this.progress.getName());
-			this.command = new Hyperlink(this.progress.getCommand(),  place.getToken());
+		if(this.process != null) {
+			ActivityPlace place = new ActivityPlace(this.process.getUri());
+			this.name.setText(this.process.getName());
+			this.command = new Hyperlink("this.process.getCommand()xxx",  place.getToken());
 			table.setWidget(1, 1, this.command);
-			this.startdate.setValue(this.progress.getStarted());
-			this.completedate.setValue(this.progress.getComplete());
-			this.description.setText(this.progress.getDescription());
-			this.duration.setText(durationText(this.progress.getDuration()));
+			this.startdate.setValue(this.process.getStart());
+			this.completedate.setValue(this.process.getComplete());
+			this.description.setText("this.process.getDescription()xxx");
+			this.duration.setText(durationText(12345)); //FIXME
 			
-			this.iconStatus.setValue(getIconText(this.progress));
-			this.narrativeTable.setRowData(this.progress.getNarratives()); 
+			this.iconStatus.setValue(getIconText(this.process));
+			this.narrativeTable.setRowData(this.process.getNarrative()); 
 			N3phele.checkSize();
 		} else {
 
@@ -238,11 +236,11 @@ public class ProgressView extends WorkspaceVerticalPanel {
 		} 
 		return body.toString();
 	}
-	protected IconText getIconText(Progress progress) {
-		String status = progress.getStatus();
+	protected IconText getIconText(CloudProcess process) {
+		String status = process.getState();
 		ImageResource icon = statusVizualization.get(status);
 		if(icon != null) return new IconText(icon, status);
-		return new IconText(getTemplate().statusBar(getPercentComplete(progress), barUrl ), status); // make progress bar
+		return new IconText(getTemplate().statusBar(getPercentComplete(process), barUrl ), status); // make process bar
 	}
 	
 	
@@ -251,8 +249,8 @@ public class ProgressView extends WorkspaceVerticalPanel {
 		this.presenter = presenter;
 	}
 
-	public void refresh(Progress progress) {
-		setData(progress);
+	public void refresh(CloudProcess process) {
+		setData(process);
 	}
 
 
@@ -274,8 +272,9 @@ public class ProgressView extends WorkspaceVerticalPanel {
 		return template;
 	}
 
-	public double getPercentComplete(Progress progress) {
-		return ProgressUpdateHelper.updateProgress(progress)/10.0;
+	public double getPercentComplete(CloudProcess process) {
+		//return ProgressUpdateHelper.updateProcess(process)/10.0;
+		return 0;
 	}	
 
 

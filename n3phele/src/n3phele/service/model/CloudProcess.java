@@ -17,20 +17,21 @@ import static n3phele.service.model.core.Helpers.stringToURI;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 import n3phele.service.actions.JobAction;
 import n3phele.service.model.core.Entity;
+import n3phele.service.rest.impl.NarrativeResource;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Id;
-import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.annotation.Unindex;
@@ -54,13 +55,11 @@ public class CloudProcess extends Entity {
 	private ArrayList<String> pendingAssertion = new ArrayList<String>();
 	private ArrayList<String> dependentOn = new ArrayList<String>();
 	private ArrayList<String> dependencyFor = new ArrayList<String>();
-	private Date start = null;
+	@Index private Date start = null;
 	private Date complete = null;
 	@Index private boolean finalized = false;
 	private String action = null;
 	private String actionType = null;
-	@Ignore
-	private Narrative[] narrative = null;
 	@Index private String parent = null;
 	@Parent Key<CloudProcess> root;
 	@Index(IfTrue.class) boolean topLevel = false; 
@@ -361,14 +360,16 @@ public class CloudProcess extends Entity {
 	/**
 	 * @return the narrative
 	 */
-	public Narrative[] getNarrative() {
-		return narrative;
+	@XmlElement
+	public Collection<Narrative> getNarrative() {
+		return this.topLevel? NarrativeResource.dao.getNarratives(this.getUri()) :
+							  NarrativeResource.dao.getProcessNarratives(this.getUri());
 	}
 	/**
 	 * @param narrative the narrative to set
 	 */
-	public void setNarrative(Narrative[] narrative) {
-		this.narrative = narrative;
+	public void setNarrative(Collection<Narrative> narrative) {
+		
 	}
 	
 	/**
@@ -397,12 +398,12 @@ public class CloudProcess extends Entity {
 	@Override
 	public String toString() {
 		return String
-				.format("CloudProcess [id=%s, state=%s, running=%s, waitTimeout=%s, pendingInit=%s, pendingCall=%s, pendingCancel=%s, pendingDump=%s, pendingAssertion=%s, dependentOn=%s, dependencyFor=%s, start=%s, complete=%s, finalized=%s, action=%s, actionType=%s, narrative=%s, parent=%s, root=%s, topLevel=%s]",
+				.format("CloudProcess [id=%s, state=%s, running=%s, waitTimeout=%s, pendingInit=%s, pendingCall=%s, pendingCancel=%s, pendingDump=%s, pendingAssertion=%s, dependentOn=%s, dependencyFor=%s, start=%s, complete=%s, finalized=%s, action=%s, actionType=%s, parent=%s, root=%s, topLevel=%s]",
 						id, state, running, waitTimeout, pendingInit,
 						pendingCall, pendingCancel, pendingDump,
 						pendingAssertion, dependentOn, dependencyFor, start,
 						complete, finalized, action, actionType,
-						Arrays.toString(narrative), parent, root, topLevel);
+						parent, root, topLevel);
 	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
@@ -422,7 +423,6 @@ public class CloudProcess extends Entity {
 				+ ((dependentOn == null) ? 0 : dependentOn.hashCode());
 		result = prime * result + (finalized ? 1231 : 1237);
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + Arrays.hashCode(narrative);
 		result = prime * result + ((parent == null) ? 0 : parent.hashCode());
 		result = prime
 				* result
@@ -483,8 +483,6 @@ public class CloudProcess extends Entity {
 			if (other.id != null)
 				return false;
 		} else if (!id.equals(other.id))
-			return false;
-		if (!Arrays.equals(narrative, other.narrative))
 			return false;
 		if (parent == null) {
 			if (other.parent != null)

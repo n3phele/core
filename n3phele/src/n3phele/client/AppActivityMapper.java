@@ -19,17 +19,17 @@ import n3phele.client.presenter.AccountHyperlinkPlace;
 import n3phele.client.presenter.AccountListActivity;
 import n3phele.client.presenter.AccountListPlace;
 import n3phele.client.presenter.AccountPlace;
+import n3phele.client.presenter.ActivityDashboardActivity;
 import n3phele.client.presenter.ActivityDashboardPlace;
 import n3phele.client.presenter.ActivityListActivity;
 import n3phele.client.presenter.ActivityListPlace;
-import n3phele.client.presenter.ActivityDashboardActivity;
 import n3phele.client.presenter.ActivityPlace;
 import n3phele.client.presenter.ActivtiyActivity;
+import n3phele.client.presenter.CommandActivity;
 import n3phele.client.presenter.CommandGridListPlace;
 import n3phele.client.presenter.CommandListActivity;
-import n3phele.client.presenter.CommandActivity;
-import n3phele.client.presenter.CommandPlace;
 import n3phele.client.presenter.CommandListPlace;
+import n3phele.client.presenter.CommandPlace;
 import n3phele.client.presenter.LoginActivity;
 import n3phele.client.presenter.LoginPlace;
 import n3phele.client.presenter.ProgressActivity;
@@ -62,7 +62,7 @@ public class AppActivityMapper implements ActivityMapper {
 		GWT.log("Place called: " + place);
 		N3phele.basePanel.updateMenu(place);
 		if(place instanceof ActivityListPlace) {
-			return new ActivityListActivity("activity", clientFactory);
+			return new ActivityListActivity("activityList", clientFactory);
 		} else if(place instanceof LoginPlace) {
 			return new LoginActivity("login", clientFactory);
 		} else if(place instanceof ActivityDashboardPlace) {

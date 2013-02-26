@@ -16,9 +16,6 @@ package n3phele.client.model;
 
 import java.util.List;
 
-import n3phele.client.model.Entity;
-import n3phele.client.model.JsList;
-
 import com.google.gwt.core.client.JavaScriptObject;
 
 public class Collection<T extends Entity> extends Entity {

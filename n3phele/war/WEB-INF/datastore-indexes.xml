@@ -5,14 +5,22 @@
         <property name="preferred" direction="asc" />
         <property name="name" direction="asc" />
     </datastore-index>
-    <datastore-index kind="CloudProcess" ancestor="false" source="auto">
+    <datastore-index kind="CloudProcess" ancestor="false">
         <property name="owner" direction="asc"/>
         <property name="topLevel" direction="asc"/>
         <property name="start" direction="desc"/>
     </datastore-index>
-    <datastore-index kind="CloudProcess" ancestor="false" source="auto">
+    <datastore-index kind="CloudProcess" ancestor="false">
         <property name="topLevel" direction="asc"/>
         <property name="start" direction="desc"/>
+    </datastore-index>
+    <datastore-index kind="Narrative" ancestor="false" >
+        <property name="rootProcess" direction="asc"/>
+        <property name="stamp" direction="asc"/>
+    </datastore-index>
+    <datastore-index kind="Narrative" ancestor="false" >
+        <property name="group" direction="asc"/>
+        <property name="stamp" direction="asc"/>
     </datastore-index>
 
 </datastore-indexes>

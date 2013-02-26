@@ -16,11 +16,12 @@ import java.net.URI;
 import java.text.DateFormat;
 import java.util.Date;
 
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
-import n3phele.service.model.core.Helpers;
+import n3phele.service.rest.impl.CloudProcessResource;
 
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -28,13 +29,15 @@ import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 
 @XmlRootElement(name="Narrative")
-@XmlType(name = "Narrative", propOrder = { "stamp", "text", "state", "tag", "process"}) 
+@XmlType(name = "Narrative", propOrder = { "stamp", "state", "processUri", "tag", "text"}) 
 @Entity
 @Unindex
 public class Narrative {
 	@Id protected Long id;
 	protected String tag;
-	@Index protected String process;
+	@Index protected long process;
+	@Index protected long rootProcess;
+	@Index protected String group;
 	@Index protected Date stamp;
 	protected NarrativeLevel state = NarrativeLevel.undefined;
 	protected String text;
@@ -45,8 +48,15 @@ public class Narrative {
 		super();
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
 	public String toString() {
-		return formatter.format(stamp)+" "+tag+" "+state+" "+getText();
+		return String
+				.format("Narrative [id=%s, tag=%s, process=%s, rootProcess=%s, stamp=%s, state=%s, text=%s]",
+						this.id, this.tag, this.process, this.rootProcess,
+						this.stamp, this.state, this.text);
 	}
 	/**
 	 * @return the id
@@ -127,15 +137,74 @@ public class Narrative {
 	/**
 	 * @return the process
 	 */
-	public URI getProcess() {
-		return Helpers.stringToURI(process);
+	@XmlTransient
+	public long getProcess() {
+		return this.process;
 	}
 
 	/**
 	 * @param process the process to set
 	 */
-	public void setProcess(URI process) {
-		this.process = Helpers.URItoString(process);
+	public void setProcess(long process) {
+		this.process = process;
+	}
+	
+	/**
+	 * @return the rootProcess
+	 */
+	@XmlTransient
+	public long getRootProcess() {
+		return this.rootProcess;
+	}
+
+	/**
+	 * @param process the root process to set
+	 */
+	public void setRootProcess(long process) {
+		this.rootProcess = process;
+	}
+	
+	/**
+	 * @return the log group
+	 */
+	@XmlTransient
+	public URI getGroup() {
+		if(this.group == null)
+			return null;
+		else
+			return URI.create(CloudProcessResource.dao.path.toString()+"/"+this.group);
+	}
+
+	/**
+	 * @param process the root process to set
+	 */
+	public void setGroup(URI process) {
+		this.group = process==null?null:process.getPath().substring(process.getPath().lastIndexOf("/")+1);
+	}
+	
+	@XmlElement(name="processUri")
+	public String getProcessUri() {
+		String uri = CloudProcessResource.dao.path.toString()+"/"+rootProcess;
+		if(rootProcess != process)
+			uri += "_"+process;
+		return uri;
+	}
+	
+	public void setProcessUri(URI processUri) {
+		String uri = processUri.toString();
+		String ids = uri.substring(uri.lastIndexOf("/")+1);
+		long root;
+		long id;
+
+		int split = ids.indexOf('_');
+		if(split == -1) {
+			id = root = Long.valueOf(ids);
+		} else {
+			root = Long.valueOf(ids.substring(0,split));
+			id = Long.valueOf(ids.substring(split+1));
+		}
+		this.process = id;
+		this.rootProcess = root;
 	}
 
 	/* (non-Javadoc)
@@ -145,12 +214,18 @@ public class Narrative {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + ((process == null) ? 0 : process.hashCode());
-		result = prime * result + ((stamp == null) ? 0 : stamp.hashCode());
-		result = prime * result + ((state == null) ? 0 : state.hashCode());
-		result = prime * result + ((tag == null) ? 0 : tag.hashCode());
-		result = prime * result + ((text == null) ? 0 : text.hashCode());
+		result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
+		result = prime * result + (int) (this.process ^ (this.process >>> 32));
+		result = prime * result
+				+ (int) (this.rootProcess ^ (this.rootProcess >>> 32));
+		result = prime * result
+				+ ((this.stamp == null) ? 0 : this.stamp.hashCode());
+		result = prime * result
+				+ ((this.state == null) ? 0 : this.state.hashCode());
+		result = prime * result
+				+ ((this.tag == null) ? 0 : this.tag.hashCode());
+		result = prime * result
+				+ ((this.text == null) ? 0 : this.text.hashCode());
 		return result;
 	}
 
@@ -166,36 +241,34 @@ public class Narrative {
 		if (getClass() != obj.getClass())
 			return false;
 		Narrative other = (Narrative) obj;
-		if (id == null) {
+		if (this.id == null) {
 			if (other.id != null)
 				return false;
-		} else if (!id.equals(other.id))
+		} else if (!this.id.equals(other.id))
 			return false;
-		if (process == null) {
-			if (other.process != null)
-				return false;
-		} else if (!process.equals(other.process))
+		if (this.process != other.process)
 			return false;
-		if (stamp == null) {
+		if (this.rootProcess != other.rootProcess)
+			return false;
+		if (this.stamp == null) {
 			if (other.stamp != null)
 				return false;
-		} else if (!stamp.equals(other.stamp))
+		} else if (!this.stamp.equals(other.stamp))
 			return false;
-		if (state != other.state)
+		if (this.state != other.state)
 			return false;
-		if (tag == null) {
+		if (this.tag == null) {
 			if (other.tag != null)
 				return false;
-		} else if (!tag.equals(other.tag))
+		} else if (!this.tag.equals(other.tag))
 			return false;
-		if (text == null) {
+		if (this.text == null) {
 			if (other.text != null)
 				return false;
-		} else if (!text.equals(other.text))
+		} else if (!this.text.equals(other.text))
 			return false;
 		return true;
 	}
-	
-	
+
 	
 }

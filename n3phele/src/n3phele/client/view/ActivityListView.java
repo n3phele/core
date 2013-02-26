@@ -17,9 +17,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import n3phele.client.N3phele;
+import n3phele.client.model.CloudProcessSummary;
 import n3phele.client.model.Narrative;
-import n3phele.client.model.Progress;
-import n3phele.client.presenter.AbstractActivityProgressActivity;
+import n3phele.client.presenter.AbstractCloudProcessActivity;
 import n3phele.client.presenter.helpers.AuthenticatedRequestFactory;
 import n3phele.client.widgets.ActionDialogBox;
 import n3phele.client.widgets.CancelButtonCell;
@@ -34,10 +34,10 @@ import com.google.gwt.http.client.RequestCallback;
 import com.google.gwt.http.client.RequestException;
 import com.google.gwt.http.client.Response;
 import com.google.gwt.user.cellview.client.Column;
+import com.google.gwt.user.cellview.client.HasKeyboardSelectionPolicy.KeyboardSelectionPolicy;
 import com.google.gwt.user.cellview.client.SimplePager;
 import com.google.gwt.user.cellview.client.SimplePager.TextLocation;
 import com.google.gwt.user.cellview.client.TextColumn;
-import com.google.gwt.user.cellview.client.HasKeyboardSelectionPolicy.KeyboardSelectionPolicy;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.HasVerticalAlignment;
 import com.google.gwt.user.client.ui.HorizontalPanel;
@@ -45,12 +45,12 @@ import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.RangeChangeEvent;
 import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
-public class ActivityListView extends WorkspaceVerticalPanel implements ActivityView {
+public class ActivityListView extends WorkspaceVerticalPanel implements CloudProcessView {
 	private static final int PAGESIZE = 15;
 	private ActivityStatusList cellTable;
-	private List<Progress> data = null;
-	private AbstractActivityProgressActivity presenter;
-	private ActionDialogBox<Progress> dialog = null;
+	private List<CloudProcessSummary> data = null;
+	private AbstractCloudProcessActivity presenter;
+	private ActionDialogBox<CloudProcessSummary> dialog = null;
 	public ActivityListView() {
 		super(new MenuItem(N3phele.n3pheleResource.activityIcon(), "Activity History", null));
 		
@@ -68,12 +68,12 @@ public class ActivityListView extends WorkspaceVerticalPanel implements Activity
 
 		this.cellTable = new ActivityStatusList();
 		this.cellTable.setWidth("100%");
-		TextColumn<Progress> narrative = new TextColumn<Progress>(){
+		TextColumn<CloudProcessSummary> narrative = new TextColumn<CloudProcessSummary>(){
 
 			@Override
-			public String getValue(Progress progress) {
+			public String getValue(CloudProcessSummary progress) {
 				String result = "";
-				List<Narrative> narrative = progress.getNarratives();
+				List<Narrative> narrative = progress.getNarrative();
 				if(narrative != null && narrative.size() > 0) {
 					result = narrative.get(narrative.size()-1).getText();
 				}
@@ -82,19 +82,19 @@ public class ActivityListView extends WorkspaceVerticalPanel implements Activity
 			}};
 			this.cellTable.addColumn(narrative);
 			this.cellTable.setColumnWidth(narrative, "55%");
-			Column<Progress, Progress> cancelColumn = new Column<Progress, Progress>(
-					 new CancelButtonCell<Progress>(new Delegate<Progress>() {
+			Column<CloudProcessSummary, CloudProcessSummary> cancelColumn = new Column<CloudProcessSummary, CloudProcessSummary>(
+					 new CancelButtonCell<CloudProcessSummary>(new Delegate<CloudProcessSummary>() {
 
 						@Override
-						public void execute(Progress value) {
+						public void execute(CloudProcessSummary value) {
 							if(value != null) {
 								cellTable.getSelectionModel().setSelected(value, false);
 								getDialog(value).show();
 							}
 						}}, "cancel activity")) {
 				@Override
-				public Progress getValue(Progress object) {
-					String status = object.getStatus();
+				public CloudProcessSummary getValue(CloudProcessSummary object) {
+					String status = object.getState();
 					if(status == null || status.equalsIgnoreCase("COMPLETE") || status.equalsIgnoreCase("FAILED") ||
 							status.equalsIgnoreCase("CANCELLED")) {
 							return null;	
@@ -107,11 +107,11 @@ public class ActivityListView extends WorkspaceVerticalPanel implements Activity
 		//cellTable.setSize("455px", "");
 		this.add(cellTable);
 		cellTable.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.DISABLED);
-		final SingleSelectionModel<Progress> selectionModel = new SingleSelectionModel<Progress>();
+		final SingleSelectionModel<CloudProcessSummary> selectionModel = new SingleSelectionModel<CloudProcessSummary>();
 	    cellTable.setSelectionModel(selectionModel);
 	    selectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
 	      public void onSelectionChange(SelectionChangeEvent event) {
-	        Progress selected = selectionModel.getSelectedObject();
+	        CloudProcessSummary selected = selectionModel.getSelectedObject();
 	        if (selected != null) {
 	          if(presenter != null) {
 	        	 presenter.onSelect(selected);
@@ -157,42 +157,42 @@ public class ActivityListView extends WorkspaceVerticalPanel implements Activity
 	}
 	
 	/* (non-Javadoc)
-	 * @see n3phele.client.view.ActivityView#setDisplayList(java.util.List)
+	 * @see n3phele.client.view.CloudProcessView#setDisplayList(java.util.List)
 	 */
 	@Override
-	public void setDisplayList(List<Progress> progressList, int start, int max) {
+	public void setDisplayList(List<CloudProcessSummary> progressList, int start, int max) {
 		if(progressList == null)
-			progressList = new ArrayList<Progress>();
+			progressList = new ArrayList<CloudProcessSummary>();
 		this.cellTable.setRowCount(max, true);
 		this.cellTable.setRowData(start, data=progressList);
 		//N3phele.checkSize();
 	}
 
 	/* (non-Javadoc)
-	 * @see n3phele.client.view.ActivityView#setPresenter(com.google.gwt.activity.shared.Activity)
+	 * @see n3phele.client.view.CloudProcessView#setPresenter(com.google.gwt.activity.shared.Activity)
 	 */
 	@Override
-	public void setPresenter(AbstractActivityProgressActivity presenter) {
+	public void setPresenter(AbstractCloudProcessActivity presenter) {
 		this.presenter = presenter;
 		
 	}
 
 	/* (non-Javadoc)
-	 * @see n3phele.client.view.ActivityView#refresh(int, n3phele.client.model.Progress)
+	 * @see n3phele.client.view.CloudProcessView#refresh(int, n3phele.client.model.CloudProcessSummary)
 	 */
 	@Override
-	public void refresh(int i, Progress update) {
+	public void refresh(int i, CloudProcessSummary update) {
 		this.cellTable.setRowData(i, data.subList(i, i+1));
 	}
 	
-	protected ActionDialogBox<Progress> getDialog(Progress item) {
+	protected ActionDialogBox<CloudProcessSummary> getDialog(CloudProcessSummary item) {
 		if(dialog == null) {
-			dialog = new ActionDialogBox<Progress>("Activity Terminate Confirmation",
-					"No", "Yes", new Delegate<Progress>(){
+			dialog = new ActionDialogBox<CloudProcessSummary>("Activity Terminate Confirmation",
+					"No", "Yes", new Delegate<CloudProcessSummary>(){
 
 						@Override
-						public void execute(Progress object) {
-							kill(object.getActivity());
+						public void execute(CloudProcessSummary object) {
+							kill(object.getUri());
 							
 						}});
 			 dialog.setGlassEnabled(true);

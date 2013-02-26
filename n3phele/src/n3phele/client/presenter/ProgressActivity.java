@@ -16,9 +16,10 @@ package n3phele.client.presenter;
 import n3phele.client.CacheManager;
 import n3phele.client.ClientFactory;
 import n3phele.client.N3phele;
-import n3phele.client.model.Progress;
-import n3phele.client.presenter.AbstractActivityProgressActivity.ProgressUpdate;
-import n3phele.client.presenter.AbstractActivityProgressActivity.ProgressUpdateEventHandler;
+import n3phele.client.model.CloudProcess;
+import n3phele.client.model.CloudProcessSummary;
+import n3phele.client.presenter.AbstractCloudProcessActivity.ProgressUpdate;
+import n3phele.client.presenter.AbstractCloudProcessActivity.ProgressUpdateEventHandler;
 import n3phele.client.presenter.helpers.AuthenticatedRequestFactory;
 import n3phele.client.presenter.helpers.ProgressUpdateHelper;
 import n3phele.client.view.ProgressView;
@@ -38,15 +39,15 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.IsWidget;
 
 public class ProgressActivity extends AbstractActivity {
-	private final String progressUri;
+	private final String processUri;
 	private final ProgressView display;
-	private Progress progress = null;
+	private CloudProcess process = null;
 	private final CacheManager cacheManager;
 	private final EventBus eventBus;
 	private HandlerRegistration itemUpdateHandlerRegistration;
 	private Timer refreshTimer = null;
-	public ProgressActivity(String progressUri, ClientFactory factory) {
-		this.progressUri = progressUri;
+	public ProgressActivity(String processUri, ClientFactory factory) {
+		this.processUri = processUri;
 		this.display = factory.getProgressView();
 		this.cacheManager = factory.getCacheManager();
 		this.eventBus = factory.getEventBus();
@@ -56,10 +57,10 @@ public class ProgressActivity extends AbstractActivity {
 	public void start(AcceptsOneWidget panel, EventBus eventBus) {
 		display.setPresenter(this);
 		panel.setWidget(display);
-		display.setData(this.progress);
+		display.setData(this.process);
 		handlerRegistration(eventBus);
 		initProgressUpdate();
-		getProgress();
+		getProcess();
 
 	}
 	
@@ -83,9 +84,9 @@ public class ProgressActivity extends AbstractActivity {
 		IsWidget w = N3phele.basePanel.getLeftHandside();
 	}
 
-	protected void updateProgress(Progress progress) {
-		this.progress = progress;
-		display.setData(this.progress);
+	protected void updateProcess(CloudProcess process) {
+		this.process = process;
+		display.setData(this.process);
 	}
 	
 	
@@ -101,9 +102,9 @@ public class ProgressActivity extends AbstractActivity {
 	 */
 	
 
-	public void getProgress() {
+	public void getProcess() {
 		// Send request to server and catch any errors.
-		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, progressUri);
+		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, processUri);
 		try {
 			Request request = builder.sendRequest(null, new RequestCallback() {
 				public void onError(Request request, Throwable exception) {
@@ -113,8 +114,8 @@ public class ProgressActivity extends AbstractActivity {
 				public void onResponseReceived(Request request, Response response) {
 					GWT.log("Got reply");
 					if (200 == response.getStatusCode()) {
-						Progress progress = Progress.asProgress(response.getText());
-						updateProgress(progress);
+						CloudProcess process = CloudProcess.asCloudProcess(response.getText());
+						updateProcess(process);
 					} else {
 
 					}
@@ -131,14 +132,14 @@ public class ProgressActivity extends AbstractActivity {
 		refreshTimer = new Timer() {
 			public void run()
 			{
-				if(progress != null) {
-					String status = progress.getStatus();
+				if(process != null) {
+					String status = process.getState();
 					if(!"COMPLETE".equals(status) && !"FAILED".equals(status) && !"CANCELLED".equals(status)) {
-						int update = updateProgressCounter(progress);
-						if(update != progress.getPercentx10Complete()) {
+						//int update = updateProgressCounter(process);
+						//if(update != process.getPercentx10Complete()) {
 							//progress.setPercentagex10Complete(update);
-							display.refresh(progress);
-						}
+							display.refresh(process);
+						//}
 					}
 
 				}
@@ -155,8 +156,8 @@ public class ProgressActivity extends AbstractActivity {
 		}
 	}
 
-	private int updateProgressCounter(Progress progress) {
-		return ProgressUpdateHelper.updateProgress(progress);
+	private int updateProcessCounter(CloudProcessSummary process) {
+		return ProgressUpdateHelper.updateProcess(process);
 	}
 	
 
@@ -173,8 +174,8 @@ public class ProgressActivity extends AbstractActivity {
 		this.itemUpdateHandlerRegistration = this.eventBus.addHandler(ProgressUpdate.TYPE, new ProgressUpdateEventHandler() {
 			@Override
 			public void onMessageReceived(ProgressUpdate event) {
-				if(event.getKey().equals(progressUri))
-						getProgress();
+				if(event.getKey().equals(processUri))
+						getProcess();
 			}
 		});
 	}

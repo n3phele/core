@@ -19,7 +19,6 @@ import n3phele.service.core.NotFoundException;
 import n3phele.service.model.Narrative;
 import n3phele.service.model.NarrativeLevel;
 import n3phele.service.model.ServiceModelDao;
-import n3phele.service.model.core.Helpers;
 
 import com.googlecode.objectify.VoidWork;
 
@@ -58,12 +57,14 @@ public class NarrativeResource {
 			return msgId;
 		}
 
-		public Long addNarrative(URI processUri, String tag,
+		public Long addNarrative(URI processUri, URI group, String tag,
 				NarrativeLevel state, String message) {
+				
 				Narrative n = new Narrative();
 				n.setState(state);
 				n.setTag(tag);
-				n.setProcess(processUri);
+				n.setProcessUri(processUri);
+				n.setGroup(group);
 				n.setStamp(new Date());
 				n.setText(message);
 				dao.put(n);
@@ -71,12 +72,48 @@ public class NarrativeResource {
 		}
 
 		public Collection<Narrative> getNarratives(URI processUri) {
-			return dao.orderedCollectionByProperty("process", Helpers.URItoString(processUri), "stamp");
+			String uri = processUri.toString();
+			String ids = uri.substring(uri.lastIndexOf("/")+1);
+			long root;
+
+			int split = ids.indexOf('_');
+			if(split == -1) {
+				root = Long.valueOf(ids);
+				return dao.orderedCollectionByProperty("rootProcess", root, "stamp");
+			} else {
+				return dao.orderedCollectionByProperty("group", ids, "stamp");
+			}
+			
+			
+		}
+		
+		public Collection<Narrative> getProcessNarratives(URI processUri) {
+			String uri = processUri.toString();
+			String ids = uri.substring(uri.lastIndexOf("/")+1);
+			long id;
+
+			int split = ids.indexOf('_');
+			if(split == -1) {
+				id = Long.valueOf(ids);
+			} else {
+				id = Long.valueOf(ids.substring(split+1));
+			}
+			return dao.orderedCollectionByProperty("process", id, "stamp");
 			
 		}
 		
 		public Narrative getLastNarrative(URI processUri) {
-			return  dao.getByPropertyOrdered("process", Helpers.URItoString(processUri), "stamp") ;
+			String uri = processUri.toString();
+			String ids = uri.substring(uri.lastIndexOf("/")+1);
+			long root;
+
+			int split = ids.indexOf('_');
+			if(split == -1) {
+				root = Long.valueOf(ids);
+				return dao.getByPropertyOrdered("rootProcess", root, "stamp");
+			} else {
+				return dao.getByPropertyOrdered("group", ids, "stamp");
+			}
 		}
 	}
 	final public static NarrativeManager dao = new NarrativeManager();

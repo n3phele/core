@@ -347,7 +347,7 @@ public class CloudProcessResource {
 					n = 0;
 				items = ofy().load().type(CloudProcess.class).filter("owner", owner.toString()).filter("topLevel", true).order("-start").offset(start).limit(n).list();
 			} else {
-				items = ofy().load().type(CloudProcess.class).filter("owner", owner.toString()).filter("topLevel", true).offset(start).list();
+				items = ofy().load().type(CloudProcess.class).filter("owner", owner.toString()).filter("topLevel", true).order("-start").offset(start).list();
 			}
 
 			result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, items);
@@ -359,6 +359,5 @@ public class CloudProcessResource {
 
 	}
 	final public static CloudProcessManager dao = new CloudProcessManager();
-	final private static Key<CloudProcess> nullAncestor = Key.create(Key.create(CloudProcess.class, 1), CloudProcess.class, 1);
 	
 }

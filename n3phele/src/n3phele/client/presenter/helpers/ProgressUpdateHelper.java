@@ -13,34 +13,33 @@
  */
 package n3phele.client.presenter.helpers;
 
-import java.util.Date;
-
-import n3phele.client.model.Progress;
+import n3phele.client.model.CloudProcessSummary;
 
 public class ProgressUpdateHelper {
 
-	public static int updateProgress(Progress progress) {
-		int complete = progress.getPercentx10Complete();
-		if(complete < 0) return 0;
-		if(complete >= 1000) return complete;
-		
-		Date started = progress.getStarted();
-		long duration = progress.getDuration()*1000L;
-		Date lastUpdate = progress.getLastUpdate();
-		if(lastUpdate == null || started == null || duration <= 0 )
-			return 0;
-		long now = new Date().getTime();
-		double interval = (lastUpdate.getTime()-started.getTime());
-		if(interval > 0) {
-			if(complete > 0) {
-				int complete1 = (int) ((now - started.getTime()) * complete / interval);
-				int complete2 = (int) ((now - started.getTime())*1000/duration);
-				complete = Math.min(complete1, complete2);
-			} else
-				complete = (int) ((now - started.getTime())*1000/duration);
-		}
-		if(complete >= 1000) complete = 975;
-		return complete;
+	public static int updateProcess(CloudProcessSummary process) {
+//		int complete = process.getPercentx10Complete();
+//		if(complete < 0) return 0;
+//		if(complete >= 1000) return complete;
+//		
+//		Date started = process.getStart();
+//		long duration = process.getDuration()*1000L;
+//		Date lastUpdate = process.getLastUpdate();
+//		if(lastUpdate == null || started == null || duration <= 0 )
+//			return 0;
+//		long now = new Date().getTime();
+//		double interval = (lastUpdate.getTime()-started.getTime());
+//		if(interval > 0) {
+//			if(complete > 0) {
+//				int complete1 = (int) ((now - started.getTime()) * complete / interval);
+//				int complete2 = (int) ((now - started.getTime())*1000/duration);
+//				complete = Math.min(complete1, complete2);
+//			} else
+//				complete = (int) ((now - started.getTime())*1000/duration);
+//		}
+//		if(complete >= 1000) complete = 975;
+//		return complete;
+		return 0; // FIXME
 	}
 
 }

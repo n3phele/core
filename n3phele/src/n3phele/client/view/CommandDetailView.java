@@ -238,19 +238,24 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 	}
 	
 	public void updateRunButton(boolean allValid) {
-		
+		GWT.log("update run "+allValid);
 		if(allValid && data != null) {
 			allValid = checkParameterValues(data.getExecutionParameters());
+			GWT.log("update run1 "+allValid);
 		}
 		if(allValid && data.getInputFiles() != null && data.getInputFiles().size() > 0) {
 			allValid = validateRepoRefs(data.getInputFiles(), true);
+			GWT.log("update run2 "+allValid);
 		}
 		if(allValid && data.getOutputFiles() != null && data.getOutputFiles().size() > 0) {
 			allValid = validateRepoRefs(data.getOutputFiles(), false);
+			GWT.log("update run3 "+allValid);
 		}
-		if(allValid)
+		if(allValid) {
 			allValid = getSelectedAccount() != null;
-			
+			GWT.log("update run4 "+allValid);
+		}
+		GWT.log("update run final "+allValid);
 		this.run.setEnabled(allValid);
 		this.errorsOnPage.setValue((allValid?"-":"+")+this.errorsOnPage.getValue().substring(1));
 	}
@@ -378,7 +383,11 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 			getRepoRefs(data.getOutputFiles(), context);
 			context.put("notify", Variable.newInstance("notify", "Boolean", Boolean.valueOf(getSendEmail()).toString()));
 			context.put("account", Variable.newInstance("account", "Object", getSelectedAccount()));
-			this.presenter.exec("Job", jobName.getText(), "NShell "+data.getUri()+"#"+getSelectedImplementation(), context);
+			String name = jobName.getText();
+			if(name==null || name.trim().length()==0) {
+				name = this.commandNameText;
+			}
+			this.presenter.exec("Job", name, "NShell "+data.getUri()+"#"+getSelectedImplementation(), context);
 		}
 	}
 	
@@ -422,6 +431,7 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 			sendEmail.setValue(false);
 			updateRunButton(false);
 			buttonVisibility(false);
+			GWT.log("set Data");
 		}
 	}
 
@@ -484,7 +494,9 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 			inputRepoColumn = replaceSelectionRepoColumn(inputTable, nullRepoColumnIn, inputRepoColumn);
 			outputRepoColumn = replaceSelectionRepoColumn(outputTable, nullRepoColumnOut, outputRepoColumn);
 		}
-		updateRunButton(repos.size()>0);
+		//updateRunButton(repos.size()>0);
+		updateRunButton(true);
+		GWT.log("setRepo");
 	}
 
 	public void setPresenter(CommandActivity presenter) {
@@ -739,6 +751,7 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 						@Override
 						public void onSuccess() {
 							updateRunButton(!visible);
+							GWT.log("validateTypedParameter");
 						}
 						@Override
 						public void onFailure(Throwable reason) {
@@ -1270,6 +1283,7 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 					checkbox.clearViewData(KEY_PROVIDER.getKey(profile));
 					table.redraw();
 					updateRunButton(false);
+					GWT.log("update account");
 					CommandDetailView.this.gotExecutionSelection.setValue("+"+CommandDetailView.this.gotExecutionSelection.getValue().substring(1));
 				}
 				

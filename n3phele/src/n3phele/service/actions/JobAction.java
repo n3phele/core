@@ -72,13 +72,15 @@ public class JobAction extends Action {
 	
 	
 	public JobAction() {}
-	
+	private ActionLogger logger;
 	protected JobAction(User owner, String name, Context context) {
 		super(owner.getUri(), name, context);
 	}
 	
 	@Override
 	public void init() throws Exception {
+		logger = new ActionLogger(this);
+		logger.setGroup(this);
 		this.actionName = this.getContext().getValue("action");
 
 		String arg = this.getContext().getValue("arg");
@@ -388,13 +390,19 @@ public class JobAction extends Action {
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result
-				+ ((actionName == null) ? 0 : actionName.hashCode());
-		result = prime * result + (childComplete ? 1231 : 1237);
+				+ ((this.actionName == null) ? 0 : this.actionName.hashCode());
+		result = prime * result + (this.childComplete ? 1231 : 1237);
+		result = prime
+				* result
+				+ ((this.childEndState == null) ? 0 : this.childEndState
+						.hashCode());
+		result = prime
+				* result
+				+ ((this.childProcess == null) ? 0 : this.childProcess
+						.hashCode());
 		result = prime * result
-				+ ((childEndState == null) ? 0 : childEndState.hashCode());
-		result = prime * result
-				+ ((childProcess == null) ? 0 : childProcess.hashCode());
-		result = prime * result + (notify ? 1231 : 1237);
+				+ ((this.logger == null) ? 0 : this.logger.hashCode());
+		result = prime * result + (this.notify ? 1231 : 1237);
 		return result;
 	}
 
@@ -410,25 +418,28 @@ public class JobAction extends Action {
 		if (getClass() != obj.getClass())
 			return false;
 		JobAction other = (JobAction) obj;
-		if (actionName == null) {
+		if (this.actionName == null) {
 			if (other.actionName != null)
 				return false;
-		} else if (!actionName.equals(other.actionName))
+		} else if (!this.actionName.equals(other.actionName))
 			return false;
-		if (childComplete != other.childComplete)
+		if (this.childComplete != other.childComplete)
 			return false;
-		if (childEndState != other.childEndState)
+		if (this.childEndState != other.childEndState)
 			return false;
-		if (childProcess == null) {
+		if (this.childProcess == null) {
 			if (other.childProcess != null)
 				return false;
-		} else if (!childProcess.equals(other.childProcess))
+		} else if (!this.childProcess.equals(other.childProcess))
 			return false;
-		if (notify != other.notify)
+		if (this.logger == null) {
+			if (other.logger != null)
+				return false;
+		} else if (!this.logger.equals(other.logger))
+			return false;
+		if (this.notify != other.notify)
 			return false;
 		return true;
 	}
-
-
 	
 }

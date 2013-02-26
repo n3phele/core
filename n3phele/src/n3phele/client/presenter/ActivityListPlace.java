@@ -29,7 +29,7 @@ public class ActivityListPlace extends Place {
 		return placeName;
 	}
 
-	@Prefix("list")
+	@Prefix("activityHistory")
 	public static class Tokenizer implements PlaceTokenizer<ActivityListPlace> {
 
 		@Override

@@ -15,7 +15,7 @@ package n3phele.client.presenter;
 
 import n3phele.client.ClientFactory;
 
-public class ActivityDashboardActivity extends AbstractActivityProgressActivity {
+public class ActivityDashboardActivity extends AbstractCloudProcessActivity {
 
 	public ActivityDashboardActivity(String name, ClientFactory factory) {
 		super(name, factory, factory.getRecentActivityView());

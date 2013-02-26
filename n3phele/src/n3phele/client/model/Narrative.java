@@ -17,7 +17,6 @@ import java.util.Date;
 
 import n3phele.client.presenter.helpers.SafeDate;
 
-
 import com.google.gwt.core.client.JavaScriptObject;
 
 public class Narrative extends JavaScriptObject {
@@ -27,10 +26,17 @@ public class Narrative extends JavaScriptObject {
 
 
 	/**
-	 * @return the id
+	 * @return the tag
 	 */
-	public native final String getId() /*-{
-		return this.id;
+	public native final String getTag() /*-{
+		return this.tag;
+	}-*/;
+	
+	/**
+	 * @return the processUri
+	 */
+	public native final String getProcessUri() /*-{
+		return this.processUri;
 	}-*/;
 
 

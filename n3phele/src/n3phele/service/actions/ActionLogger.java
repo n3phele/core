@@ -28,16 +28,19 @@ public class ActionLogger {
 	private static Logger debug = Logger.getLogger(ActionLogger.class.getName()); 
 	private String id;
 	private String processUri;
+	private String group;
 
 	
 	public ActionLogger() {} ;
 	public ActionLogger(Action action) {
-		URI loggerUri = Helpers.stringToURI(action.getContext().getValue("logger"));
-		if(loggerUri == null) {
-			action.getContext().putValue("logger", action.getProcess());
-			loggerUri = action.getProcess();
+		URI groupUri = Helpers.stringToURI(action.getContext().getValue("logger"));
+		if(groupUri == null) {
+			this.setGroup(action);
+		} else {
+			this.group = groupUri.toString();
 		}
-		this.processUri= Helpers.URItoString(loggerUri);
+		
+		this.processUri= Helpers.URItoString(action.getProcess());
 		this.id = action.getName();
 	};
 	
@@ -50,12 +53,18 @@ public class ActionLogger {
 		this.processUri = log.processUri;
 		this.id = id;
 	}
+	
+	public void setGroup(Action action) {
+		URI groupUri = action.getProcess();
+		action.getContext().putValue("logger", groupUri);
+		this.group = groupUri.toString();
+	}
 
 	public String log(NarrativeLevel state, String message) {
 		try {
-			debug.log(Level.INFO, String.format("===>Narrative %s %s %s %s", processUri, id, state, message));
+			debug.log(Level.INFO, String.format("Narrative %s %s %s %s", processUri, id, state, message));
 
-			NarrativeResource.dao.addNarrative(Helpers.stringToURI(processUri), id, state, message);
+			NarrativeResource.dao.addNarrative(URI.create(processUri), URI.create(group), id, state, message);
 		} catch (Exception e) {
 			debug.log(Level.SEVERE, String.format("Narrative %s %s %s %s failed %s", processUri, id, state, message, e.getMessage()),e);
 		}
@@ -113,9 +122,12 @@ public class ActionLogger {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
 		result = prime * result
-				+ ((processUri == null) ? 0 : processUri.hashCode());
+				+ ((this.processUri == null) ? 0 : this.processUri.hashCode());
+		result = prime
+				* result
+				+ ((this.group == null) ? 0 : this.group.hashCode());
 		return result;
 	}
 	/* (non-Javadoc)
@@ -130,19 +142,22 @@ public class ActionLogger {
 		if (getClass() != obj.getClass())
 			return false;
 		ActionLogger other = (ActionLogger) obj;
-		if (id == null) {
+		if (this.id == null) {
 			if (other.id != null)
 				return false;
-		} else if (!id.equals(other.id))
+		} else if (!this.id.equals(other.id))
 			return false;
-		if (processUri == null) {
+		if (this.processUri == null) {
 			if (other.processUri != null)
 				return false;
-		} else if (!processUri.equals(other.processUri))
+		} else if (!this.processUri.equals(other.processUri))
+			return false;
+		if (this.group == null) {
+			if (other.group != null)
+				return false;
+		} else if (!this.group.equals(other.group))
 			return false;
 		return true;
 	}
-	
-	
-	
+
 }

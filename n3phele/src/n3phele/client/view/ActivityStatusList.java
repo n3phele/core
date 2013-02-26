@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import n3phele.client.N3phele;
-import n3phele.client.model.Progress;
+import n3phele.client.model.CloudProcessSummary;
 import n3phele.client.presenter.helpers.ProgressUpdateHelper;
 import n3phele.client.resource.ClickableCellTableResource;
 import n3phele.client.widgets.IconText;
@@ -31,7 +31,7 @@ import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.client.ui.Image;
 
-public class ActivityStatusList extends CellTable<Progress> {
+public class ActivityStatusList extends CellTable<CloudProcessSummary> {
 	private static Map<String, ImageResource> statusVizualization = null;
 	private static String barUrl; 
 	private static ClickableCellTableResource resource = GWT.create(ClickableCellTableResource.class);
@@ -46,13 +46,13 @@ public class ActivityStatusList extends CellTable<Progress> {
 			statusVizualization.put("BLOCKED",N3phele.n3pheleResource.blockedIcon());
 			barUrl = new Image(N3phele.n3pheleResource.barBackground()).getUrl();
 		}
-		Column<Progress, IconText> activityColumn = new Column<Progress, IconText>(new IconTextCell<IconText>(20,20,25)) {
+		Column<CloudProcessSummary, IconText> activityColumn = new Column<CloudProcessSummary, IconText>(new IconTextCell<IconText>(20,20,25)) {
 			@Override
-			public IconText getValue(Progress progress) {
-				String status = progress.getStatus();
+			public IconText getValue(CloudProcessSummary process) {
+				String status = process.getState();
 				ImageResource icon = statusVizualization.get(status);
-				if(icon != null) return new IconText(icon, progress.getName());
-				return new IconText(getTemplate().statusBar(getPercentComplete(progress), barUrl ), progress.getName()); // make progress bar
+				if(icon != null) return new IconText(icon, process.getName());
+				return new IconText(getTemplate().statusBar(getPercentComplete(process), barUrl ), process.getName()); // make progress bar
 			}
 		};
 		this.addColumn(activityColumn);
@@ -76,8 +76,8 @@ public class ActivityStatusList extends CellTable<Progress> {
 	    return template;
 	}
 	
-	public double getPercentComplete(Progress progress) {
-		return ProgressUpdateHelper.updateProgress(progress)/10.0;
+	public double getPercentComplete(CloudProcessSummary process) {
+		return ProgressUpdateHelper.updateProcess(process)/10.0;
 	}	
 	
 	
