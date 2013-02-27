@@ -26,13 +26,6 @@ import n3phele.client.widgets.CancelButtonCell;
 import n3phele.client.widgets.MenuItem;
 import n3phele.client.widgets.WorkspaceVerticalPanel;
 
-import com.google.gwt.user.cellview.client.CellTable;
-import com.google.gwt.user.cellview.client.HasKeyboardSelectionPolicy.KeyboardSelectionPolicy;
-import com.google.gwt.user.cellview.client.TextColumn;
-import com.google.gwt.view.client.SelectionChangeEvent;
-import com.google.gwt.view.client.SingleSelectionModel;
-import com.google.gwt.user.cellview.client.Column;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.cell.client.ActionCell.Delegate;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.http.client.Request;
@@ -40,6 +33,13 @@ import com.google.gwt.http.client.RequestBuilder;
 import com.google.gwt.http.client.RequestCallback;
 import com.google.gwt.http.client.RequestException;
 import com.google.gwt.http.client.Response;
+import com.google.gwt.user.cellview.client.CellTable;
+import com.google.gwt.user.cellview.client.Column;
+import com.google.gwt.user.cellview.client.HasKeyboardSelectionPolicy.KeyboardSelectionPolicy;
+import com.google.gwt.user.cellview.client.TextColumn;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.view.client.SelectionChangeEvent;
+import com.google.gwt.view.client.SingleSelectionModel;
 
 public class RepoListView extends WorkspaceVerticalPanel {
 	private CellTable<Repository> cellTable;
@@ -130,8 +130,8 @@ public class RepoListView extends WorkspaceVerticalPanel {
 		
 	}
 
-	public void refresh(List<Repository> newProgressList) {
-		setDisplayList(newProgressList);
+	public void refresh(List<Repository> repoList) {
+		setDisplayList(repoList);
 	}
 
 

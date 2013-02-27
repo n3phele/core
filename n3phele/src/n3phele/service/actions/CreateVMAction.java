@@ -76,6 +76,36 @@ public class CreateVMAction extends Action {
 	@XmlTransient private ActionLogger logger;
 	private ArrayList<String> inProgress = new ArrayList<String>();
 	private boolean failed = false;
+	
+	/* (non-Javadoc)
+	 * @see n3phele.service.model.Action#getDescription()
+	 */
+	@Override
+	public String getDescription() {
+		StringBuilder desc = new StringBuilder("Create ");
+		int n = this.getContext().getIntegerValue("n");
+		if(n == 1) {
+			desc.append("a VM");
+		} else {
+			desc.append(n+" VMs");
+		}
+		URI accountURI = Helpers.stringToURI(this.context.getValue("account"));
+		if(accountURI != null) {
+			Account account = AccountResource.dao.load(accountURI, this.getOwner());
+			desc.append(" on ");
+			desc.append(account.getName());
+		}
+		return desc.toString();
+	}
+
+	/* (non-Javadoc)
+	 * @see n3phele.service.model.Action#getDescriptionUri()
+	 */
+	@Override
+	public URI getDescriptionUri() {
+		return Helpers.stringToURI(this.context.getValue("account"));
+	}
+	
 	@Override
 	public void init() throws Exception {
 		logger = new ActionLogger(this);

@@ -30,7 +30,7 @@ import n3phele.client.view.CommandListView;
 import n3phele.client.view.ActivityListView;
 import n3phele.client.view.CompleteAccountView;
 import n3phele.client.view.LoginView;
-import n3phele.client.view.ProgressView;
+import n3phele.client.view.ProcessView;
 import n3phele.client.view.RecentActivityView;
 import n3phele.client.view.RepoContentView;
 import n3phele.client.view.RepoListView;
@@ -56,7 +56,7 @@ public class ClientFactory {
 	private AccountHyperlinkView accountHyperlinkView = null;
 	private RepoListView repoListView = null;
 	private RepoView repoView = null;
-	private ProgressView progressView = null;
+	private ProcessView processView = null;
 	private ActivityCommandView activityCommandView = null;
 	private RepoContentView repoContentView;
 	private CommandListGridView commandListGridView;
@@ -192,9 +192,9 @@ public class ClientFactory {
 		return this.repoContentView;
 	}
 
-	public ProgressView getProgressView() {
-		if(progressView == null) progressView = new ProgressView();
-		return this.progressView;
+	public ProcessView getProcessView() {
+		if(processView == null) processView = new ProcessView();
+		return this.processView;
 	}
 	
 	/**

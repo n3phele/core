@@ -15,22 +15,16 @@ package n3phele.client.view;
 
 import java.util.List;
 
-import com.google.gwt.user.client.ui.IsWidget;
-
 import n3phele.client.model.Command;
 import n3phele.client.presenter.CommandListActivity;
+
+import com.google.gwt.user.client.ui.IsWidget;
 
 public interface CommandListViewInterface extends IsWidget {
 
 	public void setDisplayList(List<Command> commandList, int start, int max);
 
 	public void setPresenter(CommandListActivity presenter);
-	
-	//public void setDisplayList(List<Command> commandList);
-
-	//public void refresh(List<Command> newProgressList);
-
-	//public void refresh(int i, Command update);
 	
 	public int getPageSize();
 

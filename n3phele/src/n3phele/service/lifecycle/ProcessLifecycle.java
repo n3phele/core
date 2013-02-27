@@ -49,7 +49,7 @@ public class ProcessLifecycle {
 
 	protected ProcessLifecycle() {}
 	
-	public CloudProcess createProcess(User user, String name, n3phele.service.model.Context context, List<URI> dependency, CloudProcess parent, Class<? extends Action> clazz) throws IllegalArgumentException {
+	public CloudProcess createProcess(User user, String name, n3phele.service.model.Context context, List<URI> dependency, CloudProcess parent, boolean topLevel, Class<? extends Action> clazz) throws IllegalArgumentException {
 		Action action;
 		try {
 			if(Helpers.isBlankOrNull(name))
@@ -63,7 +63,7 @@ public class ProcessLifecycle {
 			throw new IllegalArgumentException(e);
 		}
 		ActionResource.dao.add(action);	
-		CloudProcess process = new CloudProcess(user.getUri(), name, parent, action);
+		CloudProcess process = new CloudProcess(user.getUri(), name, parent, topLevel, action);
 		CloudProcessResource.dao.add(process);
 		action.setProcess(process.getUri());
 		String contextName = action.getContext().getValue("name");
@@ -788,7 +788,7 @@ public class ProcessLifecycle {
 		}
 		
 		CloudProcess process = this.createProcess(user, 
-				name, context, dependency, parent, 
+				name, context, dependency, parent, false,
 				Class.forName(canonicalClassName).asSubclass(Action.class));
 		return process;
 	}

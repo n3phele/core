@@ -26,8 +26,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
-import n3phele.service.actions.JobAction;
 import n3phele.service.model.core.Entity;
+import n3phele.service.rest.impl.ActionResource;
 import n3phele.service.rest.impl.NarrativeResource;
 
 import com.googlecode.objectify.Key;
@@ -38,7 +38,7 @@ import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.condition.IfTrue;
 
 @XmlRootElement(name="CloudProcess")
-@XmlType(name="Action", propOrder={"state", "running", "waitTimeout", "pendingInit", "pendingCall", "pendingCancel", "pendingDump", "pendingAssertion", 
+@XmlType(name="Action", propOrder={"description", "descriptionUri", "state", "running", "waitTimeout", "pendingInit", "pendingCall", "pendingCancel", "pendingDump", "pendingAssertion", 
 		"dependentOn", "dependencyFor", "start", "complete", "finalized", "action", "actionType", "parent", "topLevel", "narrative"})
 @Unindex
 @com.googlecode.objectify.annotation.Entity
@@ -71,13 +71,11 @@ public class CloudProcess extends Entity {
 	 * @param parent Parent to be notified on process state changes
 	 * @param taskId Reference to the action managed by the process
 	 */
-	public CloudProcess(URI owner, String name, CloudProcess parent, Action task)  {
+	public CloudProcess(URI owner, String name, CloudProcess parent, boolean topLevel, Action task)  {
 		super(name, null, owner, false);
 		this.action = task.getUri().toString();
 		this.actionType = task.getClass().getSimpleName();
-		if(task instanceof JobAction) {
-			this.topLevel = true;
-		}
+		this.topLevel = topLevel;
 		if(parent != null) {
 			this.parent = parent.getUri().toString();
 			if(parent.root == null) {
@@ -88,7 +86,6 @@ public class CloudProcess extends Entity {
 		} else {
 			this.parent = null;
 			this.root = null;
-			this.topLevel = true;
 		}
 	}
 	
@@ -369,6 +366,34 @@ public class CloudProcess extends Entity {
 	 * @param narrative the narrative to set
 	 */
 	public void setNarrative(Collection<Narrative> narrative) {
+		
+	}
+	
+	/**
+	 * @return the description
+	 */
+	@XmlElement
+	public String getDescription() {
+		return ActionResource.dao.load(this.getAction()).getDescription();
+	}
+	/**
+	 * @param description this function does nothing, but appease jersey
+	 */
+	public void setDescription(String description) {
+		
+	}
+	
+	/**
+	 * @return the descriptionUri
+	 */
+	@XmlElement
+	public URI getDescriptionUri() {
+		return ActionResource.dao.load(this.getAction()).getDescriptionUri();
+	}
+	/**
+	 * @param description this function does nothing, but appease jersey
+	 */
+	public void setDescriptionUri(URI descriptionUri) {
 		
 	}
 	

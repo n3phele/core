@@ -11,6 +11,8 @@ package n3phele.service.actions;
  *  specific language governing permissions and limitations under the License.
  */
 
+import java.net.URI;
+
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -46,6 +48,22 @@ public class LogAction extends Action {
 	protected LogAction(User owner, String name,
 			Context context) {
 		super(owner.getUri(), name, context);
+	}
+	
+	/* (non-Javadoc)
+	 * @see n3phele.service.model.Action#getDescription()
+	 */
+	@Override
+	public String getDescription() {
+		return "Log "+this.getContext().getValue("arg");
+	}
+	
+	/* (non-Javadoc)
+	 * @see n3phele.service.model.Action#getDescriptionUri()
+	 */
+	@Override
+	public URI getDescriptionUri() {
+		return this.getProcess();
 	}
 	
 	@Override

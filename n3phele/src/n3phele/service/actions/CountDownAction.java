@@ -13,6 +13,8 @@ package n3phele.service.actions;
  */
 
 
+import java.net.URI;
+
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
@@ -41,6 +43,22 @@ public class CountDownAction extends Action {
 	protected CountDownAction(User owner, String name,
 			Context context) {
 		super(owner.getUri(), name, context);
+	}
+
+	/* (non-Javadoc)
+	 * @see n3phele.service.model.Action#getDescription()
+	 */
+	@Override
+	public String getDescription() {
+		return "CountDown "+(this.getContext().getValue("arg")==null?"":this.getContext().getValue("arg"));
+	}
+
+	/* (non-Javadoc)
+	 * @see n3phele.service.model.Action#getDescriptionUri()
+	 */
+	@Override
+	public URI getDescriptionUri() {
+		return this.getProcess();
 	}
 
 	@Override

@@ -74,6 +74,24 @@ public class FileTransferAction extends Action {
 		super(owner.getUri(), name, context);
 	}
 	
+	
+	/* (non-Javadoc)
+	 * @see n3phele.service.model.Action#getDescription()
+	 */
+	@Override
+	public String getDescription() {
+		return "File transfer";
+	}
+	
+	/* (non-Javadoc)
+	 * @see n3phele.service.model.Action#getDescriptionUri()
+	 */
+	@Override
+	public URI getDescriptionUri() {
+		return this.getProcess();
+	}
+	
+	
 	@Override
 	public void init() throws Exception {
 		logger = new ActionLogger(this);

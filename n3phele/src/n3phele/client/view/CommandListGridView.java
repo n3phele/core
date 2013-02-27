@@ -323,29 +323,6 @@ public class CommandListGridView extends WorkspaceVerticalPanel implements Comma
 		uploadPopup.add(uploadPanel);
 		uploadPopup.center();
 	}
-
-//	/* (non-Javadoc)
-//	 * @see n3phele.client.view.CommandListViewInterface#refresh(int, n3phele.client.model.Command)
-//	 */
-//	@Override
-//	public void refresh(int i, Command update) {
-//		this.grid.setRowData(i, chunk(data.subList(i, i+1)));
-//	}
-
-
-//	@Override
-//	public void setDisplayList(List<Command> list) {
-//		if(list != null)
-//			setDisplayList(list, 0, list.size());
-//		else
-//			setDisplayList(null, 0, 0);
-//	}
-
-
-//	@Override
-//	public void refresh(List<Command> newProgressList) {
-//		setDisplayList(newProgressList);
-//	}
 	
 	/** Provides a click handler for cell rendering FileNode
 	 * @author Nigel Cook

@@ -21,14 +21,16 @@ import n3phele.client.N3phele;
 import n3phele.client.model.CloudProcess;
 import n3phele.client.model.Narrative;
 import n3phele.client.presenter.ActivityPlace;
-import n3phele.client.presenter.ProgressActivity;
+import n3phele.client.presenter.ProcessActivity;
 import n3phele.client.resource.NarrativeListCellTableResource;
+import n3phele.client.widgets.HyperlinkCell;
 import n3phele.client.widgets.IconText;
 import n3phele.client.widgets.IconTextCell;
 import n3phele.client.widgets.MenuItem;
 import n3phele.client.widgets.WorkspaceVerticalPanel;
 
 import com.google.gwt.cell.client.DateCell;
+import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.cell.client.ImageResourceCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.i18n.client.DateTimeFormat;
@@ -47,30 +49,30 @@ import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 
 
-public class ProgressView extends WorkspaceVerticalPanel {
+public class ProcessView extends WorkspaceVerticalPanel {
 	final private FlexTable table;
 	final private CellTable<Narrative> narrativeTable;
-	private ProgressActivity presenter;
+	private ProcessActivity presenter;
 	private CloudProcess process;
 	private Column<Narrative,ImageResource> state;
 	private Label name;
 	private CellWidget<IconText> iconStatus;
 	private Hyperlink command;
-	private Label description;
+	//private Label description;
 	private CellWidget<Date> startdate;
 	private CellWidget<Date> completedate;
 	private Label duration;
 	private HashMap<String, ImageResource> statusVizualization;
 	private String barUrl;
 	private static NarrativeListCellTableResource resource=null;
-	public ProgressView() {
+	public ProcessView() {
 		super(new MenuItem(N3phele.n3pheleResource.activityIcon(), "Activity", null));
 		table = new FlexTable();
 		table.setCellPadding(2);
 
 
 		this.add(table);
-		//table.setSize("478px", "260px");
+		table.setWidth("100%");
 
 		Label lblNewLabel_4 = new Label("name");
 		table.setWidget(0, 0, lblNewLabel_4);
@@ -79,27 +81,19 @@ public class ProgressView extends WorkspaceVerticalPanel {
 		table.setWidget(0, 1, name);
 
 		iconStatus = new CellWidget<IconText>(new IconTextCell<IconText>(32,32,15));
-//		{
-//			@Override
-//			public IconText getValue(Progress process) {
-//				String status = process.getStatus();
-//				ImageResource icon = statusVizualization.get(status);
-//				if(icon != null) return new IconText(icon, process.getName());
-//				return new IconText(getTemplate().statusBar(getPercentComplete(process), barUrl ), process.getName()); // make process bar
-//			}
-//		};
-
-
 		table.setWidget(0, 2, iconStatus);
-
+		table.getColumnFormatter().setWidth(0, "60px");
+		table.getColumnFormatter().setWidth(2, "170px");
+		
 		Label lblNewLabel = new Label("running");
 		table.setWidget(1, 0, lblNewLabel);
 
 		command = new Hyperlink("","");
 		table.setWidget(1, 1, command);
+		table.getFlexCellFormatter().setColSpan(1, 1, 2);
 
-		description = new Label("-description-");
-		table.setWidget(1, 2, description);
+//		description = new Label("-description-");
+//		table.setWidget(1, 2, description);
 
 		Label lblNewLabel_3 = new Label("started");
 		table.setWidget(2, 0, lblNewLabel_3);
@@ -107,21 +101,18 @@ public class ProgressView extends WorkspaceVerticalPanel {
 		startdate = new CellWidget<Date>(new DateCell(DateTimeFormat.getFormat(DateTimeFormat.PredefinedFormat.DATE_TIME_SHORT)));
 
 		table.setWidget(2, 1, startdate);
-		table.getFlexCellFormatter().setColSpan(2, 1, 2);
+		//table.getFlexCellFormatter().setColSpan(2, 1, 2);
 
 		Label lblNewLabel_6 = new Label("completed");
 		table.setWidget(3, 0, lblNewLabel_6);
 
 		completedate = new CellWidget<Date>(new DateCell(DateTimeFormat.getFormat(DateTimeFormat.PredefinedFormat.DATE_TIME_SHORT)));
 		table.setWidget(3, 1, completedate);
-		table.getFlexCellFormatter().setColSpan(3, 1, 2);
-
-		Label lblNewLabel_7 = new Label("duration", true);
-		table.setWidget(4, 0, lblNewLabel_7);
+		//table.getFlexCellFormatter().setColSpan(3, 1, 2);
 
 		duration = new Label(".duration");
-		table.setWidget(4, 1, duration);
-		table.getFlexCellFormatter().setColSpan(4, 1, 2);
+		table.setWidget(3, 2, duration);
+	
 		if(resource==null)
 			resource = GWT.create(NarrativeListCellTableResource.class);
 		narrativeTable = new CellTable<Narrative>(15, resource);
@@ -151,13 +142,26 @@ public class ProgressView extends WorkspaceVerticalPanel {
 		};
 		narrativeTable.addColumn(date);
 		narrativeTable.setColumnWidth(date,"15%");
+		
+		
+		Column<Narrative,Hyperlink> id = new Column<Narrative,Hyperlink>(new HyperlinkCell()) {
 
-		TextColumn<Narrative> id = new TextColumn<Narrative>() {
 			@Override
-			public String getValue(Narrative object) {
-				return object.getTag();
+			public Hyperlink getValue(Narrative object) {
+				if(object == null)
+					return null;
+				String name = object.getTag();
+				String historyToken = presenter.getToken(object.getProcessUri());
+				return new Hyperlink(name, historyToken);
 			}
+		
 		};
+		id.setFieldUpdater(new FieldUpdater<Narrative, Hyperlink>() {
+			@Override
+			public void update(int index, Narrative object, Hyperlink value) {
+				ProcessView.this.narrativeTable.setFocus(false);
+			}
+		});
 		id.setVerticalAlignment(HasVerticalAlignment.ALIGN_MIDDLE);
 		id.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_LEFT);
 
@@ -177,8 +181,6 @@ public class ProgressView extends WorkspaceVerticalPanel {
 		narrativeTable.setColumnWidth(msg,"60%");
 	}
 
-
-
 	public void do_cancel() {
 		setData(null);
 		this.presenter.goToPrevious();
@@ -196,16 +198,18 @@ public class ProgressView extends WorkspaceVerticalPanel {
 			barUrl = new Image(N3phele.n3pheleResource.barBackground()).getUrl();
 		}
 		if(this.process != null) {
-			ActivityPlace place = new ActivityPlace(this.process.getUri());
+			ActivityPlace place = new ActivityPlace(this.process.getDescriptionUri());
 			this.name.setText(this.process.getName());
-			this.command = new Hyperlink("this.process.getCommand()xxx",  place.getToken());
+
+			
+			this.command = new Hyperlink(this.process.getDescription(),  presenter.getToken(this.process.getDescriptionUri()));
 			table.setWidget(1, 1, this.command);
 			this.startdate.setValue(this.process.getStart());
 			this.completedate.setValue(this.process.getComplete());
-			this.description.setText("this.process.getDescription()xxx");
+			//this.description.setText(this.process.getDescription());
 			if(this.process.getComplete() != null) {
 				long duration = this.process.getComplete().getTime() - this.process.getStart().getTime();
-				this.duration.setText(durationText(duration));
+				this.duration.setText("duration "+durationText(duration));
 			}
 			
 			this.iconStatus.setValue(getIconText(this.process));
@@ -250,9 +254,7 @@ public class ProgressView extends WorkspaceVerticalPanel {
 		return new IconText(getTemplate().statusBar(getPercentComplete(process), barUrl ), status); // make process bar
 	}
 	
-	
-
-	public void setPresenter(ProgressActivity presenter) {
+	public void setPresenter(ProcessActivity presenter) {
 		this.presenter = presenter;
 	}
 
@@ -280,7 +282,7 @@ public class ProgressView extends WorkspaceVerticalPanel {
 	}
 
 	public double getPercentComplete(CloudProcess process) {
-		//return ProgressUpdateHelper.updateProcess(process)/10.0;
+		//return ProcessUpdateHelper.updateProcess(process)/10.0;
 		return 0;
 	}	
 

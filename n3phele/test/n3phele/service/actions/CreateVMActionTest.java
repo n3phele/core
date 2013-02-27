@@ -660,7 +660,7 @@ public class CreateVMActionTest {
 			}
 			
 			CloudProcess process = this.createProcess(user, 
-			name, context, dependency, parent, clazz
+			name, context, dependency, parent, false, clazz
 			);
 			return process;
 			}

@@ -23,7 +23,7 @@ import n3phele.client.presenter.CommandGridListPlace;
 import n3phele.client.presenter.CommandPlace;
 import n3phele.client.presenter.CommandListPlace;
 import n3phele.client.presenter.LoginPlace;
-import n3phele.client.presenter.ProgressPlace;
+import n3phele.client.presenter.ProcessPlace;
 import n3phele.client.presenter.RepoContentPlace;
 import n3phele.client.presenter.RepoListPlace;
 import n3phele.client.presenter.RepoPlace;
@@ -37,7 +37,7 @@ import com.google.gwt.place.shared.WithTokenizers;
 	CommandPlace.Tokenizer.class,
 	UserPlace.Tokenizer.class, AccountPlace.Tokenizer.class, AccountListPlace.Tokenizer.class, AccountHyperlinkPlace.Tokenizer.class,
 	RepoListPlace.Tokenizer.class, RepoPlace.Tokenizer.class, RepoContentPlace.Tokenizer.class, 
-	ProgressPlace.Tokenizer.class, 
+	ProcessPlace.Tokenizer.class, 
 	ActivityPlace.Tokenizer.class})
 public interface AppPlaceHistoryMapper extends PlaceHistoryMapper {
 

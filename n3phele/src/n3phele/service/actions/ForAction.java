@@ -65,12 +65,24 @@ public class ForAction extends Action {
 	private String executableName;
 	private String command;
 	private String cloud;
-
-	
-	
-	
-	
 	private boolean failed = false;
+	
+	/* (non-Javadoc)
+	 * @see n3phele.service.model.Action#getDescription()
+	 */
+	@Override
+	public String getDescription() {
+		return "For "+this.getContext().getIntegerValue("n")+" step "+this.context.getIntegerValue("chunkSize");
+	}
+	
+	/* (non-Javadoc)
+	 * @see n3phele.service.model.Action#getDescriptionUri()
+	 */
+	@Override
+	public URI getDescriptionUri() {
+		return this.getProcess();
+	}
+	
 	@Override
 	public void init() throws Exception {
 		logger = new ActionLogger(this);

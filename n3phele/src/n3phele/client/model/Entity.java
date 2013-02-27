@@ -54,13 +54,5 @@ public class Entity extends JavaScriptObject {
 		return this['public']==null?false:this['public']=="true";
 	}-*/;
 
-	/**
-	 * @return the lock
-	 */
-	public native final Long getLock() /*-{
-		return this.lock;
-	}-*/;
-	
-	
 	
 }

@@ -142,15 +142,6 @@ public class CacheManager {
 	      // displayError("Couldn't retrieve JSON "+e.getMessage());
 	    }
 	}
-
-//	public void refreshProgressList() {
-//		List<Registration> item;
-//		final String progressURI = ServiceAddress + "progress";
-//		item = cache.get(progressURI);
-//		if (item != null) {
-//			fireAll(progressURI, item);
-//		}
-//	}
 	
 	private void fireAll(String key, List<Registration> l) {
 		if (l != null) {

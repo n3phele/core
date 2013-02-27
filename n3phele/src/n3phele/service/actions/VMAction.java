@@ -67,6 +67,28 @@ public class VMAction extends Action {
 		this.fileTableList.clear(); if(this.fileTable.size() != 0) this.fileTableList.addAll(fileTable.values()); 
 	}
 	
+	/* (non-Javadoc)
+	 * @see n3phele.service.model.Action#getDescription()
+	 */
+	@Override
+	public String getDescription() {
+		return "Virtual Machine "+this.getName();
+	}
+	
+	/* (non-Javadoc)
+	 * @see n3phele.service.model.Action#getDescriptionUri()
+	 */
+	@Override
+	public URI getDescriptionUri() {
+		return this.getProcess();
+	}	
+	
+	
+	
+	
+	
+	
+	
 	private long epoch;
 	@Override
 	public void init() throws Exception {

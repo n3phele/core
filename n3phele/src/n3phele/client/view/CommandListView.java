@@ -16,20 +16,17 @@ package n3phele.client.view;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.gwt.cell.client.FieldUpdater;
-import com.google.gwt.user.cellview.client.CellTable;
-import com.google.gwt.user.cellview.client.Column;
-import com.google.gwt.user.cellview.client.TextColumn;
-import com.google.gwt.user.cellview.client.HasKeyboardSelectionPolicy.KeyboardSelectionPolicy;
-
 import n3phele.client.N3phele;
 import n3phele.client.model.Command;
 import n3phele.client.presenter.CommandListActivity;
-import n3phele.client.presenter.CommandPlace;
 import n3phele.client.widgets.HyperlinkCell;
 import n3phele.client.widgets.MenuItem;
 import n3phele.client.widgets.WorkspaceVerticalPanel;
 
+import com.google.gwt.user.cellview.client.CellTable;
+import com.google.gwt.user.cellview.client.Column;
+import com.google.gwt.user.cellview.client.HasKeyboardSelectionPolicy.KeyboardSelectionPolicy;
+import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.user.client.ui.Hyperlink;
 
 public class CommandListView extends WorkspaceVerticalPanel implements CommandListViewInterface {
@@ -41,17 +38,6 @@ public class CommandListView extends WorkspaceVerticalPanel implements CommandLi
 		super(new MenuItem(N3phele.n3pheleResource.commandIcon(), "Commands", null));
 		cellTable = new CellTable<Command>();
 		cellTable.setSize("455px", "");
-
-//		TextColumn<Command> nameColumn = new TextColumn<Command>() {
-//			@Override
-//			public String getValue(Command command) {
-//				String result = "";
-//				if(command != null)
-//					return command.getName();
-//				return result;
-//			}
-//		};
-//		cellTable.addColumn(nameColumn, "Name");
 
 		Column<Command,Hyperlink> nameColumn = new Column<Command,Hyperlink>(new HyperlinkCell()) {
 
@@ -66,12 +52,6 @@ public class CommandListView extends WorkspaceVerticalPanel implements CommandLi
 		
 		};
 
-		nameColumn.setFieldUpdater(new FieldUpdater<Command, Hyperlink>() {
-			@Override
-			public void update(int index, Command object, Hyperlink value) {
-				CommandListView.this.commandActivity.goTo(new CommandPlace(object.getUri()));
-			}
-		});
 		cellTable.addColumn(nameColumn, "Name");
 		
 		TextColumn<Command> descriptionColumn = new TextColumn<Command>() {
@@ -127,8 +107,8 @@ public class CommandListView extends WorkspaceVerticalPanel implements CommandLi
 	/* (non-Javadoc)
 	 * @see n3phele.client.view.CommandListViewI#refresh(java.util.List)
 	 */
-	public void refresh(List<Command> newProgressList) {
-		setDisplayList(newProgressList);
+	public void refresh(List<Command> commandList) {
+		setDisplayList(commandList);
 	}
 
 

@@ -15,7 +15,7 @@ package n3phele.client.presenter.helpers;
 
 import n3phele.client.model.CloudProcessSummary;
 
-public class ProgressUpdateHelper {
+public class ProcessUpdateHelper {
 
 	public static int updateProcess(CloudProcessSummary process) {
 //		int complete = process.getPercentx10Complete();

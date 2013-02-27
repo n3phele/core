@@ -110,6 +110,16 @@ public abstract class Action extends Entity {
 	 * @param assertion
 	 */
 	public abstract void signal(SignalKind kind, String assertion);
+	
+	/** Returns a description of the action instance
+	 * @return description
+	 */
+	public abstract String getDescription();
+	
+	/** Returns a URI associated with the action instance
+	 * @return description
+	 */
+	public abstract URI getDescriptionUri();
 
 
 

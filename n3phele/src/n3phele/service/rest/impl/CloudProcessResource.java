@@ -69,7 +69,7 @@ public class CloudProcessResource {
 			@DefaultValue("0") @QueryParam("start") int start,
 			@DefaultValue("-1") @QueryParam("end") int end) throws NotFoundException {
 
-		log.info("getProgress entered with summary "+summary+" from start="+start+" to end="+end);
+		log.info("list entered with summary "+summary+" from start="+start+" to end="+end);
 
 		if(start < 0)
 			start = 0;
@@ -201,7 +201,7 @@ public class CloudProcessResource {
 	
 		Class<? extends Action> clazz = Class.forName("n3phele.service.actions."+action+"Action").asSubclass(Action.class);
 		if(clazz != null) {
-			CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), name, env, null, null, clazz);
+			CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), name, env, null, null, true, clazz);
 			ProcessLifecycle.mgr().init(p);
 			return Response.created(p.getUri()).build();
 		} else {
@@ -223,7 +223,7 @@ public class CloudProcessResource {
 	
 		Class<? extends Action> clazz = Class.forName("n3phele.service.actions."+action+"Action").asSubclass(Action.class);
 		if(clazz != null) {
-			CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), name, env, null, null, clazz);
+			CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), name, env, null, null, true, clazz);
 			ProcessLifecycle.mgr().init(p);
 			return Response.created(p.getUri()).build();
 		} else {

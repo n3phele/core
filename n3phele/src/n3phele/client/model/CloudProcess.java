@@ -43,6 +43,20 @@ public class CloudProcess extends Entity {
 
 	}-*/;
 	
+
+	/**
+	 * @return the description
+	 */
+	public native final String getDescription()  /*-{
+		return this.description;
+	}-*/;
+	
+	/**
+	 * @return the descriptionUri
+	 */
+	public native final String getDescriptionUri() /*-{
+		return this.descriptionUri;
+	}-*/;
 	
 	/**
 	 * @return the start

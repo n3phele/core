@@ -32,8 +32,8 @@ import n3phele.client.presenter.CommandListPlace;
 import n3phele.client.presenter.CommandPlace;
 import n3phele.client.presenter.LoginActivity;
 import n3phele.client.presenter.LoginPlace;
-import n3phele.client.presenter.ProgressActivity;
-import n3phele.client.presenter.ProgressPlace;
+import n3phele.client.presenter.ProcessActivity;
+import n3phele.client.presenter.ProcessPlace;
 import n3phele.client.presenter.RepoActivity;
 import n3phele.client.presenter.RepoContentActivity;
 import n3phele.client.presenter.RepoContentPlace;
@@ -87,8 +87,8 @@ public class AppActivityMapper implements ActivityMapper {
 			return new RepoActivity(((RepoPlace) place).getPlaceName(), clientFactory);
 		} else if(place instanceof RepoContentPlace) {
 			return new RepoContentActivity(((RepoContentPlace)place).getPlaceName(), ((RepoContentPlace) place).getPrefix(), clientFactory);
-		}else if(place instanceof ProgressPlace) {
-			return new ProgressActivity(((ProgressPlace) place).getPlaceName(), clientFactory);
+		}else if(place instanceof ProcessPlace) {
+			return new ProcessActivity(((ProcessPlace) place).getPlaceName(), clientFactory);
 		}	else if(place instanceof ActivityPlace) {
 			return new ActivtiyActivity("activity-detail", 
 					((ActivityPlace) place).getPlaceName(), clientFactory);

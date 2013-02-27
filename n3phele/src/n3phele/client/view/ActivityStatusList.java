@@ -18,7 +18,7 @@ import java.util.Map;
 
 import n3phele.client.N3phele;
 import n3phele.client.model.CloudProcessSummary;
-import n3phele.client.presenter.helpers.ProgressUpdateHelper;
+import n3phele.client.presenter.helpers.ProcessUpdateHelper;
 import n3phele.client.resource.ClickableCellTableResource;
 import n3phele.client.widgets.IconText;
 import n3phele.client.widgets.IconTextCell;
@@ -77,7 +77,7 @@ public class ActivityStatusList extends CellTable<CloudProcessSummary> {
 	}
 	
 	public double getPercentComplete(CloudProcessSummary process) {
-		return ProgressUpdateHelper.updateProcess(process)/10.0;
+		return ProcessUpdateHelper.updateProcess(process)/10.0;
 	}	
 	
 	

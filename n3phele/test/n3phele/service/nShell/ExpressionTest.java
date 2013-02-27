@@ -12,11 +12,6 @@ import n3phele.service.model.Action;
 import n3phele.service.model.Context;
 import n3phele.service.model.ShellFragment;
 import n3phele.service.model.SignalKind;
-import n3phele.service.nShell.Expression;
-import n3phele.service.nShell.ExpressionEngine;
-import n3phele.service.nShell.ParseException;
-import n3phele.service.nShell.SelfCompilingNode;
-import n3phele.service.nShell.UnexpectedTypeException;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -80,6 +75,18 @@ public class ExpressionTest {
 			public void signal(SignalKind kind, String assertion) {
 				// TODO Auto-generated method stub
 				
+			}
+
+			@Override
+			public String getDescription() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public URI getDescriptionUri() {
+				// TODO Auto-generated method stub
+				return null;
 			}};
 		action.setContext(contextA);
 		action.setUri(URI.create("http://foo/contextA"));
@@ -115,6 +122,18 @@ public class ExpressionTest {
 			public void signal(SignalKind kind, String assertion) {
 				// TODO Auto-generated method stub
 				
+			}
+
+			@Override
+			public String getDescription() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public URI getDescriptionUri() {
+				// TODO Auto-generated method stub
+				return null;
 			}};
 		action2.setContext(contextB);
 		action2.setUri(URI.create("http://foo/contextB"));

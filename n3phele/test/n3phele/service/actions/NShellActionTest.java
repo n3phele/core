@@ -116,7 +116,7 @@ public class NShellActionTest {
 		context.putValue("arg", "http://n3phele.com/test#EC2");
 		context.putValue("message", "--warning my first message");
 		
-		CloudProcess shellProcess = ProcessLifecycle.mgr().createProcess(root, "shell", context, null, null, NShellActionTestHarness.class);
+		CloudProcess shellProcess = ProcessLifecycle.mgr().createProcess(root, "shell", context, null, null, true, NShellActionTestHarness.class);
 		ProcessLifecycle.mgr().init(shellProcess);
 		Thread.sleep(2000);
 		CloudProcessResource.dao.clear();
@@ -158,7 +158,7 @@ public class NShellActionTest {
 		context.putValue("arg", "http://n3phele.com/test#EC2");
 		context.putValue("message", "hello!");
 		
-		CloudProcess shellProcess = ProcessLifecycle.mgr().createProcess(root, "shell", context, null, null, NShellActionTestHarness.class);
+		CloudProcess shellProcess = ProcessLifecycle.mgr().createProcess(root, "shell", context, null, null, true, NShellActionTestHarness.class);
 		ProcessLifecycle.mgr().init(shellProcess);
 		Thread.sleep(2000);
 		CloudProcessResource.dao.clear();
@@ -204,7 +204,7 @@ public class NShellActionTest {
 		context.putValue("arg", "http://n3phele.com/test#EC2");
 		context.putValue("message", "--success my 2nd message");
 		
-		CloudProcess shellProcess = ProcessLifecycle.mgr().createProcess(root, "shell", context, null, null, NShellActionTestHarness.class);
+		CloudProcess shellProcess = ProcessLifecycle.mgr().createProcess(root, "shell", context, null, null, true, NShellActionTestHarness.class);
 		ProcessLifecycle.mgr().init(shellProcess);
 		Thread.sleep(2000);
 		CloudProcessResource.dao.clear();
@@ -268,7 +268,7 @@ public class NShellActionTest {
 		context.putValue("n", 1);
 		context.putValue("account", account);
 		
-		CloudProcess shellProcess = ProcessLifecycleWrapper.mgr().createProcess(root, "shell", context, null, null, NShellActionTestHarness.class);
+		CloudProcess shellProcess = ProcessLifecycleWrapper.mgr().createProcess(root, "shell", context, null, null, true, NShellActionTestHarness.class);
 		ProcessLifecycleWrapper.mgr().init(shellProcess);
 		Thread.sleep(2000);
 		CloudProcessResource.dao.clear();
@@ -331,7 +331,7 @@ public class NShellActionTest {
 		context.putValue("n", 2);
 		context.putValue("account", account);
 		
-		CloudProcess shellProcess = ProcessLifecycleWrapper.mgr().createProcess(root, "shell", context, null, null, NShellActionTestHarness.class);
+		CloudProcess shellProcess = ProcessLifecycleWrapper.mgr().createProcess(root, "shell", context, null, null, true, NShellActionTestHarness.class);
 		ProcessLifecycleWrapper.mgr().init(shellProcess);
 		Thread.sleep(2000);
 		CloudProcessResource.dao.clear();
@@ -402,7 +402,7 @@ public class NShellActionTest {
 		context.putValue("n", 1);
 		context.putValue("account", account);
 		
-		CloudProcess shellProcess = ProcessLifecycleWrapper.mgr().createProcess(root, "shell", context, null, null, NShellActionTestHarness.class);
+		CloudProcess shellProcess = ProcessLifecycleWrapper.mgr().createProcess(root, "shell", context, null, null, true, NShellActionTestHarness.class);
 		ProcessLifecycleWrapper.mgr().init(shellProcess);
 		Thread.sleep(2000);
 		CloudProcessResource.dao.clear();
@@ -468,7 +468,7 @@ public class NShellActionTest {
 		context.putValue("n", 2);
 		context.putValue("account", account);
 		
-		CloudProcess shellProcess = ProcessLifecycleWrapper.mgr().createProcess(root, "shell", context, null, null, NShellActionTestHarness.class);
+		CloudProcess shellProcess = ProcessLifecycleWrapper.mgr().createProcess(root, "shell", context, null, null, true, NShellActionTestHarness.class);
 		ProcessLifecycleWrapper.mgr().init(shellProcess);
 		Thread.sleep(2000);
 		CloudProcessResource.dao.clear();
@@ -545,7 +545,7 @@ public class NShellActionTest {
 		context.putValue("arg", "http://n3phele.com/test#EC2");
 		context.putValue("account", account);
 		
-		CloudProcess shellProcess = ProcessLifecycleWrapper.mgr().createProcess(root, "shell", context, null, null, NShellActionTestHarness.class);
+		CloudProcess shellProcess = ProcessLifecycleWrapper.mgr().createProcess(root, "shell", context, null, null, true, NShellActionTestHarness.class);
 		ProcessLifecycleWrapper.mgr().init(shellProcess);
 		Thread.sleep(2000);
 		CloudProcessResource.dao.clear();
@@ -633,7 +633,7 @@ public class NShellActionTest {
 		context.putValue("account", account);
 		context.putValue("flowgram.sff.txt", URI.create("myRepo:///root/file.doc"));
 		
-		CloudProcess shellProcess = ProcessLifecycleWrapper.mgr().createProcess(root, "shell", context, null, null, NShellActionTestHarness.class);
+		CloudProcess shellProcess = ProcessLifecycleWrapper.mgr().createProcess(root, "shell", context, null, null, true, NShellActionTestHarness.class);
 		ProcessLifecycleWrapper.mgr().init(shellProcess);
 		Thread.sleep(2000);
 		CloudProcessResource.dao.clear();
@@ -807,7 +807,7 @@ public class NShellActionTest {
 		context.putValue("flowgram.sff.txt", URI.create("myRepo:///root/file.doc"));
 		context.putValue("denoiser.log", URI.create("myRepo:///root/denoiserLog.txt"));
 		
-		CloudProcess shellProcess = ProcessLifecycleWrapper.mgr().createProcess(root, "shell", context, null, null, NShellActionTestHarness.class);
+		CloudProcess shellProcess = ProcessLifecycleWrapper.mgr().createProcess(root, "shell", context, null, null, true, NShellActionTestHarness.class);
 		ProcessLifecycleWrapper.mgr().init(shellProcess);
 		Thread.sleep(2000);
 		CloudProcessResource.dao.clear();
@@ -998,7 +998,7 @@ public class NShellActionTest {
 		context.putValue("concurrent", 2);
 		context.putValue("arg", "http://n3phele.com/test#EC2");
 		
-		CloudProcess shellProcess = ProcessLifecycle.mgr().createProcess(root, "shell", context, null, null, NShellActionTestHarness.class);
+		CloudProcess shellProcess = ProcessLifecycle.mgr().createProcess(root, "shell", context, null, null, true, NShellActionTestHarness.class);
 		ProcessLifecycle.mgr().init(shellProcess);
 		Thread.sleep(2000);
 		CloudProcessResource.dao.clear();
@@ -1147,7 +1147,7 @@ public class NShellActionTest {
 			}
 			
 			CloudProcess process = this.createProcess(user, 
-			name, context, dependency, parent, clazz
+			name, context, dependency, parent, true, clazz
 			);
 			return process;
 			}

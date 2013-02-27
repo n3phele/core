@@ -71,9 +71,9 @@ public class ActivityListView extends WorkspaceVerticalPanel implements CloudPro
 		TextColumn<CloudProcessSummary> narrative = new TextColumn<CloudProcessSummary>(){
 
 			@Override
-			public String getValue(CloudProcessSummary progress) {
+			public String getValue(CloudProcessSummary process) {
 				String result = "";
-				List<Narrative> narrative = progress.getNarrative();
+				List<Narrative> narrative = process.getNarrative();
 				if(narrative != null && narrative.size() > 0) {
 					result = narrative.get(narrative.size()-1).getText();
 				}
@@ -160,11 +160,11 @@ public class ActivityListView extends WorkspaceVerticalPanel implements CloudPro
 	 * @see n3phele.client.view.CloudProcessView#setDisplayList(java.util.List)
 	 */
 	@Override
-	public void setDisplayList(List<CloudProcessSummary> progressList, int start, int max) {
-		if(progressList == null)
-			progressList = new ArrayList<CloudProcessSummary>();
+	public void setDisplayList(List<CloudProcessSummary> processList, int start, int max) {
+		if(processList == null)
+			processList = new ArrayList<CloudProcessSummary>();
 		this.cellTable.setRowCount(max, true);
-		this.cellTable.setRowData(start, data=progressList);
+		this.cellTable.setRowData(start, data=processList);
 		//N3phele.checkSize();
 	}
 

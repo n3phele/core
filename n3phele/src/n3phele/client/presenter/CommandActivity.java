@@ -298,7 +298,6 @@ public class CommandActivity extends AbstractActivity {
 				public void onResponseReceived(Request request, Response response) {
 					if (201 == response.getStatusCode()) {
 						GWT.log(response.getText()+" "+response.getHeadersAsString());
-						//cacheManager.refreshProgressList(); // deal with "eventual consistency" of queries
 						goToPrevious();
 					} else {
 						Window.alert("Error code: "+response.getStatusCode()+" Status Text:"

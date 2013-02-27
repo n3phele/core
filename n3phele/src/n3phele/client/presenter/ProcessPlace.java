@@ -11,64 +11,36 @@
  *  an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the 
  *  specific language governing permissions and limitations under the License.
  */
-package n3phele.client.model;
+package n3phele.client.presenter;
 
+import com.google.gwt.place.shared.Place;
+import com.google.gwt.place.shared.PlaceTokenizer;
+import com.google.gwt.place.shared.Prefix;
 
-public class CacheItem {
-	private Kind kind;
-	private Object object;
-	private String id;
+public class ProcessPlace extends Place {
 
-	
-	
-	public enum Kind {
-		Progress
+	private String placeName;
+
+	public ProcessPlace(String token) {
+		this.placeName = token;
 	}
 
-
-
-	/**
-	 * @param kind the kind to set
-	 */
-	public void setKind(Kind kind) {
-		this.kind = kind;
+	public String getPlaceName() {
+		return placeName;
 	}
 
+	@Prefix("process")
+	public static class Tokenizer implements PlaceTokenizer<ProcessPlace> {
 
+		@Override
+		public String getToken(ProcessPlace place) {
+			return place.getPlaceName();
+		}
 
-	/**
-	 * @return the kind
-	 */
-	public Kind getKind() {
-		return kind;
+		@Override
+		public ProcessPlace getPlace(String token) {
+			return new ProcessPlace(token);
+		}
+
 	}
-
-
-
-	/**
-	 * @return the object
-	 */
-	public Object getObject() {
-		return object;
-	}
-
-
-
-	/**
-	 * @param object the object to set
-	 */
-	public void setObject(Object object) {
-		this.object = object;
-	}
-
-
-
-	public String getId() {
-		return id;
-	}
-
-
-
-	
-	
 }

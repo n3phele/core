@@ -59,6 +59,22 @@ public class ServiceAction extends Action {
 		super(owner.getUri(), name, context);
 	}
 	
+	/* (non-Javadoc)
+	 * @see n3phele.service.model.Action#getDescription()
+	 */
+	@Override
+	public String getDescription() {
+		return "Service "+this.getName();
+	}
+	
+	/* (non-Javadoc)
+	 * @see n3phele.service.model.Action#getDescriptionUri()
+	 */
+	@Override
+	public URI getDescriptionUri() {
+		return this.getProcess();
+	}	
+	
 	@Override
 	public void init() throws Exception {
 		this.actionName = this.getContext().getValue("action");

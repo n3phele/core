@@ -33,8 +33,10 @@ public class HyperlinkCell extends AbstractCell<Hyperlink> {
 			Hyperlink value, NativeEvent event,
 			ValueUpdater<Hyperlink> valueUpdater) {
 		super.onBrowserEvent(context, parent, value, event, valueUpdater);
-		if("click".equals(event.getType())) {
-			valueUpdater.update(value);
+		if(valueUpdater != null) {
+			if("click".equals(event.getType())) {
+				valueUpdater.update(value);
+			}
 		}
 	}
 
@@ -46,4 +48,6 @@ public class HyperlinkCell extends AbstractCell<Hyperlink> {
 
 	} 
 } 
+
+
 

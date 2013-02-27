@@ -70,6 +70,22 @@ public class OnAction extends Action {
 		super(owner.getUri(), name, context);
 	}
 	
+	/* (non-Javadoc)
+	 * @see n3phele.service.model.Action#getDescription()
+	 */
+	@Override
+	public String getDescription() {
+		return "Run";
+	}
+	
+	/* (non-Javadoc)
+	 * @see n3phele.service.model.Action#getDescriptionUri()
+	 */
+	@Override
+	public URI getDescriptionUri() {
+		return ActionResource.dao.load(URI.create(this.target)).getProcess();
+	}
+	
 	@Override
 	public void init() throws Exception {
 		logger = new ActionLogger(this);

@@ -88,6 +88,17 @@ public class NShellAction extends Action {
 		super(owner.getUri(), name, context);
 		this.command = command.getUri().toString();
 		this.executable = command.getImplementations().get(commandImplementation).getCompiled();
+		this.executableName = command.getName()+" "+command.getVersion()+(command.isPreferred()?"":"*")+" on "+command.getName();
+	}
+	
+	@Override
+	public String getDescription() {
+		return this.executableName;
+	}
+
+	@Override
+	public URI getDescriptionUri() {
+		return URI.create(this.command);
 	}
 	
 	@Override
@@ -105,6 +116,9 @@ public class NShellAction extends Action {
 			
 			URI command = URI.create(argv[0]);
 	
+			/*
+			 * NB: initalizeExecutableFromCommandImplementation sets up this.command and this.executableName
+			 */
 			initalizeExecutableFromCommandImplementationDefinition(command);
 		}
 		
@@ -1000,7 +1014,6 @@ public class NShellAction extends Action {
 		URI baseURI;
 		try {
 			baseURI = new URI(uri.getScheme(), uri.getAuthority(), uri.getPath(), null, null);
-			
 		} catch (URISyntaxException e) {
 			log.log(Level.SEVERE, "Parse of "+uri, e);
 			throw new NotFoundException(uri.toString());
@@ -1021,7 +1034,7 @@ public class NShellAction extends Action {
 					this.start = -1;
 					this.executable = cid.getCompiled();
 				}
-				this.executableName = cid.getName()+":"+cmd.getName()+" "+cmd.getVersion()+(cmd.isPreferred()?"":"*");
+				this.executableName = cmd.getName()+" "+cmd.getVersion()+(cmd.isPreferred()?"":"*")+" on "+cid.getName();
 				this.command = baseURI.toString();
 				this.cloud = cid.getName();
 				return cid;

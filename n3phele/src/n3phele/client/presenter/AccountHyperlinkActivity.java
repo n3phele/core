@@ -302,7 +302,7 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 	}
 
 	public void onSelect(Activity selected) {
-		History.newItem(historyMapper.getToken(new ProgressPlace(selected.getProgress())));
+		History.newItem(historyMapper.getToken(new ProcessPlace(selected.getProgress())));
 	}
 
 }

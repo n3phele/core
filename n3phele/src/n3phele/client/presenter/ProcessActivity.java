@@ -13,16 +13,17 @@
  */
 package n3phele.client.presenter;
 
+import n3phele.client.AppPlaceHistoryMapper;
 import n3phele.client.CacheManager;
 import n3phele.client.ClientFactory;
 import n3phele.client.N3phele;
 import n3phele.client.model.CloudProcess;
 import n3phele.client.model.CloudProcessSummary;
-import n3phele.client.presenter.AbstractCloudProcessActivity.ProgressUpdate;
-import n3phele.client.presenter.AbstractCloudProcessActivity.ProgressUpdateEventHandler;
+import n3phele.client.presenter.AbstractCloudProcessActivity.ProcessUpdate;
+import n3phele.client.presenter.AbstractCloudProcessActivity.ProcessUpdateEventHandler;
 import n3phele.client.presenter.helpers.AuthenticatedRequestFactory;
-import n3phele.client.presenter.helpers.ProgressUpdateHelper;
-import n3phele.client.view.ProgressView;
+import n3phele.client.presenter.helpers.ProcessUpdateHelper;
+import n3phele.client.view.ProcessView;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
@@ -33,24 +34,27 @@ import com.google.gwt.http.client.RequestBuilder;
 import com.google.gwt.http.client.RequestCallback;
 import com.google.gwt.http.client.RequestException;
 import com.google.gwt.http.client.Response;
+import com.google.gwt.place.shared.Place;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.IsWidget;
 
-public class ProgressActivity extends AbstractActivity {
+public class ProcessActivity extends AbstractActivity {
 	private final String processUri;
-	private final ProgressView display;
+	private final ProcessView display;
 	private CloudProcess process = null;
 	private final CacheManager cacheManager;
 	private final EventBus eventBus;
 	private HandlerRegistration itemUpdateHandlerRegistration;
 	private Timer refreshTimer = null;
-	public ProgressActivity(String processUri, ClientFactory factory) {
+	private AppPlaceHistoryMapper historyMapper;
+	public ProcessActivity(String processUri, ClientFactory factory) {
 		this.processUri = processUri;
-		this.display = factory.getProgressView();
+		this.display = factory.getProcessView();
 		this.cacheManager = factory.getCacheManager();
 		this.eventBus = factory.getEventBus();
+		this.historyMapper = factory.getHistoryMapper();
 	}
 
 	@Override
@@ -59,7 +63,7 @@ public class ProgressActivity extends AbstractActivity {
 		panel.setWidget(display);
 		display.setData(this.process);
 		handlerRegistration(eventBus);
-		initProgressUpdate();
+		initProcessUpdate();
 		getProcess();
 
 	}
@@ -127,7 +131,7 @@ public class ProgressActivity extends AbstractActivity {
 		}
 	}
 	
-	private void initProgressUpdate() {
+	private void initProcessUpdate() {
 		// setup timer to refresh list automatically
 		refreshTimer = new Timer() {
 			public void run()
@@ -157,7 +161,7 @@ public class ProgressActivity extends AbstractActivity {
 	}
 
 	private int updateProcessCounter(CloudProcessSummary process) {
-		return ProgressUpdateHelper.updateProcess(process);
+		return ProcessUpdateHelper.updateProcess(process);
 	}
 	
 
@@ -171,9 +175,9 @@ public class ProgressActivity extends AbstractActivity {
 	
 
 	public void handlerRegistration(EventBus eventBus) {
-		this.itemUpdateHandlerRegistration = this.eventBus.addHandler(ProgressUpdate.TYPE, new ProgressUpdateEventHandler() {
+		this.itemUpdateHandlerRegistration = this.eventBus.addHandler(ProcessUpdate.TYPE, new ProcessUpdateEventHandler() {
 			@Override
-			public void onMessageReceived(ProgressUpdate event) {
+			public void onMessageReceived(ProcessUpdate event) {
 				if(event.getKey().equals(processUri))
 						getProcess();
 			}
@@ -184,6 +188,21 @@ public class ProgressActivity extends AbstractActivity {
 
 	protected void unregister() {
 		this.itemUpdateHandlerRegistration.removeHandler();
+	}
+
+	public String getToken(String processUri) {
+		return historyMapper.getToken(getPlace(processUri));
+	}
+	
+	public com.google.gwt.place.shared.Place getPlace(String uri) {
+		if(uri != null) {
+			if(uri.contains("/process/")) {
+				return new ProcessPlace(uri);
+			} else if(uri.contains("/command/")) {
+				return new CommandPlace(uri);
+			} 
+		}
+		return Place.NOWHERE;
 	}
 
 }

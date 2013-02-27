@@ -36,6 +36,7 @@ import n3phele.service.model.Context;
 import n3phele.service.model.SignalKind;
 import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.User;
+import n3phele.service.rest.impl.ActionResource;
 import n3phele.service.rest.impl.CloudProcessResource;
 import n3phele.service.rest.impl.UserResource;
 
@@ -70,11 +71,39 @@ public class JobAction extends Action {
 	private boolean childComplete = false;							/* child completed */
 	private ActionState childEndState = null;
 	
-	
 	public JobAction() {}
 	private ActionLogger logger;
 	protected JobAction(User owner, String name, Context context) {
 		super(owner.getUri(), name, context);
+	}
+	
+	
+	/* (non-Javadoc)
+	 * @see n3phele.service.model.Action#getDescription()
+	 */
+	@Override
+	public String getDescription() {
+		try {
+			CloudProcess child = CloudProcessResource.dao.load(this.getChildProcess());
+			Action childAction = ActionResource.dao.load(child.getAction());
+			return childAction.getDescription();
+		} catch (Exception e) {
+			return this.getContext().getValue("arg");
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see n3phele.service.model.Action#getDescriptionUri()
+	 */
+	@Override
+	public URI getDescriptionUri() {
+		try {
+			CloudProcess child = CloudProcessResource.dao.load(this.getChildProcess());
+			Action childAction = ActionResource.dao.load(child.getAction());
+			return childAction.getDescriptionUri();
+		} catch (Exception e) {
+			return this.getProcess();
+		}
 	}
 	
 	@Override

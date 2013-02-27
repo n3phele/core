@@ -23,7 +23,7 @@ import n3phele.client.ClientFactory;
 import n3phele.client.model.CloudProcessSummary;
 import n3phele.client.model.Collection;
 import n3phele.client.presenter.helpers.AuthenticatedRequestFactory;
-import n3phele.client.presenter.helpers.ProgressUpdateHelper;
+import n3phele.client.presenter.helpers.ProcessUpdateHelper;
 import n3phele.client.view.CloudProcessView;
 
 import com.google.gwt.activity.shared.AbstractActivity;
@@ -73,8 +73,8 @@ public abstract class AbstractCloudProcessActivity extends AbstractActivity {
 	}
 	
 	
-	public interface ProgressListUpdateEventHandler extends EventHandler {
-		void onMessageReceived(ProgressListUpdate event);
+	public interface ProcessListUpdateEventHandler extends EventHandler {
+		void onMessageReceived(ProcessListUpdate event);
 	}
 
 	@Override
@@ -89,25 +89,25 @@ public abstract class AbstractCloudProcessActivity extends AbstractActivity {
 		panel.setWidget(display);
 		
 		initData();
-		initProgressUpdate();
+		initProcessUpdate();
 	}
 	
 	public void handlerRegistration(EventBus eventBus) {
-		this.handlerRegistration = this.eventBus.addHandler(ProgressListUpdate.TYPE, new ProgressListUpdateEventHandler() {
+		this.handlerRegistration = this.eventBus.addHandler(ProcessListUpdate.TYPE, new ProcessListUpdateEventHandler() {
 			@Override
-			public void onMessageReceived(ProgressListUpdate event) {
+			public void onMessageReceived(ProcessListUpdate event) {
 				refresh(start);
 			}
 		});
-		this.itemUpdateHandlerRegistration = this.eventBus.addHandler(ProgressUpdate.TYPE, new ProgressUpdateEventHandler() {
+		this.itemUpdateHandlerRegistration = this.eventBus.addHandler(ProcessUpdate.TYPE, new ProcessUpdateEventHandler() {
 			@Override
-			public void onMessageReceived(ProgressUpdate event) {
+			public void onMessageReceived(ProcessUpdate event) {
 				refresh(event.getKey());
 			}
 		});
 	}
 
-	private void initProgressUpdate() {
+	private void initProcessUpdate() {
 		// setup timer to refresh list automatically
 		Timer refreshTimer = new Timer() {
 			public void run()
@@ -139,7 +139,7 @@ public abstract class AbstractCloudProcessActivity extends AbstractActivity {
 	}
 
 	private int updateProgress(CloudProcessSummary process) {
-		return ProgressUpdateHelper.updateProcess(process);
+		return ProcessUpdateHelper.updateProcess(process);
 	}
 
 	@Override
@@ -164,14 +164,14 @@ public abstract class AbstractCloudProcessActivity extends AbstractActivity {
 	}
 	
 	public void onSelect(CloudProcessSummary selected) {
-		History.newItem(historyMapper.getToken(new ProgressPlace(selected.getUri())));
+		History.newItem(historyMapper.getToken(new ProcessPlace(selected.getUri())));
 	}
 
 	protected void initData() {
 		CacheManager.EventConstructor change = new CacheManager.EventConstructor() {
 			@Override
-			public ProgressListUpdate newInstance(String key) {
-				return new ProgressListUpdate();
+			public ProcessListUpdate newInstance(String key) {
+				return new ProcessListUpdate();
 			}
 		};
 		cacheManager.register(cacheManager.ServiceAddress + "process", this.name, change);
@@ -191,8 +191,8 @@ public abstract class AbstractCloudProcessActivity extends AbstractActivity {
 		if(update != null) {
 			CacheManager.EventConstructor constructor = new CacheManager.EventConstructor() {
 				@Override
-				public ProgressUpdate newInstance(String key) {
-					return new ProgressUpdate(key);
+				public ProcessUpdate newInstance(String key) {
+					return new ProcessUpdate(key);
 				}
 			};
 			Set<String> nonInterests = new HashSet<String>();
@@ -282,32 +282,32 @@ public abstract class AbstractCloudProcessActivity extends AbstractActivity {
 		}
 	}
 
-	public static class ProgressListUpdate extends GwtEvent<ProgressListUpdateEventHandler> {
-		public static Type<ProgressListUpdateEventHandler> TYPE = new Type<ProgressListUpdateEventHandler>();
-		public ProgressListUpdate() {}
+	public static class ProcessListUpdate extends GwtEvent<ProcessListUpdateEventHandler> {
+		public static Type<ProcessListUpdateEventHandler> TYPE = new Type<ProcessListUpdateEventHandler>();
+		public ProcessListUpdate() {}
 		@Override
-		public com.google.gwt.event.shared.GwtEvent.Type<ProgressListUpdateEventHandler> getAssociatedType() {
+		public com.google.gwt.event.shared.GwtEvent.Type<ProcessListUpdateEventHandler> getAssociatedType() {
 			return TYPE;
 		}
 		@Override
-		protected void dispatch(ProgressListUpdateEventHandler handler) {
+		protected void dispatch(ProcessListUpdateEventHandler handler) {
 			handler.onMessageReceived(this);
 		}
 	}
-	public interface ProgressUpdateEventHandler extends EventHandler {
-		void onMessageReceived(ProgressUpdate event);
+	public interface ProcessUpdateEventHandler extends EventHandler {
+		void onMessageReceived(ProcessUpdate event);
 	}
 	
-	public static class ProgressUpdate extends GwtEvent<ProgressUpdateEventHandler> {
-		public static Type<ProgressUpdateEventHandler> TYPE = new Type<ProgressUpdateEventHandler>();
+	public static class ProcessUpdate extends GwtEvent<ProcessUpdateEventHandler> {
+		public static Type<ProcessUpdateEventHandler> TYPE = new Type<ProcessUpdateEventHandler>();
 		private final String key;
-		public ProgressUpdate(String key) {this.key = key;}
+		public ProcessUpdate(String key) {this.key = key;}
 		@Override
-		public com.google.gwt.event.shared.GwtEvent.Type<ProgressUpdateEventHandler> getAssociatedType() {
+		public com.google.gwt.event.shared.GwtEvent.Type<ProcessUpdateEventHandler> getAssociatedType() {
 			return TYPE;
 		}
 		@Override
-		protected void dispatch(ProgressUpdateEventHandler handler) {
+		protected void dispatch(ProcessUpdateEventHandler handler) {
 			handler.onMessageReceived(this);
 		}
 		public String getKey() { return this.key; }

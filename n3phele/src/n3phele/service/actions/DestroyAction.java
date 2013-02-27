@@ -56,6 +56,39 @@ public class DestroyAction extends Action {
 		super(owner.getUri(), name, context);
 	}
 	
+	/* (non-Javadoc)
+	 * @see n3phele.service.model.Action#getDescription()
+	 */
+	@Override
+	public String getDescription() {
+		String[] targets = this.target.split("[ ,]+");
+		if(targets.length == 1)
+			return "Destroy "+this.target;
+		else
+			return "Destroy "+targets.length+" VMs";
+	}
+	
+	
+	
+	/* (non-Javadoc)
+	 * @see n3phele.service.model.Action#getDescriptionUri()
+	 */
+	@Override
+	public URI getDescriptionUri() {
+		String[] targets = this.target.split("[ ,]+");
+		String raw = targets[0];
+		if(raw.contains("process")) {
+			return URI.create(raw);
+		}
+		
+		Action action;
+		if(raw.contains("action")) {
+			action = ActionResource.dao.load(URI.create(raw));
+			return action.getProcess();
+		}
+		return null;
+	}
+
 	@Override
 	public void init() throws Exception {
 		logger = new ActionLogger(this);
