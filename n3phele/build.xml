@@ -34,6 +34,9 @@
    <fileset dir="war/WEB-INF/lib">
       <include name="**/*.jar" />
    </fileset>
+   <fileset dir="testLibs/">
+      <include name="**/*.jar" />
+   </fileset>
   </path>
 
   <target name="compile" depends="copyjars"
