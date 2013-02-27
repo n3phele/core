@@ -76,6 +76,7 @@
     <copy todir="test-classes">
       <fileset dir="test">
         <exclude name="**/*.java" /> 
+        <includes="**/*.class" />
       </fileset>
     </copy>
     <javac
