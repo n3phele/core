@@ -75,6 +75,7 @@
     <mkdir dir="test-classes" />
     <copy todir="test-classes">
       <fileset dir="test">
+       <exclude name="**/*.java" />
       </fileset>
     </copy>
     <javac
