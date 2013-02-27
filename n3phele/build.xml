@@ -75,15 +75,14 @@
     <mkdir dir="test-classes" />
     <copy todir="test-classes">
       <fileset dir="test">
-      <include name="n3phele/service/actions/NShellActionTest.class,n3phele/service/actions/NShellActionTest$CreateVMActionWrapper.class" />
         <exclude name="**/*.java" /> 
       </fileset>
     </copy>
     <javac
       srcdir="test"
       destdir="test-classes"
-      classpathref="test.classpath"
-      debug="on" />
+      classpathref="war/WEB-INF/classes"
+      />
   </target>
 
 	<target name="update" depends="datanucleusenhance"
