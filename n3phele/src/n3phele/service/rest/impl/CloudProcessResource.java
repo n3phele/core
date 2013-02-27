@@ -42,6 +42,7 @@ import n3phele.service.model.Action;
 import n3phele.service.model.CachingAbstractManager;
 import n3phele.service.model.CloudProcess;
 import n3phele.service.model.CloudProcessCollection;
+import n3phele.service.model.Command;
 import n3phele.service.model.ServiceModelDao;
 import n3phele.service.model.SignalKind;
 import n3phele.service.model.Variable;
@@ -128,6 +129,33 @@ public class CloudProcessResource {
 	@Path("{id:[0-9]+}") 
 	public CloudProcess get( @PathParam ("id") Long id) throws NotFoundException {
 		return get(null, id);
+	}
+	
+	@GET
+	@Produces("application/json")
+	@RolesAllowed("authenticated")
+	@Path("{group:[0-9]+_}{id:[0-9]+}/history") 
+	public Command getInvocationHistory( @PathParam ("group") String group, @PathParam ("id") Long id,
+			@QueryParam ("commandId") Long commandId) throws NotFoundException {
+		//FIXME 
+		// TODO - not quite right. Needs to be a command with the choice values populated into the
+		// the typed parameters and file specifications. Make the chosen account the first one in the
+		// list. Abuse some fields for job name and notify.
+		Key<CloudProcess> root = null;
+		if(group != null) {
+			root = Key.create(CloudProcess.class, Long.valueOf(group.substring(0,group.length()-1)));
+		}
+		CloudProcess item = dao.load(root, id, UserResource.toUser(securityContext));
+		Action action = ActionResource.dao.load(item.getAction());
+		Command command = null;
+		if(commandId != null) {
+			command = CommandResource.dao.load(commandId, UserResource.toUser(securityContext));		
+			User user = UserResource.toUser(securityContext);
+			command.initCloudAccounts(user);
+			command.setImplementations(null);
+		}
+		
+		return null;
 	}
 	
 	@DELETE

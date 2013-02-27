@@ -38,29 +38,29 @@ import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.condition.IfTrue;
 
 @XmlRootElement(name="CloudProcess")
-@XmlType(name="Action", propOrder={"description", "descriptionUri", "state", "running", "waitTimeout", "pendingInit", "pendingCall", "pendingCancel", "pendingDump", "pendingAssertion", 
+@XmlType(name="CloudProcess", propOrder={"description", "descriptionUri", "state", "running", "waitTimeout", "pendingInit", "pendingCall", "pendingCancel", "pendingDump", "pendingAssertion", 
 		"dependentOn", "dependencyFor", "start", "complete", "finalized", "action", "actionType", "parent", "topLevel", "narrative"})
 @Unindex
 @com.googlecode.objectify.annotation.Entity
 public class CloudProcess extends Entity {
 	//final private static java.util.logging.Logger log = java.util.logging.Logger.getLogger(CloudProcess.class.getName()); 
-	@Id private Long id;
-	private ActionState state = ActionState.NEWBORN;
-	private Date running = null;
-	private Date waitTimeout = null;
-	private boolean pendingInit = false;
-	private boolean pendingCall = false;
-	private boolean pendingCancel = false;
-	private boolean pendingDump = false;
-	private ArrayList<String> pendingAssertion = new ArrayList<String>();
-	private ArrayList<String> dependentOn = new ArrayList<String>();
-	private ArrayList<String> dependencyFor = new ArrayList<String>();
-	@Index private Date start = null;
-	private Date complete = null;
-	@Index private boolean finalized = false;
-	private String action = null;
-	private String actionType = null;
-	@Index private String parent = null;
+	@Id protected Long id;
+	protected ActionState state = ActionState.NEWBORN;
+	protected Date running = null;
+	protected Date waitTimeout = null;
+	protected boolean pendingInit = false;
+	protected boolean pendingCall = false;
+	protected boolean pendingCancel = false;
+	protected boolean pendingDump = false;
+	protected ArrayList<String> pendingAssertion = new ArrayList<String>();
+	protected ArrayList<String> dependentOn = new ArrayList<String>();
+	protected ArrayList<String> dependencyFor = new ArrayList<String>();
+	@Index protected Date start = null;
+	protected Date complete = null;
+	@Index protected boolean finalized = false;
+	protected String action = null;
+	protected String actionType = null;
+	@Index protected String parent = null;
 	@Parent Key<CloudProcess> root;
 	@Index(IfTrue.class) boolean topLevel = false; 
 	

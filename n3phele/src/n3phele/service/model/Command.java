@@ -21,6 +21,8 @@ import javax.xml.bind.annotation.XmlType;
 
 import n3phele.service.model.core.Entity;
 import n3phele.service.model.core.Helpers;
+import n3phele.service.model.core.User;
+import n3phele.service.rest.impl.AccountResource;
 
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Embed;
@@ -230,6 +232,20 @@ public class Command extends Entity {
 	}
 
 
+	public Command initCloudAccounts(User user) {
+		if(this.getImplementations() != null) {
+			ArrayList<CommandCloudAccount> decoratedProfiles = new ArrayList<CommandCloudAccount>();
+			for(CommandImplementationDefinition implementation : this.getImplementations()) {
+				for(Account account : AccountResource.dao.getAccountsForCloud(user,implementation.getName())) {
+					decoratedProfiles.add(new CommandCloudAccount(implementation.getName(),
+																  account.getName(), 
+																  account.getUri()));
+				}
+			}
 
+			this.setCloudAccounts(decoratedProfiles);
+		}
+		return this;
+	}
 	
 }

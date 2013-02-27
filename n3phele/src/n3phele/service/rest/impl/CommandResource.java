@@ -43,13 +43,10 @@ import javax.ws.rs.core.UriInfo;
 import n3phele.service.core.NotFoundException;
 import n3phele.service.core.Resource;
 import n3phele.service.core.UnprocessableEntityException;
-import n3phele.service.model.Account;
 import n3phele.service.model.CachingAbstractManager;
 import n3phele.service.model.ChangeManager;
 import n3phele.service.model.Command;
-import n3phele.service.model.CommandCloudAccount;
 import n3phele.service.model.CommandCollection;
-import n3phele.service.model.CommandImplementationDefinition;
 import n3phele.service.model.ServiceModelDao;
 import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.GenericModelDao;
@@ -231,19 +228,8 @@ public class CommandResource {
 		Command item = dao.load(id, UserResource.toUser(securityContext));
 		
 		User user = UserResource.toUser(securityContext);
-
-		if(item.getImplementations() != null) {
-			ArrayList<CommandCloudAccount> decoratedProfiles = new ArrayList<CommandCloudAccount>();
-			for(CommandImplementationDefinition implementation : item.getImplementations()) {
-				for(Account account : AccountResource.dao.getAccountsForCloud(user,implementation.getName())) {
-					decoratedProfiles.add(new CommandCloudAccount(implementation.getName(),
-																  account.getName(), 
-																  account.getUri()));
-				}
-			}
-			if(!full) item.setImplementations(null);
-			item.setCloudAccounts(decoratedProfiles);
-		}
+		item.initCloudAccounts(user);
+		if(!full) item.setImplementations(null);
 		return item;
 	}
 	
