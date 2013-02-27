@@ -6,6 +6,7 @@
  
  <path id="test.class.path">
 <pathelement location="test-classes"/>
+<pathelement path="war/WEB-INF/classes" />
 </path>
  
   <target name="copyjars"
