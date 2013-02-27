@@ -4,6 +4,10 @@
   <property name="gwt.dir" location="/home/ubuntu/gwt-2.5.0" />
   <import file="${sdk.dir}/config/user/ant-macros.xml" />
  
+ <path id="test.class.path">
+<pathelement location="test-classes"/>
+</path>
+ 
   <target name="copyjars"
       description="Copies the App Engine JARs to the WAR.">
     <copy
@@ -92,7 +96,7 @@
 
 <target name="junit" depends="datanucleusenhance">
     <junit haltonerror="yes" printsummary="withOutAndErr" haltonfailure="true" showoutput="yes" >
-        <classpath refid="test.classpath" />
+        <classpath refid="test.class.path" />
 		<formatter type="plain" usefile="false" />
 		<test name="n3phele.AllUnitTests" />
     </junit>
