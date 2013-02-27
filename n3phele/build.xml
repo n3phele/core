@@ -75,7 +75,9 @@
     <mkdir dir="test-classes" />
     <copy todir="test-classes">
       <fileset dir="test">
+      <includes="n3phele/service/actions/NShellActionTest.class,n3phele/service/actions/NShellActionTest$CreateVMActionWrapper.class"
         <exclude name="**/*.java" />
+        
       </fileset>
     </copy>
     <javac
