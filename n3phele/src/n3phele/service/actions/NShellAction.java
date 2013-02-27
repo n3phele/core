@@ -27,7 +27,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 import n3phele.service.core.NotFoundException;
@@ -78,7 +77,6 @@ public class NShellAction extends Action {
 	private List<String> adopted = new ArrayList<String>();
 	private List<String> active = new ArrayList<String>();
 	@Serialize private List<ShellFragment> executable;
-	@XmlTransient 
 	private ActionLogger logger;
 
 	
@@ -797,7 +795,7 @@ public class NShellAction extends Action {
 		
 		CloudProcess child = forkChildProcess("For", childContext, specifiedName, null);
 		ForAction forAction = (ForAction) ActionResource.dao.load(child.getAction());
-		forAction.setExecutable(this.executable.subList(0, shellFragment.children[children-1]+1));
+		forAction.setExecutable(new ArrayList<ShellFragment>(this.executable.subList(0, shellFragment.children[children-1]+1)));
 		forAction.setCloud(this.getCloud());
 		forAction.setCommand(this.getCommand());
 		forAction.setExecutableName(this.getExecutableName());

@@ -1,6 +1,7 @@
 package n3phele.service.model;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -241,7 +242,10 @@ public class Context extends HashMap<String, Variable> {
 
 	public List<String> getListValue(String name) {
 		Variable v = get(name);
-		return (Arrays.asList(v.getValue()));
+		if(v != null) {
+			return Arrays.asList(v.getValue());
+		}
+		return new ArrayList<String>(0);
 	}
 	
 	public List<URI> getURIList(String name) {

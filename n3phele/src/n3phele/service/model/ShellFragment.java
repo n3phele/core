@@ -3,6 +3,8 @@ package n3phele.service.model;
 import java.io.Serializable;
 import java.util.Arrays;
 
+import com.googlecode.objectify.annotation.Serialize;
+
 /**
 *
 * (C) Copyright 2010-2013. Nigel Cook. All rights reserved.
@@ -22,7 +24,7 @@ public class ShellFragment implements Serializable {
 	private static final long serialVersionUID = 1L;
 	public ShellFragmentKind kind;
 	public String value;
-	public Integer[] children;
+	@Serialize public Integer[] children;
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */

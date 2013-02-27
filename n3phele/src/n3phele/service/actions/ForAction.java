@@ -35,8 +35,8 @@ import n3phele.service.model.core.Helpers;
 import n3phele.service.rest.impl.ActionResource;
 
 import com.googlecode.objectify.annotation.Cache;
-import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.EntitySubclass;
+import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.annotation.Unindex;
 
 /** Creates one or more execution instances of a set of statements that form the body of the for loop
@@ -58,9 +58,9 @@ import com.googlecode.objectify.annotation.Unindex;
 @Cache
 public class ForAction extends Action {
 	final private static java.util.logging.Logger log = java.util.logging.Logger.getLogger(ForAction.class.getName()); 
-	@XmlTransient private ActionLogger logger;
+	private ActionLogger logger;
 	private ArrayList<String> inProgress = new ArrayList<String>();
-	@XmlTransient @Embed  private List<ShellFragment> executable;
+	@Serialize private List<ShellFragment> executable;
 	private int start;
 	private String executableName;
 	private String command;
@@ -304,6 +304,7 @@ public class ForAction extends Action {
 	/**
 	 * @return the executable
 	 */
+	@XmlTransient 
 	public List<ShellFragment> getExecutable() {
 		return executable;
 	}

@@ -33,7 +33,8 @@ import com.sun.jersey.spi.container.ContainerRequestFilter;
 
 public class BasicSecurityFilter implements ContainerRequestFilter {
 	private final static Logger log = Logger.getLogger(BasicSecurityFilter.class.getName()); 
-	private final static User root = UserResource.Root;
+	@SuppressWarnings("unused")
+	private final static User root = UserResource.Root; // forces root creation before other db access
     @Context UriInfo uriInfo;
     @Context SecurityContext securityContext;
     private static final String REALM = "N3phele user authentication";
