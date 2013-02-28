@@ -51,6 +51,7 @@
         srcdir="src"
         destdir="war/WEB-INF/classes"
         classpathref="project.classpath"
+        includeAntRuntime="true"
         debug="on" />
   </target>
   
@@ -72,15 +73,15 @@
 
   <target name="compile_tests" depends="compile"
       description="Compiles Java source tests.">
-    <mkdir dir="test-classes" />
-    <copy todir="test-classes">
+    <mkdir dir="testClasses" />
+    <copy todir="testClasses">
       <fileset dir="test">
        <exclude name="**/*.java" />
       </fileset>
     </copy>
     <javac
       srcdir="test"
-      destdir="war/WEB-INF/classes"
+      destdir="testClasses"
       classpathref="test.classpath"
       includeAntRuntime="true"
       />
