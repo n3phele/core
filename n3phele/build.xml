@@ -81,7 +81,6 @@
     <javac
       srcdir="test"
       destdir="test-classes"
-      classpathref="test.classpath"
       includeAntRuntime="true"
       />
   </target>
