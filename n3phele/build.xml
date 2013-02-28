@@ -79,8 +79,8 @@
       </fileset>
     </copy>
     <javac
-      srcdir="test"
-      destdir="test-classes"
+ 	srcdir="src"
+        destdir="war/WEB-INF/classes"
       includeAntRuntime="true"
       />
   </target>
