@@ -40,9 +40,11 @@ import n3phele.service.model.CommandImplementationDefinition;
 import n3phele.service.model.Context;
 import n3phele.service.model.FileSpecification;
 import n3phele.service.model.FileTracker;
+import n3phele.service.model.ParameterType;
 import n3phele.service.model.ShellFragment;
 import n3phele.service.model.ShellFragmentKind;
 import n3phele.service.model.SignalKind;
+import n3phele.service.model.TypedParameter;
 import n3phele.service.model.Variable;
 import n3phele.service.model.VariableType;
 import n3phele.service.model.core.Helpers;
@@ -94,11 +96,20 @@ public class NShellAction extends Action {
 		return this.executableName;
 	}
 
-	@Override
-	public URI getDescriptionUri() {
-		return URI.create(this.command);
-	}
 	
+	/* (non-Javadoc)
+	 * @see n3phele.service.model.Action#getPrototype()
+	 */
+	@Override
+	public Command getPrototype() {
+		Command command = CommandResource.dao.load(this.getCommand());
+		for(TypedParameter param : command.getExecutionParameters()) {
+			param.setDefaultValue(this.context.getValue(param.getName()));
+		}
+		command.getExecutionParameters().add(new TypedParameter("$account", "account", ParameterType.String, "", this.context.getValue("account")));
+		return command;
+	}
+
 	@Override
 	public void init() throws Exception {
 		logger = new ActionLogger(this);
@@ -1032,7 +1043,7 @@ public class NShellAction extends Action {
 					this.start = -1;
 					this.executable = cid.getCompiled();
 				}
-				this.executableName = cmd.getName()+" "+cmd.getVersion()+(cmd.isPreferred()?"":"*")+" on "+cid.getName();
+				this.executableName = cmd.getName()+(this.start==-1?" ":" sub-shell of ")+cmd.getVersion()+(cmd.isPreferred()?"":"*")+" on "+cid.getName();
 				this.command = baseURI.toString();
 				this.cloud = cid.getName();
 				return cid;

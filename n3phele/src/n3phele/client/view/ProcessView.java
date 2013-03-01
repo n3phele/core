@@ -20,7 +20,6 @@ import java.util.Map;
 import n3phele.client.N3phele;
 import n3phele.client.model.CloudProcess;
 import n3phele.client.model.Narrative;
-import n3phele.client.presenter.ActivityPlace;
 import n3phele.client.presenter.ProcessActivity;
 import n3phele.client.resource.NarrativeListCellTableResource;
 import n3phele.client.widgets.HyperlinkCell;
@@ -58,7 +57,6 @@ public class ProcessView extends WorkspaceVerticalPanel {
 	private Label name;
 	private CellWidget<IconText> iconStatus;
 	private Hyperlink command;
-	//private Label description;
 	private CellWidget<Date> startdate;
 	private CellWidget<Date> completedate;
 	private Label duration;
@@ -198,11 +196,9 @@ public class ProcessView extends WorkspaceVerticalPanel {
 			barUrl = new Image(N3phele.n3pheleResource.barBackground()).getUrl();
 		}
 		if(this.process != null) {
-			ActivityPlace place = new ActivityPlace(this.process.getDescriptionUri());
 			this.name.setText(this.process.getName());
-
 			
-			this.command = new Hyperlink(this.process.getDescription(),  presenter.getToken(this.process.getDescriptionUri()));
+			this.command = new Hyperlink(this.process.getDescription(),  presenter.getToken(this.process.getAction()));
 			table.setWidget(1, 1, this.command);
 			this.startdate.setValue(this.process.getStart());
 			this.completedate.setValue(this.process.getComplete());

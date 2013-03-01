@@ -45,7 +45,7 @@ public class ActivtiyActivity extends CommandActivity {
 	 */
 	public ActivtiyActivity(String name, ClientFactory factory,
 			CommandDetailView view, String activity) {
-		super(name, null, factory, view);
+		super(name, activity, factory, view);
 		this.activityUri = activity;
 	}
 	
@@ -53,10 +53,12 @@ public class ActivtiyActivity extends CommandActivity {
 		this(name, factory, factory.getActivityCommandView(), activityUri);
 	}
 	
-	@Override
-	protected void initData() {
-		this.refreshActivity(this.activityUri);
-	}
+//	@Override
+//	protected void initData() {
+//		this.refreshActivity(this.activityUri);
+//	}
+	
+
 	
 	protected void refreshActivity(String key) {
 		
@@ -88,12 +90,27 @@ public class ActivtiyActivity extends CommandActivity {
 	
 	@Override
 	protected void updateData(String uri, Command update) {
-		if(this.activity != null) {
-			merge(update, this.activity);
+//		if(this.activity != null) {
+//			merge(update, this.activity);
+//		}
+		Map<String, String> topLevel = new HashMap<String, String>();
+		for(int i=0; i < update.getExecutionParameters().size(); i++) {
+			TypedParameter p = update.getExecutionParameters().get(i);
+			if(p.getName().startsWith("$")) {
+				update.getExecutionParameters().remove(i--);
+				p.setName(p.getName().substring(1));
+				GWT.log("toplevel "+p.getName()+" "+p.getValue()+" "+p.getDefaultValue());
+				topLevel.put(p.getName(), isBlankOrNull(p.getValue())?p.getDefaultValue():p.getValue());
+			}
 		}
 		super.updateData(uri, update);
-		this.display.setJobName(activity.getName());
-		this.display.setSelectedImplementation("fIXme"+activity.getCloudProfileId(), activity.getAccount());
+		this.display.setJobName(topLevel.get("name"));
+		this.display.setNotify(Boolean.valueOf(topLevel.get("notify")));
+		this.display.setSelectedImplementation(topLevel.get("account"));
+	}
+	
+	private boolean isBlankOrNull(String s) {
+		return s==null || s.isEmpty();
 	}
 	
 	protected void merge(Command command, Activity activity) {

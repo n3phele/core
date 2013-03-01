@@ -25,6 +25,13 @@ public class TypedParameter extends JavaScriptObject {
 	public native final String getName() /*-{
 		return this.name;
 	}-*/;
+	
+	/**
+	 * name the name to set
+	 */
+	public native final void setName(String name) /*-{
+		this.name = name;
+	}-*/;
 	/**
 	 * @return the description
 	 */

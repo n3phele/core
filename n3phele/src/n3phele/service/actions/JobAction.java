@@ -13,6 +13,7 @@ package n3phele.service.actions;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.Date;
+import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 
@@ -32,8 +33,11 @@ import n3phele.service.lifecycle.ProcessLifecycle.WaitForSignalRequest;
 import n3phele.service.model.Action;
 import n3phele.service.model.ActionState;
 import n3phele.service.model.CloudProcess;
+import n3phele.service.model.Command;
 import n3phele.service.model.Context;
+import n3phele.service.model.ParameterType;
 import n3phele.service.model.SignalKind;
+import n3phele.service.model.TypedParameter;
 import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.User;
 import n3phele.service.rest.impl.ActionResource;
@@ -92,25 +96,35 @@ public class JobAction extends Action {
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see n3phele.service.model.Action#getDescriptionUri()
+	/*
+	 * (non-Javadoc)
+	 * @see n3phele.service.model.Action#getPrototype()
 	 */
 	@Override
-	public URI getDescriptionUri() {
+	public Command getPrototype() {
+		Command command = null;
 		try {
 			CloudProcess child = CloudProcessResource.dao.load(this.getChildProcess());
 			Action childAction = ActionResource.dao.load(child.getAction());
-			return childAction.getDescriptionUri();
+			command = childAction.getPrototype();
+			List<TypedParameter> myParameters = command.getExecutionParameters();
+
+			myParameters.add(new TypedParameter("$name", "job name", ParameterType.String, "", this.context.getValue("name")));
+			myParameters.add(new TypedParameter("$notify", "send notification email", ParameterType.Boolean, "", this.context.getValue("notify")));
+			myParameters.add(new TypedParameter("$account", "send notification email", ParameterType.String, "", this.context.getValue("account")));
+
 		} catch (Exception e) {
-			return this.getProcess();
+			log.log(Level.WARNING, "get prototype failed", e);
 		}
+
+		return command;
 	}
 	
 	@Override
 	public void init() throws Exception {
 		logger = new ActionLogger(this);
 		logger.setGroup(this);
-		this.actionName = this.getContext().getValue("action");
+		this.actionName = null;
 
 		String arg = this.getContext().getValue("arg");
 		String[] argv;
@@ -119,6 +133,8 @@ public class JobAction extends Action {
 		} else {
 			argv =	arg.split("[\\s]+");	// FIXME - find a better regex for shell split
 		}
+		
+		this.notify = this.getContext().getBooleanValue("notify");
 		
 		Context childEnv = new Context();
 		childEnv.putAll(this.getContext());

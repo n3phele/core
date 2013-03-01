@@ -11,6 +11,8 @@ package n3phele.service.actions;
  *  specific language governing permissions and limitations under the License.
  */
 import java.net.URI;
+import java.util.List;
+import java.util.logging.Level;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
@@ -20,10 +22,15 @@ import n3phele.service.lifecycle.ProcessLifecycle;
 import n3phele.service.lifecycle.ProcessLifecycle.WaitForSignalRequest;
 import n3phele.service.model.Action;
 import n3phele.service.model.CloudProcess;
+import n3phele.service.model.Command;
 import n3phele.service.model.Context;
+import n3phele.service.model.ParameterType;
 import n3phele.service.model.SignalKind;
+import n3phele.service.model.TypedParameter;
 import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.User;
+import n3phele.service.rest.impl.ActionResource;
+import n3phele.service.rest.impl.CloudProcessResource;
 
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.EntitySubclass;
@@ -67,17 +74,33 @@ public class ServiceAction extends Action {
 		return "Service "+this.getName();
 	}
 	
-	/* (non-Javadoc)
-	 * @see n3phele.service.model.Action#getDescriptionUri()
+	/*
+	 * (non-Javadoc)
+	 * @see n3phele.service.model.Action#getPrototype()
 	 */
 	@Override
-	public URI getDescriptionUri() {
-		return this.getProcess();
-	}	
+	public Command getPrototype() {
+		Command command = null;
+		try {
+			CloudProcess child = CloudProcessResource.dao.load(this.getChildProcess());
+			Action childAction = ActionResource.dao.load(child.getAction());
+			command = childAction.getPrototype();
+			List<TypedParameter> myParameters = command.getExecutionParameters();
+
+			myParameters.add(new TypedParameter("name", "job name", ParameterType.String, "", ""));
+			myParameters.add(new TypedParameter("arg", "command line", ParameterType.String, "", ""));
+			for(TypedParameter param : command.getExecutionParameters()) {
+				param.setDefaultValue(this.context.getValue(param.getName()));
+			}
+		} catch (Exception e) {
+			log.log(Level.WARNING, "get prototype failed", e);
+		}
+
+		return command;
+	}
 	
 	@Override
 	public void init() throws Exception {
-		this.actionName = this.getContext().getValue("action");
 
 		String arg = this.getContext().getValue("arg");
 		String[] argv;

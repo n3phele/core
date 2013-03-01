@@ -38,8 +38,8 @@ import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.condition.IfTrue;
 
 @XmlRootElement(name="CloudProcess")
-@XmlType(name="CloudProcess", propOrder={"description", "descriptionUri", "state", "running", "waitTimeout", "pendingInit", "pendingCall", "pendingCancel", "pendingDump", "pendingAssertion", 
-		"dependentOn", "dependencyFor", "start", "complete", "finalized", "action", "actionType", "parent", "topLevel", "narrative"})
+@XmlType(name="CloudProcess", propOrder={"description", "state", "running", "waitTimeout", "pendingInit", "pendingCall", "pendingCancel", "pendingDump", "pendingAssertion", 
+		"dependentOn", "dependencyFor", "start", "complete", "finalized", "action", "parent", "topLevel", "narrative"})
 @Unindex
 @com.googlecode.objectify.annotation.Entity
 public class CloudProcess extends Entity {
@@ -59,7 +59,6 @@ public class CloudProcess extends Entity {
 	protected Date complete = null;
 	@Index protected boolean finalized = false;
 	protected String action = null;
-	protected String actionType = null;
 	@Index protected String parent = null;
 	@Parent Key<CloudProcess> root;
 	@Index(IfTrue.class) boolean topLevel = false; 
@@ -74,7 +73,6 @@ public class CloudProcess extends Entity {
 	public CloudProcess(URI owner, String name, CloudProcess parent, boolean topLevel, Action task)  {
 		super(name, null, owner, false);
 		this.action = task.getUri().toString();
-		this.actionType = task.getClass().getSimpleName();
 		this.topLevel = topLevel;
 		if(parent != null) {
 			this.parent = parent.getUri().toString();
@@ -342,18 +340,7 @@ public class CloudProcess extends Entity {
 	public void setRoot(Key<CloudProcess> root) {
 		this.root = root;
 	}
-	/**
-	 * @return the actionType
-	 */
-	public String getActionType() {
-		return actionType;
-	}
-	/**
-	 * @param actionType the actionType to set
-	 */
-	public void setActionType(String actionType) {
-		this.actionType = actionType;
-	}
+
 	/**
 	 * @return the narrative
 	 */
@@ -384,20 +371,6 @@ public class CloudProcess extends Entity {
 	}
 	
 	/**
-	 * @return the descriptionUri
-	 */
-	@XmlElement
-	public URI getDescriptionUri() {
-		return ActionResource.dao.load(this.getAction()).getDescriptionUri();
-	}
-	/**
-	 * @param description this function does nothing, but appease jersey
-	 */
-	public void setDescriptionUri(URI descriptionUri) {
-		
-	}
-	
-	/**
 	 * @return the topLevel
 	 */
 	public boolean isTopLevel() {
@@ -423,11 +396,11 @@ public class CloudProcess extends Entity {
 	@Override
 	public String toString() {
 		return String
-				.format("CloudProcess [id=%s, state=%s, running=%s, waitTimeout=%s, pendingInit=%s, pendingCall=%s, pendingCancel=%s, pendingDump=%s, pendingAssertion=%s, dependentOn=%s, dependencyFor=%s, start=%s, complete=%s, finalized=%s, action=%s, actionType=%s, parent=%s, root=%s, topLevel=%s]",
+				.format("CloudProcess [id=%s, state=%s, running=%s, waitTimeout=%s, pendingInit=%s, pendingCall=%s, pendingCancel=%s, pendingDump=%s, pendingAssertion=%s, dependentOn=%s, dependencyFor=%s, start=%s, complete=%s, finalized=%s, action=%s, parent=%s, root=%s, topLevel=%s]",
 						id, state, running, waitTimeout, pendingInit,
 						pendingCall, pendingCancel, pendingDump,
 						pendingAssertion, dependentOn, dependencyFor, start,
-						complete, finalized, action, actionType,
+						complete, finalized, action,
 						parent, root, topLevel);
 	}
 	/* (non-Javadoc)
@@ -438,8 +411,6 @@ public class CloudProcess extends Entity {
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result + ((action == null) ? 0 : action.hashCode());
-		result = prime * result
-				+ ((actionType == null) ? 0 : actionType.hashCode());
 		result = prime * result
 				+ ((complete == null) ? 0 : complete.hashCode());
 		result = prime * result
@@ -481,11 +452,6 @@ public class CloudProcess extends Entity {
 			if (other.action != null)
 				return false;
 		} else if (!action.equals(other.action))
-			return false;
-		if (actionType == null) {
-			if (other.actionType != null)
-				return false;
-		} else if (!actionType.equals(other.actionType))
 			return false;
 		if (complete == null) {
 			if (other.complete != null)

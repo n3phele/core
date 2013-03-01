@@ -198,8 +198,8 @@ public class ProcessActivity extends AbstractActivity {
 		if(uri != null) {
 			if(uri.contains("/process/")) {
 				return new ProcessPlace(uri);
-			} else if(uri.contains("/command/")) {
-				return new CommandPlace(uri);
+			} else if(uri.contains("/action/")) {
+				return new ActivityPlace(uri+"/history");
 			} 
 		}
 		return Place.NOWHERE;

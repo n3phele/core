@@ -15,12 +15,6 @@ public class CloudProcessSummary extends Entity {
 	}-*/;
 
 	/**
-	 * @return the actionType
-	 */
-	public native final String getActionType() /*-{
-		return this.actionType;
-	}-*/;
-	/**
 	 * @return the narrative
 	 */
 	public final List<Narrative> getNarrative() {

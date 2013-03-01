@@ -9,6 +9,7 @@ import junit.framework.Assert;
 import n3phele.service.core.NotFoundException;
 import n3phele.service.lifecycle.ProcessLifecycle.WaitForSignalRequest;
 import n3phele.service.model.Action;
+import n3phele.service.model.Command;
 import n3phele.service.model.Context;
 import n3phele.service.model.ShellFragment;
 import n3phele.service.model.SignalKind;
@@ -77,17 +78,22 @@ public class ExpressionTest {
 				
 			}
 
+			/* (non-Javadoc)
+			 * @see n3phele.service.model.Action#getPrototype()
+			 */
+			@Override
+			public Command getPrototype() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
 			@Override
 			public String getDescription() {
 				// TODO Auto-generated method stub
 				return null;
 			}
 
-			@Override
-			public URI getDescriptionUri() {
-				// TODO Auto-generated method stub
-				return null;
-			}};
+		};
 		action.setContext(contextA);
 		action.setUri(URI.create("http://foo/contextA"));
 		context.putValue("contextA", action);
@@ -123,6 +129,15 @@ public class ExpressionTest {
 				// TODO Auto-generated method stub
 				
 			}
+			
+			/* (non-Javadoc)
+			 * @see n3phele.service.model.Action#getPrototype()
+			 */
+			@Override
+			public Command getPrototype() {
+				// TODO Auto-generated method stub
+				return null;
+			}
 
 			@Override
 			public String getDescription() {
@@ -130,11 +145,7 @@ public class ExpressionTest {
 				return null;
 			}
 
-			@Override
-			public URI getDescriptionUri() {
-				// TODO Auto-generated method stub
-				return null;
-			}};
+			};
 		action2.setContext(contextB);
 		action2.setUri(URI.create("http://foo/contextB"));
 		context.putValue("contextB", action2);

@@ -101,6 +101,7 @@ public class NParser implements NParserConstants {
     }
     jj_consume_token(0);
                 Command cd = new Command();
+                cd.setShell("NShell");
                 cd.setName(name);
                 cd.setDescription(description);
                 cd.setVersion(version);

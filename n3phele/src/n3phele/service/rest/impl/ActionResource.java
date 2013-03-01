@@ -31,6 +31,8 @@ import n3phele.service.core.NotFoundException;
 import n3phele.service.core.Resource;
 import n3phele.service.model.Action;
 import n3phele.service.model.CachingAbstractManager;
+import n3phele.service.model.CloudProcess;
+import n3phele.service.model.Command;
 import n3phele.service.model.ServiceModelDao;
 import n3phele.service.model.core.BaseEntity;
 import n3phele.service.model.core.Collection;
@@ -63,11 +65,31 @@ public class ActionResource {
 	@GET
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
-	@Path("{tag}") 
-	public Action get( @PathParam ("tag") Long id) throws NotFoundException {
+	@Path("{id}") 
+	public Action get( @PathParam ("id") Long id) throws NotFoundException {
 
 		Action item = dao.load(id, UserResource.toUser(securityContext));
 		return item;
+	}
+	
+	@GET
+	@Produces("application/json")
+	@RolesAllowed("authenticated")
+	@Path("{id}/history") 
+	public Command history( @PathParam ("id") Long id) throws NotFoundException {
+		User user =  UserResource.toUser(securityContext);
+		Action item = dao.load(id, user);
+		
+		Command command = item.getPrototype();
+		if(command.getImplementations() != null && !command.getImplementations().isEmpty()) {
+			CloudProcess process = CloudProcessResource.dao.load(item.getProcess());
+			if(process.isTopLevel()) {
+				command.initCloudAccounts(user);
+				command.setImplementations(null);
+			} 
+		}
+		
+		return command;
 	}
 	
 	/*
