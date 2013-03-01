@@ -14,9 +14,9 @@
 </path>
 
 <path id="google">
-<fileset dir="C:\Users\NICO1\Desktop\juno\eclipse\plugins\com.google.appengine.eclipse.sdkbundle_1.7.4\appengine-java-sdk-1.7.4\">
-<include name="lib\testing\appengine-testing.jar" />
-<include name="lib\impl\appengine-api-stubs.jar" />
+<fileset dir="testLibs/">
+<include name="lib/testing/appengine-testing.jar" />
+<include name="lib/impl/appengine-api-stubs.jar" />
 </fileset>
 </path>
 

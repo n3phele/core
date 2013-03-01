@@ -428,7 +428,7 @@ public class ProcessLifecycle {
 	 * @return TRUE if dependency causes process execution to block
 	 * @throws IllegalArgumentException if the dependency is non-existent or has terminated abnormally
 	 */
-	public boolean setDependentOn(URI process, List<URI> dependentOnList) {
+	public boolean setDependentOn(final URI process, List<URI> dependentOnList) {
 		if(dependentOnList == null || dependentOnList.isEmpty()) return false;
 		boolean result = false;
 		int chunkSize = 4;
@@ -437,8 +437,27 @@ public class ProcessLifecycle {
 			boolean chunkResult = setListOfDependentOn(process, dependentOnList.subList(i, lim));
 			result = result || chunkResult;
 		}
+
+		CloudProcessResource.dao.transact(new VoidWork(){
+
+			@Override
+			public void vrun() {
+				CloudProcess targetProcess = CloudProcessResource.dao.load(process);
+				if(!targetProcess.isFinalized()) {
+					if(targetProcess.getDependentOn() != null && targetProcess.getDependentOn().size() > 0 &&
+							targetProcess.getRunning()==null &&
+							(targetProcess.getState().equals(ActionState.RUNABLE) ||
+							targetProcess.getState().equals(ActionState.INIT))) {
+						targetProcess.setState(ActionState.BLOCKED);
+						targetProcess.setWaitTimeout(null);
+						CloudProcessResource.dao.update(targetProcess);
+					}
+				} 
+			}
+		});
+
 		return result;
-		
+
 	}
 	
 	/** Adds a set of dependency such that process runs dependent on the successful execution of dependentOnList members
@@ -654,7 +673,8 @@ public class ProcessLifecycle {
 				boolean redispatch = false;
 				CloudProcess targetProcess = CloudProcessResource.dao.load(processRoot, processId);
 				if(!targetProcess.isFinalized()) {
-					if(targetProcess.getState() == ActionState.RUNABLE && targetProcess.hasPending()) {
+					boolean hasDependencies = targetProcess.getDependentOn() != null && targetProcess.getDependentOn().size() > 0;
+					if(!hasDependencies && targetProcess.getState() == ActionState.RUNABLE && targetProcess.hasPending()) {
 						long now = new Date().getTime(); 
 						if(targetProcess.getRunning().getTime()+(60*1000) < now) {
 							// process has run too long .. re queue
@@ -669,7 +689,7 @@ public class ProcessLifecycle {
 					} else {
 						logExecutionTime(targetProcess);
 						targetProcess.setRunning(null);
-						if(targetProcess.getDependentOn() != null && targetProcess.getDependentOn().size() > 0) {
+						if(hasDependencies) {
 							targetProcess.setState(ActionState.BLOCKED);
 						} 
 						CloudProcessResource.dao.update(targetProcess);

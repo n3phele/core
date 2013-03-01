@@ -688,6 +688,8 @@ public class CloudProcessTest  {
 		CloudProcess jerry = ProcessLifecycle.mgr().createProcess(UserResource.Root, "jerry", jerry_env, null, null, true, CountDownAction.class);
 		CloudResourceTestWrapper.dao.clear();
 		cpr.refresh();
+		Thread.sleep(1000);
+		CloudResourceTestWrapper.dao.clear();
 		ProcessLifecycle.mgr().addDependentOn(tom, jerry);
 		ProcessLifecycle.mgr().init(jerry);
 
