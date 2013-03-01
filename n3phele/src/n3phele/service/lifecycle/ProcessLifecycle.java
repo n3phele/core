@@ -438,23 +438,23 @@ public class ProcessLifecycle {
 			result = result || chunkResult;
 		}
 
-		CloudProcessResource.dao.transact(new VoidWork(){
-
-			@Override
-			public void vrun() {
-				CloudProcess targetProcess = CloudProcessResource.dao.load(process);
-				if(!targetProcess.isFinalized()) {
-					if(targetProcess.getDependentOn() != null && targetProcess.getDependentOn().size() > 0 &&
-							targetProcess.getRunning()==null &&
-							(targetProcess.getState().equals(ActionState.RUNABLE) ||
-							targetProcess.getState().equals(ActionState.INIT))) {
-						targetProcess.setState(ActionState.BLOCKED);
-						targetProcess.setWaitTimeout(null);
-						CloudProcessResource.dao.update(targetProcess);
-					}
-				} 
-			}
-		});
+		if(result)
+			CloudProcessResource.dao.transact(new VoidWork(){
+	
+				@Override
+				public void vrun() {
+					CloudProcess targetProcess = CloudProcessResource.dao.load(process);
+					if(!targetProcess.isFinalized()) {
+						if(targetProcess.getDependentOn() != null && targetProcess.getDependentOn().size() > 0 &&
+								targetProcess.getRunning()==null &&
+								targetProcess.getState().equals(ActionState.RUNABLE)) {
+							targetProcess.setState(ActionState.BLOCKED);
+							targetProcess.setWaitTimeout(null);
+							CloudProcessResource.dao.update(targetProcess);
+						}
+					} 
+				}
+			});
 
 		return result;
 
@@ -673,8 +673,7 @@ public class ProcessLifecycle {
 				boolean redispatch = false;
 				CloudProcess targetProcess = CloudProcessResource.dao.load(processRoot, processId);
 				if(!targetProcess.isFinalized()) {
-					boolean hasDependencies = targetProcess.getDependentOn() != null && targetProcess.getDependentOn().size() > 0;
-					if(!hasDependencies && targetProcess.getState() == ActionState.RUNABLE && targetProcess.hasPending()) {
+					if(targetProcess.getState() == ActionState.RUNABLE && targetProcess.hasPending()) {
 						long now = new Date().getTime(); 
 						if(targetProcess.getRunning().getTime()+(60*1000) < now) {
 							// process has run too long .. re queue
@@ -689,7 +688,7 @@ public class ProcessLifecycle {
 					} else {
 						logExecutionTime(targetProcess);
 						targetProcess.setRunning(null);
-						if(hasDependencies) {
+						if(targetProcess.getDependentOn() != null && !targetProcess.getDependentOn().isEmpty()) {
 							targetProcess.setState(ActionState.BLOCKED);
 						} 
 						CloudProcessResource.dao.update(targetProcess);
