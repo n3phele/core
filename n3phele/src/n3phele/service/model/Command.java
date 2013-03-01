@@ -32,12 +32,13 @@ import com.googlecode.objectify.annotation.Unindex;
 
 
 @XmlRootElement(name="Command")
-@XmlType(name="Command", propOrder={"description", "preferred", "version", "icon", "ownerName", "inputFiles", "outputFiles", "executionParameters", "cloudAccounts", "implementations"})
+@XmlType(name="Command", propOrder={"shell", "description", "preferred", "version", "icon", "ownerName", "inputFiles", "outputFiles", "executionParameters", "cloudAccounts", "implementations"})
 @Unindex
 @Cache
 @com.googlecode.objectify.annotation.Entity
 public class Command extends Entity {
 	@Id private Long id;
+	private String shell;
 	private String description;
 	@Index private boolean preferred;
 	private String version;
@@ -65,6 +66,20 @@ public class Command extends Entity {
 	 */
 	public void setId(Long id) {
 		this.id = id;
+	}
+	
+	/**
+	 * @return the shell
+	 */
+	public final String getShell() {
+		return this.shell;
+	}
+
+	/**
+	 * @param shell the shell to set
+	 */
+	public final void setShell(String shell) {
+		this.shell = shell;
 	}
 
 	/**
@@ -225,12 +240,13 @@ public class Command extends Entity {
 	@Override
 	public String toString() {
 		return String
-				.format("Command [id=%s, description=%s, preferred=%s, version=%s, icon=%s, ownerName=%s, inputFiles=%s, executionParameters=%s, outputFiles=%s, implementations=%s, cloudAccounts=%s]",
-						id, description, preferred, version, icon, ownerName,
-						inputFiles, executionParameters, outputFiles,
-						implementations, cloudAccounts);
+				.format("Command [id=%s, shell=%s, description=%s, preferred=%s, version=%s, icon=%s, ownerName=%s, inputFiles=%s, executionParameters=%s, outputFiles=%s, implementations=%s, cloudAccounts=%s]",
+						this.id, this.shell, this.description, this.preferred,
+						this.version, this.icon, this.ownerName,
+						this.inputFiles, this.executionParameters,
+						this.outputFiles, this.implementations,
+						this.cloudAccounts);
 	}
-
 
 	public Command initCloudAccounts(User user) {
 		if(this.getImplementations() != null) {

@@ -12,7 +12,9 @@ package n3phele.service.actions;
  */
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.logging.Level;
 
 import javax.ws.rs.core.MediaType;
@@ -23,8 +25,11 @@ import javax.xml.bind.annotation.XmlType;
 
 import n3phele.service.core.UnprocessableEntityException;
 import n3phele.service.model.Action;
+import n3phele.service.model.Command;
 import n3phele.service.model.Context;
+import n3phele.service.model.ParameterType;
 import n3phele.service.model.SignalKind;
+import n3phele.service.model.TypedParameter;
 import n3phele.service.model.core.CommandRequest;
 import n3phele.service.model.core.Credential;
 import n3phele.service.model.core.Helpers;
@@ -78,12 +83,32 @@ public class OnAction extends Action {
 		return "Run";
 	}
 	
-	/* (non-Javadoc)
-	 * @see n3phele.service.model.Action#getDescriptionUri()
+	/*
+	 * (non-Javadoc)
+	 * @see n3phele.service.model.Action#getPrototype()
 	 */
 	@Override
-	public URI getDescriptionUri() {
-		return ActionResource.dao.load(URI.create(this.target)).getProcess();
+	public Command getPrototype() {
+		Command command = new Command();
+		command.setUri(UriBuilder.fromUri(ActionResource.dao.path).path("history").path(this.getClass().getSimpleName()).build());
+		command.setName("On");
+		command.setOwner(this.getOwner());
+		command.setOwnerName(this.getOwner().toString());
+		command.setPublic(false);
+		command.setDescription("Run command on a remote machine");
+		command.setPreferred(true);
+		command.setVersion("1");
+		command.setIcon(URI.create("https://www.n3phele.com/icons/on"));
+		List<TypedParameter> myParameters = new ArrayList<TypedParameter>();
+		command.setExecutionParameters(myParameters);
+		
+		myParameters.add(new TypedParameter("target", "VM action URI", ParameterType.String, "", ""));
+		myParameters.add(new TypedParameter("command", "shell command to run", ParameterType.String, "", ""));
+		myParameters.add(new TypedParameter("stdin", "shell command standard input", ParameterType.String, "", ""));
+		for(TypedParameter param : command.getExecutionParameters()) {
+			param.setDefaultValue(this.context.getValue(param.getName()));
+		}
+		return command;
 	}
 	
 	@Override

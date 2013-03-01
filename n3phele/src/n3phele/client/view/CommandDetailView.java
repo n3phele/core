@@ -349,18 +349,18 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 	/**
 	 * @param implementationId
 	 */
-	public void setSelectedImplementation(String implementationId, String accountURI) {
-		CommandDetailView.this.selectedImplementation = implementationId;
+	public void setSelectedImplementation(String accountURI) {
 		CommandDetailView.this.selectedAccountURI = accountURI;
 		if(this.accounts != null && this.accounts.size() > 0) {
 			for(CommandCloudAccount ep : this.accounts) {
-				if(ep.getImplementation().equals(implementationId) && ep.getAccountUri().equals(accountURI)) {
-						this.accountTable.redraw();
-						String visible = "-";
+				if(ep.getAccountUri().equals(accountURI)) {
+					CommandDetailView.this.selectedImplementation = ep.getImplementation();
+					this.accountTable.redraw();
+					String visible = "-";
 
-						CommandDetailView.this.gotExecutionSelection.setValue(visible+CommandDetailView.this.gotExecutionSelection.getValue().substring(1));
-						updateRunButton(true);
-						return;
+					CommandDetailView.this.gotExecutionSelection.setValue(visible+CommandDetailView.this.gotExecutionSelection.getValue().substring(1));
+					updateRunButton(true);
+					return;
 				}
 			}
 		}
@@ -387,7 +387,7 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 			if(name==null || name.trim().length()==0) {
 				name = this.commandNameText;
 			}
-			this.presenter.exec("Job", name, "NShell "+data.getUri()+"#"+getSelectedImplementation(), context);
+			this.presenter.exec("Job", name, data.getShell()+" "+data.getUri()+"#"+getSelectedImplementation(), context);
 		}
 	}
 	
@@ -415,9 +415,9 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 			setParameters(command.getExecutionParameters());
 			setInputFiles(command.getInputFiles());
 			setOutputFiles(command.getOutputFiles());
-			setCloudAccounts(command.getcloudAccounts());
+			setCloudAccounts(command.getCloudAccounts());
 			updateRunButton(true);
-			buttonVisibility(true);
+			buttonVisibility(command.getCloudAccounts()!=null && !command.getCloudAccounts().isEmpty());
 		} else {
 			setCommandName("");
 			setCommandDescription("");
@@ -468,11 +468,11 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 		if(CommandDetailView.this.selectedImplementation!=null) {
 			String profileId = CommandDetailView.this.selectedImplementation;
 			String accountURI = CommandDetailView.this.selectedAccountURI;
-			setSelectedImplementation(profileId, accountURI);
+			setSelectedImplementation(accountURI);
 		} else {
 			String visible;
 			if(accounts != null && accounts.size()==1) {
-				setSelectedImplementation(accounts.get(0).getImplementation(), accounts.get(0).getAccountUri());
+				setSelectedImplementation(accounts.get(0).getAccountUri());
 			} else {
 				visible = "+";
 				CommandDetailView.this.gotExecutionSelection.setValue(visible+CommandDetailView.this.gotExecutionSelection.getValue().substring(1));
@@ -513,6 +513,10 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 	
 	public void setJobName(String jobName) {
 		this.jobName.setText(jobName);
+	}
+	
+	public void setNotify(boolean notify) {
+		this.sendEmail.setValue(notify);
 	}
 	
 	/*

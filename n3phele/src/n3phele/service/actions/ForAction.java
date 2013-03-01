@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
+import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
@@ -29,8 +30,10 @@ import n3phele.service.model.CloudProcess;
 import n3phele.service.model.Command;
 import n3phele.service.model.CommandImplementationDefinition;
 import n3phele.service.model.Context;
+import n3phele.service.model.ParameterType;
 import n3phele.service.model.ShellFragment;
 import n3phele.service.model.SignalKind;
+import n3phele.service.model.TypedParameter;
 import n3phele.service.model.core.Helpers;
 import n3phele.service.rest.impl.ActionResource;
 
@@ -75,12 +78,32 @@ public class ForAction extends Action {
 		return "For "+this.getContext().getIntegerValue("n")+" step "+this.context.getIntegerValue("chunkSize");
 	}
 	
-	/* (non-Javadoc)
-	 * @see n3phele.service.model.Action#getDescriptionUri()
+	/*
+	 * (non-Javadoc)
+	 * @see n3phele.service.model.Action#getPrototype()
 	 */
 	@Override
-	public URI getDescriptionUri() {
-		return this.getProcess();
+	public Command getPrototype() {
+		Command command = new Command();
+		command.setUri(UriBuilder.fromUri(ActionResource.dao.path).path("history").path(this.getClass().getSimpleName()).build());
+		command.setName("For");
+		command.setOwner(this.getOwner());
+		command.setOwnerName(this.getOwner().toString());
+		command.setPublic(false);
+		command.setDescription("Repeat execution a number of times");
+		command.setPreferred(true);
+		command.setVersion("1");
+		command.setIcon(URI.create("https://www.n3phele.com/icons/for"));
+		List<TypedParameter> myParameters = new ArrayList<TypedParameter>();
+		command.setExecutionParameters(myParameters);
+		
+		myParameters.add(new TypedParameter("n", "Number of times to repeat", ParameterType.Long, "", "1"));
+		myParameters.add(new TypedParameter("chunkSize", "Concurrent execution paths. 0 specifies all in parallel", ParameterType.Long, "", "0"));
+		myParameters.add(new TypedParameter("arg", "command fragment for body", ParameterType.String, "", ""));
+		for(TypedParameter param : command.getExecutionParameters()) {
+			param.setDefaultValue(this.context.getValue(param.getName()));
+		}
+		return command;
 	}
 	
 	@Override
@@ -212,7 +235,7 @@ public class ForAction extends Action {
 				action.setExecutable(this.executable);
 				action.setCloud(this.getCloud());
 				action.setCommand(this.getCommand());
-				action.setExecutableName(this.getExecutableName());
+				action.setExecutableName("Sub-shell of "+this.getExecutableName());
 				ActionResource.dao.update(action);
 				this.context.putValue(this.getName()+"_"+i, action);
 				this.inProgress.add(process.getUri().toString());

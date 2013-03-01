@@ -16,13 +16,14 @@ public class CloudProcess extends Entity {
 	public native final String getState() /*-{
 		return this.state;
 	}-*/;
-
+	
 	/**
-	 * @return the actionType
+	 * @return the action
 	 */
-	public native final String getActionType() /*-{
-		return this.actionType;
+	public native final String getAction() /*-{
+		return this.action;
 	}-*/;
+
 	/**
 	 * @return the narrative
 	 */
@@ -49,13 +50,6 @@ public class CloudProcess extends Entity {
 	 */
 	public native final String getDescription()  /*-{
 		return this.description;
-	}-*/;
-	
-	/**
-	 * @return the descriptionUri
-	 */
-	public native final String getDescriptionUri() /*-{
-		return this.descriptionUri;
 	}-*/;
 	
 	/**

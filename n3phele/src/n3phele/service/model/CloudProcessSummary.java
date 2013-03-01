@@ -9,10 +9,9 @@ import n3phele.service.model.core.Helpers;
 import n3phele.service.rest.impl.NarrativeResource;
 
 @XmlRootElement(name="CloudProcessSummary")
-@XmlType(name="CloudProcess", propOrder={"state", "actionType", "narrative"})
+@XmlType(name="CloudProcess", propOrder={"state", "narrative"})
 public class CloudProcessSummary extends Entity {
 	private ActionState state = ActionState.NEWBORN;
-	private String actionType;
 	private Narrative[] narrative;
 	
 	public CloudProcessSummary() {}
@@ -23,7 +22,6 @@ public class CloudProcessSummary extends Entity {
 		this.isPublic = full.getPublic();
 		this.owner = full.getOwner().toString();
 		this.state = full.getState();
-		this.actionType = full.getActionType();
 		try {
 			this.narrative = new Narrative[] {NarrativeResource.dao.getLastNarrative(full.getUri()) };
 		} catch (NotFoundException e) {
@@ -43,20 +41,6 @@ public class CloudProcessSummary extends Entity {
 	 */
 	public void setState(ActionState state) {
 		this.state = state;
-	}
-
-	/**
-	 * @return the actionType
-	 */
-	public String getActionType() {
-		return actionType;
-	}
-
-	/**
-	 * @param actionType the actionType to set
-	 */
-	public void setActionType(String actionType) {
-		this.actionType = actionType;
 	}
 
 	/**

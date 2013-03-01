@@ -116,12 +116,10 @@ public abstract class Action extends Entity {
 	 */
 	public abstract String getDescription();
 	
-	/** Returns a URI associated with the action instance
+	/** Returns a Command instance associated with the action
 	 * @return description
 	 */
-	public abstract URI getDescriptionUri();
-
-
+	public abstract Command getPrototype();
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()

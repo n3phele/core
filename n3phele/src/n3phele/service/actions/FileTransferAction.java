@@ -12,19 +12,25 @@ package n3phele.service.actions;
  */
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.logging.Level;
 
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 import n3phele.service.core.UnprocessableEntityException;
 import n3phele.service.model.Action;
+import n3phele.service.model.Command;
 import n3phele.service.model.Context;
 import n3phele.service.model.Origin;
+import n3phele.service.model.ParameterType;
 import n3phele.service.model.SignalKind;
+import n3phele.service.model.TypedParameter;
 import n3phele.service.model.core.Credential;
 import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.Task;
@@ -83,14 +89,33 @@ public class FileTransferAction extends Action {
 		return "File transfer";
 	}
 	
-	/* (non-Javadoc)
-	 * @see n3phele.service.model.Action#getDescriptionUri()
+	/*
+	 * (non-Javadoc)
+	 * @see n3phele.service.model.Action#getPrototype()
 	 */
 	@Override
-	public URI getDescriptionUri() {
-		return this.getProcess();
+	public Command getPrototype() {
+		Command command = new Command();
+		command.setUri(UriBuilder.fromUri(ActionResource.dao.path).path("history").path(this.getClass().getSimpleName()).build());
+		command.setName("FileTransfer");
+		command.setOwner(this.getOwner());
+		command.setOwnerName(this.getOwner().toString());
+		command.setPublic(false);
+		command.setDescription("Transfer a file between a VM and Cloud repository");
+		command.setPreferred(true);
+		command.setVersion("1");
+		command.setIcon(URI.create("https://www.n3phele.com/icons/fileTransfer"));
+		List<TypedParameter> myParameters = new ArrayList<TypedParameter>();
+		command.setExecutionParameters(myParameters);
+		
+		myParameters.add(new TypedParameter("target", "VM action URI", ParameterType.String, "", ""));
+		myParameters.add(new TypedParameter("source", "source file", ParameterType.String, "", ""));
+		myParameters.add(new TypedParameter("destination", "destination file", ParameterType.String, "", ""));
+		for(TypedParameter param : command.getExecutionParameters()) {
+			param.setDefaultValue(this.context.getValue(param.getName()));
+		}
+		return command;
 	}
-	
 	
 	@Override
 	public void init() throws Exception {

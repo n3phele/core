@@ -22,6 +22,12 @@ public class Command extends Entity {
 	protected Command() {}
 	
 	/**
+	 * @return the shell
+	 */
+	public native final String getShell() /*-{
+		return this.shell;
+	}-*/;
+	/**
 	 * @return the description
 	 */
 	public native final String getDescription() /*-{
@@ -114,7 +120,7 @@ public class Command extends Entity {
 	 * @return the cloudProfiles
 	 */
 
-	public final List<CommandCloudAccount> getcloudAccounts() {
+	public final List<CommandCloudAccount> getCloudAccounts() {
 		JavaScriptObject jsa = cloudAccounts();
 		return JsList.asList(jsa);
 	}

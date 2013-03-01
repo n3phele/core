@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.logging.Level;
 
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
@@ -30,7 +31,9 @@ import n3phele.service.model.Account;
 import n3phele.service.model.Action;
 import n3phele.service.model.Cloud;
 import n3phele.service.model.CloudProcess;
+import n3phele.service.model.Command;
 import n3phele.service.model.Context;
+import n3phele.service.model.ParameterType;
 import n3phele.service.model.SignalKind;
 import n3phele.service.model.TypedParameter;
 import n3phele.service.model.Variable;
@@ -97,13 +100,29 @@ public class CreateVMAction extends Action {
 		}
 		return desc.toString();
 	}
-
-	/* (non-Javadoc)
-	 * @see n3phele.service.model.Action#getDescriptionUri()
+	
+	/*
+	 * (non-Javadoc)
+	 * @see n3phele.service.model.Action#getPrototype()
 	 */
 	@Override
-	public URI getDescriptionUri() {
-		return Helpers.stringToURI(this.context.getValue("account"));
+	public Command getPrototype() {
+		Command command = new Command();
+		command.setUri(UriBuilder.fromUri(ActionResource.dao.path).path("history").path(this.getClass().getSimpleName()).build());
+		command.setName("CreateVM");
+		command.setOwner(this.getOwner());
+		command.setOwnerName(this.getOwner().toString());
+		command.setPublic(false);
+		command.setDescription("Create one or more virtual machines");
+		command.setPreferred(true);
+		command.setVersion("1");
+		command.setIcon(URI.create("https://www.n3phele.com/icons/createVM"));
+		List<TypedParameter> myParameters = new ArrayList<TypedParameter>();
+		command.setExecutionParameters(myParameters);
+		
+		myParameters.add(new TypedParameter("n", "number of vms to create", ParameterType.Long, "", this.context.getValue("n")));
+		myParameters.add(new TypedParameter("$account", "cloud account", ParameterType.String, "", this.context.getValue("account")));
+		return command;
 	}
 	
 	@Override
