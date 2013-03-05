@@ -14,6 +14,7 @@
 
 package n3phele.storage;
 
+import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 
@@ -30,5 +31,11 @@ public interface CloudStorageInterface {
 	public boolean checkExists(Repository repo, String filename);
 	public URI getRedirectURL(Repository repo, String path, String filename);
 	//FIXME public UploadSignature getUploadSignature(Repository repo, String name);
+	public boolean hasTemporaryURL(Repository repo);
 	public List<FileNode> getFileList(Repository repo, String prefix, int max);
+	public String getType();
+	public URI putObject(Repository item, InputStream uploadedInputStream,
+			String contentType, String destination);
+	public ObjectStream getObject(Repository item, String path, String name);
+	public URI getURL(Repository item, String path, String name) ;
 }

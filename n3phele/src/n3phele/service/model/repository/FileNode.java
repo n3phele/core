@@ -24,7 +24,7 @@ import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Unindex;
 
 @XmlRootElement(name="FileNode")
-@XmlType(name="FileNode", propOrder={"name", "path", "mime", "repository", "repositoryName", "modified", "size", "canonicalName"})
+@XmlType(name="FileNode", propOrder={"name", "path", "mime", "repository", "repositoryName", "modified", "size"})
 @Unindex
 @Cache
 public class FileNode {
@@ -37,7 +37,6 @@ public class FileNode {
 	private String repositoryName;
 	private Date modified;
 	private long size;
-	private String canonicalName;
 	
 	public FileNode() {
 	}
@@ -180,34 +179,15 @@ public class FileNode {
 	}
 
 
-	/**
-	 * @return the canonicalName
-	 */
-	public final String getCanonicalName() {
-		return this.canonicalName;
-	}
-
-
-	/**
-	 * @param canonicalName the canonicalName to set
-	 */
-	public final void setCanonicalName(String canonicalName) {
-		this.canonicalName = canonicalName;
-	}
-
-
-
-
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		return String
-				.format("FileNode [name=%s, path=%s, mime=%s, repository=%s, repositoryName=%s, modified=%s, size=%s, canonicalName=%s]",
+				.format("FileNode [name=%s, path=%s, mime=%s, repository=%s, repositoryName=%s, modified=%s, size=%s]",
 						this.name, this.path, this.mime, this.repository,
-						this.repositoryName, this.modified, this.size,
-						this.canonicalName);
+						this.repositoryName, this.modified, this.size);
 	}
 
 
@@ -234,12 +214,14 @@ public class FileNode {
 	 * @return
 	 */
 	public static FileNode newFile(String name, String path,
-			Repository repo, Date lastModified, long size, String canonicalName) {
+			Repository repo, Date lastModified, long size) {
 		FileNode f=  new FileNode(name, path, "application/vnd.com.n3phele.File", repo.getUri(), lastModified, size);
 		f.setRepositoryName(repo.getName());
-		f.setCanonicalName(canonicalName);
 		return f;
 
 	}
+
+
+	
 
 }
