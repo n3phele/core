@@ -1,11 +1,4 @@
-<!-- Indices written at Thu, 28 Feb 2013 12:34:07 MST -->
+<!-- Indices written at Mon, 4 Mar 2013 20:21:17 MST -->
 
-<datastore-indexes>
+<datastore-indexes/>
 
-    <!-- Used 14 times in query history -->
-    <datastore-index kind="Narrative" ancestor="false" source="auto">
-        <property name="process" direction="asc"/>
-        <property name="stamp" direction="asc"/>
-    </datastore-index>
-
-</datastore-indexes>

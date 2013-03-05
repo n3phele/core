@@ -14,7 +14,6 @@
 
 package n3phele.storage;
 
-import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 
@@ -26,7 +25,7 @@ public abstract class CloudStorage implements CloudStorageInterface {
 
 	public static CloudStorageInterface factory(String type) {
 		try {
-			return Class.forName("n3phele.storage."+type+".CloudStorageImpl").asSubclass(CloudStorageInterface.class).newInstance();
+			return Class.forName("n3phele.storage."+type.toLowerCase()+".CloudStorageImpl").asSubclass(CloudStorageInterface.class).newInstance();
 		} catch (ClassNotFoundException e) {
 			throw new IllegalArgumentException("Unknown Cloud storage type: "+type);
 		} catch (InstantiationException e) {
@@ -78,41 +77,17 @@ public abstract class CloudStorage implements CloudStorageInterface {
 			return factory(repo.getKind()).getFileList(repo, prefix, max);
 		}
 
-		@Override
-		public String getType() {
-			throw new IllegalArgumentException();
-		}
 
 		@Override
 		public URI getRedirectURL(Repository repo, String path, String filename) {
 			return factory(repo.getKind()).getRedirectURL(repo, path, filename);
 		}
 
-		@Override
-		public boolean hasTemporaryURL(Repository repo) {
-			return factory(repo.getKind()).hasTemporaryURL(repo);
-		}
 
 //		@Override
 //		public UploadSignature getUploadSignature(Repository repo, String name) {
 //			return factory(repo.getKind()).getUploadSignature(repo, name);
 //		}
-
-		@Override
-		public URI putObject(Repository repo, InputStream uploadedInputStream,
-				String contentType, String destination) {
-			return factory(repo.getKind()).putObject(repo, uploadedInputStream, contentType, destination);
-		}
-
-		@Override
-		public ObjectStream getObject(Repository repo, String path, String name) {
-			return factory(repo.getKind()).getObject(repo, path, name);
-		}
-
-		@Override
-		public URI getURL(Repository repo, String path, String name) {
-			return factory(repo.getKind()).getURL(repo, path, name);
-		}
 		
 		
 	};
