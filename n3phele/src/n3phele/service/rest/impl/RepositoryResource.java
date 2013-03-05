@@ -56,12 +56,10 @@ import n3phele.service.model.repository.FileNode;
 import n3phele.service.model.repository.Repository;
 import n3phele.storage.CloudStorage;
 
-import com.google.appengine.api.backends.BackendServiceFactory;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.RetryOptions;
-import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Builder;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 
@@ -149,9 +147,6 @@ public class RepositoryResource {
 			@DefaultValue("") @QueryParam("path") String path) throws NotFoundException {
 
 		Repository item = dao.load(id, UserResource.toUser(securityContext));
-		if(!CloudStorage.factory().hasTemporaryURL(item)) {
-			warmupBackend(item);
-		}
 		return Response.seeOther(CloudStorage.factory().getRedirectURL(item, path, name)).build();
 	}
 
@@ -175,12 +170,10 @@ public class RepositoryResource {
 							) throws EntityNotFoundException {
 
 		Repository item = dao.load(id, UserResource.toUser(securityContext));
-		if(!CloudStorage.factory().hasTemporaryURL(item)) {
-			warmupBackend(item);
-		}
 		RepoListResponse result = new RepoListResponse();
 		List<FileNode> crumbs = new ArrayList<FileNode>();
 		FileNode f = FileNode.newFolder(item.getName(), null, item, false);
+		f.setMime("application/vnd.com.n3phele.Repository+json");
 		crumbs.add(f);
 		if(prefix != null) {
 			String bits[] = prefix.split("/");
@@ -213,9 +206,6 @@ public class RepositoryResource {
 							) throws EntityNotFoundException {
 
 		Repository item = dao.load(id, UserResource.toUser(securityContext));
-		if(!CloudStorage.factory().hasTemporaryURL(item)) {
-			warmupBackend(item);
-		}
 		boolean exists = CloudStorage.factory().checkExists(item, filename);
 		ValidationResponse result = new ValidationResponse(exists);
 
@@ -402,12 +392,10 @@ public class RepositoryResource {
 			User owner) throws NotFoundException {
 
 		Repository repo = dao.load(f.getRepository(), owner);
-		UriBuilder result = UriBuilder.fromUri(repo.getTarget());
-		result.path(repo.getRoot()).path(f.getFilename());			
-		f.setCanonicalPath(result.build().toString());
 		FileNode fn = CloudStorage.factory().getMetadata(repo, f.getFilename());
 		f.setModified(fn.getModified());
 		f.setSize(fn.getSize());
+		f.setCanonicalPath(fn.getCanonicalName());
 	}
 	
 	public boolean deleteFolder(Repository repo, String filename) {
@@ -431,11 +419,6 @@ public class RepositoryResource {
 		return result;
 	}
 	
-	private void warmupBackend(Repository repo) {
-		TaskOptions ping = Builder.withUrl("/repository/start").method(Method.GET).param("id", repo.getId().toString()).header("Host", BackendServiceFactory.getBackendService().getBackendAddress("gateway"));
-		Queue queue = QueueFactory.getQueue("BackendQueue");
-		queue.add(ping);
-	}
 	
 	public boolean setPermissions(Repository repo, String filename, boolean isPublic) {
 		boolean result = false;
