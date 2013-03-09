@@ -239,21 +239,25 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 	
 	public void updateRunButton(boolean allValid) {
 		GWT.log("update run "+allValid);
-		if(allValid && data != null) {
-			allValid = checkParameterValues(data.getExecutionParameters());
-			GWT.log("update run1 "+allValid);
-		}
-		if(allValid && data.getInputFiles() != null && data.getInputFiles().size() > 0) {
-			allValid = validateRepoRefs(data.getInputFiles(), true);
-			GWT.log("update run2 "+allValid);
-		}
-		if(allValid && data.getOutputFiles() != null && data.getOutputFiles().size() > 0) {
-			allValid = validateRepoRefs(data.getOutputFiles(), false);
-			GWT.log("update run3 "+allValid);
-		}
-		if(allValid) {
-			allValid = getSelectedAccount() != null;
-			GWT.log("update run4 "+allValid);
+		if(data != null) {
+			if(allValid && data != null) {
+				allValid = checkParameterValues(data.getExecutionParameters());
+				GWT.log("update run1 "+allValid);
+			}
+			if(allValid && data.getInputFiles() != null && data.getInputFiles().size() > 0) {
+				allValid = validateRepoRefs(data.getInputFiles(), true);
+				GWT.log("update run2 "+allValid);
+			}
+			if(allValid && data.getOutputFiles() != null && data.getOutputFiles().size() > 0) {
+				allValid = validateRepoRefs(data.getOutputFiles(), false);
+				GWT.log("update run3 "+allValid);
+			}
+			if(allValid) {
+				allValid = getSelectedAccount() != null;
+				GWT.log("update run4 "+allValid);
+			}
+		} else {
+			allValid = false;
 		}
 		GWT.log("update run final "+allValid);
 		this.run.setEnabled(allValid);

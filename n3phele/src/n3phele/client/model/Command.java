@@ -69,11 +69,11 @@ public class Command extends Entity {
 	}
 	public native final JavaScriptObject outputFiles() /*-{
 		var array = [];
-		if(this.outputFiles != undefined && this.outputFiles !=null) {
-			if(this.outputFiles.length==undefined) {
-				array[0] = this.outputFiles;
-			} else {
+		if(this.outputFiles) {
+			if(this.outputFiles.length) {
 				array = this.outputFiles;
+			} else {
+				array[0] = this.outputFiles;
 			}
 		}
 		return array;
@@ -89,11 +89,11 @@ public class Command extends Entity {
 	}
 	public native final JavaScriptObject inputFiles() /*-{
 		var array = [];
-		if(this.inputFiles != undefined && this.inputFiles !=null) {
-			if(this.inputFiles.length==undefined) {
-				array[0] = this.inputFiles;
-			} else {
+		if(this.inputFiles) {
+			if(this.inputFiles.length) {
 				array = this.inputFiles;
+			} else {
+				array[0] = this.inputFiles;
 			}
 		}
 		return array;
@@ -107,11 +107,11 @@ public class Command extends Entity {
 	}
 	public native final JavaScriptObject executionParameters() /*-{
 		var array = [];
-		if(this.executionParameters != undefined && this.executionParameters !=null) {
-			if(this.executionParameters.length==undefined) {
-				array[0] = this.executionParameters;
-			} else {
+		if(this.executionParameters) {
+			if(this.executionParameters.length) {
 				array = this.executionParameters;
+			} else {
+				array[0] = this.executionParameters;
 			}
 		}
 		return array;
@@ -126,11 +126,11 @@ public class Command extends Entity {
 	}
 	public native final JavaScriptObject cloudAccounts() /*-{
 		var array = [];
-		if(this.cloudAccounts != undefined && this.cloudAccounts !=null) {
-			if(this.cloudAccounts.length==undefined) {
-				array[0] = this.cloudAccounts;
-			} else {
+		if(this.cloudAccounts) {
+			if(this.cloudAccounts.length) {
 				array = this.cloudAccounts;
+			} else {
+				array[0] = this.cloudAccounts;
 			}
 		}
 		return array;
