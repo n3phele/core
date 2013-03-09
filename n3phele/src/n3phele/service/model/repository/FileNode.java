@@ -17,6 +17,7 @@ import java.net.URI;
 import java.util.Date;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 import com.googlecode.objectify.annotation.Cache;
@@ -24,7 +25,7 @@ import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Unindex;
 
 @XmlRootElement(name="FileNode")
-@XmlType(name="FileNode", propOrder={"name", "path", "mime", "repository", "repositoryName", "modified", "size", "canonicalName"})
+@XmlType(name="FileNode", propOrder={"name", "path", "mime", "repository", "repositoryName", "modified", "size"})
 @Unindex
 @Cache
 public class FileNode {
@@ -183,6 +184,7 @@ public class FileNode {
 	/**
 	 * @return the canonicalName
 	 */
+	@XmlTransient
 	public final String getCanonicalName() {
 		return this.canonicalName;
 	}

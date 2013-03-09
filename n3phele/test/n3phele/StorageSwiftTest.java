@@ -20,8 +20,8 @@ import org.junit.Test;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 
-public class SwiftTest {
-	public SwiftTest() throws Exception {
+public class StorageSwiftTest {
+	public StorageSwiftTest() throws Exception {
 
 	}
 	
