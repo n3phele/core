@@ -260,7 +260,7 @@ public class CloudProcessResource {
 	
 	@GET
 	@Produces("application/json")
-	@RolesAllowed("authenticated")
+	@RolesAllowed("admin")
 	@Path("refresh") 
 	public Response refresh( )  {
 

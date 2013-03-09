@@ -33,15 +33,15 @@
 		<servlet-name>n3phele</servlet-name>
 		<url-pattern>/resources/*</url-pattern>
 	</servlet-mapping>
-	<servlet-mapping>
+	<!--  <servlet-mapping>
 		<servlet-name>n3phele</servlet-name>
 		<url-pattern>/admin/*</url-pattern>
-	</servlet-mapping>
+	</servlet-mapping> -->
 
 	<security-constraint>
 		<web-resource-collection>
 			<web-resource-name>InternalRequests</web-resource-name>
-			<url-pattern>/admin/worker/*</url-pattern>
+			<url-pattern>/resources/process/refresh</url-pattern>
 		</web-resource-collection>
 		<auth-constraint>
 			<role-name>admin</role-name>
