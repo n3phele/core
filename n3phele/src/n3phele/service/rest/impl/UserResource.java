@@ -86,7 +86,7 @@ public class UserResource {
 	@Produces("text/plain")
 	public Response login() {
 		log.info("login.");
-		return Response.created(dao.myPath()).build();
+		return Response.created(dao.path).build();
 	}
 
 	@POST

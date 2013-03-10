@@ -93,7 +93,7 @@ public class BasicSecurityFilter implements ContainerRequestFilter {
         // Validate the extracted credentials
         User user=null;
         try {
-        	user = new UserResource.UserManager().load(username, UserResource.Root);
+        	user = UserResource.dao.load(username, UserResource.Root);
         } catch (Exception badUser) {
         	
         }

@@ -324,7 +324,7 @@ public class CommandResource {
 		public CommandManager() {
 		}
 		public Collection<Command> collectionFactory(List<Command> list) {
-			return new Collection<Command>(itemDao.clazz.getSimpleName(), URI.create(myPath().toString()),list);
+			return new Collection<Command>(itemDao.clazz.getSimpleName(), super.path,list);
 		}
 		@Override
 		protected URI myPath() {
@@ -399,7 +399,7 @@ public class CommandResource {
 			Collection<Command> result = null;
 			try {
 				java.util.Collection<Command> children = super.itemDao().orderedCollectionByProperty("preferred", true, "name");
-				result = new Collection<Command>(itemDao.clazz.getSimpleName(), URI.create(myPath().toString()), new ArrayList<Command>(children));
+				result = new Collection<Command>(itemDao.clazz.getSimpleName(), super.path, new ArrayList<Command>(children));
 			} catch (NotFoundException e) {
 			}
 			result.setTotal(result.getElements().size());
@@ -431,7 +431,7 @@ public class CommandResource {
 				List<Command> owned = com.googlecode.objectify.ObjectifyService.ofy().load().type(itemDao.clazz).filter("owner", owner.toString()).filter("preferred", true).list();
 				List<Command> shared = com.googlecode.objectify.ObjectifyService.ofy().load().type(itemDao.clazz).filter("preferred", true).filter("isPublic", true).list();
 				List<Command> items = mergeResults(owned, shared, owner);			
-				result = new Collection<Command>(itemDao.clazz.getSimpleName(), URI.create(myPath().toString()), items);
+				result = new Collection<Command>(itemDao.clazz.getSimpleName(), super.path, items);
 			} catch (NotFoundException e) {
 			}
 			result.setTotal(result.getElements().size());
