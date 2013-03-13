@@ -17,7 +17,6 @@ import n3phele.client.N3phele;
 import n3phele.client.model.FileNode;
 import n3phele.client.model.Origin;
 
-
 import com.google.gwt.cell.client.ActionCell.Delegate;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -236,11 +235,11 @@ public class FileDetailsPanel extends FlowPanel {
 	public void setOrigin(FileNode node, Origin data) {
 		if(this.popup.isShowing()) {
 			if(node.getName().equals(this.node.getName())) {
-				if(data.getActivity() != null) {
-					boolean outOfSync = (data.getActivityModification() != null && !data.getActivityModification().equals(node.getModified()));
+				if(data != null && data.getProcess() != null) {
+					boolean outOfSync = (data.getModified() != null && !data.getModified().equals(node.getModified()));
 					if(outOfSync) {
-						long origin = data.getActivityModification().getTime();
-						long file = data.getActivityModification().getTime();
+						long origin = data.getModified().getTime();
+						long file = node.getModified().getTime();
 						if(((origin/1000) == (file/1000)) && ((origin % 100) == 0 || (file % 100) == 0)) {
 							outOfSync = false; // rounding error in time transfer
 						}
@@ -248,11 +247,11 @@ public class FileDetailsPanel extends FlowPanel {
 					if(outOfSync) {
 						icon.setUrl(N3phele.n3pheleResource.outOfSyncIcon().getSafeUri());
 					}
-					activity.setTargetHistoryToken("activityDetail:"+data.getActivity());
+					activity.setTargetHistoryToken("process:"+data.getProcess());
 					if(outOfSync)
-						activity.setText(data.getActivityName()+" on "+dateFormater.format(data.getActivityModification()));
+						activity.setText(data.getProcessName()+" on "+dateFormater.format(data.getModified()));
 					else
-						activity.setText(data.getActivityName());
+						activity.setText(data.getProcessName());
 					activity.setVisible(true);
 				} else {
 					table.setWidget(2, 1, uploaded);

@@ -15,7 +15,6 @@ package n3phele.service.model.repository;
 
 import java.net.URI;
 
-import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -48,7 +47,7 @@ public class UploadSignature {
 		super();
 		this.filename = filename;
 		this.acl = acl;
-		this.url = makeUrl(address, bucket);
+		this.url = address.toString();
 		this.base64Policy = base64Policy;
 		this.signature = signature;
 		this.awsId = awsId;
@@ -156,14 +155,6 @@ public class UploadSignature {
 				.format("UploadSignature [filename=%s, acl=%s, url=%s, base64Policy=%s, signature=%s, awsId=%s, contentType=%s]",
 						this.filename, this.acl, this.url, this.base64Policy,
 						this.signature, this.awsId, this.contentType);
-	}
-
-	private String makeUrl(URI address, String bucket) {
-		UriBuilder builder = UriBuilder.fromUri(address);
-		builder.path(bucket);
-		return builder.build().toString();
-//		String result = "https://"+bucket+"."+address.getHost();
-//		return result;
 	}
 	
 

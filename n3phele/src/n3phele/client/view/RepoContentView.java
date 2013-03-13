@@ -16,11 +16,27 @@ package n3phele.client.view;
 import java.util.ArrayList;
 import java.util.List;
 
+import n3phele.client.N3phele;
+import n3phele.client.model.FileNode;
+import n3phele.client.model.Repository;
+import n3phele.client.presenter.RepoContentActivity;
+import n3phele.client.presenter.RepoPlace;
+import n3phele.client.presenter.helpers.StyledTextCellRenderer;
+import n3phele.client.widgets.ActionDialogBox;
+import n3phele.client.widgets.FileDetailsPanel;
+import n3phele.client.widgets.MenuItem;
+import n3phele.client.widgets.NewFolderPanel;
+import n3phele.client.widgets.S3UploadPanel;
+import n3phele.client.widgets.SectionPanel;
+import n3phele.client.widgets.SwiftUploadPanel;
+import n3phele.client.widgets.UploadPanel;
+import n3phele.client.widgets.WorkspaceVerticalPanel;
+
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.cell.client.AbstractSafeHtmlCell;
+import com.google.gwt.cell.client.ActionCell.Delegate;
 import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.cell.client.ValueUpdater;
-import com.google.gwt.cell.client.ActionCell.Delegate;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.NativeEvent;
@@ -48,20 +64,6 @@ import com.google.gwt.user.client.ui.MenuBar;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.UIObject;
 import com.google.gwt.user.client.ui.Widget;
-
-import n3phele.client.N3phele;
-import n3phele.client.model.FileNode;
-import n3phele.client.model.Repository;
-import n3phele.client.presenter.RepoContentActivity;
-import n3phele.client.presenter.RepoPlace;
-import n3phele.client.presenter.helpers.StyledTextCellRenderer;
-import n3phele.client.widgets.ActionDialogBox;
-import n3phele.client.widgets.FileDetailsPanel;
-import n3phele.client.widgets.MenuItem;
-import n3phele.client.widgets.NewFolderPanel;
-import n3phele.client.widgets.SectionPanel;
-import n3phele.client.widgets.UploadPanel;
-import n3phele.client.widgets.WorkspaceVerticalPanel;
 
 public class RepoContentView extends WorkspaceVerticalPanel {
 
@@ -352,7 +354,14 @@ public class RepoContentView extends WorkspaceVerticalPanel {
 				path = "";
 			destination = path+lastNode.getName()+"/";
 		}
-		uploadPanel = UploadPanel.getInstance(uploadPopup, destination, presenter);
+		GWT.log("Repo type is "+repository.getKind());
+		if("Swift".equals(repository.getKind())) {
+			GWT.log("got swift repo");
+			uploadPanel = SwiftUploadPanel.getInstance(uploadPopup, destination, presenter);
+		} else {
+			GWT.log("got S3 repo");
+			uploadPanel = S3UploadPanel.getInstance(uploadPopup, destination, presenter);
+		}
 		uploadPopup.add(uploadPanel);
 		uploadPopup.center();
 	}

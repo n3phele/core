@@ -20,6 +20,7 @@ import java.util.List;
 import n3phele.service.core.ForbiddenException;
 import n3phele.service.model.repository.FileNode;
 import n3phele.service.model.repository.Repository;
+import n3phele.service.model.repository.UploadSignature;
 
 public interface CloudStorageInterface {
 	public boolean createBucket(Repository repo) throws ForbiddenException;
@@ -29,6 +30,6 @@ public interface CloudStorageInterface {
 	public boolean setPermissions(Repository repo, String filename, boolean isPublic);
 	public boolean checkExists(Repository repo, String filename);
 	public URI getRedirectURL(Repository repo, String path, String filename);
-	//FIXME public UploadSignature getUploadSignature(Repository repo, String name);
+	public UploadSignature getUploadSignature(Repository repo, String name);
 	public List<FileNode> getFileList(Repository repo, String prefix, int max);
 }

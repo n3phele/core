@@ -367,7 +367,7 @@ public class CloudStorageImpl implements CloudStorageInterface {
 
 	
 	
-	//@Override
+	@Override
 	public UploadSignature getUploadSignature(Repository item, String name) {
 		Calendar expires = Calendar.getInstance();
 		expires.add(Calendar.MINUTE,30);
@@ -377,8 +377,10 @@ public class CloudStorageImpl implements CloudStorageInterface {
 		String signature = signS3QueryString(base64Policy, item.getCredential());
 		String awsId = item.getCredential().decrypt().getAccount();
 		String contentType = Mimetypes.getInstance().getMimetype(name);
+		UriBuilder builder = UriBuilder.fromUri(item.getTarget());
+		builder.path(item.getRoot());
 		
-		UploadSignature result = new UploadSignature(name,acl,item.getTarget(), item.getRoot(), base64Policy, signature,awsId,contentType);
+		UploadSignature result = new UploadSignature(name,acl,builder.build(), item.getRoot(), base64Policy, signature,awsId,contentType);
 		return result;
 
 	}

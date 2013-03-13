@@ -41,6 +41,8 @@ import n3phele.service.core.NotFoundException;
 import n3phele.service.core.Resource;
 import n3phele.service.core.UnprocessableEntityException;
 import n3phele.service.model.CachingAbstractManager;
+import n3phele.service.model.ChangeManager;
+import n3phele.service.model.CloudProcess;
 import n3phele.service.model.FileSpecification;
 import n3phele.service.model.Origin;
 import n3phele.service.model.RepoListResponse;
@@ -54,6 +56,7 @@ import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.User;
 import n3phele.service.model.repository.FileNode;
 import n3phele.service.model.repository.Repository;
+import n3phele.service.model.repository.UploadSignature;
 import n3phele.storage.CloudStorage;
 
 import com.google.appengine.api.datastore.EntityNotFoundException;
@@ -120,23 +123,36 @@ public class RepositoryResource {
 		return Response.created(result.getUri()).build();
 	}
 	
-//	@GET
-//	@RolesAllowed("authenticated")
-//	@Produces("application/json")
-//	@Path("{id}/sign")
-//	public UploadSignature sign(@PathParam ("id") Long id,
-//			@QueryParam("name") String name
-//			) throws EntityNotFoundException {
-//
-//		Repository item = dao.load(id, UserResource.toUser(securityContext));
-//		if(!CloudStorage.factory().hasTemporaryURL(item))
-//			warmupBackend(item);
-//		
-//		UploadSignature result = CloudStorage.factory().getUploadSignature(item, name);
-//		log.info(result.toString());
-//		
-//		return result;
-//	}
+	@GET
+	@RolesAllowed("authenticated")
+	@Produces("application/json")
+	@Path("{id}/sign")
+	public UploadSignature sign(@PathParam ("id") Long id,
+			@QueryParam("name") String name
+			) throws EntityNotFoundException {
+
+		Repository item = dao.load(id, UserResource.toUser(securityContext));
+		
+		UploadSignature result = CloudStorage.factory().getUploadSignature(item, name);
+		log.info(result.toString());
+		
+		return result;
+	}
+	
+	@GET
+	@RolesAllowed("authenticated")
+	@Produces("application/json")
+	@Path("{id}/uploadComplete")
+	public Response uploadComplete(@PathParam ("id") Long id,
+			@QueryParam("name") String name
+			) throws EntityNotFoundException {
+
+		Repository item = dao.load(id, UserResource.toUser(securityContext));
+		ChangeManager.factory().addChange(item);
+		
+		
+		return Response.ok().build();
+	}
 	
 	@GET
 	@RolesAllowed("authenticated")
@@ -241,6 +257,19 @@ public class RepositoryResource {
 		UriBuilder ref = UriBuilder.fromUri(item.getTarget());
 		ref.path(item.getRoot()).path(path).path(name);
 		origin = Origin.getCurrentReference(ref.build().toString());
+		if(origin != null) {
+			String processName = "unknown";
+			try {
+				CloudProcess process = CloudProcessResource.dao.load(URI.create(origin.getProcess()));
+				processName = process.getName();
+			} catch (NotFoundException e) {
+				// fall through
+			}
+			origin.setProcessName(processName);
+		} else {
+			origin = new Origin();
+			origin.setCanonicalName(ref.build().toString());
+		}
 
 		return Response.ok(origin).build();
 	}
@@ -258,7 +287,7 @@ public class RepositoryResource {
 		log.info("Delete file "+filename);
 		Repository item = dao.load(id, UserResource.toUser(securityContext));
 		CloudStorage.factory().deleteFile(item, filename);
-		//ChangeManager.factory().addChange(item);
+		ChangeManager.factory().addChange(item);
 
 		return Response.ok().build();
 	}

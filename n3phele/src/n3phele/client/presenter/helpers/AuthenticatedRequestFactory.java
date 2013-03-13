@@ -47,6 +47,7 @@ public class AuthenticatedRequestFactory {
 		RequestBuilder request = new RequestBuilder(httpMethod, url);
 		request.setTimeoutMillis(35000);
 		request.setHeader("Authorization", base64);
+		request.setHeader("If-Modified-Since", "01 Jan 1970 00:00:00 GMT");
 		//request.setUser(defaultUsername);
 		//request.setPassword(defaultPassword);
 		return request;
