@@ -9,16 +9,18 @@ import javax.xml.bind.annotation.XmlType;
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Ignore;
 
 @Entity
 @XmlRootElement(name="Origin")
-@XmlType(name="Origin", propOrder={"canonicalName", "length", "modified", "process"})
+@XmlType(name="Origin", propOrder={"canonicalName", "length", "modified", "process", "processName"})
 public class Origin {
 	
 	@Id private String canonicalName;
 	private String process;
 	private long length;
 	private Date modified;
+	@Ignore private String processName;
 	
 	public Origin() {}
 
@@ -94,18 +96,37 @@ public class Origin {
 	public void setModified(Date modified) {
 		this.modified = modified;
 	}
+	
+	
 
+	/**
+	 * @return the processName
+	 */
+	public String getProcessName() {
+		return this.processName;
+	}
+
+	/**
+	 * @param processName the processName to set
+	 */
+	public void setProcessName(String processName) {
+		this.processName = processName;
+	}
+
+	
+	
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		return String
-				.format("Origin [canonicalName=%s, process=%s, length=%s, modified=%s]",
-						canonicalName, process, length, modified);
+				.format("Origin [canonicalName=%s, process=%s, length=%s, modified=%s, processName=%s]",
+						this.canonicalName, this.process, this.length,
+						this.modified, this.processName);
 	}
-	
-	
+
 	public static void updateOrigin(URI authorProcess, final Origin[] manifest) {
 		final String thisProcess = authorProcess.toString();
 		for(Origin file : manifest) {

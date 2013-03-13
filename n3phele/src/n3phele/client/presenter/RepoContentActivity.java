@@ -18,6 +18,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import n3phele.client.AppPlaceHistoryMapper;
+import n3phele.client.CacheManager;
+import n3phele.client.ClientFactory;
+import n3phele.client.model.FileNode;
+import n3phele.client.model.Origin;
+import n3phele.client.model.RepoListResponse;
+import n3phele.client.model.Repository;
+import n3phele.client.model.UploadSignature;
+import n3phele.client.presenter.helpers.AuthenticatedRequestFactory;
+import n3phele.client.view.RepoContentView;
+import n3phele.client.widgets.FileDetailsPanel;
+import n3phele.client.widgets.UploadPanel;
+
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptObject;
@@ -35,19 +48,6 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
-
-import n3phele.client.AppPlaceHistoryMapper;
-import n3phele.client.CacheManager;
-import n3phele.client.ClientFactory;
-import n3phele.client.model.FileNode;
-import n3phele.client.model.Origin;
-import n3phele.client.model.RepoListResponse;
-import n3phele.client.model.Repository;
-import n3phele.client.model.UploadSignature;
-import n3phele.client.presenter.helpers.AuthenticatedRequestFactory;
-import n3phele.client.view.RepoContentView;
-import n3phele.client.widgets.FileDetailsPanel;
-import n3phele.client.widgets.UploadPanel;
 
 public class RepoContentActivity extends AbstractActivity {
 	private final String repositoryUri;
@@ -222,8 +222,6 @@ public class RepoContentActivity extends AbstractActivity {
 	}
 	
 	/**
-	 * @param node
-	 * @param originPanel 
 	 */
 	public void getSignature(final String file) {
 
@@ -253,6 +251,28 @@ public class RepoContentActivity extends AbstractActivity {
 		});
 		} catch (RequestException e) {
 			Window.alert("Signature fetch exception: "+e.toString());
+		}
+		
+	}
+	
+	public void uploadComplete(final String file) {
+
+		String url = this.repo.getUri()+"/uploadComplete?name="+URL.encodeQueryString(file);
+
+		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, url);
+		try {
+			Request request = builder.sendRequest(null, new RequestCallback() {
+			public void onError(Request request, Throwable exception) {
+				Window.alert("Update complete request exception: "+exception.getMessage());
+			}
+
+			public void onResponseReceived(Request request, Response response) {
+			}
+
+
+		});
+		} catch (RequestException e) {
+			Window.alert("Update complete exception: "+e.toString());
 		}
 		
 	}

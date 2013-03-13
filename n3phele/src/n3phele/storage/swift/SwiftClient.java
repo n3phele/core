@@ -68,7 +68,7 @@ public class SwiftClient {
 			}});
 	}
 
-	public String findEndpointURL(List<Access.Service> serviceCatalog, String type, String region, String facing) {
+	public static String findEndpointURL(List<Access.Service> serviceCatalog, String type, String region, String facing) {
 		for(Access.Service service : serviceCatalog) {
 			if(type.equals(service.getType())) {
 				for(Access.Service.Endpoint endpoint : service.getEndpoints()) {

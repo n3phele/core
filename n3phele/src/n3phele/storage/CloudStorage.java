@@ -20,6 +20,7 @@ import java.util.List;
 import n3phele.service.core.ForbiddenException;
 import n3phele.service.model.repository.FileNode;
 import n3phele.service.model.repository.Repository;
+import n3phele.service.model.repository.UploadSignature;
 
 public abstract class CloudStorage implements CloudStorageInterface {
 
@@ -84,10 +85,10 @@ public abstract class CloudStorage implements CloudStorageInterface {
 		}
 
 
-//		@Override
-//		public UploadSignature getUploadSignature(Repository repo, String name) {
-//			return factory(repo.getKind()).getUploadSignature(repo, name);
-//		}
+		@Override
+		public UploadSignature getUploadSignature(Repository repo, String name) {
+			return factory(repo.getKind()).getUploadSignature(repo, name);
+		}
 		
 		
 	};

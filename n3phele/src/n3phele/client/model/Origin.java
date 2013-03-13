@@ -20,52 +20,58 @@ import n3phele.client.presenter.helpers.SafeDate;
 import com.google.gwt.core.client.JavaScriptObject;
 
 public class Origin extends JavaScriptObject {
-	
 	protected Origin() {}
 	
+	
 
 	/**
-	 * @return the activity
+	 * @return the canonicalName
 	 */
-	public native final String getActivity() /*-{
-		return this.activity;
+	public native final String getCanonicalName() /*-{
+		return this.canonicalName;
 	}-*/;
 
 	/**
-	 * @return the total
+	 * @return the process
 	 */
-	public native final int getTotal() /*-{
-		return parseInt(this.total);
+	public native final String getProcess() /*-{
+		return this.process;
 	}-*/;
 
-	/**
-	 * @return the activityName
-	 */
-	public native final String getActivityName() /*-{
-		return this.activityName;
-	}-*/;
+
 
 	/**
-	 * @return the activityModification
+	 * @return the length
 	 */
-	public final Date getActivityModification() {
-		return SafeDate.parse(activityModification());
+	public native final int getLength() /*-{
+		return parseInt(this.length);
+	}-*/;
+
+
+
+	/**
+	 * @return the modified
+	 */
+	public final Date getModified() {
+		return SafeDate.parse(modified());
 	}
-
-	public native final String activityModification() /*-{
-		return this.activityModification;
-	}-*/;
-
-
+	
 	/**
-	 * @return the activitySize
+	 * @return the modified
 	 */
-	public final long getActivitySize() {
-		return Long.parseLong(activitySize());
-	}
-	public native final String activitySize() /*-{
-		return this.activitySize;
+	private native final String modified() /*-{
+		return this.modified;
 	}-*/;
+	
+	/**
+	 * @return the processName
+	 */
+	public native final String getProcessName() /*-{
+		return this.processName;
+	}-*/;
+
+	
+	
 
 
 	/**

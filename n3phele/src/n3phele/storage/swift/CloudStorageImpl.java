@@ -14,8 +14,12 @@
  */
 package n3phele.storage.swift;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +27,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import javax.ws.rs.core.UriBuilder;
 
 import n3phele.service.core.ForbiddenException;
@@ -31,8 +37,12 @@ import n3phele.service.model.core.Credential;
 import n3phele.service.model.core.Helpers;
 import n3phele.service.model.repository.FileNode;
 import n3phele.service.model.repository.Repository;
+import n3phele.service.model.repository.UploadSignature;
 import n3phele.storage.CloudStorageInterface;
 
+import org.apache.commons.codec.binary.Hex;
+
+import com.amazonaws.services.s3.internal.Mimetypes;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
@@ -158,7 +168,7 @@ public class CloudStorageImpl implements CloudStorageInterface {
 		Map<String, String> params = new HashMap<String,String>();
 		params.put("delimiter", "/");
 		params.put("prefix", filename);
-		params.put("limit", "9999");
+		params.put("limit", "99999");
 
 		while(retry-- > 0) {
 			try {
@@ -175,7 +185,7 @@ public class CloudStorageImpl implements CloudStorageInterface {
 			    	log.info("Delete "+repo.getRoot()+":"+objectSummary.getName());
 			        swiftClient.removeObject(getContainer(repo), objectSummary.getName());
 			    }	
-			    if(list.size()!=9999) {
+			    if(list.size()!=99999) {
 			    	log.info("Doing next portion");
 			    	continue;
 			    }
@@ -238,14 +248,7 @@ public class CloudStorageImpl implements CloudStorageInterface {
 		}
 		return false;
 	}
-	/* (non-Javadoc)
-	 * @see n3phele.storage.CloudStorageInterface#getRedirectURL(n3phele.service.model.repository.Repository, java.lang.String, java.lang.String)
-	 */
-	@Override
-	public URI getRedirectURL(Repository repo, String path, String filename) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+
 	/* (non-Javadoc)
 	 * @see n3phele.storage.CloudStorageInterface#getFileList(n3phele.service.model.repository.Repository, java.lang.String, int)
 	 */
@@ -319,6 +322,84 @@ public class CloudStorageImpl implements CloudStorageInterface {
 			throw e;
 		}
 	}
+	
+	/* (non-Javadoc)
+	 * @see n3phele.storage.CloudStorageInterface#getRedirectURL(n3phele.service.model.repository.Repository, java.lang.String, java.lang.String)
+	 */
+	@Override
+	public URI getRedirectURL(Repository repo, String path, String filename) {
+		Credential credential = repo.getCredential().decrypt();
+		Access access = getAccess(repo.getTarget(), credential.getAccount(), credential.getSecret());
+		UriBuilder result = null;
+		String endpoint = SwiftClient.findEndpointURL(access.getServiceCatalog(), "object-store", getRegion(repo), "public");
+		result = UriBuilder.fromUri(endpoint);
+		result.path(repo.getRoot()).path(path).path(filename);
+		
+		String expires = Long.toString((Calendar.getInstance().getTimeInMillis()/1000) + 60*60);
+
+		String stringToSign = "GET\n"+expires+"\n"+result.build().getPath().replace(" ", "%20");
+		String signature = access.getToken().getTenant().getId()+":"+credential.getAccount().split(":")[0]+":"+signSwiftQueryString(stringToSign, repo.getCredential());
+
+		result.queryParam("temp_url_expires", expires);
+		result.queryParam("temp_url_sig", signature);
+		log.warning("Access "+result.build().getPath()+ " "+result.build());
+		return result.build();
+	}
+	
+	@Override
+	public UploadSignature getUploadSignature(Repository repo, String name) {
+		Credential credential = repo.getCredential().decrypt();
+		Access access = getAccess(repo.getTarget(), credential.getAccount(), credential.getSecret());
+
+		String endpoint = SwiftClient.findEndpointURL(access.getServiceCatalog(), "object-store", getRegion(repo), "public");
+		URI canonicalName = UriBuilder.fromUri(endpoint).path(repo.getRoot()).path(name).build();
+		int last = canonicalName.getPath().lastIndexOf('/');
+		String path = canonicalName.getPath().substring(0, last+1);
+		int discard = canonicalName.getPath().length()-path.length();
+		String canonicalNameWithFile = canonicalName.toString();
+		URI target = URI.create(canonicalNameWithFile.substring(0, canonicalNameWithFile.length()-discard));
+
+		log.info("Target=<"+target+"> path=<"+path+">");
+	
+		String expires = Long.toString((Calendar.getInstance().getTimeInMillis()/1000) + 60*60);
+		// hmac_body = '%s\n%s\n%s\n%s\n%s' % (path, redirect, max_file_size, max_file_count, expires) 
+		String stringToSign = path.replace(" ", "%20")+"\n"+"\n"+"1073741824"+"\n"+"1"+"\n"+expires;
+		String signature = access.getToken().getTenant().getId()+":"+credential.getAccount().split(":")[0]+":"+signSwiftQueryString(stringToSign, repo.getCredential());
+		
+		String acl = "swift";
+
+		String contentType = Mimetypes.getInstance().getMimetype(name);
+		
+		UploadSignature uploadSignature = new UploadSignature(name,acl,target, repo.getRoot(), expires, signature, "none" ,contentType);
+		return uploadSignature;
+
+	}
+	
+	private final String signSwiftQueryString(String stringToSign, Credential credential ) {
+		try {
+			byte[] keyBytes = credential.decrypt().getSecret().getBytes();
+			SecretKeySpec signingKey = new SecretKeySpec(keyBytes, "HmacSHA1");
+			Mac mac = Mac.getInstance("HmacSHA1");
+			mac.init(signingKey);
+			
+			byte[] rawHmac = mac.doFinal(stringToSign.getBytes());
+			byte[] hexBytes = new Hex().encode(rawHmac);
+			return new String(hexBytes, "UTF-8");
+		} catch (IllegalStateException e) {
+			log.log(Level.SEVERE, "Signing error", e);
+			throw new IllegalArgumentException(e.getMessage());
+		} catch (InvalidKeyException e) {
+			log.log(Level.SEVERE, "Signing error", e);
+			throw new IllegalArgumentException(e.getMessage());
+		} catch (NoSuchAlgorithmException e) {
+			log.log(Level.SEVERE, "Signing error", e);
+			throw new IllegalArgumentException(e.getMessage());
+		} catch (UnsupportedEncodingException e) {
+			log.log(Level.SEVERE, "Signing error", e);
+			throw new IllegalArgumentException(e.getMessage());
+		}
+	}
+	
 	
 	private static Map<String,Access> cache = new HashMap<String,Access>();
 	private Access getAccess(URI target, String accessKey, String secretKey) {
