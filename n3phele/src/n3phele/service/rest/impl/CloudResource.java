@@ -6,6 +6,7 @@
 package n3phele.service.rest.impl;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -90,6 +91,24 @@ public class CloudResource {
 		log.warning("Created "+result);
 		return Response.created(result.getUri()).build();
 	}
+	
+	@POST
+	@RolesAllowed("authenticated")
+	@Produces("application/json")
+	@Path("{id}/inputParameter") 
+	public Response setInputParameter(@PathParam ("id") Long id,@FormParam("key") String key,@FormParam("value") String value) throws URISyntaxException{
+		Cloud cloud = dao.load(id, UserResource.toUser(securityContext));
+		ArrayList<TypedParameter> inputParameters = cloud.getInputParameters();
+		for(TypedParameter typedParameter:inputParameters){
+			if(typedParameter.getName().equals(key)){
+				typedParameter.setValue(value);
+				break;
+			}
+		}
+		
+		return Response.created(new URI(cloud.getUri().toString()+"/inputParameter")).build();
+	}
+	
 
 	@GET
 	@RolesAllowed("authenticated")
