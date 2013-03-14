@@ -184,6 +184,17 @@ public class CloudProcessResource {
 		return Response.ok().build();
 	}
 	
+	/*
+	 * This is an eventing endpoint that can be invoked by an http request with
+	 * no authentication.
+	 */
+	@GET
+	@Produces("text/plain")
+	@Path("{id:[0-9]+}")  
+	public Response event(@PathParam ("id") Long id) {
+		return this.event(null, id);
+	}
+	
 	@POST
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
