@@ -270,7 +270,7 @@ public class CreateVMAction extends Action {
 			this.context.putValue("keyName", "n3phele-"+account.getName());
 		}
 		cr.parameters = contextToNameValue(myCloud, this.context);
-		cr.notification = null; // UriBuilder.fromUri(this.getProcess()).scheme("http").path("event").build();
+		cr.notification = UriBuilder.fromUri(this.getProcess()).scheme("http").path("event").build();
 		cr.idempotencyKey = this.getProcess().toString();
 
 		Credential factoryCredential = Credential.reencrypt(account.getCredential(), Credential.unencrypted(myCloud.getFactoryCredential()).getSecret());
