@@ -56,6 +56,7 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.ClientFilter;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
+import com.sun.jersey.core.util.Base64;
 
 /** Creates one or more VMs on a specified cloud
  * <br> Processes the following context variables
@@ -373,6 +374,19 @@ public class CreateVMAction extends Action {
 			String name = param.getName();
 			if(this.context.containsKey(name)) {
 				String value = this.context.getValue(name);
+				/*
+				 * FIXME: Temporary. Move to Factory
+				 */
+				if ("userData".equals(name)) {
+					try {
+						if (!Helpers.isBlankOrNull(value)) {
+							String encoded = new String(Base64.encode(value));
+							value = encoded;
+						}
+					} catch (Exception e) {
+
+					}
+				}
 				NameValue nv = new NameValue(name, value);
 				result.add(nv);
 			}
