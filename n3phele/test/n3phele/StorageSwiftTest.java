@@ -37,11 +37,20 @@ public class StorageSwiftTest {
 	@Before
 	public void setUp() throws Exception {
 		helper.setUp();
+		
+		testResource = new TestResource("n3phele.credentials");
+		
+		accessId = testResource.get("testAccessId", "");
+		accessKey = testResource.get("testAccessKey", "");
 	}
+	
+	TestResource testResource;
+	String accessId;
+	String accessKey;
 	
 	@Test
 	public void testBadCredential() {
-		Credential credential = new Credential("48VY9N2XRL817N8MNTXP:nigel.cook@hp.com", "nrjjGFDYfiKdsF2D2T5sqDHvN9yCWM+SSBoQKFA").encrypt();
+		Credential credential = new Credential(accessId, accessKey).encrypt();
 		Repository repo = new Repository("test", "test repo", credential, URI.create("https://region-a.geo-1.identity.hpcloudsvc.com:35357/v2.0/"), "n3phele-agent", "swift", null, false);
 		List<FileNode> result;
 		try {
@@ -57,7 +66,7 @@ public class StorageSwiftTest {
 	@Test
 	public void testBadContainer() {
 		Date start = new Date();
-		Credential credential = new Credential("48VY9N2XRL817N8MNTXP:nigel.cook@hp.com", "norjjGFDYfiKdsF2D2T5sqDHvN9yCWM+SSBoQKFA").encrypt();
+		Credential credential = new Credential(accessId, accessKey).encrypt();
 		Repository repo = new Repository("test", "test repo", credential, URI.create("https://region-a.geo-1.identity.hpcloudsvc.com:35357/v2.0/"), "badContainer", "swift", null, false);
 		try {
 			CloudStorage.factory().getFileList(repo, "", 10);
@@ -76,7 +85,7 @@ public class StorageSwiftTest {
 	
 	@Test
 	public void testList() {
-		Credential credential = new Credential("48VY9N2XRL817N8MNTXP:nigel.cook@hp.com", "norjjGFDYfiKdsF2D2T5sqDHvN9yCWM+SSBoQKFA").encrypt();
+		Credential credential = new Credential(accessId, accessKey).encrypt();
 		Repository repo = new Repository("test", "test repo", credential, URI.create("https://region-a.geo-1.identity.hpcloudsvc.com:35357/v2.0/"), "n3phele-agent", "swift", null, false);
 		List<FileNode> result = CloudStorage.factory().getFileList(repo, null, 10);
 		for(FileNode n : result) {
