@@ -6,6 +6,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import n3phele.service.model.Cloud;
+import n3phele.service.model.ParameterType;
+import n3phele.service.model.TypedParameter;
 import n3phele.service.model.core.BaseEntity;
 import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.Entity;
@@ -37,7 +39,8 @@ public class CloudWebServiceTest  {
 	public void setUp() throws Exception {
 		client = Client.create();
 		client.addFilter(new HTTPBasicAuthFilter("test-user@gmail.com", "testit!"));
-		webResource = client.resource(UriBuilder.fromUri("http://127.0.0.1:8888/resources").path(CloudResource.class).build());
+		webResource = client.resource(UriBuilder.fromUri("https://127.0.0.1:8888/resources").path(CloudResource.class).build());
+
 	}
 
 	private Client client;
@@ -81,6 +84,28 @@ public class CloudWebServiceTest  {
 		}
 		
 
+
+	}
+	
+	static TypedParameter EC2Defaults[] = {
+		new TypedParameter("instanceType", "specifies virtual machine size. Valid Values: t1.micro | m1.small | m1.large | m1.xlarge | m2.xlarge | m2.2xlarge | m2.4xlarge | c1.medium | c1.xlarge", n3phele.service.model.ParameterType.String, "", "t1.micro"),
+		new TypedParameter("imageId", "Unique ID of a machine image, returned by a call to RegisterImage", ParameterType.String, "", "ami-54cf5c3d"),
+		new TypedParameter("securityGroups", "Name of the security group which controls the open TCP/IP ports for the VM.", ParameterType.String, "", "n3phele-default"),
+		new TypedParameter("userData", "Base64-encoded MIME user data made available to the instance(s). May be used to pass startup commands.", ParameterType.String, "", "#!/bin/bash\necho n3phele agent injection... \nset -x\n wget -q -O - https://n3phele-agent.s3.amazonaws.com/n3ph-install-tgz-basic | su - -c '/bin/bash -s ec2-user ~/agent ~/sandbox' ec2-user\n")		
+	};
+	@Test
+	public void testInitCloudDefaults() throws Exception {
+		Cloud cloud = webResource.path("byName").queryParam("id","EC2").accept(MediaType.APPLICATION_JSON_TYPE).get(Cloud.class);
+		for(TypedParameter t : EC2Defaults) {
+			Form form = new Form();
+			form.add("key", t.getName());
+			form.add("defaultValue", t.getDefaultValue());
+			form.add("type", t.getType().toString());
+			
+	
+			ClientResponse result = webResource.uri(cloud.getUri()).path("inputParameter").post(ClientResponse.class, form);
+			Assert.assertEquals(200, result.getStatus());  
+		}
 
 	}
 	

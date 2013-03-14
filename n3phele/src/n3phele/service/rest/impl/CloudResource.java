@@ -6,7 +6,6 @@
 package n3phele.service.rest.impl;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -35,6 +34,7 @@ import n3phele.service.model.Account;
 import n3phele.service.model.CachingAbstractManager;
 import n3phele.service.model.Cloud;
 import n3phele.service.model.CloudCollection;
+import n3phele.service.model.ParameterType;
 import n3phele.service.model.ServiceModelDao;
 import n3phele.service.model.TypedParameter;
 import n3phele.service.model.core.Collection;
@@ -96,17 +96,32 @@ public class CloudResource {
 	@RolesAllowed("authenticated")
 	@Produces("application/json")
 	@Path("{id}/inputParameter") 
-	public Response setInputParameter(@PathParam ("id") Long id,@FormParam("key") String key,@FormParam("value") String value) throws URISyntaxException{
+	public Response setInputParameter(@PathParam ("id") Long id,
+									  @FormParam("key") String key,
+									  @FormParam("description") String description,
+			  @DefaultValue("String") @FormParam("type") ParameterType type,
+									  @FormParam("value") String value,
+									  @FormParam("defaultValue") String defaultValue
+			  						 ) throws NotFoundException {
+		
 		Cloud cloud = dao.load(id, UserResource.toUser(securityContext));
 		ArrayList<TypedParameter> inputParameters = cloud.getInputParameters();
 		for(TypedParameter typedParameter:inputParameters){
 			if(typedParameter.getName().equals(key)){
 				typedParameter.setValue(value);
-				break;
+				typedParameter.setDefaultValue(defaultValue);
+				if(description != null && !description.trim().isEmpty())
+					typedParameter.setDescription(description);
+				log.info("Updated "+cloud.getName()+" "+typedParameter);
+				dao.update(cloud);
+				return Response.ok().build();
 			}
 		}
-		
-		return Response.created(new URI(cloud.getUri().toString()+"/inputParameter")).build();
+		TypedParameter newValue = new TypedParameter(key, description, type, value, defaultValue);
+		inputParameters.add(newValue);
+		dao.update(cloud);
+		log.info("Added "+cloud.getName()+" "+newValue);
+		return Response.created(URI.create(cloud.getUri().toString()+"/inputParameter")).build();
 	}
 	
 
@@ -231,6 +246,7 @@ public class CloudResource {
 		public Collection<Cloud> getCollection(User user) { return super.getCollection(user); }
 		public void add(Cloud cloud) { super.add(cloud); }
 		public void delete(Cloud cloud) { super.delete(cloud); }
+		public void update(Cloud cloud) { super.update(cloud); }
 
 	}
 	final public static CloudManager dao = new CloudManager();

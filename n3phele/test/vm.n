@@ -1,0 +1,14 @@
+# vm.n
+# Copyright (c) 2013 Nigel Cook. All Rights reserved
+# xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+name	   :  vm
+description: create one or more virtual machines
+version	   : 1.0
+preferred  : true
+public	   : true
+icon	   : http://www.n3phele.com/icons/custom
+parameters :						  
+	optional int n	= 1 	# how many to create
+EC2: # Amazon EC2
+	$$my_vm = CREATEVM --name myVM --n $$n
+	LOG vm created.
