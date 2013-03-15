@@ -470,7 +470,7 @@ public class NShellActionTest {
 		
 		CloudProcess shellProcess = ProcessLifecycleWrapper.mgr().createProcess(root, "shell", context, null, null, true, NShellActionTestHarness.class);
 		ProcessLifecycleWrapper.mgr().init(shellProcess);
-		Thread.sleep(2000);
+		Thread.sleep(4000);
 		CloudProcessResource.dao.clear();
 		
 		/*
