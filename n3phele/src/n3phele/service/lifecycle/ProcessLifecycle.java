@@ -686,12 +686,19 @@ public class ProcessLifecycle {
 							redispatch = true;
 						}
 					} else {
-						logExecutionTime(targetProcess);
-						targetProcess.setRunning(null);
+						boolean dirty = false;
+						if(targetProcess.getRunning() == null) {
+							logExecutionTime(targetProcess);
+							targetProcess.setRunning(null);
+							dirty = true;
+						}
+
 						if(targetProcess.getDependentOn() != null && !targetProcess.getDependentOn().isEmpty()) {
 							targetProcess.setState(ActionState.BLOCKED);
+							dirty = true;
 						} 
-						CloudProcessResource.dao.update(targetProcess);
+						if(dirty)
+							CloudProcessResource.dao.update(targetProcess);
 					}
 				} 
 				log.info("<<<<<<<<endOfTimeSlice "+processId+(redispatch?" -- redispatch":""));
