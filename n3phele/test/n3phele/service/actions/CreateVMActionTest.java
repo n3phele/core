@@ -291,7 +291,7 @@ public class CreateVMActionTest {
 		 ServiceAction action = (ServiceAction) ActionResource.dao.load(service.getAction());
 		 CloudProcess process = CloudProcessResource.dao.load(action.getChildProcess());
 		 
-		Thread.sleep(4000);
+		Thread.sleep(3000);
 		CloudProcessResource.dao.clear();		
 		String refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
 		assertEquals("{\"RUNABLE_Wait\": 3}", refresh);
@@ -606,6 +606,12 @@ public class CreateVMActionTest {
 		 	public static String initalState = "Running";
 		 	protected int i=0;
 			protected VirtualServer fetchVirtualServer(Client client, URI uri) {
+				try {
+					Thread.sleep((long) (Math.random()*1000));
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				VirtualServer result = virtualServer.get(uri);
 					
 				return result;
@@ -623,6 +629,12 @@ public class CreateVMActionTest {
 					vs.setStatus(initalState);
 					vs.setOutputParameters(parameters);
 					virtualServer.put(ref, vs);
+				}
+				try {
+					Thread.sleep((long) (Math.random()*1000));
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 				return clientResponseResult;
 
