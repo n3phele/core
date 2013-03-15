@@ -136,8 +136,9 @@ public class ProcessLifecycle {
 						process.setPendingCall(true);
 					}
 					if(process.hasPending()) {
-						log.info("Queued "+processURI);
-						process.setRunning(new Date());
+						Date stamp = new Date();
+						log.info("Queued "+processURI+" "+stamp);
+						process.setRunning(stamp);
 						QueueFactory.getDefaultQueue().add(ofy().getTxn(),
 								TaskOptions.Builder.withPayload(new Schedule(processURI, process.getRunning())));
 						result = true;
@@ -642,12 +643,11 @@ public class ProcessLifecycle {
 				CloudProcess targetProcess = CloudProcessResource.dao.load(processRoot, processId);
 				if(!targetProcess.isFinalized()) {
 					logExecutionTime(targetProcess);
-					targetProcess.setRunning(null);
-					targetProcess.setWaitTimeout(timeout);
 					if(targetProcess.getState() == ActionState.RUNABLE && targetProcess.hasPending()) {
-						log.warning("Wait Re-queue process "+targetProcess.getId());
-						schedule(targetProcess, true);
+						log.info("Re-dispatch process "+targetProcess);
 					} else {
+						targetProcess.setRunning(null);
+						targetProcess.setWaitTimeout(timeout);
 						CloudProcessResource.dao.update(targetProcess);
 					}
 				} else {

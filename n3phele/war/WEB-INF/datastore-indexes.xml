@@ -22,8 +22,11 @@
         <property name="group" direction="asc"/>
         <property name="stamp" direction="asc"/>
     </datastore-index>
-
-</datastore-indexes>
+	<datastore-index kind="Narrative" ancestor="false" >
+	        <property name="process" direction="asc"/>
+	        <property name="stamp" direction="asc"/>
+	    </datastore-index>
+	</datastore-indexes>
 
 <!-- indexes:
 - kind: Command

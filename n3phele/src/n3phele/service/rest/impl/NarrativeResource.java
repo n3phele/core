@@ -16,11 +16,12 @@ import java.util.Collection;
 import java.util.Date;
 
 import n3phele.service.core.NotFoundException;
+import n3phele.service.model.ChangeManager;
 import n3phele.service.model.Narrative;
 import n3phele.service.model.NarrativeLevel;
 import n3phele.service.model.ServiceModelDao;
 
-import com.googlecode.objectify.VoidWork;
+import com.googlecode.objectify.Work;
 
 
 public class NarrativeResource {
@@ -46,18 +47,21 @@ public class NarrativeResource {
 		}
 
 		public Long updateNarrativeText(final Long msgId, final String message) {
-			com.googlecode.objectify.ObjectifyService.ofy().transact(new VoidWork(){
+			Narrative n = com.googlecode.objectify.ObjectifyService.ofy().transact(new Work<Narrative>(){
 
 				@Override
-				public void vrun() {
+				public Narrative run() {
 					Narrative n = dao.get(msgId);
 					n.setText(message);	
 					dao.put(n);
+					return n;
 				}});
+			ChangeManager.factory().addChange(URI.create(n.getProcessUri()));
+			ChangeManager.factory().addChange(n.getGroup());
 			return msgId;
 		}
 
-		public Long addNarrative(URI processUri, URI group, String tag,
+		public String addNarrative(URI processUri, URI group, String tag,
 				NarrativeLevel state, String message) {
 				
 				Narrative n = new Narrative();
@@ -68,18 +72,18 @@ public class NarrativeResource {
 				n.setStamp(new Date());
 				n.setText(message);
 				dao.put(n);
+				ChangeManager.factory().addChange(processUri);
+				ChangeManager.factory().addChange(group);
 				return n.getId();
 		}
 
 		public Collection<Narrative> getNarratives(URI processUri) {
 			String uri = processUri.toString();
 			String ids = uri.substring(uri.lastIndexOf("/")+1);
-			long root;
 
 			int split = ids.indexOf('_');
 			if(split == -1) {
-				root = Long.valueOf(ids);
-				return dao.orderedCollectionByProperty("rootProcess", root, "stamp");
+				return dao.orderedCollectionByProperty("rootProcess", Long.valueOf(ids), "stamp");
 			} else {
 				return dao.orderedCollectionByProperty("group", ids, "stamp");
 			}
@@ -90,27 +94,17 @@ public class NarrativeResource {
 		public Collection<Narrative> getProcessNarratives(URI processUri) {
 			String uri = processUri.toString();
 			String ids = uri.substring(uri.lastIndexOf("/")+1);
-			long id;
-
-			int split = ids.indexOf('_');
-			if(split == -1) {
-				id = Long.valueOf(ids);
-			} else {
-				id = Long.valueOf(ids.substring(split+1));
-			}
-			return dao.orderedCollectionByProperty("process", id, "stamp");
+			return dao.orderedCollectionByProperty("process", ids, "stamp");
 			
 		}
 		
 		public Narrative getLastNarrative(URI processUri) {
 			String uri = processUri.toString();
 			String ids = uri.substring(uri.lastIndexOf("/")+1);
-			long root;
 
 			int split = ids.indexOf('_');
 			if(split == -1) {
-				root = Long.valueOf(ids);
-				return dao.getByPropertyOrdered("rootProcess", root, "stamp");
+				return dao.getByPropertyOrdered("rootProcess", Long.valueOf(ids), "stamp");
 			} else {
 				return dao.getByPropertyOrdered("group", ids, "stamp");
 			}

@@ -1264,7 +1264,7 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 		{
 			@Override
 		      public Boolean getValue(CommandCloudAccount profile) {
-				return (profile.getImplementation().equals(CommandDetailView.this.selectedImplementation));
+				return (profile.getAccountUri().equals(CommandDetailView.this.selectedAccountURI));
 		      }
 
 		};

@@ -33,9 +33,9 @@ import com.googlecode.objectify.annotation.Unindex;
 @Entity
 @Unindex
 public class Narrative {
-	@Id protected Long id;
+	@Id protected String id;
 	protected String tag;
-	@Index protected long process;
+	@Index protected String process;
 	@Index protected long rootProcess;
 	@Index protected String group;
 	@Index protected Date stamp;
@@ -62,14 +62,14 @@ public class Narrative {
 	 * @return the id
 	 */
 	@XmlTransient
-	public Long getId() {
+	public String getId() {
 		return id;
 	}
 
 	/**
 	 * @param id the id to set
 	 */
-	public void setId(Long id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 
@@ -138,14 +138,14 @@ public class Narrative {
 	 * @return the process
 	 */
 	@XmlTransient
-	public long getProcess() {
+	public String getProcess() {
 		return this.process;
 	}
 
 	/**
 	 * @param process the process to set
 	 */
-	public void setProcess(long process) {
+	public void setProcess(String process) {
 		this.process = process;
 	}
 	
@@ -184,9 +184,7 @@ public class Narrative {
 	
 	@XmlElement(name="processUri")
 	public String getProcessUri() {
-		String uri = CloudProcessResource.dao.path.toString()+"/"+rootProcess;
-		if(rootProcess != process)
-			uri += "_"+process;
+		String uri = CloudProcessResource.dao.path.toString()+"/"+process;
 		return uri;
 	}
 	
@@ -194,16 +192,14 @@ public class Narrative {
 		String uri = processUri.toString();
 		String ids = uri.substring(uri.lastIndexOf("/")+1);
 		long root;
-		long id;
 
 		int split = ids.indexOf('_');
 		if(split == -1) {
-			id = root = Long.valueOf(ids);
+			root = Long.valueOf(ids);
 		} else {
 			root = Long.valueOf(ids.substring(0,split));
-			id = Long.valueOf(ids.substring(split+1));
 		}
-		this.process = id;
+		this.process = ids;
 		this.rootProcess = root;
 	}
 
@@ -214,8 +210,11 @@ public class Narrative {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result
+				+ ((this.group == null) ? 0 : this.group.hashCode());
 		result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
-		result = prime * result + (int) (this.process ^ (this.process >>> 32));
+		result = prime * result
+				+ ((this.process == null) ? 0 : this.process.hashCode());
 		result = prime * result
 				+ (int) (this.rootProcess ^ (this.rootProcess >>> 32));
 		result = prime * result
@@ -241,12 +240,20 @@ public class Narrative {
 		if (getClass() != obj.getClass())
 			return false;
 		Narrative other = (Narrative) obj;
+		if (this.group == null) {
+			if (other.group != null)
+				return false;
+		} else if (!this.group.equals(other.group))
+			return false;
 		if (this.id == null) {
 			if (other.id != null)
 				return false;
 		} else if (!this.id.equals(other.id))
 			return false;
-		if (this.process != other.process)
+		if (this.process == null) {
+			if (other.process != null)
+				return false;
+		} else if (!this.process.equals(other.process))
 			return false;
 		if (this.rootProcess != other.rootProcess)
 			return false;

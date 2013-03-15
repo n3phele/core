@@ -124,6 +124,10 @@ public class CommandActivity extends AbstractActivity {
 	public void goToPrevious() {
 		History.back();
 	}
+	
+	public void goTo(String location) {
+		this.placeController.goTo(new ProcessPlace(location));
+	}
 
 	protected void initData() {
 //		CacheManager.EventConstructor constructor = new CacheManager.EventConstructor() {
@@ -297,8 +301,8 @@ public class CommandActivity extends AbstractActivity {
 	
 				public void onResponseReceived(Request request, Response response) {
 					if (201 == response.getStatusCode()) {
-						GWT.log(response.getText()+" "+response.getHeadersAsString());
-						goToPrevious();
+						GWT.log(response.getText()+" "+response.getHeader("location"));
+						goTo(response.getHeader("location"));
 					} else {
 						Window.alert("Error code: "+response.getStatusCode()+" Status Text:"
 								+response.getStatusText()+"\n"+response.getText());

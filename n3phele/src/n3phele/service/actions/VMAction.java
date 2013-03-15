@@ -57,7 +57,7 @@ import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 @Unindex
 @Cache
 public class VMAction extends Action {
-	@XmlTransient private ActionLogger logger;
+    private ActionLogger logger;
 	final protected static java.util.logging.Logger log = java.util.logging.Logger.getLogger(VMAction.class.getName());
 	@XmlTransient
 	private ArrayList<FileTracker> fileTableList = new ArrayList<FileTracker>();
@@ -196,6 +196,14 @@ public class VMAction extends Action {
 				throw new ProcessLifecycle.WaitForSignalRequest();
 					
 			} catch (UniformInterfaceException e) {
+				ClientResponse response = e.getResponse();
+				if(response != null) {
+					if(response.getStatus() == 404) {
+						logger.error(this.context.getValue("vmFactory")+" unexpected death.");
+						log.severe("Client "+this.context.getValue("vmFactory")+" unexpected death.");
+						throw new UnprocessableEntityException("Client "+this.context.getValue("vmFactory")+" unexpected death.");
+					}
+				}
 				logger.info("Awaiting host "+URI.create(clientURI).getHost()+" initialization");
 				log.info("Waiting for agent "+URI.create(clientURI).getHost()+" "+e.getMessage());
 			} catch (ClientHandlerException e) {
@@ -218,6 +226,15 @@ public class VMAction extends Action {
 			try {	
 				vs = getVirtualServer(client, this.context.getValue("vmFactory"));
 			} catch (UniformInterfaceException e) {
+				ClientResponse response = e.getResponse();
+				if(response != null) {
+					if(response.getStatus() == 404) {
+						logger.error(this.context.getValue("vmFactory")+" unexpected death.");
+						log.severe("Client "+this.context.getValue("vmFactory")+" unexpected death.");
+						throw new UnprocessableEntityException("Client "+this.context.getValue("vmFactory")+" unexpected death.");
+					}
+				}
+
 				logger.info("Access error to "+this.context.getValue("vmFactory"));
 				log.log(Level.INFO, "Access error to "+this.context.getValue("vmFactory"), e);
 				throw new ProcessLifecycle.WaitForSignalRequest();
@@ -262,7 +279,7 @@ public class VMAction extends Action {
 
 	@Override
 	public void signal(SignalKind kind, String assertion) {
-		log.info("Signal "+kind+":"+assertion+" .. ignoring");
+		log.info("Signal "+kind+":"+assertion);
 	}
 
 
@@ -339,24 +356,6 @@ public class VMAction extends Action {
 		VirtualServer vs = resource.get(VirtualServer.class);
 		return vs;
 	}
-
-	
-
-	/**
-	 * @return the logger
-	 */
-	public ActionLogger getLogger() {
-		return logger;
-	}
-
-
-	/**
-	 * @param logger the logger to set
-	 */
-	public void setLogger(ActionLogger logger) {
-		this.logger = logger;
-	}
-
 
 	/**
 	 * @return the epoch

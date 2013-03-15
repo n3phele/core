@@ -206,13 +206,16 @@ public class ProcessView extends WorkspaceVerticalPanel {
 			if(this.process.getComplete() != null) {
 				long duration = this.process.getComplete().getTime() - this.process.getStart().getTime();
 				this.duration.setText("duration "+durationText(duration));
+			} else {
+				this.duration.setText("");
 			}
 			
 			this.iconStatus.setValue(getIconText(this.process));
 			this.narrativeTable.setRowData(this.process.getNarrative()); 
 			N3phele.checkSize();
 		} else {
-
+			this.narrativeTable.setRowCount(0, true);
+			this.duration.setText("");
 		}
 	}
 	

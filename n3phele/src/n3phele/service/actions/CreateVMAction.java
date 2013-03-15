@@ -11,10 +11,17 @@ package n3phele.service.actions;
 *  specific language governing permissions and limitations under the License.
 */
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Scanner;
 import java.util.logging.Level;
 
 import javax.ws.rs.core.MediaType;
@@ -80,6 +87,7 @@ public class CreateVMAction extends Action {
 	@XmlTransient private ActionLogger logger;
 	private ArrayList<String> inProgress = new ArrayList<String>();
 	private boolean failed = false;
+	private HashMap<String, String> childMap = new HashMap<String, String>();
 	
 	/* (non-Javadoc)
 	 * @see n3phele.service.model.Action#getDescription()
@@ -197,10 +205,43 @@ public class CreateVMAction extends Action {
 		case Event:
 			if(isChild) {
 				this.inProgress.remove(assertion);
-			} else if(assertion.equals("killVM"))
+			} else if(assertion.equals("killVM")) {
 				killVM();
-			else
-				log.warning("Ignoring event "+assertion);
+			} else {
+				Map<String,String> params = parsetoMap(URI.create(assertion));
+				String source = params.get("source");
+				URI process = null;
+				if(source != null) {
+					process = Helpers.stringToURI(childMap.get(source.replace('.', '_')));
+					params.remove("source");
+					String childParams = null;
+					for(Entry<String, String> i : params.entrySet()) {
+						try {
+							if(!i.getKey().equals("oldStatus") && !i.getKey().equals("newStatus"))
+								continue;
+							String name = URLEncoder.encode(i.getKey(), "UTF-8");
+							String value = URLEncoder.encode(i.getValue(), "UTF-8");
+							String fragment = name+"="+value;
+							if(childParams != null) {
+								childParams += "&"+fragment;
+							} else {
+								childParams = fragment;
+							}
+						} catch (UnsupportedEncodingException e) {
+							log.log(Level.SEVERE, "Refactor exception", e);
+						}
+					}
+					if(childParams != null)
+						childParams = "?"+childParams;
+					else
+						childParams = "";
+					URI childAssertion = URI.create(process.toString()+childParams);
+					ProcessLifecycle.mgr().signal(process,SignalKind.Event, childAssertion.toString());
+					log.info("Forward event "+childAssertion+" to "+process);
+				}  else {
+					log.warning("Ignoring event "+assertion);
+				}
+			}
 			return;
 		case Failed:
 			log.info((isChild?"Child ":"Unknown ")+assertion+" failed");
@@ -351,7 +392,9 @@ public class CreateVMAction extends Action {
 				childContext.putValue("name", name+"_"+i );
 			children[i] = processLifecycle().spawn(this.getOwner(), childContext.getValue("name"), 
 					childContext, null, this.getProcess(), "VM");
+			
 			URI siblingProcess = children[i].getUri();
+			childMap.put(refs[i].toString().replace('.', '_'), siblingProcess.toString());
 			siblingActions[i] = children[i].getAction();
 			this.inProgress.add(siblingProcess.toString());
 		}
@@ -393,6 +436,34 @@ public class CreateVMAction extends Action {
 		}
 		return result;
 	}
+
+	
+	private Map <String,String> parsetoMap (URI uri) {
+		Map<String,String> result = new HashMap<String,String>();
+		String query = uri.getRawQuery();
+		if(query != null && !query.isEmpty()) {
+			Scanner scanner = new Scanner(uri.getRawQuery());
+		    scanner.useDelimiter("&");
+		    while (scanner.hasNext()) {
+		        String[] nameValue = scanner.next().split("=");
+		        if (nameValue.length == 0 || nameValue.length > 2)
+		            throw new IllegalArgumentException("bad parameter");
+		
+		        try {
+					String name = URLDecoder.decode(nameValue[0], "UTF-8");
+					String value = null;
+					if (nameValue.length == 2)
+					    value = URLDecoder.decode(nameValue[1], "UTF-8");
+					result.put(name, value);
+				} catch (UnsupportedEncodingException e) {
+					log.log(Level.SEVERE, "Parse exception", e);
+				}
+		    }
+		}
+        return result;
+    }
+
+
 
 
 	/**
