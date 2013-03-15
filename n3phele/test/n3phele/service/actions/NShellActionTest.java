@@ -707,7 +707,7 @@ public class NShellActionTest {
 //		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
 //		Assert.assertEquals("command line polling", "{\"RUNABLE\": 1, \"RUNABLE_Wait\": 2}", refresh);
 		
-		Thread.sleep(500);
+		Thread.sleep(1000);
 		CloudProcessResource.dao.clear();
 		on_0Process = CloudProcessResource.dao.load(on_0.getProcess());
 		fileTransfer_0Process = CloudProcessResource.dao.load(fileTransfer_0Process.getUri());

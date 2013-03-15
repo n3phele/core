@@ -642,14 +642,8 @@ public class ProcessLifecycle {
 				log.info(">>>>>>>>>toWait "+processId);
 				CloudProcess targetProcess = CloudProcessResource.dao.load(processRoot, processId);
 				if(!targetProcess.isFinalized()) {
-					logExecutionTime(targetProcess);
-					if(targetProcess.getState() == ActionState.RUNABLE && targetProcess.hasPending()) {
-						log.info("Re-dispatch process "+targetProcess);
-					} else {
-						targetProcess.setRunning(null);
-						targetProcess.setWaitTimeout(timeout);
-						CloudProcessResource.dao.update(targetProcess);
-					}
+					targetProcess.setWaitTimeout(timeout);
+					CloudProcessResource.dao.update(targetProcess);
 				} else {
 					log.warning("Wait process "+targetProcess.getUri()+" is finalized");
 				}
@@ -674,6 +668,7 @@ public class ProcessLifecycle {
 				CloudProcess targetProcess = CloudProcessResource.dao.load(processRoot, processId);
 				if(!targetProcess.isFinalized()) {
 					if(targetProcess.getState() == ActionState.RUNABLE && targetProcess.hasPending()) {
+						targetProcess.setWaitTimeout(null);
 						long now = new Date().getTime(); 
 						if(targetProcess.getRunning().getTime()+(60*1000) < now) {
 							// process has run too long .. re queue
@@ -686,19 +681,13 @@ public class ProcessLifecycle {
 							redispatch = true;
 						}
 					} else {
-						boolean dirty = false;
-						if(targetProcess.getRunning() == null) {
-							logExecutionTime(targetProcess);
-							targetProcess.setRunning(null);
-							dirty = true;
-						}
-
+						logExecutionTime(targetProcess);
+						targetProcess.setRunning(null);
 						if(targetProcess.getDependentOn() != null && !targetProcess.getDependentOn().isEmpty()) {
 							targetProcess.setState(ActionState.BLOCKED);
-							dirty = true;
+							targetProcess.setWaitTimeout(null);
 						} 
-						if(dirty)
-							CloudProcessResource.dao.update(targetProcess);
+						CloudProcessResource.dao.update(targetProcess);
 					}
 				} 
 				log.info("<<<<<<<<endOfTimeSlice "+processId+(redispatch?" -- redispatch":""));
