@@ -224,6 +224,7 @@ public class ProcessLifecycle {
 						ArrayList<String> assertions = new ArrayList<String>(process.getPendingAssertion().size());
 						assertions.addAll(process.getPendingAssertion());
 						process.getPendingAssertion().clear();
+						process.setPendingCall(true);
 						CloudProcessResource.dao.update(process);
 						log.info("<<<<<<<<Dispatch "+processId);
 						return new NextStep(DoNext.assertion, assertions);
