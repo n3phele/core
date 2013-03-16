@@ -1017,6 +1017,8 @@ public class NShellActionTest {
 			(	"log For_0_0 0".equals(logs.get(0).getText()) && 
 				"log For_0_1 1".equals(logs.get(1).getText()) ) ||
 			(	"log For_0_1 1".equals(logs.get(0).getText()) && 
+				"log For_0_0 0".equals(logs.get(1).getText()) ) ||
+			(	"log For_0_1 1".equals(logs.get(0).getText()) && 
 				"log2 For_0_1 1".equals(logs.get(1).getText()) ) ||
 			(	"log For_0_0 0".equals(logs.get(0).getText()) && 
 				"log2 For_0_0 0".equals(logs.get(1).getText()) ) ||
