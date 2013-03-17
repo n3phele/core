@@ -136,7 +136,7 @@ public class FileTransferAction extends Action {
 		if(this.clientCredential == null) {
 			this.clientCredential = new Credential(
 					targetVM.getContext().getValue("agentUser"), 
-					targetVM.getContext().getValue("agentPassword")).encrypt();
+					targetVM.getContext().getValue("agentSecret")).encrypt();
 		}
 
 		Client client = ClientFactory.create();
