@@ -1,0 +1,15 @@
+# message.n
+# Copyright (c) 2013 Nigel Cook. All Rights reserved
+# xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+name	   :  message
+description: output a message on a virtual machine
+version	   : 1.0
+preferred  : true
+public	   : true
+icon	   : http://www.n3phele.com/icons/custom
+parameters :						  
+	optional int n	= 1 	# how many to create
+	string message = "hello world!"
+EC2: # Amazon EC2
+	$$my_vm = CREATEVM --name myVM --n $$n
+	ON $$my_vm echo $$message

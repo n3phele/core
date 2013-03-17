@@ -152,7 +152,12 @@ public class OnAction extends Action {
 					URI location = sendRequest(client, targetVM.getContext().getURIValue("agentURI"), form);
 					if(location != null) {
 						this.instance = location.toString();
-					}	
+						logger.info("Command initiated "+this.instance); //FIXME remove
+					} else {
+						logger.error("command execution initiation FAILED");
+						log.severe(this.name+" command execution initiation FAILED");
+						throw new UnprocessableEntityException(this.name+" command execution initiation FAILED");
+					}
 				} catch (UnprocessableEntityException e) {
 					throw e;
 				} catch (Exception e) {

@@ -691,17 +691,21 @@ public class CreateVMActionTest {
 	 @EntitySubclass
 	 public static class VMActionWrapper extends VMAction {
 		 public static String processState = "Running";
-		 
+		 @Override
 		 protected int terminate(Client client, String factory, boolean error, boolean debug) {
 			 log.info("terminate "+factory+" error="+error+" debug="+debug);
 				return 200;
 			}
-			
+		    @Override
 			protected int forceAgentRestart(Client client, String agentURI) {
 				log.info("forceAgentRestart "+agentURI);
 				return 200;
 			}
-			
+			@Override
+			protected void aliveTest(Client client, String agentURI) {
+				log.info("aliveTest "+agentURI);
+			}
+			@Override
 			protected VirtualServer getVirtualServer(Client client, String uri) {
 				log.info("Get virtualServer "+uri+" "+CreateVMActionWrapper.virtualServer.get(URI.create(uri)));
 				VirtualServer result = CreateVMActionWrapper.virtualServer.get(URI.create(uri));

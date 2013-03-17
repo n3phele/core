@@ -185,7 +185,7 @@ public class VMAction extends Action {
 						log.log(Level.SEVERE, "Agent restart exception", e);
 					}
 				}
-	
+				aliveTest(client, agentURI);
 				long duration = (Calendar.getInstance().getTimeInMillis() - epoch)/1000;
 				if(duration == 0)
 					duration = 1;
@@ -343,6 +343,17 @@ public class VMAction extends Action {
 		WebResource resource = client.resource(agentURI);
 		ClientResponse response = resource.path("terminate").get(ClientResponse.class);
 		return response.getStatus();
+	}
+	
+	protected void aliveTest(Client client, String agentURI) {
+		client.removeAllFilters();
+		ClientFilter agentAuth = new HTTPBasicAuthFilter(this.context.getValue("agentUser"), 
+				this.context.getValue("agentSecret"));
+		client.setReadTimeout(25000);
+		client.setConnectTimeout(5000);
+		client.addFilter(agentAuth);
+		WebResource resource = client.resource(agentURI);
+		resource.path("date").get(String.class);
 	}
 	
 	protected VirtualServer getVirtualServer(Client client, String uri) {
