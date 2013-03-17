@@ -282,7 +282,7 @@ public class FileTransferAction extends Action {
 							durationText = Long.toString(interval)+" milliseconds"; 
 						} else {
 							interval = interval/1000;
-							durationText = Long.toString(interval)+(interval>1?" seconds":"second"); 
+							durationText = Long.toString(interval)+(interval>1?" seconds":" second"); 
 						}
 
 						log.fine(this.name+" file copy completed successfully. Elapsed time "+durationText);

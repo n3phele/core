@@ -245,7 +245,7 @@ public class OnAction extends Action {
 							durationText = Long.toString(duration)+" milliseconds"; 
 						} else {
 							duration = duration/1000;
-							durationText = Long.toString(duration)+(duration>1?" seconds":"second"); 
+							durationText = Long.toString(duration)+(duration>1?" seconds":" second"); 
 						}
 
 						log.fine(this.name+" command execution completed successfully. Elapsed time "+durationText);

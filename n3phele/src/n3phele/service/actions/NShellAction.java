@@ -49,11 +49,14 @@ import n3phele.service.model.Variable;
 import n3phele.service.model.VariableType;
 import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.User;
+import n3phele.service.model.repository.Repository;
 import n3phele.service.nShell.ExpressionEngine;
 import n3phele.service.nShell.UnexpectedTypeException;
 import n3phele.service.rest.impl.ActionResource;
 import n3phele.service.rest.impl.CloudProcessResource;
 import n3phele.service.rest.impl.CommandResource;
+import n3phele.service.rest.impl.RepositoryResource;
+import n3phele.service.rest.impl.UserResource;
 
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.annotation.Cache;
@@ -105,6 +108,31 @@ public class NShellAction extends Action {
 		Command command = CommandResource.dao.load(this.getCommand());
 		for(TypedParameter param : Helpers.safeIterator(command.getExecutionParameters())) {
 			param.setDefaultValue(this.context.getValue(param.getName()));
+		}
+		User user = UserResource.dao.load(this.getOwner());
+		for(FileSpecification file : Helpers.safeIterator(command.getInputFiles())) {
+			URI target = this.context.getFileValue(file.getName());
+			if(target != null) {
+				try {
+					Repository repo = RepositoryResource.dao.load(target.getScheme(), user);
+					file.setRepository(repo.getUri());
+					file.setFilename(target.getPath().substring(1));
+				} catch (NotFoundException e) {
+					log.warning("No repo "+target.getScheme()+" for "+user.getName());
+				}
+			}
+		}
+		for(FileSpecification file : Helpers.safeIterator(command.getOutputFiles())) {
+			URI target = this.context.getFileValue(file.getName());
+			if(target != null) {
+				try {
+					Repository repo = RepositoryResource.dao.load(target.getScheme(), user);
+					file.setRepository(repo.getUri());
+					file.setFilename(target.getPath().substring(1));
+				} catch (NotFoundException e) {
+					log.warning("No repo "+target.getScheme()+" for "+user.getName());
+				}
+			}
 		}
 		command.getExecutionParameters().add(new TypedParameter("$account", "account", ParameterType.String, "", this.context.getValue("account")));
 		return command;
