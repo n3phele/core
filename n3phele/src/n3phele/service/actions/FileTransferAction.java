@@ -23,6 +23,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
+import n3phele.service.core.Resource;
 import n3phele.service.core.UnprocessableEntityException;
 import n3phele.service.model.Action;
 import n3phele.service.model.Command;
@@ -199,8 +200,9 @@ public class FileTransferAction extends Action {
 				throw e;
 			} catch (Exception e) {
 				long now = Calendar.getInstance().getTimeInMillis();
-				// Give the agent a 5 minute grace period to respond
-				if((now - epoch) > 5*60*1000L) {
+				long timeout = Long.valueOf(Resource.get("agentStartupGracePeriodInSeconds", "600"))*1000;
+				// Give the agent a grace period to respond
+				if((now - epoch) > timeout) {
 					logger.error("file copy initiation FAILED with exception "+e.getMessage());
 					log.log(Level.SEVERE, this.name+" file copy initiation FAILED with exception ", e);
 					throw new UnprocessableEntityException("file copy initiation FAILED with exception "+e.getMessage());
@@ -233,8 +235,9 @@ public class FileTransferAction extends Action {
 						return false;
 					} else {
 						long now = Calendar.getInstance().getTimeInMillis();
-						// Give the agent a 5 minute grace period to respond
-						if((now - clientUnresponsive) > 5*60*1000L) {
+						long timeout = Long.valueOf(Resource.get("agentStartupGracePeriodInSeconds", "600"))*1000;
+						// Give the agent a grace period to respond
+						if((now - clientUnresponsive) > timeout) {
 							log.log(Level.SEVERE, name+" file copy monitoring "+this.instance+" failed", e);
 							logger.error("Copy monitoring failed with exception "+e.getMessage());
 							throw new UnprocessableEntityException("Copy monitoring failed with exception "+e.getMessage());
@@ -246,8 +249,9 @@ public class FileTransferAction extends Action {
 						clientUnresponsive = Calendar.getInstance().getTimeInMillis();
 					} else {
 						long now = Calendar.getInstance().getTimeInMillis();
-						// Give the agent a 5 minute grace period to respond
-						if((now - clientUnresponsive) > 5*60*1000L) {
+						long timeout = Long.valueOf(Resource.get("agentStartupGracePeriodInSeconds", "600"))*1000;
+						// Give the agent a grace period to respond
+						if((now - clientUnresponsive) > timeout) {
 							log.log(Level.SEVERE, name+" file copy monitoring "+this.instance+" failed", e);
 							logger.error("Copy monitoring failed with exception "+e.getMessage());
 							throw new UnprocessableEntityException("Copy monitoring failed with exception "+e.getMessage());
@@ -259,35 +263,34 @@ public class FileTransferAction extends Action {
 				this.context.putValue("stderr", t.getStderr());
 				if(t.getFinished() != null) {
 					this.context.putValue("exitCode", Integer.toString(t.getExitcode()));
+					if(t.getStdout() != null && t.getStdout().length() > 0)
+						logger.info(t.getStdout());
+					if(t.getStderr() != null && t.getStderr().length() > 0)
+						logger.warning(t.getStderr());
 					if(t.getExitcode() == 0) {
 						Calendar time = Calendar.getInstance();
 						Calendar begin = Calendar.getInstance();
 						time.setTime(t.getFinished());
 						begin.setTime(t.getStarted());
 						long interval = time.getTimeInMillis() - begin.getTimeInMillis();
-						if(t.getStdout() != null && t.getStdout().length() > 0)
-							logger.info("Stdout:"+t.getStdout());
-						if(t.getStderr() != null && t.getStderr().length() > 0)
-							logger.warning("Stderr:"+t.getStderr());
 						String durationText;
 						if(interval < 1000) {
 							durationText = Long.toString(interval)+" milliseconds"; 
 						} else {
-							durationText = Long.toString(interval/1000)+" seconds"; 
+							interval = interval/1000;
+							durationText = Long.toString(interval)+(interval>1?" seconds":"second"); 
 						}
+
 						log.fine(this.name+" file copy completed successfully. Elapsed time "+durationText);
 						logger.info("File copy completed successfully. Elapsed time "+durationText);
 	
 						if(t.getManifest() != null) {
 							log.info("File copy manifest length "+t.getManifest().length);
-							Origin.updateOrigin(this.getProcess(), t.getManifest()); // FIXME should be the On command process
+							Origin.updateOrigin(this.getProcess(), t.getManifest()); // FIXME should be the On command process. Not sure i agree with this now
 						}
 						return true;
 					} else {
-						if(t.getStdout() != null && t.getStdout().length() > 0)
-							logger.info("Stdout:"+t.getStdout());
-						if(t.getStderr() != null && t.getStderr().length() > 0)
-							logger.warning("Stderr:"+t.getStderr());
+
 						logger.error("File copy "+this.instance+" failed with exit status "+t.getExitcode());
 						log.severe(name+" file copy "+this.instance+" failed with exit status "+t.getExitcode());
 						log.severe("Stdout: "+t.getStdout());

@@ -23,6 +23,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
+import n3phele.service.core.Resource;
 import n3phele.service.core.UnprocessableEntityException;
 import n3phele.service.model.Action;
 import n3phele.service.model.Command;
@@ -152,7 +153,7 @@ public class OnAction extends Action {
 					URI location = sendRequest(client, targetVM.getContext().getURIValue("agentURI"), form);
 					if(location != null) {
 						this.instance = location.toString();
-						logger.info("Command initiated "+this.instance); //FIXME remove
+						log.info("Command target "+this.instance); 
 					} else {
 						logger.error("command execution initiation FAILED");
 						log.severe(this.name+" command execution initiation FAILED");
@@ -163,8 +164,9 @@ public class OnAction extends Action {
 				} catch (Exception e) {
 					log.log(Level.SEVERE, "Command exception", e);
 					long now = Calendar.getInstance().getTimeInMillis();
-					// Give the agent a 5 minute grace period to respond
-					if((now - epoch) > 5*60*1000L) {
+					long timeout = Long.valueOf(Resource.get("agentStartupGracePeriodInSeconds", "600"))*1000;
+					// Give the agent a grace period to respond
+					if((now - epoch) > timeout) {
 						logger.error("command execution initiation FAILED with exception "+e.getMessage());
 						log.log(Level.SEVERE, this.name+" command execution initiation FAILED with exception ", e);
 						throw new UnprocessableEntityException(this.name+" command execution initiation FAILED with exception");
@@ -195,9 +197,9 @@ public class OnAction extends Action {
 						clientUnresponsive = Calendar.getInstance().getTimeInMillis();
 					} else {
 						long now = Calendar.getInstance().getTimeInMillis();
-						// Give the agent a 5 minute grace period to respond
-						// FIXME ,, extended way out
-						if((now - clientUnresponsive) > 30*60*1000L) {
+						long timeout = Long.valueOf(Resource.get("agentStartupGracePeriodInSeconds", "600"))*1000;
+						// Give the agent a grace period to respond
+						if((now - clientUnresponsive) > timeout) {
 							logger.error("command execution FAILED with exception "+e.getMessage());
 							log.log(Level.SEVERE, this.name+" command execution FAILED with exception ", e);
 							throw new UnprocessableEntityException( this.name+" command execution FAILED with exception");
@@ -212,9 +214,9 @@ public class OnAction extends Action {
 						clientUnresponsive = Calendar.getInstance().getTimeInMillis();
 					} else {
 						long now = Calendar.getInstance().getTimeInMillis();
-						// Give the agent a 5 minute grace period to respond
-						// FIXME ,, extended way out
-						if((now - clientUnresponsive) > 30*60*1000L) {
+						long timeout = Long.valueOf(Resource.get("agentStartupGracePeriodInSeconds", "600"))*1000;
+						// Give the agent a grace period to respond
+						if((now - clientUnresponsive) > timeout) {
 							logger.error("command execution FAILED with exception "+e.getMessage());
 							log.log(Level.SEVERE, this.name+" command execution FAILED with exception ", e);
 							throw new UnprocessableEntityException( this.name+" command execution FAILED with exception");
@@ -231,21 +233,25 @@ public class OnAction extends Action {
 				this.getContext().putValue("stderr", t.getStderr());
 				if(t.getFinished() != null) {
 					this.context.putValue("exitCode", t.getExitcode());
-					long duration;
+					if(t.getStdout() != null && t.getStdout().length() > 0)
+						logger.info(t.getStdout());
+					if(t.getStderr() != null && t.getStderr().length() > 0)
+						logger.warning(t.getStderr());
+					
 					if(t.getExitcode() == 0) {
-						duration = (Calendar.getInstance().getTimeInMillis() - epoch)/1000;
-						if(t.getStdout() != null && t.getStdout().length() > 0)
-							logger.info("Stdout:"+t.getStdout());
-						if(t.getStderr() != null && t.getStderr().length() > 0)
-							logger.warning("Stderr:"+t.getStderr());
-						log.fine(this.name+" command execution completed successfully. Elapsed time "+duration+" seconds.");
-						logger.info("command execution completed successfully. Elapsed time "+duration+" seconds.");
+						long duration = (Calendar.getInstance().getTimeInMillis() - epoch);
+						String durationText;
+						if(duration < 1000) {
+							durationText = Long.toString(duration)+" milliseconds"; 
+						} else {
+							duration = duration/1000;
+							durationText = Long.toString(duration)+(duration>1?" seconds":"second"); 
+						}
+
+						log.fine(this.name+" command execution completed successfully. Elapsed time "+durationText);
+						logger.info("command execution completed successfully. Elapsed time "+durationText);
 						return true;
 					} else {
-						if(t.getStdout() != null && t.getStdout().length() > 0)
-							logger.info("Stdout:"+t.getStdout());
-						if(t.getStderr() != null && t.getStderr().length() > 0)
-							logger.warning("Stderr:"+t.getStderr());
 						logger.error("Command execution "+this.instance+" failed with exit status "+t.getExitcode());
 						log.severe(name+" command execution "+this.instance+" failed with exit status "+t.getExitcode());
 						log.severe("Stdout: "+t.getStdout());
