@@ -103,7 +103,7 @@ public class NShellAction extends Action {
 	@Override
 	public Command getPrototype() {
 		Command command = CommandResource.dao.load(this.getCommand());
-		for(TypedParameter param : command.getExecutionParameters()) {
+		for(TypedParameter param : Helpers.safeIterator(command.getExecutionParameters())) {
 			param.setDefaultValue(this.context.getValue(param.getName()));
 		}
 		command.getExecutionParameters().add(new TypedParameter("$account", "account", ParameterType.String, "", this.context.getValue("account")));
