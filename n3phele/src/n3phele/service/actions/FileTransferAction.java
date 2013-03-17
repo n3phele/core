@@ -141,7 +141,7 @@ public class FileTransferAction extends Action {
 
 		Client client = ClientFactory.create();
 		try {
-			Credential plain = this.clientCredential;
+			Credential plain = this.clientCredential.decrypt();
 			client.addFilter(new HTTPBasicAuthFilter(plain.getAccount(), plain.getSecret()));
 			client.setReadTimeout(30000);
 			client.setConnectTimeout(5000);
