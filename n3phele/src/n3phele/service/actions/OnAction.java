@@ -182,6 +182,7 @@ public class OnAction extends Action {
 		Client client = ClientFactory.create();
 
 		Credential plain = this.clientCredential.decrypt();
+		log.info("onAction "+plain.getAccount()+":"+plain.getSecret());
 		client.addFilter(new HTTPBasicAuthFilter(plain.getAccount(), plain.getSecret()));
 		client.setReadTimeout(30000);
 		client.setConnectTimeout(5000);
