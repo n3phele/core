@@ -160,11 +160,13 @@ public class FileTransferAction extends Action {
 			if("file".equals(srcRepoName)) {
 				form.add("srcRoot", ".");
 				form.add("srcKey", src.getPath());
+				form.add("srcKind", "File");
 			} else {
 				Repository repo = RepositoryResource.dao.load(srcRepoName, UserResource.dao.load(this.getOwner()));
 				form.add("source", repo.getTarget());
 				form.add("srcRoot", repo.getRoot());
 				form.add("srcKind", repo.getKind());
+				form.add("srcKey", src.getPath());
 				Credential credential;
 				credential = Credential.reencrypt(repo.getCredential(), plain.getSecret());
 				form.add("srcAccount", credential.getAccount());
@@ -176,11 +178,13 @@ public class FileTransferAction extends Action {
 			if("file".equals(destRepoName)) {
 				form.add("destRoot", ".");
 				form.add("destKey", dest.getPath());
+				form.add("destKind", "File");
 			} else {
 				Repository repo = RepositoryResource.dao.load(destRepoName, UserResource.dao.load(this.getOwner()));
 				form.add("destination", repo.getTarget());
 				form.add("destRoot", repo.getRoot());
 				form.add("destKind", repo.getKind());
+				form.add("destKey", dest.getPath());
 				Credential credential;
 				credential = Credential.reencrypt(repo.getCredential(), plain.getSecret());
 				form.add("destAccount", credential.getAccount());

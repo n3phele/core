@@ -40,12 +40,6 @@ public class CloudWebServiceTest  {
 		client = Client.create();
 		client.addFilter(new HTTPBasicAuthFilter("test-user@gmail.com", "testit!"));
 		webResource = client.resource(UriBuilder.fromUri("https://127.0.0.1:8888/resources").path(CloudResource.class).build());
-		
-		client.removeAllFilters();
-		client.addFilter(new HTTPBasicAuthFilter("nigel.cook@hp.com", "foobar"));
-		webResource = client.resource(UriBuilder.fromUri("https://n3phele-dev.appspot.com/resources").path(CloudResource.class).build());
-
-
 	}
 
 	private Client client;
