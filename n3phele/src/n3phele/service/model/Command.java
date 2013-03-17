@@ -45,7 +45,7 @@ public class Command extends Entity {
 	private String icon;
 	private String ownerName;
 	@Embed private List<FileSpecification> inputFiles;
-	@Embed private List<TypedParameter> executionParameters;
+	@Embed private List<TypedParameter> executionParameters = new ArrayList<TypedParameter>();
 	@Embed private List<FileSpecification> outputFiles;
 	@Embed private List<CommandImplementationDefinition> implementations = new ArrayList<CommandImplementationDefinition>();
 	@Embed private List<CommandCloudAccount> cloudAccounts = new ArrayList<CommandCloudAccount>();
