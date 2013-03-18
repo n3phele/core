@@ -108,12 +108,13 @@ public class Command extends Entity {
 	public native final JavaScriptObject executionParameters() /*-{
 		var array = [];
 		if(this.executionParameters) {
-			if(this.executionParameters.length) {
+			if(this.executionParameters.constructor === Array) {
 				array = this.executionParameters;
 			} else {
 				array[0] = this.executionParameters;
 			}
 		}
+		this.executionParameters = array;
 		return array;
 	}-*/;
 	/**

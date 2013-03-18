@@ -240,7 +240,7 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 	public void updateRunButton(boolean allValid) {
 		GWT.log("update run "+allValid);
 		if(data != null) {
-			if(allValid && data != null) {
+			if(allValid && data != null && data.getExecutionParameters().size() > 0) {
 				allValid = checkParameterValues(data.getExecutionParameters());
 				GWT.log("update run1 "+allValid);
 			}
@@ -439,10 +439,10 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 		}
 	}
 
-	final private static List<TypedParameter> nullParams = new ArrayList<TypedParameter>(0);
-	final private static List<FileSpecification> nullFiles = new ArrayList<FileSpecification>(0);
-	final private static List<CommandCloudAccount> nullProfiles = new ArrayList<CommandCloudAccount>(0);
-	final private static List<Repository> nullRepos = new ArrayList<Repository>(0);
+	final private static List<TypedParameter> nullParams = new ArrayList<TypedParameter>(1);
+	final private static List<FileSpecification> nullFiles = new ArrayList<FileSpecification>(1);
+	final private static List<CommandCloudAccount> nullProfiles = new ArrayList<CommandCloudAccount>(1);
+	final private static List<Repository> nullRepos = new ArrayList<Repository>(1);
 
 	public void setParameters(List<TypedParameter> params) {
 		paramTable.setRowCount(params.size());
@@ -805,7 +805,7 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 		if(this.parameterTextInputCell == null) return false;
 		String name = p.getName();
 		String value;
-		if(p.getType().equalsIgnoreCase("boolean")) {
+		if("boolean".equalsIgnoreCase(p.getType())) {
 			Boolean vd = this.parameterCheckboxCell.getViewData(name);
 			if(vd != null) {
 				value = vd.toString();

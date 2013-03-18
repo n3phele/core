@@ -90,18 +90,20 @@ public class ActivtiyActivity extends CommandActivity {
 	
 	@Override
 	protected void updateData(String uri, Command update) {
-//		if(this.activity != null) {
-//			merge(update, this.activity);
-//		}
 		Map<String, String> topLevel = new HashMap<String, String>();
-		for(int i=0; i < update.getExecutionParameters().size(); i++) {
-			TypedParameter p = update.getExecutionParameters().get(i);
-			if(p.getName().startsWith("$")) {
-				update.getExecutionParameters().remove(i--);
+
+		List<TypedParameter> executionParamters = update.getExecutionParameters();
+		for(int i=0; i < executionParamters.size(); i++) {
+			TypedParameter p = executionParamters.get(i);
+			if(p.getName() != null && p.getName().startsWith("$")) {
+				executionParamters.remove(i--);
 				p.setName(p.getName().substring(1));
 				GWT.log("toplevel "+p.getName()+" "+p.getValue()+" "+p.getDefaultValue());
 				topLevel.put(p.getName(), isBlankOrNull(p.getValue())?p.getDefaultValue():p.getValue());
 			}
+		}
+		if(executionParamters.size() == 0) {
+			update.getExecutionParameters().clear();
 		}
 		super.updateData(uri, update);
 		this.display.setJobName(topLevel.get("name"));
