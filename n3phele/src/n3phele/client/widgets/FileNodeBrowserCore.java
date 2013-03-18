@@ -440,7 +440,7 @@ public class FileNodeBrowserCore extends VerticalPanel {
 	}
 	public void show(List<FileNode> crumbs, List<FileNode> files) {
 		if(crumbs.size() > 0) {
-			String firstCrumb = crumbs.get(0).getRepository();
+			String firstCrumb = crumbs.get(0).getRepositoryName();
 			selectRepoByName(firstCrumb);
 			
 			int delta = match(crumbElements, crumbs);
