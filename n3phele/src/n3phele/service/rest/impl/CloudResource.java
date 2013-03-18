@@ -178,6 +178,7 @@ public class CloudResource {
 	public static String testAccount(Cloud cloud, User user, Account account, boolean fix) {
 		String result;
 		Client client = Client.create();
+		client.setConnectTimeout(10000);
 		Credential plain = Credential.unencrypted(cloud.getFactoryCredential());
 		client.addFilter(new HTTPBasicAuthFilter(plain.getAccount(), plain.getSecret()));
 		WebResource resource = client.resource(cloud.getFactory()).path("accountTest");
@@ -193,6 +194,16 @@ public class CloudResource {
 		form.add("firstName", user.getFirstName());
 		form.add("lastName", user.getLastName());
 		form.add("securityGroup", "default");
+		
+		//Insert additional parameters on call from input parameters of the cloud, don't override existent values
+		for(TypedParameter tp: cloud.getInputParameters())
+		{
+			if(!form.containsKey(tp.getName()))
+			{
+				form.add(tp.getName(), tp.valueOf());				
+			}
+		}
+		
 		try {
 			result = resource.type(MediaType.APPLICATION_FORM_URLENCODED).post(String.class, form);
 		} catch (Exception e) {
