@@ -410,6 +410,7 @@ public class CloudStorageImpl implements CloudStorageInterface {
 		if(cache.containsKey(key)) {
 			Access existing = cache.get(key);
 			if(existing.getToken().getExpires().getTime() > (new Date().getTime()+(5*60*1000))) {
+				log.info("Got cached key");
 				return existing;
 			}
 		}
@@ -421,6 +422,7 @@ public class CloudStorageImpl implements CloudStorageInterface {
 			authenticate = Authenticate.withApiAccessKeyCredentials(accessKey, secretKey);
 		}
 		WebResource resource = client.resource(target);
+		log.info("Authenticating");
 		Access access = authenticate.getAccess(resource);
 		log.info(access.toString());
 		cache.put(key, access);
