@@ -51,11 +51,8 @@ import com.sun.jersey.api.client.WebResource;
 
 public class CloudStorageImpl implements CloudStorageInterface {
 	private static Logger log = Logger.getLogger(CloudStorageImpl.class.getName());
-	private boolean onGAE;
-	public CloudStorageImpl() { this(true); }
-	public CloudStorageImpl(boolean onGAE) {
-		this.onGAE = onGAE;
-	}
+	public CloudStorageImpl() {  }
+
 	/* (non-Javadoc)
 	 * @see n3phele.storage.CloudStorageInterface#createBucket(n3phele.service.model.repository.Repository)
 	 */
@@ -64,7 +61,15 @@ public class CloudStorageImpl implements CloudStorageInterface {
 		SwiftClient swiftClient = null;
 		try {
 			Credential credential = repo.getCredential().decrypt();
-			Access access = getAccess(repo.getTarget(), credential.getAccount(), credential.getSecret());	
+			Access access;
+			try {
+				access = getAccess(repo.getTarget(), credential.getAccount(), credential.getSecret());
+			} catch (UniformInterfaceException e) {
+				int status = e.getResponse().getStatus();
+				if(status == 401)
+					throw new ForbiddenException("Invalid credentials entered");
+				throw e;
+			}
 			
 			swiftClient = new SwiftClient(access, getRegion(repo));
 			Map<String, String> params = new HashMap<String,String>();
@@ -75,9 +80,6 @@ public class CloudStorageImpl implements CloudStorageInterface {
             return false;
 		} catch (UniformInterfaceException e) {
 			int status = e.getResponse().getStatus();
-			if(status == 403) {
-				throw new ForbiddenException("Invalid credentials");
-			}
 			if(status == 401)
 				throw new ForbiddenException("Bucket "+repo.getRoot()+" has already been created by another user.");
 			if(status == 404) {
@@ -405,12 +407,11 @@ public class CloudStorageImpl implements CloudStorageInterface {
 	
 	
 	private static Map<String,Access> cache = new HashMap<String,Access>();
-	private Access getAccess(URI target, String accessKey, String secretKey) {
+	public Access getAccess(URI target, String accessKey, String secretKey) {
 		String key = target.toString()+"|"+accessKey+"|"+secretKey;
 		if(cache.containsKey(key)) {
 			Access existing = cache.get(key);
 			if(existing.getToken().getExpires().getTime() > (new Date().getTime()+(5*60*1000))) {
-				log.info("Got cached key");
 				return existing;
 			}
 		}
@@ -422,7 +423,6 @@ public class CloudStorageImpl implements CloudStorageInterface {
 			authenticate = Authenticate.withApiAccessKeyCredentials(accessKey, secretKey);
 		}
 		WebResource resource = client.resource(target);
-		log.info("Authenticating");
 		Access access = authenticate.getAccess(resource);
 		log.info(access.toString());
 		cache.put(key, access);
