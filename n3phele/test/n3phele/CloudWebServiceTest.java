@@ -39,7 +39,7 @@ public class CloudWebServiceTest  {
 	public void setUp() throws Exception {
 		client = Client.create();
 		client.addFilter(new HTTPBasicAuthFilter("test-user@gmail.com", "testit!"));
-		webResource = client.resource(UriBuilder.fromUri("https://127.0.0.1:8888/resources").path(CloudResource.class).build());
+		webResource = client.resource(UriBuilder.fromUri("http://127.0.0.1:8888/resources").path(CloudResource.class).build());
 	}
 
 	private Client client;
@@ -112,6 +112,57 @@ public class CloudWebServiceTest  {
 	  public void testCloudDelete() throws Exception {
 
 		Cloud cloud = webResource.path("byName").queryParam("id","EC2").accept(MediaType.APPLICATION_JSON_TYPE).get(Cloud.class);
+	  	ClientResponse response = webResource.uri(cloud.getUri()).delete(ClientResponse.class);
+
+	  	Assert.assertEquals(204, response.getStatus()); 
+	  	 
+	  }
+	  
+	  @Test
+		public void addHPCloudTest() {
+			URI cloud = null;
+			
+			String cloudName = "HPZone1";
+			
+			Collection<BaseEntity> response = webResource.queryParam("summary", "false").get(new GenericType<Collection<BaseEntity>>() {});
+			if(response.getTotal() > 0) {
+				for(Entity c : response.getElements()) {
+					if(c.getName().equals(cloudName)) {
+						cloud = c.getUri();
+					}
+				}
+			}
+
+			if(cloud == null) {
+
+				String myName = cloudName;
+				String description = "HP Cloud";
+				URI location = URI.create("https://az-1.region-a.geo-1.compute.hpcloudsvc.com/v1.1/12365734013392");
+				URI factory =  URI.create("https://nova-factory.appspot.com/resources/virtualServer");
+				//URI factory =  URI.create("http://127.0.0.1:8889/resources/virtualServer");
+				String factoryId = "user";
+				String mySecret = "password";
+				Form form = new Form();
+				form.add("name", myName);
+				form.add("description", description);
+				form.add("location", location);
+				form.add("factory", factory);
+				form.add("factoryId", factoryId);
+				form.add("secret", mySecret);
+				form.add("isPublic", true);
+
+				ClientResponse result = webResource.post(ClientResponse.class, form);
+				cloud = result.getLocation();
+
+				Assert.assertEquals(201, result.getStatus());  
+			}
+
+		}
+	  
+	  //@Test
+	  public void testHPCloudDelete() throws Exception {
+
+		Cloud cloud = webResource.path("byName").queryParam("id","HPZone1").accept(MediaType.APPLICATION_JSON_TYPE).get(Cloud.class);
 	  	ClientResponse response = webResource.uri(cloud.getUri()).delete(ClientResponse.class);
 
 	  	Assert.assertEquals(204, response.getStatus()); 
