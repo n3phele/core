@@ -75,6 +75,9 @@ public class CloudStorageImpl implements CloudStorageInterface {
             return false;
 		} catch (UniformInterfaceException e) {
 			int status = e.getResponse().getStatus();
+			if(status == 403) {
+				throw new ForbiddenException("Invalid credentials");
+			}
 			if(status == 401)
 				throw new ForbiddenException("Bucket "+repo.getRoot()+" has already been created by another user.");
 			if(status == 404) {
@@ -413,7 +416,7 @@ public class CloudStorageImpl implements CloudStorageInterface {
 		Authenticate authenticate;
 		String[] pieces = accessKey.split(":");
 		if(pieces.length == 2) {
-			authenticate = Authenticate.withApiAccessKeyCredentials(pieces[0], secretKey).withTenantName(pieces[1]);
+			authenticate = Authenticate.withApiAccessKeyCredentials(pieces[1], secretKey).withTenantName(pieces[0]);
 		} else {
 			authenticate = Authenticate.withApiAccessKeyCredentials(accessKey, secretKey);
 		}
