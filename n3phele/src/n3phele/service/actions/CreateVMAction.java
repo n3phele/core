@@ -149,6 +149,7 @@ public class CreateVMAction extends Action {
 		Account account = AccountResource.dao.load(accountURI, this.getOwner());
 		Cloud cloud = CloudResource.dao.load(account.getCloud(), this.getOwner());
 		
+		log.info("Merging cloud defaults into context");
 		mergeCloudDefaultsIntoContext(cloud);
 		createVMs(account, cloud);
 	}
@@ -294,6 +295,8 @@ public class CreateVMAction extends Action {
 		}
 	}
 	private void createVMs(Account account, Cloud myCloud) throws Exception {
+		
+		log.info("Create VMAction called");
 		Client client = ClientFactory.create();
 
 		ClientFilter factoryAuth = new HTTPBasicAuthFilter(Credential.unencrypted(myCloud.getFactoryCredential()).getAccount(), Credential.unencrypted(myCloud.getFactoryCredential()).getSecret());
@@ -304,9 +307,13 @@ public class CreateVMAction extends Action {
 		
 		ExecutionFactoryCreateRequest cr = new ExecutionFactoryCreateRequest();
 		cr.name = this.name;
+		log.info("ExecutionFactoryCreateRequest name: "+this.name);
 		cr.description = "VM Creation for "+this.getName()+" "+this.getUri();
+		log.info("ExecutionFactoryCreateRequest description: "+cr.description);
 		cr.location = myCloud.getLocation();
+		log.info("ExecutionFactoryCreateRequest location: "+cr.location);		
 		String keyName = this.context.getValue("keyName");
+		log.info("Account name: "+ account.getName());
 		if(Helpers.isBlankOrNull(keyName)) {
 			this.context.putValue("keyName", "n3phele-"+account.getName());
 		}
@@ -323,8 +330,10 @@ public class CreateVMAction extends Action {
 		try {
 
 			CreateVirtualServerResult response = createVirtualServers(resource, cr);
+			log.info("Factory response: "+response.response.getStatus() + " "+response.response.toString());
 
 			URI location = response.getLocation();
+			log.info("Response location: "+location);
 			if(location != null) {
 				URI[] refs = response.getRefs();
 

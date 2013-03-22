@@ -79,6 +79,46 @@ public class AccountWebServiceTest  {
 
 
 	}
+	@Test
+	public void addHPAccountCloudTest(){
+		URI account = null;
+		Cloud cloud = webResource.uri(UriBuilder.fromUri("http://127.0.0.1:8888/resources").path(CloudResource.class).build()).path("byName").queryParam("id","HPZone1").accept(MediaType.APPLICATION_JSON_TYPE).get(Cloud.class);
+		if(account == null) {
+			
+			Form form = new Form();
+			String myAccountName = "HPTest-account";
+	    	String accountDescription = "this is a test description.";
+	    	String accountId = "HPAccount-Id";
+	    	String accountSecret = "biggle";
+			
+			form = new Form();
+			form.add("name", myAccountName);
+			form.add("description", accountDescription);
+			form.add("cloud", cloud.getUri());
+			form.add("factoryId", accountId);
+			form.add("secret", accountSecret);
+			
+			ClientResponse accountResponse = webResource.post(ClientResponse.class, form);
+	    	account = accountResponse.getLocation();
+	    	
+	    	Assert.assertTrue(accountResponse.getStatus()==200 || accountResponse.getStatus()==201);     
+	    	
+	    	n3phele.service.model.Account accountResult = webResource.uri(account).get(Account.class);
+	    	Assert.assertEquals(myAccountName, accountResult.getName());
+	    	Assert.assertEquals(accountDescription, accountResult.getDescription());
+	    	Assert.assertEquals(cloud.getUri(), accountResult.getCloud());
+	    	Assert.assertNull(accountResult.getCredential()); 
+		}
+	}
+	
+	//@Test
+	public void testHPAccountDelete(){
+		Cloud cloud = webResource.path("byName").queryParam("id","HPTest-account").accept(MediaType.APPLICATION_JSON_TYPE).get(Cloud.class);
+	  	ClientResponse response = webResource.uri(cloud.getUri()).delete(ClientResponse.class);
+
+	  	Assert.assertEquals(204, response.getStatus()); 
+	}
+	
 	
 	// @Test
 	  public void testAccountDelete() throws Exception {

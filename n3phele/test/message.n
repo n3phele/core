@@ -13,3 +13,6 @@ parameters :
 EC2: # Amazon EC2
 	$$my_vm = CREATEVM --name myVM --n $$n
 	ON $$my_vm echo $$message
+HPZone1: # HP Cloud
+	$$my_vm = CREATEVM --name myVM --n $$n
+	ON $$my_vm echo $$message

@@ -1,0 +1,15 @@
+# vmCreateExplicitDeleteTest.n
+# Copyright (c) 2013 Nigel Cook. All Rights reserved
+# xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+name	   :  vmCreateAndDelete
+description: create n vm and then kill them
+version	   : 1.1
+preferred  : true
+public	   : true
+icon	   : http://www.n3phele.com/icons/custom
+parameters :						  
+	optional int n	= 2 	# how many to create
+	string account		# cloud account to use
+HPZone1: # HP CLOUD
+	$$my_vm = CREATEVM --name myVM --n $$n --account $$account --async
+	DESTROY $$my_vm
