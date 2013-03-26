@@ -140,7 +140,7 @@ public class VMAction extends Action {
 				if(!this.context.containsKey("agentURI")) {	
 					
 					VirtualServer vs = getVirtualServer(client, this.context.getValue("vmFactory"));
-					log.info("Server status is "+vs.getStatus());
+					log.info("VMAction: Server status is "+vs.getStatus());
 					URI notification = UriBuilder.fromUri(this.getProcess()).scheme("http").path("event").build();
 					if(!notification.equals(vs.getNotification())) {
 						// FIXME: Update factory to accept notification put .. resource.put(notification);
@@ -149,6 +149,7 @@ public class VMAction extends Action {
 						for(NameValue p : vs.getOutputParameters()) {
 							if(p.getKey().equals("publicIpAddress")) {
 								this.context.putValue("publicIpAddress", p.getValue());
+								log.info("VMAction: publicURI is "+p.getValue());
 								URI agentURI = URI.create(String.format(Resource.get("agentPattern", "http://%s:8887/task"),p.getValue()));
 								this.context.putValue("agentURI", agentURI);
 								log.info("agentURI is "+agentURI);

@@ -19,15 +19,23 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import n3phele.service.actions.CreateVMAction;
+
 @XmlRootElement(name="CreateVirtualServerResponse")
 @XmlType(name="CreateVirtualServerResponse", propOrder={"vmList"})
 
 public class CreateVirtualServerResponse {
 	public URI vmList[];
+	final private static java.util.logging.Logger log = java.util.logging.Logger.getLogger(CreateVirtualServerResponse.class.getName()); 
 	
 	public CreateVirtualServerResponse() {}
 
 	public CreateVirtualServerResponse(List<URI> vmRefs) {
+		log.info("Create VMAction called");
 		vmList = vmRefs.toArray(new URI[vmRefs.size()]);
 	};
+	
+	public URI[] getVmList(){
+		return this.vmList;
+	}
 }

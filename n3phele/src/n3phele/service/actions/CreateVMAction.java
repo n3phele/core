@@ -336,6 +336,7 @@ public class CreateVMAction extends Action {
 			log.info("Response location: "+location);
 			if(location != null) {
 				URI[] refs = response.getRefs();
+				log.info("Refs length: "+refs.length);
 
 				log.info(this.name+" "+Integer.toString(refs.length)+" vm(s) creation started. Factory "+location.toString()+" initiating status "+response.getStatus());
 				log.info(this.name+" "+Arrays.asList(refs));
