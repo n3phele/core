@@ -251,13 +251,14 @@ public class FileNodeBrowserCore extends VerticalPanel {
 		public void onClick(ClickEvent event) {
 			if(FileNodeBrowserCore.this.presenter != null) {
 				int index = FileNodeBrowserCore.this.repoList.getSelectedIndex();
-				String repoName = FileNodeBrowserCore.this.repoList.getValue(index);
+				String repoName = FileNodeBrowserCore.this.repoList.getItemText(index);
+				String repoUri = FileNodeBrowserCore.this.repoList.getValue(index);
 				if(isBlankOrNull(repoName))
 					repoName = null;
 				String filename = getCanonicalFilename(FileNodeBrowserCore.this.filename.getText());
 				if(isBlankOrNull(filename))
 					filename = null;
-				FileNodeBrowserCore.this.presenter.save(repoName, filename);
+				FileNodeBrowserCore.this.presenter.save(repoName, repoUri, filename);
 			}	
 		}});
 		openButton.setWidth("80px");
@@ -369,10 +370,10 @@ public class FileNodeBrowserCore extends VerticalPanel {
 			enableOpenButton(b && this.presenter != null);
 		} else {
 			if(this.presenter != null) {
-				String repoName = FileNodeBrowserCore.this.repoList.getValue(FileNodeBrowserCore.this.repoList.getSelectedIndex());
+				String repoUri = FileNodeBrowserCore.this.repoList.getValue(FileNodeBrowserCore.this.repoList.getSelectedIndex());
 				String filename = FileNodeBrowserCore.this.filename.getText();
-				GWT.log("Save "+filename+" from "+FileNodeBrowserCore.this.filename.getText()+" on "+repoName);
-				validateAndEnableOpenButton(filename, repoName);
+				GWT.log("Save "+filename+" from "+FileNodeBrowserCore.this.filename.getText()+" on "+repoUri);
+				validateAndEnableOpenButton(filename, repoUri);
 			}
 		}
 		
@@ -435,7 +436,7 @@ public class FileNodeBrowserCore extends VerticalPanel {
 			this.repoList.addItem(isInput?"unspecified" : "no output", "");
 		}
 		for(Repository r : repos) {
-			this.repoList.addItem(r.getName(), r.getName());
+			this.repoList.addItem(r.getName(), r.getUri());
 		}
 	}
 	public void show(List<FileNode> crumbs, List<FileNode> files) {
@@ -712,7 +713,7 @@ public class FileNodeBrowserCore extends VerticalPanel {
 		
 		public void hide();
 
-		public void save(String repoURI, String filename);
+		public void save(String repoName, String repoUri, String filename);
 		
 		public boolean validate(String repoURI, String filename);
 
