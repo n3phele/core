@@ -330,7 +330,7 @@ public class CreateVMAction extends Action {
 		try {
 
 			CreateVirtualServerResult response = createVirtualServers(resource, cr);
-			log.info("Factory response: "+response.response.getStatus() + " "+response.response.toString());
+			log.info("Factory response: "+response.getStatus() + " "+response);
 
 			URI location = response.getLocation();
 			log.info("Response location: "+location);
@@ -604,6 +604,10 @@ public class CreateVMAction extends Action {
 		
 		public int getStatus() {
 			return response.getStatus();
+		}
+		
+		public String toString() {
+			return ""+response;
 		}
 	}
 }
