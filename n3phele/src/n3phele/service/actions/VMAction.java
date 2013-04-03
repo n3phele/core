@@ -30,11 +30,11 @@ import n3phele.service.lifecycle.ProcessLifecycle;
 import n3phele.service.model.Action;
 import n3phele.service.model.Command;
 import n3phele.service.model.FileTracker;
-import n3phele.service.model.ParameterType;
 import n3phele.service.model.SignalKind;
-import n3phele.service.model.TypedParameter;
 import n3phele.service.model.VirtualServerStatus;
 import n3phele.service.model.core.NameValue;
+import n3phele.service.model.core.ParameterType;
+import n3phele.service.model.core.TypedParameter;
 import n3phele.service.model.core.VirtualServer;
 import n3phele.service.rest.impl.ActionResource;
 

@@ -269,7 +269,7 @@ public class CloudProcessResource {
 		}
 
 		@Override
-		protected GenericModelDao<CloudProcess> itemDaoFactory() {
+		public GenericModelDao<CloudProcess> itemDaoFactory() {
 			return new ServiceModelDao<CloudProcess>(CloudProcess.class);
 		}
 		public void clear() { super.itemDao.clear(); }

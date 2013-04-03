@@ -107,7 +107,7 @@ public class ActionResource {
 		}
 
 		@Override
-		protected GenericModelDao<Action> itemDaoFactory() {
+		public GenericModelDao<Action> itemDaoFactory() {
 			return new ServiceModelDao<Action>(Action.class);
 		}
 	

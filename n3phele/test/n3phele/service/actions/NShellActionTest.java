@@ -1183,7 +1183,7 @@ public class NShellActionTest {
 				log.info("Get virtualServer "+uri+" "+CreateVMActionWrapper.virtualServer.get(URI.create(uri)));
 				VirtualServer result = CreateVMActionWrapper.virtualServer.get(URI.create(uri));
 				if(processState != null)
-					result.setStatus(processState);
+					result.setStatus(VirtualServerStatus.running);
 				return result;
 			}
 	 }

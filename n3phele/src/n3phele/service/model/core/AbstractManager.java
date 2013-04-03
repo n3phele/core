@@ -352,7 +352,7 @@ public abstract class AbstractManager<Item extends Entity> {
 	 * @param transactional true to create a transactional persistent model management, false for non-transactional 
 	 * @return the modelDao
 	 */
-	protected abstract GenericModelDao<Item> itemDaoFactory();
+	public abstract GenericModelDao<Item> itemDaoFactory();
 	
 	public <R> R transact(com.googlecode.objectify.Work<R> codeBody) {
 		return com.googlecode.objectify.ObjectifyService.ofy().transact(codeBody);

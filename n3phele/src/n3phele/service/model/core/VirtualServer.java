@@ -215,14 +215,6 @@ public class VirtualServer extends Entity {
 
 
 	/**
-	 * @param status the status to set
-	 */
-	public void setStatus(VirtualServerStatus status) {
-		this.status = status;
-	}
-
-
-	/**
 	 * @return the notification
 	 */
 	public URI getNotification() {
@@ -395,6 +387,16 @@ public class VirtualServer extends Entity {
 						notification, instanceId, spotId, accessKey,
 						encryptedKey, siblings, idempotencyKey, created,
 						zombie, outputParameters);
+	}
+
+
+
+	/**
+	 * @param status the status to set
+	 */
+	public void setStatus(VirtualServerStatus status) {
+		this.status = status;
+		
 	}
 
 

@@ -6,11 +6,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import n3phele.service.model.Cloud;
-import n3phele.service.model.ParameterType;
-import n3phele.service.model.TypedParameter;
 import n3phele.service.model.core.BaseEntity;
 import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.Entity;
+import n3phele.service.model.core.ParameterType;
+import n3phele.service.model.core.TypedParameter;
 import n3phele.service.rest.impl.CloudResource;
 
 import org.junit.Assert;
@@ -87,7 +87,7 @@ public class CloudWebServiceTest  {
 	}
 	
 	static TypedParameter EC2Defaults[] = {
-		new TypedParameter("instanceType", "specifies virtual machine size. Valid Values: t1.micro | m1.small | m1.large | m1.xlarge | m2.xlarge | m2.2xlarge | m2.4xlarge | c1.medium | c1.xlarge", n3phele.service.model.ParameterType.String, "", "t1.micro"),
+		new TypedParameter("instanceType", "specifies virtual machine size. Valid Values: t1.micro | m1.small | m1.large | m1.xlarge | m2.xlarge | m2.2xlarge | m2.4xlarge | c1.medium | c1.xlarge", n3phele.service.model.core.ParameterType.String, "", "t1.micro"),
 		new TypedParameter("imageId", "Unique ID of a machine image, returned by a call to RegisterImage", ParameterType.String, "", "ami-54cf5c3d"),
 		new TypedParameter("securityGroups", "Name of the security group which controls the open TCP/IP ports for the VM.", ParameterType.String, "", "n3phele-default"),
 		new TypedParameter("userData", "Base64-encoded MIME user data made available to the instance(s). May be used to pass startup commands.", ParameterType.String, "", "#!/bin/bash\necho n3phele agent injection... \nset -x\n wget -q -O - https://n3phele-agent.s3.amazonaws.com/n3ph-install-tgz-basic | su - -c '/bin/bash -s ec2-user ~/agent ~/sandbox https://region-a.geo-1.objects.hpcloudsvc.com:443/v1/AUTH_dc700102-734c-4a97-afc8-50530e87a171/n3phele-agent/n3phele-agent.tgz' ec2-user\n")		

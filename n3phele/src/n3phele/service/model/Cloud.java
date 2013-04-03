@@ -14,6 +14,7 @@ import javax.xml.bind.annotation.XmlType;
 
 import n3phele.service.model.core.Credential;
 import n3phele.service.model.core.Entity;
+import n3phele.service.model.core.TypedParameter;
 
 import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.annotation.Cache;

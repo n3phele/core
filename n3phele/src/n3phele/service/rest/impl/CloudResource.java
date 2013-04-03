@@ -34,12 +34,12 @@ import n3phele.service.model.Account;
 import n3phele.service.model.CachingAbstractManager;
 import n3phele.service.model.Cloud;
 import n3phele.service.model.CloudCollection;
-import n3phele.service.model.ParameterType;
 import n3phele.service.model.ServiceModelDao;
-import n3phele.service.model.TypedParameter;
 import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.Credential;
 import n3phele.service.model.core.GenericModelDao;
+import n3phele.service.model.core.ParameterType;
+import n3phele.service.model.core.TypedParameter;
 import n3phele.service.model.core.User;
 
 import com.sun.jersey.api.client.Client;
@@ -222,7 +222,7 @@ public class CloudResource {
 		}
 
 		@Override
-		protected GenericModelDao<Cloud> itemDaoFactory() {
+		public GenericModelDao<Cloud> itemDaoFactory() {
 			return new ServiceModelDao<Cloud>(Cloud.class);
 		}
 

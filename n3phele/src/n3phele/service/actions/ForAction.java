@@ -30,11 +30,11 @@ import n3phele.service.model.CloudProcess;
 import n3phele.service.model.Command;
 import n3phele.service.model.CommandImplementationDefinition;
 import n3phele.service.model.Context;
-import n3phele.service.model.ParameterType;
 import n3phele.service.model.ShellFragment;
 import n3phele.service.model.SignalKind;
-import n3phele.service.model.TypedParameter;
 import n3phele.service.model.core.Helpers;
+import n3phele.service.model.core.ParameterType;
+import n3phele.service.model.core.TypedParameter;
 import n3phele.service.rest.impl.ActionResource;
 
 import com.googlecode.objectify.annotation.Cache;
