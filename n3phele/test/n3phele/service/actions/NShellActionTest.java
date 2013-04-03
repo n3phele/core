@@ -28,6 +28,7 @@ import n3phele.service.model.Command;
 import n3phele.service.model.Context;
 import n3phele.service.model.Narrative;
 import n3phele.service.model.NarrativeLevel;
+import n3phele.service.model.VirtualServerStatus;
 import n3phele.service.model.core.CommandRequest;
 import n3phele.service.model.core.Credential;
 import n3phele.service.model.core.ExecutionFactoryCreateRequest;
@@ -247,8 +248,8 @@ public class NShellActionTest {
 		 CloudProcess createVMProcess;
 		 CloudProcess vmProcess;
 		 
-		 CreateVMActionWrapper.initalState = "Pending";
-		 VMActionWrapper.processState = "Running";
+		 CreateVMActionWrapper.initalState = VirtualServerStatus.pending;
+		 VMActionWrapper.processState = VirtualServerStatus.running;
 		 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234");
 		
 		NParser n = new NParser(new FileInputStream("./test/vmCreateExplicitDeleteTest.n"));
@@ -310,8 +311,8 @@ public class NShellActionTest {
 		assertNotNull(root);
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
-		 CreateVMActionWrapper.initalState = "Pending";
-		 VMActionWrapper.processState = "Running";
+		 CreateVMActionWrapper.initalState = VirtualServerStatus.pending;
+		 VMActionWrapper.processState = VirtualServerStatus.running;
 		 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234", "https://myFactory/VM/4321");
 		
 		NParser n = new NParser(new FileInputStream("./test/vmCreateExplicitDeleteTest.n"));
@@ -381,8 +382,8 @@ public class NShellActionTest {
 		assertNotNull(root);
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
-		 CreateVMActionWrapper.initalState = "Pending";
-		 VMActionWrapper.processState = "Running";
+		 CreateVMActionWrapper.initalState = VirtualServerStatus.pending;
+		 VMActionWrapper.processState = VirtualServerStatus.running;
 		 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234");
 		
 		NParser n = new NParser(new FileInputStream("./test/vmCreateImplicitDeleteTest.n"));
@@ -447,8 +448,8 @@ public class NShellActionTest {
 		assertNotNull(root);
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
-		 CreateVMActionWrapper.initalState = "Pending";
-		 VMActionWrapper.processState = "Running";
+		 CreateVMActionWrapper.initalState = VirtualServerStatus.pending;
+		 VMActionWrapper.processState = VirtualServerStatus.running;
 		 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234", "https://myFactory/VM/4321");
 		
 		NParser n = new NParser(new FileInputStream("./test/vmCreateImplicitDeleteTest.n"));
@@ -520,8 +521,8 @@ public class NShellActionTest {
 		assertNotNull(root);
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
-		 CreateVMActionWrapper.initalState = "Pending";
-		 VMActionWrapper.processState = "Running";
+		 CreateVMActionWrapper.initalState = VirtualServerStatus.pending;
+		 VMActionWrapper.processState = VirtualServerStatus.running;
 		 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234");
 		
 		NParser n = new NParser(new FileInputStream("./test/onCommandNoFilesTest.n"));
@@ -604,8 +605,8 @@ public class NShellActionTest {
 		assertNotNull(root);
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
-		 CreateVMActionWrapper.initalState = "Pending";
-		 VMActionWrapper.processState = "Running";
+		 CreateVMActionWrapper.initalState = VirtualServerStatus.pending;
+		 VMActionWrapper.processState = VirtualServerStatus.running;
 		 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234");
 		
 		NParser n = new NParser(new FileInputStream("./test/onCommandSingleInputFileTest.n"));
@@ -777,8 +778,8 @@ public class NShellActionTest {
 		assertNotNull(root);
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
-		 CreateVMActionWrapper.initalState = "Pending";
-		 VMActionWrapper.processState = "Running";
+		 CreateVMActionWrapper.initalState = VirtualServerStatus.pending;
+		 VMActionWrapper.processState = VirtualServerStatus.running;
 		 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234");
 		
 		NParser n = new NParser(new FileInputStream("./test/onCommandSingleOutputFileTest.n"));
@@ -1052,7 +1053,6 @@ public class NShellActionTest {
 			User temp = com.googlecode.objectify.ObjectifyService.ofy().load().type(User.class).id(UserResource.Root.getId()).safeGet();
 		} catch (com.googlecode.objectify.NotFoundException e) {
 			User temp = UserResource.Root;
-			URI initial = temp.getUri();
 			temp.setId(null);
 			Key<User>key =  com.googlecode.objectify.ObjectifyService.ofy().save().entity(temp).now();
 			temp = com.googlecode.objectify.ObjectifyService.ofy().load().type(User.class).id(UserResource.Root.getId()).get();
@@ -1092,7 +1092,7 @@ public class NShellActionTest {
 	 public static class CreateVMActionWrapper extends CreateVMAction {
 		 	public static CreateVirtualServerTestResult clientResponseResult = null;
 		 	public static Map<URI, VirtualServer> virtualServer = new HashMap<URI, VirtualServer>();
-		 	public static String initalState = "Running";
+		 	public static VirtualServerStatus initalState = VirtualServerStatus.running;
 		 	protected int i=0;
 			protected VirtualServer fetchVirtualServer(Client client, URI uri) {
 				VirtualServer result = virtualServer.get(uri);
@@ -1163,7 +1163,7 @@ public class NShellActionTest {
 	 
 	 @EntitySubclass
 	 public static class VMActionWrapper extends VMAction {
-		 public static String processState = "Running";
+		 public static VirtualServerStatus processState = VirtualServerStatus.running;
 		 @Override
 		 protected int terminate(Client client, String factory, boolean error, boolean debug) {
 			 log.info("terminate "+factory+" error="+error+" debug="+debug);

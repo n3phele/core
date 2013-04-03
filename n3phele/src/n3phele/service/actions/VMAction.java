@@ -33,6 +33,7 @@ import n3phele.service.model.FileTracker;
 import n3phele.service.model.ParameterType;
 import n3phele.service.model.SignalKind;
 import n3phele.service.model.TypedParameter;
+import n3phele.service.model.VirtualServerStatus;
 import n3phele.service.model.core.NameValue;
 import n3phele.service.model.core.VirtualServer;
 import n3phele.service.rest.impl.ActionResource;
@@ -145,7 +146,7 @@ public class VMAction extends Action {
 					if(!notification.equals(vs.getNotification())) {
 						// FIXME: Update factory to accept notification put .. resource.put(notification);
 					}
-					if(vs.getStatus().equalsIgnoreCase("Running") && vs.getOutputParameters() != null) {
+					if(vs.getStatus().equals(VirtualServerStatus.running) && vs.getOutputParameters() != null) {
 						for(NameValue p : vs.getOutputParameters()) {
 							if(p.getKey().equals("publicIpAddress")) {
 								this.context.putValue("publicIpAddress", p.getValue());
@@ -157,7 +158,7 @@ public class VMAction extends Action {
 								this.context.putValue(p.getKey(), p.getValue());
 							}
 						}
-					} else if(vs.getStatus().equalsIgnoreCase("Terminated")) {
+					} else if(vs.getStatus().equals(VirtualServerStatus.terminated)) {
 						logger.error("Client "+this.context.getValue("vmFactory")+" unexpected death.");
 						log.severe("Client "+this.context.getValue("vmFactory")+" unexpected death.");
 						throw new UnprocessableEntityException("Client "+this.context.getValue("vmFactory")+" unexpected death.");
@@ -249,11 +250,11 @@ public class VMAction extends Action {
 			}
 			
 			log.info("VM "+this.context.getValue("vmFactory")+" "+(vs==null?"disappeared":vs.getName()+":"+vs.getStatus()));
-			if(vs != null && vs.getStatus().equalsIgnoreCase("Running") && vs.getOutputParameters() != null) {
+			if(vs != null && vs.getStatus().equals(VirtualServerStatus.running) && vs.getOutputParameters() != null) {
 				/*
 				 * All is well
 				 */
-			} else if(vs == null || vs.getStatus().equalsIgnoreCase("Terminated")) {
+			} else if(vs == null || vs.getStatus().equals(VirtualServerStatus.terminated)) {
 				/*
 				 * The VM has died
 				 */

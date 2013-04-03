@@ -22,6 +22,7 @@ import n3phele.service.model.CloudProcess;
 import n3phele.service.model.Context;
 import n3phele.service.model.SignalKind;
 import n3phele.service.model.VariableType;
+import n3phele.service.model.VirtualServerStatus;
 import n3phele.service.model.core.Credential;
 import n3phele.service.model.core.ExecutionFactoryCreateRequest;
 import n3phele.service.model.core.NameValue;
@@ -79,8 +80,8 @@ public class CreateVMActionTest {
 			assertNotNull(root);
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
-		 CreateVMActionWrapper.initalState = "Running";
-		 VMActionWrapper.processState = "Running";
+		 CreateVMActionWrapper.initalState = VirtualServerStatus.running;
+		 VMActionWrapper.processState = VirtualServerStatus.running;
 		 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234");
 		 Context context = new Context();		 
 		 context.putValue("account", account);
@@ -105,7 +106,6 @@ public class CreateVMActionTest {
 		CreateVMAction cvma = (CreateVMAction) ActionResource.dao.load(process.getAction());
 
 		VMAction vmAction = (VMAction) ActionResource.dao.load(cvma.getContext().getURIValue("cloudVM"));
-		CloudProcess childVM = CloudProcessResource.dao.load(vmAction.getProcess());
 		
 		assertEquals("name defaults to process name", "one.CreateVM", cvma.getContext().getValue("name"));
 		assertEquals("default instance count", 1L, cvma.getContext().getObjectValue("n"));
@@ -139,8 +139,8 @@ public class CreateVMActionTest {
 			assertNotNull(root);
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
-		 CreateVMActionWrapper.initalState = "Pending";
-		 VMActionWrapper.processState = "Running";
+		 CreateVMActionWrapper.initalState = VirtualServerStatus.pending;
+		 VMActionWrapper.processState = VirtualServerStatus.running;
 		 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234");
 		 Context context = new Context();		 
 		 context.putValue("account", account);
@@ -161,7 +161,6 @@ public class CreateVMActionTest {
 		CreateVMAction cvma = (CreateVMAction) ActionResource.dao.load(process.getAction());
 		
 		VMAction vmAction = (VMAction) ActionResource.dao.load(cvma.getContext().getURIValue("cloudVM"));
-		CloudProcess childVM = CloudProcessResource.dao.load(vmAction.getProcess());
 
 		assertEquals("createVM context has child vm", vmAction.getUri(), cvma.getContext().getURIValue("cloudVM"));
 		assertEquals("name defaults to process name", "one.CreateVM", cvma.getContext().getValue("name"));
@@ -196,8 +195,8 @@ public class CreateVMActionTest {
 			assertNotNull(root);
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
-		 CreateVMActionWrapper.initalState = "Running";
-		 VMActionWrapper.processState = "Running";
+		 CreateVMActionWrapper.initalState = VirtualServerStatus.running;
+		 VMActionWrapper.processState = VirtualServerStatus.running;
 		 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234", "https://myFactory/VM/4321");
 		 Context context = new Context();		 
 		 context.putValue("account", account);
@@ -218,7 +217,6 @@ public class CreateVMActionTest {
 		
 		assertEquals(ActionState.COMPLETE, process.getState());
 		CreateVMAction cvma = (CreateVMAction) ActionResource.dao.load(process.getAction());
-		@SuppressWarnings("unchecked")
 		VMAction vmAction = (VMAction) ActionResource.dao.load(cvma.getContext().getURIList("cloudVM").get(0));
 		VMAction vmAction2 = (VMAction) ActionResource.dao.load(cvma.getContext().getURIList("cloudVM").get(1));
 		CloudProcess childVM = CloudProcessResource.dao.load(vmAction.getProcess());
@@ -281,8 +279,8 @@ public class CreateVMActionTest {
 			assertNotNull(root);
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
-		 CreateVMActionWrapper.initalState = "Pending";
-		 VMActionWrapper.processState = "Running";
+		 CreateVMActionWrapper.initalState = VirtualServerStatus.pending;
+		 VMActionWrapper.processState = VirtualServerStatus.running;
 		 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234", "https://myFactory/VM/4321");
 		 Context context = new Context();		 
 		 context.putValue("account", account);
@@ -367,8 +365,8 @@ public class CreateVMActionTest {
 			assertNotNull(root);
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
-		 CreateVMActionWrapper.initalState = "Pending";
-		 VMActionWrapper.processState = "Pending";
+		 CreateVMActionWrapper.initalState = VirtualServerStatus.pending;
+		 VMActionWrapper.processState = VirtualServerStatus.pending;
 		 Resource.getResourceMap().put("vmProvisioningTimeoutInSeconds", "1");
 		 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234");
 		 Context context = new Context();		 
@@ -402,8 +400,8 @@ public class CreateVMActionTest {
 			assertNotNull(root);
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
-		 CreateVMActionWrapper.initalState = "Pending";
-		 VMActionWrapper.processState = "Pending";
+		 CreateVMActionWrapper.initalState = VirtualServerStatus.pending;
+		 VMActionWrapper.processState = VirtualServerStatus.pending;
 		 Resource.getResourceMap().put("vmProvisioningTimeoutInSeconds", "3");
 		 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234","https://myFactory/VM/2222");
 		 Context context = new Context();		 
@@ -422,7 +420,7 @@ public class CreateVMActionTest {
 		VMActionWrapper.processState = null;
 		VMAction childAction = (VMAction) ActionResource.dao.load(childVM.getAction());
 		URI childFactoryURI = childAction.getContext().getURIValue("vmFactory");
-		CreateVMActionWrapper.virtualServer.get(childFactoryURI).setStatus("Running");
+		CreateVMActionWrapper.virtualServer.get(childFactoryURI).setStatus(VirtualServerStatus.running);
 		String refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
 		assertEquals("{\"RUNABLE\": 2, \"RUNABLE_Wait\": 2}", refresh);
 		Thread.sleep(1000);
@@ -461,8 +459,8 @@ public class CreateVMActionTest {
 			assertNotNull(root);
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
-		 CreateVMActionWrapper.initalState = "Pending";
-		 VMActionWrapper.processState = "Running";
+		 CreateVMActionWrapper.initalState = VirtualServerStatus.pending;
+		 VMActionWrapper.processState = VirtualServerStatus.running;
 		 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234","https://myFactory/VM/2222");
 		 Context context = new Context();		 
 		 context.putValue("account", account);
@@ -488,7 +486,7 @@ public class CreateVMActionTest {
 		VMAction vm2 = (VMAction) ActionResource.dao.load(createVMAction.getContext().getURIList("cloudVM").get(1));
 		CloudProcess vmProcess = CloudProcessResource.dao.load(vm1.getProcess());
 		URI childFactoryURI = vm1.getContext().getURIValue("vmFactory");
-		CreateVMActionWrapper.virtualServer.get(childFactoryURI).setStatus("Terminated");
+		CreateVMActionWrapper.virtualServer.get(childFactoryURI).setStatus(VirtualServerStatus.terminated);
 		ProcessLifecycle.mgr().signal(vmProcess.getUri(), SignalKind.Event, vmProcess.getUri().toString());
 		Thread.sleep(1000);
 		CloudProcessResource.dao.clear();
@@ -516,8 +514,8 @@ public class CreateVMActionTest {
 			assertNotNull(root);
 		 URI cloud = createTestCloud();
 		 URI account = createTestAccount(cloud);
-		 CreateVMActionWrapper.initalState = "Pending";
-		 VMActionWrapper.processState = "Running";
+		 CreateVMActionWrapper.initalState = VirtualServerStatus.pending;
+		 VMActionWrapper.processState = VirtualServerStatus.running;
 		 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234","https://myFactory/VM/2222");
 		 Context context = new Context();		 
 		 context.putValue("account", account);
@@ -607,7 +605,7 @@ public class CreateVMActionTest {
 	 public static class CreateVMActionWrapper extends CreateVMAction {
 		 	public static CreateVirtualServerTestResult clientResponseResult = null;
 		 	public static Map<URI, VirtualServer> virtualServer = new HashMap<URI, VirtualServer>();
-		 	public static String initalState = "Running";
+		 	public static VirtualServerStatus initalState = VirtualServerStatus.running;
 		 	protected int i=0;
 			protected VirtualServer fetchVirtualServer(Client client, URI uri) {
 				try {
@@ -690,7 +688,7 @@ public class CreateVMActionTest {
 	 
 	 @EntitySubclass
 	 public static class VMActionWrapper extends VMAction {
-		 public static String processState = "Running";
+		 public static VirtualServerStatus processState = VirtualServerStatus.running;
 		 @Override
 		 protected int terminate(Client client, String factory, boolean error, boolean debug) {
 			 log.info("terminate "+factory+" error="+error+" debug="+debug);

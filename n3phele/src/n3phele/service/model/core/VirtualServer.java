@@ -23,6 +23,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
+import n3phele.service.model.VirtualServerStatus;
+
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Index;
@@ -39,7 +41,7 @@ public class VirtualServer extends Entity {
 	private String description;
 	private String location;
 	@Embed private ArrayList<NameValue> parametersList;
-	private String status;
+	private VirtualServerStatus status;
 	private String notification;
 	private String instanceId;
 	private String spotId;
@@ -47,6 +49,7 @@ public class VirtualServer extends Entity {
 	private String encryptedKey;
 	private ArrayList<String> siblings;
 	@Index private String idempotencyKey;
+	//TODO: check if it is the date it was created and not the date it was made into zombie
 	private Date created;
 	private boolean zombie;
 	@Embed private ArrayList<NameValue> outputParameters;
@@ -81,7 +84,7 @@ public class VirtualServer extends Entity {
 		this.notification = (notification != null)? notification.toString() : null;
 		this.instanceId = instanceId;
 		this.spotId = spotId;
-		this.status = "Initializing";
+		this.status = VirtualServerStatus.initializing;
 		this.accessKey = accessKey;
 		this.encryptedKey = encryptedKey;
 		this.idempotencyKey = idempotencyKey;
@@ -206,7 +209,7 @@ public class VirtualServer extends Entity {
 	/**
 	 * @return the status
 	 */
-	public String getStatus() {
+	public VirtualServerStatus getStatus() {
 		return status;
 	}
 
@@ -214,7 +217,7 @@ public class VirtualServer extends Entity {
 	/**
 	 * @param status the status to set
 	 */
-	public void setStatus(String status) {
+	public void setStatus(VirtualServerStatus status) {
 		this.status = status;
 	}
 
