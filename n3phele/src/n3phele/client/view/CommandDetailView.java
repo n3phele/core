@@ -314,10 +314,15 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 	
 	public boolean validateRepoRefs (List<FileSpecification> fileSpecs, boolean isInput) {
 		for(FileSpecification p : fileSpecs) {
-			String repoURI = p.getRepository();
-			String repoFile = p.getFilename();
+			String repoName = null;
+			String repoFile = null;
+			if(p.getRepository() != null) {
+				int i = p.getRepository().indexOf(":");
+				repoName = p.getRepository().substring(0,i);
+				repoFile = p.getRepository().substring(i+3);
+			}
 			boolean isOptional = p.isOptional();
-			if(!validateRepo(repoURI, repoFile, isInput && !isOptional)) return false;
+			if(!validateRepo(repoName, repoFile, isInput && !isOptional)) return false;
 		}
 		return true;
 	}
@@ -972,7 +977,7 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 					 * @see n3phele.client.widgets.FileNodeBrowser.BrowserPresenter#save(java.lang.String)
 					 */
 					@Override
-					public void save(String repoName, String filename) {
+					public void save(String repoName, String repoUri, String filename) {
 						fileSpecification.setFilename(filename);
 						fileSpecification.setRepository(repoName+":///"+filename);
 						if(isInput)
@@ -980,7 +985,7 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 						else
 							outputTable.redraw();
 						updateRunButton(true);
-						CommandDetailView.this.lastRepo = repoName;
+						CommandDetailView.this.lastRepo = repoUri;
 						CommandDetailView.this.lastPath = getPath(filename);						
 						popup.hide();
 					}
@@ -1020,7 +1025,7 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 						}
 					} else {
 						CommandDetailView.this.presenter.fetchFiles(view, 
-									fileSpecification.getRepository(),
+									fileSpecification.getRepository(), //FIXME .. needs to be the repo URL not filename URI
 									getPath(fileSpecification.getFilename()));
 					}
 				} else {

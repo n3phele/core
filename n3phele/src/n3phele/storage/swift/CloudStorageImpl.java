@@ -343,7 +343,7 @@ public class CloudStorageImpl implements CloudStorageInterface {
 		String expires = Long.toString((Calendar.getInstance().getTimeInMillis()/1000) + 60*60);
 
 		String stringToSign = "GET\n"+expires+"\n"+result.build().getPath().replace(" ", "%20");
-		String signature = access.getToken().getTenant().getId()+":"+credential.getAccount().split(":")[0]+":"+signSwiftQueryString(stringToSign, repo.getCredential());
+		String signature = access.getToken().getTenant().getId()+":"+credential.getAccount().split(":")[1]+":"+signSwiftQueryString(stringToSign, repo.getCredential());
 
 		result.queryParam("temp_url_expires", expires);
 		result.queryParam("temp_url_sig", signature);
@@ -369,7 +369,7 @@ public class CloudStorageImpl implements CloudStorageInterface {
 		String expires = Long.toString((Calendar.getInstance().getTimeInMillis()/1000) + 60*60);
 		// hmac_body = '%s\n%s\n%s\n%s\n%s' % (path, redirect, max_file_size, max_file_count, expires) 
 		String stringToSign = path.replace(" ", "%20")+"\n"+"\n"+"1073741824"+"\n"+"1"+"\n"+expires;
-		String signature = access.getToken().getTenant().getId()+":"+credential.getAccount().split(":")[0]+":"+signSwiftQueryString(stringToSign, repo.getCredential());
+		String signature = access.getToken().getTenant().getId()+":"+credential.getAccount().split(":")[1]+":"+signSwiftQueryString(stringToSign, repo.getCredential());
 		
 		String acl = "swift";
 
