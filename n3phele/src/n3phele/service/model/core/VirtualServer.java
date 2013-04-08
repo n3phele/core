@@ -31,11 +31,13 @@ import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 
 
+
 @XmlRootElement(name="VirtualServer")
 @XmlType(name="VirtualServer", propOrder={"created", "description", "location", "parameters", "status", "notification", 
 										"instanceId", "spotId", "outputParameters", "siblings", "idempotencyKey", "zombie"})
 @Unindex
 @Cache
+@com.googlecode.objectify.annotation.Entity
 public class VirtualServer extends Entity {
 	@com.googlecode.objectify.annotation.Id private Long id;
 	private String description;

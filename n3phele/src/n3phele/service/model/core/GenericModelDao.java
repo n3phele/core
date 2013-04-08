@@ -225,6 +225,10 @@ public final Class<T> clazz;
 		return ofy().load().type(clazz).filter(propName, propValue).keys().list();
 	}
 	
+	public List<Key<T>> listKeys() {
+		return ofy().load().type(clazz).keys().list();
+	}
+	
 	public List<T> listByPropertyForUser(URI user, String propName, Object propValue) {
 		return ofy().load().type(clazz).filter("owner", user.toString()).filter(propName, propValue).list();
 	}
