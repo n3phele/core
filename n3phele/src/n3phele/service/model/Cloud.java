@@ -7,6 +7,7 @@ package n3phele.service.model;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Map;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
@@ -35,6 +36,8 @@ public class Cloud extends Entity {
 	@Embed private Credential factoryCredential;
 	@Embed private ArrayList<TypedParameter> inputParameters; 
 	@Embed private ArrayList<TypedParameter> outputParameters; 
+	private String costDriverName;
+	private Map<String, Float> costMap;
 	
 	public Cloud() {}
 	
@@ -47,6 +50,38 @@ public class Cloud extends Entity {
 		this.location = (location==null)? null : location.toString();
 		this.factory = (factory==null)? null : factory.toString();
 		this.factoryCredential = factoryCredential;
+	}
+	
+	/**
+	 * @param costMap the costs mapping
+	 */
+	public void setCostMap(Map<String, Float> costMap){
+		for (Map.Entry<String, Float> entry : costMap.entrySet())
+		{
+		    this.costMap.put(entry.getKey().replace(".","_"), entry.getValue());
+		}
+		
+	}
+	
+	/**
+	 * @return the costs mapping
+	 */
+	public Map<String,Float> getCostMap(){
+		return costMap;
+	}
+	
+	/**
+	 * @return the server cost driver name
+	 */
+	public String getCostDriverName(){
+		return costDriverName;
+	}
+	
+	/**
+	 * @param costDriverName the server cost driver name
+	 */
+	public void setCostDriverName(String costDriverName){
+		this.costDriverName = costDriverName;
 	}
 	
 	/**
