@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import n3phele.service.model.core.Change;
 import n3phele.service.model.core.Entity;
 import n3phele.service.rest.impl.UserResource;
 

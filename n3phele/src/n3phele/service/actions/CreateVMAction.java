@@ -43,7 +43,6 @@ import n3phele.service.model.Context;
 import n3phele.service.model.SignalKind;
 import n3phele.service.model.Variable;
 import n3phele.service.model.VariableType;
-import n3phele.service.model.VirtualServerStatus;
 import n3phele.service.model.core.CreateVirtualServerResponse;
 import n3phele.service.model.core.Credential;
 import n3phele.service.model.core.ExecutionFactoryCreateRequest;
@@ -52,6 +51,7 @@ import n3phele.service.model.core.NameValue;
 import n3phele.service.model.core.ParameterType;
 import n3phele.service.model.core.TypedParameter;
 import n3phele.service.model.core.VirtualServer;
+import n3phele.service.model.core.VirtualServerStatus;
 import n3phele.service.rest.impl.AccountResource;
 import n3phele.service.rest.impl.ActionResource;
 import n3phele.service.rest.impl.CloudResource;
@@ -426,6 +426,7 @@ public class CreateVMAction extends Action {
 		ArrayList<NameValue> result = new ArrayList<NameValue>();
 		for(TypedParameter param : Helpers.safeIterator(cloud.getInputParameters())) {
 			String name = param.getName();
+			log.info("Parameter name: "+name);
 			if(this.context.containsKey(name)) {
 				String value = this.context.getValue(name);
 				/*
@@ -441,9 +442,11 @@ public class CreateVMAction extends Action {
 
 					}
 				}
+				log.info("Parameter exists, updating value: "+value);
 				NameValue nv = new NameValue(name, value);
 				result.add(nv);
 			}
+			log.info("Parameter doesn't exist");
 		}
 		return result;
 	}
