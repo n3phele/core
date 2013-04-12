@@ -8,6 +8,7 @@ package n3phele.service.rest.impl;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -81,10 +82,12 @@ public class CloudResource {
 			@FormParam("factory") URI factory,
 			@FormParam("factoryId") String factoryId,
 			@FormParam("secret") String secret,
-			@FormParam("isPublic") boolean isPublic)  {
+			@FormParam("isPublic") boolean isPublic,
+			@FormParam("costDriverName") String costDriverName,
+			@FormParam("costMap") Map<String, Float> costMap)  {
 
 		Cloud result = new Cloud(name, description, location, factory, new Credential(factoryId, secret).encrypt(), 
-				UserResource.toUser(securityContext).getUri(), isPublic);
+				UserResource.toUser(securityContext).getUri(), isPublic, costDriverName, costMap);
 		fetchParameters(result);
 		dao.add(result);
 

@@ -43,13 +43,15 @@ public class Cloud extends Entity {
 	
 
 	public Cloud(String name, String description,
-		 URI location, URI factory, Credential factoryCredential, URI owner, boolean isPublic) {
+		 URI location, URI factory, Credential factoryCredential, URI owner, boolean isPublic, String costDriverName, Map<String,Float> costMap) {
 		super(name, null, owner, isPublic);
 		this.id = null;
 		setDescription(description);
 		this.location = (location==null)? null : location.toString();
 		this.factory = (factory==null)? null : factory.toString();
 		this.factoryCredential = factoryCredential;
+		this.costDriverName = costDriverName;
+		setCostMap(costMap);
 	}
 	
 	/**
@@ -203,7 +205,7 @@ public class Cloud extends Entity {
 
 	public static Cloud summary(Cloud c) {
 			if(c == null) return null;
-			Cloud result = new Cloud(c.name, null, null, null, null, c.getOwner(), c.isPublic);
+			Cloud result = new Cloud(c.name, null, null, null, null, c.getOwner(), c.isPublic, c.costDriverName, c.costMap);
 			result.uri = c.uri;
 			return result;
 	}

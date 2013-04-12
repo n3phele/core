@@ -1,6 +1,8 @@
  package n3phele;
 
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
@@ -144,6 +146,17 @@ public class CloudWebServiceTest  {
 				//URI factory =  URI.create("http://127.0.0.1:8889/resources/virtualServer");
 				String factoryId = "user";
 				String mySecret = "password";
+				
+				//Prices for Linux machines
+				String costDriverName = "flavorRef";
+				Map<String,Float> costMap = new HashMap<String,Float>();
+				costMap.put("100", 0.035f);
+				costMap.put("101", 0.07f);
+				costMap.put("102", 0.14f);
+				costMap.put("103", 0.28f);
+				costMap.put("104", 0.56f);
+				costMap.put("105", 1.12f);
+				
 				Form form = new Form();
 				form.add("name", myName);
 				form.add("description", description);
@@ -152,6 +165,8 @@ public class CloudWebServiceTest  {
 				form.add("factoryId", factoryId);
 				form.add("secret", mySecret);
 				form.add("isPublic", true);
+				form.add("costDriverName", costDriverName);
+				form.add("costMap", costMap);
 
 				ClientResponse result = webResource.post(ClientResponse.class, form);
 				cloud = result.getLocation();
