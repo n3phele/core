@@ -1,8 +1,14 @@
  package n3phele;
 
+
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
@@ -48,14 +54,37 @@ public class CloudWebServiceTest  {
 
 	private Client client;
 	private WebResource webResource;
+	
+	
+	public Map<String,Double> readFile(String fileName){
+		Map<String, Double> map = new HashMap<String,Double>();
+		try{
+			  FileInputStream fstream = new FileInputStream(fileName);
+			  DataInputStream in = new DataInputStream(fstream);
+			  BufferedReader br = new BufferedReader(new InputStreamReader(in));
+			  
+			  String strLine;
+			  while ((strLine = br.readLine()) != null)   {	 
+				 
+				  String[] values = strLine.split(" ");
+				  System.out.println (values[0]+" "+values[1]);
+				  map.put(values[0],Double.parseDouble(values[1]));
+			  }
+			  in.close();
+		}catch (Exception e){
+			  System.err.println("Error: " + e.getMessage());
+		}
+		
+		return map;
+	}
 
-	//@Test
+	@Test
 	public void addEC2CloudTest() {
 		URI cloud = null;
 		Collection<BaseEntity> response = webResource.queryParam("summary", "false").get(new GenericType<Collection<BaseEntity>>() {});
 		if(response.getTotal() > 0) {
 			for(Entity c : response.getElements()) {
-				if(c.getName().equals("EC2")) {
+				if(c.getName().equals("EC2 - USWest2")) {
 					cloud = c.getUri();
 				}
 			}
@@ -63,7 +92,8 @@ public class CloudWebServiceTest  {
 
 		if(cloud == null) {
 
-
+			
+			
 			String myName = "EC2";
 			String description = "Amazon Elastic Compute Service";
 			URI location = URI.create("https://ec2.amazonaws.com");
@@ -78,6 +108,9 @@ public class CloudWebServiceTest  {
 			form.add("factoryId", factoryId);
 			form.add("secret", mySecret);
 			form.add("isPublic", true);
+			form.add("costDriverName","instanceType");
+		//	form.add("costMap", map);
+			
 
 			ClientResponse result = webResource.post(ClientResponse.class, form);
 			cloud = result.getLocation();
@@ -96,7 +129,10 @@ public class CloudWebServiceTest  {
 		new TypedParameter("securityGroups", "Name of the security group which controls the open TCP/IP ports for the VM.", ParameterType.String, "", "n3phele-default"),
 		new TypedParameter("userData", "Base64-encoded MIME user data made available to the instance(s). May be used to pass startup commands.", ParameterType.String, "", "#!/bin/bash\necho n3phele agent injection... \nset -x\n wget -q -O - https://n3phele-agent.s3.amazonaws.com/n3ph-install-tgz-basic | su - -c '/bin/bash -s ec2-user ~/agent ~/sandbox https://region-a.geo-1.objects.hpcloudsvc.com:443/v1/AUTH_dc700102-734c-4a97-afc8-50530e87a171/n3phele-agent/n3phele-agent.tgz' ec2-user\n")		
 	};
-	//@Test
+	
+	
+	
+	@Test
 	public void testInitCloudDefaults() throws Exception {
 		Cloud cloud = webResource.path("byName").queryParam("id","EC2").accept(MediaType.APPLICATION_JSON_TYPE).get(Cloud.class);
 		for(TypedParameter t : EC2Defaults) {
@@ -112,6 +148,40 @@ public class CloudWebServiceTest  {
 
 	}
 	
+	@Test
+	public void testAddCloudCosts(){
+		Cloud cloud = webResource.path("byName").queryParam("id","EC2").accept(MediaType.APPLICATION_JSON_TYPE).get(Cloud.class);
+ 		Map<String,Double> map = readFile("EC2_us_west_2.txt");
+		
+		for (Entry<String,Double> entryPrice : map.entrySet())
+		{						
+			Form form = new Form();
+			form.add("key", entryPrice.getKey());
+			form.add("value",entryPrice.getValue().toString());
+			form.add("isWindows","false");
+			
+			ClientResponse result = webResource.uri(cloud.getUri()).path("costMap").post(ClientResponse.class, form);
+			Assert.assertEquals(200, result.getStatus());  
+		}
+	}
+	
+	@Test
+	public void testAddCloudCostsWin(){
+		Cloud cloud = webResource.path("byName").queryParam("id","EC2").accept(MediaType.APPLICATION_JSON_TYPE).get(Cloud.class);
+ 		Map<String,Double> map = readFile("EC2_us_west_2_WIN.txt");
+		
+		for (Entry<String,Double> entryPrice : map.entrySet())
+		{						
+			Form form = new Form();
+			form.add("key", entryPrice.getKey());
+			form.add("value",entryPrice.getValue().toString());
+			form.add("isWindows","true");
+			
+			ClientResponse result = webResource.uri(cloud.getUri()).path("costMap").post(ClientResponse.class, form);
+			Assert.assertEquals(200, result.getStatus());  
+		}
+	}
+	
 	 //@Test
 	  public void testCloudDelete() throws Exception {
 
@@ -122,7 +192,7 @@ public class CloudWebServiceTest  {
 	  	 
 	  }
 	  
-	  @Test
+		@Test
 		public void addHPCloudTest() {
 			URI cloud = null;
 			
@@ -149,13 +219,6 @@ public class CloudWebServiceTest  {
 				
 				//Prices for Linux machines
 				String costDriverName = "flavorRef";
-				Map<String,Float> costMap = new HashMap<String,Float>();
-				costMap.put("100", 0.035f);
-				costMap.put("101", 0.07f);
-				costMap.put("102", 0.14f);
-				costMap.put("103", 0.28f);
-				costMap.put("104", 0.56f);
-				costMap.put("105", 1.12f);
 				
 				Form form = new Form();
 				form.add("name", myName);
@@ -166,7 +229,6 @@ public class CloudWebServiceTest  {
 				form.add("secret", mySecret);
 				form.add("isPublic", true);
 				form.add("costDriverName", costDriverName);
-				form.add("costMap", costMap);
 
 				ClientResponse result = webResource.post(ClientResponse.class, form);
 				cloud = result.getLocation();
@@ -197,7 +259,41 @@ public class CloudWebServiceTest  {
 			  	Assert.assertEquals(200, result.getStatus());  
 			  	}
 			  		
-}
+		}
+		
+		@Test
+		public void testAddCloudCostsHP(){
+			Cloud cloud = webResource.path("byName").queryParam("id","HPZone1").accept(MediaType.APPLICATION_JSON_TYPE).get(Cloud.class);
+	 		Map<String,Double> map = readFile("HP.txt");
+			
+			for (Entry<String,Double> entryPrice : map.entrySet())
+			{						
+				Form form = new Form();
+				form.add("key", entryPrice.getKey());
+				form.add("value",entryPrice.getValue().toString());
+				form.add("isWindows","false");
+				
+				ClientResponse result = webResource.uri(cloud.getUri()).path("costMap").post(ClientResponse.class, form);
+				Assert.assertEquals(200, result.getStatus());  
+			}
+		}
+		
+		@Test
+		public void testAddCloudCostsWinHP(){
+			Cloud cloud = webResource.path("byName").queryParam("id","HPZone1").accept(MediaType.APPLICATION_JSON_TYPE).get(Cloud.class);
+	 		Map<String,Double> map = readFile("HP_WIN.txt");
+			
+			for (Entry<String,Double> entryPrice : map.entrySet())
+			{						
+				Form form = new Form();
+				form.add("key", entryPrice.getKey());
+				form.add("value",entryPrice.getValue().toString());
+				form.add("isWindows","true");
+				
+				ClientResponse result = webResource.uri(cloud.getUri()).path("costMap").post(ClientResponse.class, form);
+				Assert.assertEquals(200, result.getStatus());  
+			}
+		}
 	  			  
 	  
 	  //@Test

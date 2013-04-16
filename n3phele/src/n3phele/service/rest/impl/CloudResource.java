@@ -83,11 +83,10 @@ public class CloudResource {
 			@FormParam("factoryId") String factoryId,
 			@FormParam("secret") String secret,
 			@FormParam("isPublic") boolean isPublic,
-			@FormParam("costDriverName") String costDriverName,
-			@FormParam("costMap") Map<String, Float> costMap)  {
+			@FormParam("costDriverName") String costDriverName)  {
 
 		Cloud result = new Cloud(name, description, location, factory, new Credential(factoryId, secret).encrypt(), 
-				UserResource.toUser(securityContext).getUri(), isPublic, costDriverName, costMap);
+				UserResource.toUser(securityContext).getUri(), isPublic, costDriverName);
 		fetchParameters(result);
 		dao.add(result);
 
@@ -125,6 +124,32 @@ public class CloudResource {
 		dao.update(cloud);
 		log.info("Added "+cloud.getName()+" "+newValue);
 		return Response.created(URI.create(cloud.getUri().toString()+"/inputParameter")).build();
+	}
+	
+	@POST
+	@RolesAllowed("authenticated")
+	@Produces("application/json")
+	@Path("{id}/costMap") 
+	public Response setCostMap(@PathParam ("id") Long id,
+									  @FormParam("key") String key,
+									  @FormParam("value") String value,
+									  @FormParam("isWindows")String isWindows) throws NotFoundException {
+		Cloud cloud = dao.load(id, UserResource.toUser(securityContext));
+		Map<String,Double> map;
+		if(isWindows.equalsIgnoreCase("true")) {
+			map = cloud.getCostMapWindows();
+			map.put(key.replace(".","_"), Double.parseDouble(value));
+			cloud.setCostMapWindows(map);
+		}
+		else{
+			map = cloud.getCostMapLinux();
+			map.put(key.replace(".","_"), Double.parseDouble(value));
+			cloud.setCostMapLinux(map);
+		}
+		
+		log.info("Updated "+cloud.getName()+" costMap "+key+" "+value);
+		dao.update(cloud);
+		return Response.ok().build();
 	}
 	
 

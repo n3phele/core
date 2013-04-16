@@ -735,9 +735,7 @@ public class CreateVMActionTest {
 	 }
 	 
 	 private URI createTestCloud() {
-		 Map<String,Float> costMap = new HashMap<String,Float>();
-		 costMap.put("100", 0.035f);
-		 Cloud cloud = new Cloud("testCloud", "cloud for testing", URI.create("https://mycloudprovider.com"), URI.create("https://mycloudfactory.com"), new Credential("factory", "factorySecret").encrypt(), getRoot().getUri(), true, "flavorRef", costMap);
+		 Cloud cloud = new Cloud("testCloud", "cloud for testing", URI.create("https://mycloudprovider.com"), URI.create("https://mycloudfactory.com"), new Credential("factory", "factorySecret").encrypt(), getRoot().getUri(), true, "flavorRef");
 		 CloudResource.dao.add(cloud);
 		 return cloud.getUri();
  

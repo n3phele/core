@@ -33,7 +33,7 @@ import com.googlecode.objectify.annotation.Unindex;
 
 @XmlRootElement(name="VirtualServer")
 @XmlType(name="VirtualServer", propOrder={"created", "description", "location", "parameters", "status", "notification", 
-										"instanceId", "spotId", "outputParameters", "siblings", "idempotencyKey", "zombie"})
+										"instanceId", "spotId", "outputParameters", "siblings", "idempotencyKey", "zombie","windows"})
 @Unindex
 @Cache
 @com.googlecode.objectify.annotation.Entity
@@ -54,6 +54,7 @@ public class VirtualServer extends Entity {
 	private Date created;
 	private boolean zombie;
 	@Embed private ArrayList<NameValue> outputParameters;
+	private boolean windows;
 	
 	
 	public VirtualServer() {}
@@ -89,6 +90,7 @@ public class VirtualServer extends Entity {
 		this.accessKey = accessKey;
 		this.encryptedKey = encryptedKey;
 		this.idempotencyKey = idempotencyKey;
+		this.windows = false;
 	}
 	
 	/**
@@ -109,6 +111,20 @@ public class VirtualServer extends Entity {
 		this(name, description, location, null, notification,
 				null, null, accessKey, encryptedKey, owner, idempotencyKey);
 		this.parametersList = parameters;
+	}
+	
+	/**
+	 * @return windows if windows image
+	 */
+	public boolean getWindows(){
+		return this.windows;
+	}
+	
+	/**
+	 * @param windows if the image is a windows image
+	 */
+	public void setWindows(boolean windows){
+		this.windows = windows;
 	}
 
 

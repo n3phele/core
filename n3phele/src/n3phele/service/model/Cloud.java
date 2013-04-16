@@ -7,7 +7,10 @@ package n3phele.service.model;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
@@ -24,7 +27,7 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Unindex;
 
 @XmlRootElement(name="Cloud")
-@XmlType(name="Cloud", propOrder={"description", "location", "factory", "inputParameters", "outputParameters"})
+@XmlType(name="Cloud", propOrder={"description", "location", "costDriverName","costMapLinux","costMapWindows","factory", "inputParameters", "outputParameters"})
 @Unindex
 @Cache
 @com.googlecode.objectify.annotation.Entity
@@ -33,17 +36,19 @@ public class Cloud extends Entity {
 	private Text description;
 	private String location;
 	private String factory;
+	private String costDriverName;
+	private Map<String, Double> costMapLinux;
+	private Map<String, Double> costMapWindows;
 	@Embed private Credential factoryCredential;
 	@Embed private ArrayList<TypedParameter> inputParameters; 
 	@Embed private ArrayList<TypedParameter> outputParameters; 
-	private String costDriverName;
-	private Map<String, Float> costMap;
+	
 	
 	public Cloud() {}
 	
 
 	public Cloud(String name, String description,
-		 URI location, URI factory, Credential factoryCredential, URI owner, boolean isPublic, String costDriverName, Map<String,Float> costMap) {
+		 URI location, URI factory, Credential factoryCredential, URI owner, boolean isPublic, String costDriverName) {
 		super(name, null, owner, isPublic);
 		this.id = null;
 		setDescription(description);
@@ -51,25 +56,49 @@ public class Cloud extends Entity {
 		this.factory = (factory==null)? null : factory.toString();
 		this.factoryCredential = factoryCredential;
 		this.costDriverName = costDriverName;
-		setCostMap(costMap);
+		this.costMapLinux = new HashMap<String,Double>();
+		this.costMapWindows = new HashMap<String,Double>();
 	}
 	
 	/**
 	 * @param costMap the costs mapping
 	 */
-	public void setCostMap(Map<String, Float> costMap){
-		for (Map.Entry<String, Float> entry : costMap.entrySet())
-		{
-		    this.costMap.put(entry.getKey().replace(".","_"), entry.getValue());
-		}
+	public void setCostMapLinux(Map<String, Double> costMap){		
 		
+		this.costMapLinux = costMap;
+		
+			//Replacing "." with "_" because of objectify
+			for (Entry<String,Double> entryPrice : costMap.entrySet())
+			{						
+				 this.costMapLinux.put(entryPrice.getKey().replace(".","_"), entryPrice.getValue());
+			}
+	}
+	
+	public void setCostMapWindows(Map<String, Double> costMap){		
+		
+		this.costMapWindows= costMap;
+		
+			//Replacing "." with "_" because of objectify
+			for (Entry<String,Double> entryPrice : costMap.entrySet())
+			{						
+				 this.costMapWindows.put(entryPrice.getKey().replace(".","_"), entryPrice.getValue());
+			}
 	}
 	
 	/**
 	 * @return the costs mapping
 	 */
-	public Map<String,Float> getCostMap(){
-		return costMap;
+	public Map<String,Double> getCostMapLinux(){
+		if(this.costMapLinux == null)return new HashMap<String,Double>();
+		return this.costMapLinux;
+	}
+	
+	/**
+	 * @return the costs mapping
+	 */
+	public Map<String,Double> getCostMapWindows(){
+		if(this.costMapWindows == null)return new HashMap<String,Double>();
+		return this.costMapWindows;
 	}
 	
 	/**
@@ -205,7 +234,7 @@ public class Cloud extends Entity {
 
 	public static Cloud summary(Cloud c) {
 			if(c == null) return null;
-			Cloud result = new Cloud(c.name, null, null, null, null, c.getOwner(), c.isPublic, c.costDriverName, c.costMap);
+			Cloud result = new Cloud(c.name, null, null, null, null, c.getOwner(), c.isPublic, c.costDriverName);
 			result.uri = c.uri;
 			return result;
 	}
