@@ -27,7 +27,7 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Unindex;
 
 @XmlRootElement(name="Cloud")
-@XmlType(name="Cloud", propOrder={"description", "location", "costDriverName","costMapLinux","costMapWindows","factory", "inputParameters", "outputParameters"})
+@XmlType(name="Cloud", propOrder={"description", "location", "costDriverName","costMap", "factory", "inputParameters", "outputParameters"})
 @Unindex
 @Cache
 @com.googlecode.objectify.annotation.Entity
@@ -37,8 +37,7 @@ public class Cloud extends Entity {
 	private String location;
 	private String factory;
 	private String costDriverName;
-	private Map<String, Double> costMapLinux;
-	private Map<String, Double> costMapWindows;
+	private Map<String, Double> costMap;
 	@Embed private Credential factoryCredential;
 	@Embed private ArrayList<TypedParameter> inputParameters; 
 	@Embed private ArrayList<TypedParameter> outputParameters; 
@@ -56,50 +55,26 @@ public class Cloud extends Entity {
 		this.factory = (factory==null)? null : factory.toString();
 		this.factoryCredential = factoryCredential;
 		this.costDriverName = costDriverName;
-		this.costMapLinux = new HashMap<String,Double>();
-		this.costMapWindows = new HashMap<String,Double>();
+		this.costMap = new HashMap<String,Double>();
 	}
 	
 	/**
 	 * @param costMap the costs mapping
 	 */
-	public void setCostMapLinux(Map<String, Double> costMap){		
+	public void setCostMap(Map<String, Double> costMap){	
 		
-		this.costMapLinux = costMap;
-		
-			//Replacing "." with "_" because of objectify
-			for (Entry<String,Double> entryPrice : costMap.entrySet())
-			{						
-				 this.costMapLinux.put(entryPrice.getKey().replace(".","_"), entryPrice.getValue());
-			}
-	}
+		this.costMap = costMap;
+	}	
 	
-	public void setCostMapWindows(Map<String, Double> costMap){		
-		
-		this.costMapWindows= costMap;
-		
-			//Replacing "." with "_" because of objectify
-			for (Entry<String,Double> entryPrice : costMap.entrySet())
-			{						
-				 this.costMapWindows.put(entryPrice.getKey().replace(".","_"), entryPrice.getValue());
-			}
-	}
 	
 	/**
 	 * @return the costs mapping
 	 */
-	public Map<String,Double> getCostMapLinux(){
-		if(this.costMapLinux == null)return new HashMap<String,Double>();
-		return this.costMapLinux;
+	public Map<String,Double> getCostMap(){
+		if(this.costMap == null)return new HashMap<String,Double>();
+		return this.costMap;
 	}
 	
-	/**
-	 * @return the costs mapping
-	 */
-	public Map<String,Double> getCostMapWindows(){
-		if(this.costMapWindows == null)return new HashMap<String,Double>();
-		return this.costMapWindows;
-	}
 	
 	/**
 	 * @return the server cost driver name

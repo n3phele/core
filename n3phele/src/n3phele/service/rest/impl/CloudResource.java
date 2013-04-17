@@ -132,20 +132,11 @@ public class CloudResource {
 	@Path("{id}/costMap") 
 	public Response setCostMap(@PathParam ("id") Long id,
 									  @FormParam("key") String key,
-									  @FormParam("value") String value,
-									  @FormParam("isWindows")String isWindows) throws NotFoundException {
+									  @FormParam("value") String value) throws NotFoundException {
 		Cloud cloud = dao.load(id, UserResource.toUser(securityContext));
-		Map<String,Double> map;
-		if(isWindows.equalsIgnoreCase("true")) {
-			map = cloud.getCostMapWindows();
-			map.put(key.replace(".","_"), Double.parseDouble(value));
-			cloud.setCostMapWindows(map);
-		}
-		else{
-			map = cloud.getCostMapLinux();
-			map.put(key.replace(".","_"), Double.parseDouble(value));
-			cloud.setCostMapLinux(map);
-		}
+		Map<String,Double> map = cloud.getCostMap();
+		map.put(key.replace(".","_"), Double.parseDouble(value));
+		cloud.setCostMap(map);
 		
 		log.info("Updated "+cloud.getName()+" costMap "+key+" "+value);
 		dao.update(cloud);

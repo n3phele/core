@@ -109,8 +109,6 @@ public class CloudWebServiceTest  {
 			form.add("secret", mySecret);
 			form.add("isPublic", true);
 			form.add("costDriverName","instanceType");
-		//	form.add("costMap", map);
-			
 
 			ClientResponse result = webResource.post(ClientResponse.class, form);
 			cloud = result.getLocation();
@@ -158,29 +156,12 @@ public class CloudWebServiceTest  {
 			Form form = new Form();
 			form.add("key", entryPrice.getKey());
 			form.add("value",entryPrice.getValue().toString());
-			form.add("isWindows","false");
 			
 			ClientResponse result = webResource.uri(cloud.getUri()).path("costMap").post(ClientResponse.class, form);
 			Assert.assertEquals(200, result.getStatus());  
 		}
 	}
-	
-	@Test
-	public void testAddCloudCostsWin(){
-		Cloud cloud = webResource.path("byName").queryParam("id","EC2").accept(MediaType.APPLICATION_JSON_TYPE).get(Cloud.class);
- 		Map<String,Double> map = readFile("EC2_us_west_2_WIN.txt");
-		
-		for (Entry<String,Double> entryPrice : map.entrySet())
-		{						
-			Form form = new Form();
-			form.add("key", entryPrice.getKey());
-			form.add("value",entryPrice.getValue().toString());
-			form.add("isWindows","true");
-			
-			ClientResponse result = webResource.uri(cloud.getUri()).path("costMap").post(ClientResponse.class, form);
-			Assert.assertEquals(200, result.getStatus());  
-		}
-	}
+
 	
 	 //@Test
 	  public void testCloudDelete() throws Exception {
@@ -271,29 +252,12 @@ public class CloudWebServiceTest  {
 				Form form = new Form();
 				form.add("key", entryPrice.getKey());
 				form.add("value",entryPrice.getValue().toString());
-				form.add("isWindows","false");
 				
 				ClientResponse result = webResource.uri(cloud.getUri()).path("costMap").post(ClientResponse.class, form);
 				Assert.assertEquals(200, result.getStatus());  
 			}
-		}
+		}		
 		
-		@Test
-		public void testAddCloudCostsWinHP(){
-			Cloud cloud = webResource.path("byName").queryParam("id","HPZone1").accept(MediaType.APPLICATION_JSON_TYPE).get(Cloud.class);
-	 		Map<String,Double> map = readFile("HP_WIN.txt");
-			
-			for (Entry<String,Double> entryPrice : map.entrySet())
-			{						
-				Form form = new Form();
-				form.add("key", entryPrice.getKey());
-				form.add("value",entryPrice.getValue().toString());
-				form.add("isWindows","true");
-				
-				ClientResponse result = webResource.uri(cloud.getUri()).path("costMap").post(ClientResponse.class, form);
-				Assert.assertEquals(200, result.getStatus());  
-			}
-		}
 	  			  
 	  
 	  //@Test
