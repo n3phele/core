@@ -83,14 +83,13 @@ public class NovaFactoryTest {
 		request.name = "name"+System.currentTimeMillis();
 		request.owner = new URI("http://test/");
 		ArrayList<NameValue> parameters = new ArrayList<NameValue>();
-		parameters.add(new NameValue("minCount", "1"));
-		parameters.add(new NameValue("maxCount", "1"));
-		parameters.add(new NameValue("imageId", "75845"));
-		parameters.add(new NameValue("instanceType", "100"));
-		parameters.add(new NameValue("securityGroup", "default"));
-		parameters.add(new NameValue("keyName", "liskey"));
+		parameters.add(new NameValue("nodeCount", "1"));
+		parameters.add(new NameValue("imageRef", "75845"));
+		parameters.add(new NameValue("flavorRef", "100"));
+		parameters.add(new NameValue("security_groups", "default"));
+		parameters.add(new NameValue("key_name", "liskey"));
 		parameters.add(new NameValue("locationId", "az-1.region-a.geo-1"));
-		parameters.add(new NameValue("userData", ""));
+		parameters.add(new NameValue("user_data", ""));
 		request.parameters = parameters;
 		
 		ClientResponse result = webResource.post(ClientResponse.class, request);
