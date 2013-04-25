@@ -39,7 +39,7 @@ public class VirtualServer extends Entity {
 	private String description;
 	private String location;
 	@Embed private ArrayList<NameValue> parametersList;
-	private String status;
+	private VirtualServerStatus status;
 	private String notification;
 	private String instanceId;
 	private String spotId;
@@ -81,7 +81,7 @@ public class VirtualServer extends Entity {
 		this.notification = (notification != null)? notification.toString() : null;
 		this.instanceId = instanceId;
 		this.spotId = spotId;
-		this.status = "Initializing";
+		this.status = VirtualServerStatus.initializing;
 		this.accessKey = accessKey;
 		this.encryptedKey = encryptedKey;
 		this.idempotencyKey = idempotencyKey;
@@ -206,7 +206,7 @@ public class VirtualServer extends Entity {
 	/**
 	 * @return the status
 	 */
-	public String getStatus() {
+	public VirtualServerStatus getStatus() {
 		return status;
 	}
 
@@ -214,7 +214,7 @@ public class VirtualServer extends Entity {
 	/**
 	 * @param status the status to set
 	 */
-	public void setStatus(String status) {
+	public void setStatus(VirtualServerStatus status) {
 		this.status = status;
 	}
 

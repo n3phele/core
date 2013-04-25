@@ -38,7 +38,7 @@ public class NovaFactoryTest {
 		
 		try
 		{
-			testResource = new TestResource("n3phele.testCredentials");
+			testResource = new TestResource("n3phele.credentials");
 		}
 		catch(FileNotFoundException e)
 		{			
@@ -89,7 +89,7 @@ public class NovaFactoryTest {
 		parameters.add(new NameValue("security_groups", "default"));
 		parameters.add(new NameValue("key_name", "liskey"));
 		parameters.add(new NameValue("locationId", "az-1.region-a.geo-1"));
-		parameters.add(new NameValue("user_data", ""));
+		parameters.add(new NameValue("user_data", "#/bin/bash echo teste"));
 		request.parameters = parameters;
 		
 		ClientResponse result = webResource.post(ClientResponse.class, request);

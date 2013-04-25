@@ -51,6 +51,7 @@ import n3phele.service.model.core.ExecutionFactoryCreateRequest;
 import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.NameValue;
 import n3phele.service.model.core.VirtualServer;
+import n3phele.service.model.core.VirtualServerStatus;
 import n3phele.service.rest.impl.AccountResource;
 import n3phele.service.rest.impl.ActionResource;
 import n3phele.service.rest.impl.CloudResource;
@@ -347,7 +348,7 @@ public class CreateVMAction extends Action {
 					try {
 						VirtualServer vs = fetchVirtualServer(client, refs[0]);
 						log.info("Server status is "+vs.getStatus());
-						if(vs.getStatus().equalsIgnoreCase("Running")) {
+						if(vs.getStatus().equals(VirtualServerStatus.running)) {
 							forceAgentRestart  = true;
 							log.info("forcing agent restart");
 						} 
