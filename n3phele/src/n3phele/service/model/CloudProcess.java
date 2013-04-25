@@ -36,10 +36,11 @@ import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.condition.IfTrue;
+import com.googlecode.objectify.condition.IfNotZero;
 
 @XmlRootElement(name="CloudProcess")
 @XmlType(name="CloudProcess", propOrder={"description", "state", "running", "waitTimeout", "pendingInit", "pendingCall", "pendingCancel", "pendingDump", "pendingAssertion", 
-		"dependentOn", "dependencyFor", "start", "complete", "finalized", "action", "parent", "topLevel", "narrative"})
+		"dependentOn", "dependencyFor", "start", "complete", "finalized", "action", "parent", "topLevel", "narrative", "costPerHour", "epoch", "account"})
 @Unindex
 @com.googlecode.objectify.annotation.Entity
 public class CloudProcess extends Entity {
@@ -62,6 +63,10 @@ public class CloudProcess extends Entity {
 	@Index protected String parent = null;
 	@Parent Key<CloudProcess> root;
 	@Index(IfTrue.class) boolean topLevel = false; 
+	@Index(IfNotZero.class)protected float costPerHour = 0;
+	protected Date epoch = null;
+	protected URI account = null;
+
 	
 	
 	public CloudProcess() {}
@@ -90,6 +95,47 @@ public class CloudProcess extends Entity {
 	/*
 	 * Getters and Settings
 	 */
+	/**
+	 * @param account the process account
+	 */
+	public void setAccount(URI account){
+		this.account = account;
+	}
+
+	/**
+	 * @return the account associated with the process
+	 */
+	public URI getAccount(){
+		return this.account;
+	}
+
+	/**
+	 * @return the epoch of the server
+	 */
+	public Date getEpoch(){
+		return epoch;
+	}
+
+	/**
+	 * @param epoch the epoch date of the server
+	 */
+	public void setEpoch(Date epoch){
+		this.epoch = epoch;
+	}
+
+	/**
+	 * @return the cost per hour
+	 */
+	public float getCostPerHour(){
+		return costPerHour;
+	}
+
+	/**
+	 * @param costPerHour the cost per hour to set
+	 */
+	public void setCostPerHour(float costPerHour){
+		this.costPerHour = costPerHour;
+	}
 	
 	/**
 	 * @return the id
