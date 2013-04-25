@@ -23,8 +23,8 @@ import java.util.List;
 import junit.framework.Assert;
 import n3phele.service.model.Command;
 import n3phele.service.model.CommandImplementationDefinition;
-import n3phele.service.model.ParameterType;
 import n3phele.service.model.ShellFragment;
+import n3phele.service.model.core.ParameterType;
 
 import org.junit.Before;
 import org.junit.BeforeClass;

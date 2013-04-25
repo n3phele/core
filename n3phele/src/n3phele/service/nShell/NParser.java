@@ -23,8 +23,8 @@ import java.util.List;
 import n3phele.service.model.Command;
 import n3phele.service.model.CommandImplementationDefinition;
 import n3phele.service.model.FileSpecification;
-import n3phele.service.model.ParameterType;
-import n3phele.service.model.TypedParameter;
+import n3phele.service.model.core.ParameterType;
+import n3phele.service.model.core.TypedParameter;
 
 public class NParser implements NParserConstants {
         public NParser(FileInputStream s)

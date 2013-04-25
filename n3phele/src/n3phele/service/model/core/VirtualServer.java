@@ -34,6 +34,7 @@ import com.googlecode.objectify.annotation.Unindex;
 										"instanceId", "spotId", "outputParameters", "siblings", "idempotencyKey", "zombie"})
 @Unindex
 @Cache
+@com.googlecode.objectify.annotation.Entity
 public class VirtualServer extends Entity {
 	@com.googlecode.objectify.annotation.Id private Long id;
 	private String description;

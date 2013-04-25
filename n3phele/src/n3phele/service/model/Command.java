@@ -21,6 +21,7 @@ import javax.xml.bind.annotation.XmlType;
 
 import n3phele.service.model.core.Entity;
 import n3phele.service.model.core.Helpers;
+import n3phele.service.model.core.TypedParameter;
 import n3phele.service.model.core.User;
 import n3phele.service.rest.impl.AccountResource;
 
