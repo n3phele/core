@@ -38,8 +38,10 @@ public class CloudWebServiceTest  {
 	@Before
 	public void setUp() throws Exception {
 		client = Client.create();
-		client.addFilter(new HTTPBasicAuthFilter("test-user@gmail.com", "testit!"));
-		webResource = client.resource(UriBuilder.fromUri("http://127.0.0.1:8888/resources").path(CloudResource.class).build());
+		//client.addFilter(new HTTPBasicAuthFilter("test-user@gmail.com", "testit!"));
+		client.addFilter(new HTTPBasicAuthFilter("root", "n3phelepoa"));
+		//webResource = client.resource(UriBuilder.fromUri("http://127.0.0.1:8888/resources").path(CloudResource.class).build());
+		webResource = client.resource(UriBuilder.fromUri("https://n3phele-dev.appspot.com/resources").path(CloudResource.class).build());
 	}
 
 	private Client client;
@@ -160,11 +162,11 @@ public class CloudWebServiceTest  {
 		}
 	  
 	  static TypedParameter HPCloudDefaults[] = {
-		  	new TypedParameter("instanceType", "Specifies the virtual machine size. Valid Values: 100 (standard.xsmall), 101 (standard.small), 102 (standard.medium), 103 (standard.large), 104 (standard.xlarge), 105 (standard.2xlarge)", ParameterType.String,"", "100"),
-		  	new TypedParameter("imageId", "Unique ID of a machine image, returned by a call to RegisterImage", ParameterType.String, "", "75845"),
+		  	new TypedParameter("flavorRef", "Specifies the virtual machine size. Valid Values: 100 (standard.xsmall), 101 (standard.small), 102 (standard.medium), 103 (standard.large), 104 (standard.xlarge), 105 (standard.2xlarge)", ParameterType.String,"", "100"),
+		  	new TypedParameter("imageRef", "Unique ID of a machine image, returned by a call to RegisterImage", ParameterType.String, "", "75845"),
 		  	new TypedParameter("locationId", "Unique ID of hpcloud zone. Valid Values: az-1.region-a.geo-1 | az-2.region-a.geo-1 | az-3.region-a.geo-1", ParameterType.String, null, "az-1.region-a.geo-1"),
-		  	new TypedParameter("securityGroup", "Name of the security group which controls the open TCP/IP ports for the VM.", ParameterType.String, "", "n3phele-default"),
-		  	new TypedParameter("userData", "Base64-encoded MIME user data made available to the instance(s). May be used to pass startup commands.", ParameterType.String, "", "#!/bin/bash\necho n3phele agent injection... \nset -x\n apt-get update;  apt-get install -y openjdk-6-jre-headless \n wget -q -O - https://n3phele-agent.s3.amazonaws.com/n3ph-install-tgz-basic | su - -c '/bin/bash -s ubuntu ~/agent ~/sandbox https://region-a.geo-1.objects.hpcloudsvc.com:443/v1/AUTH_dc700102-734c-4a97-afc8-50530e87a171/n3phele-agent/n3phele-agent.tgz' ubuntu\n")	,	
+		  	new TypedParameter("security_groups", "Name of the security group which controls the open TCP/IP ports for the VM.", ParameterType.String, "", "n3phele-default"),
+		  	new TypedParameter("user_data", "Base64-encoded MIME user data made available to the instance(s). May be used to pass startup commands.", ParameterType.String, "", "#!/bin/bash\necho n3phele agent injection... \nset -x\n apt-get update;  apt-get install -y openjdk-6-jre-headless \n wget -q -O - https://n3phele-agent.s3.amazonaws.com/n3ph-install-tgz-basic | su - -c '/bin/bash -s ubuntu ~/agent ~/sandbox https://region-a.geo-1.objects.hpcloudsvc.com:443/v1/AUTH_dc700102-734c-4a97-afc8-50530e87a171/n3phele-agent/n3phele-agent.tgz' ubuntu\n")	,	
 	};
 	  		
 		@Test

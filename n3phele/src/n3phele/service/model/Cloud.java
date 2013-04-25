@@ -23,7 +23,7 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Unindex;
 
 @XmlRootElement(name="Cloud")
-@XmlType(name="Cloud", propOrder={"description", "location", "factory", "inputParameters", "outputParameters"})
+@XmlType(name="Cloud", propOrder={"description", "location", "factory", "inputParameters", "outputParameters", "costDriverName"})
 @Unindex
 @Cache
 @com.googlecode.objectify.annotation.Entity
@@ -35,6 +35,7 @@ public class Cloud extends Entity {
 	@Embed private Credential factoryCredential;
 	@Embed private ArrayList<TypedParameter> inputParameters; 
 	@Embed private ArrayList<TypedParameter> outputParameters; 
+	private String costDriverName;
 	
 	public Cloud() {}
 	
@@ -47,6 +48,20 @@ public class Cloud extends Entity {
 		this.location = (location==null)? null : location.toString();
 		this.factory = (factory==null)? null : factory.toString();
 		this.factoryCredential = factoryCredential;
+	}
+	
+	/**
+	 * @return the server cost driver name
+	 */
+	public String getCostDriverName(){
+		return costDriverName;
+	}
+	  
+	/**
+	 * @param costDriverName the server cost driver name
+	 */
+	public void setCostDriverName(String costDriverName){
+		this.costDriverName = costDriverName;
 	}
 	
 	/**

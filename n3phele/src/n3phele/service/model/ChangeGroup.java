@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import n3phele.service.model.core.Change;
+
 
 @XmlRootElement
 @XmlType(name="ChangeGroup", propOrder={"stamp", "change"})
