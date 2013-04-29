@@ -65,7 +65,7 @@ public class CloudProcess extends Entity {
 	@Index(IfTrue.class) boolean topLevel = false; 
 	@Index(IfNotZero.class)protected float costPerHour = 0;
 	protected Date epoch = null;
-	protected URI account = null;
+	protected String account = null;
 	
 	
 	public CloudProcess() {}
@@ -97,14 +97,14 @@ public class CloudProcess extends Entity {
 	/**
 	 * @param account the process account
 	 */
-	public void setAccount(URI account){
+	public void setAccount(String account){
 		this.account = account;
 	}
 	
 	/**
 	 * @return the account associated with the process
 	 */
-	public URI getAccount(){
+	public String getAccount(){
 		return this.account;
 	}
 	

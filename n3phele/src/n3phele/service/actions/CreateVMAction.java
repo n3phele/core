@@ -295,6 +295,13 @@ public class CreateVMAction extends Action {
 			}
 		}
 	}
+	
+	private void setCloudProcessPrice(Account account, ArrayList<CloudProcess> processList){
+		for(CloudProcess process: processList){
+			processLifecycle().setCloudProcessPrice(account.getUri().toString(), process);
+		}
+	}
+	
 	private void createVMs(Account account, Cloud myCloud) throws Exception {
 		
 		log.info("Create VMAction called");
@@ -334,8 +341,7 @@ public class CreateVMAction extends Action {
 			log.info("Factory response: "+response.getStatus() + " "+response);
 
 			URI location = response.getLocation();
-			log.info("Response location: "+location);
-			ArrayList<CloudProcess> listProcesses;
+			log.info("Response location: "+location);			
 			if(location != null) {
 				URI[] refs = response.getRefs();
 				log.info("Refs length: "+refs.length);
@@ -356,9 +362,12 @@ public class CreateVMAction extends Action {
 					} catch (Exception e) {
 						log.log(Level.SEVERE, "VM fetch", e);
 					}
-					listProcesses = createVMProcesses(refs, forceAgentRestart, myCloud.getFactoryCredential(), agentCredential);
+					ArrayList<CloudProcess> listProcesses = createVMProcesses(refs, forceAgentRestart, myCloud.getFactoryCredential(), agentCredential);
+					setCloudProcessPrice(account,listProcesses);
+					
 				} else {
-					listProcesses = createVMProcesses(refs, false, myCloud.getFactoryCredential(), agentCredential);
+					ArrayList<CloudProcess> listProcesses = createVMProcesses(refs, false, myCloud.getFactoryCredential(), agentCredential);
+					setCloudProcessPrice(account,listProcesses);
 					logger.info(Integer.toString(refs.length)+" vm(s) creation started.");
 				}
 			} else {
