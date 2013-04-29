@@ -103,6 +103,7 @@ public final Class<T> clazz;
 	 * @return the item
 	 */
 	public T get(URI uri) throws NotFoundException {
+		log.log(Level.INFO, "Retrieving item: "+uri);
 		try {
 			String s = uri.getPath();
 			String identity = s.substring(s.lastIndexOf("/")+1);

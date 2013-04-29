@@ -335,6 +335,7 @@ public class CreateVMAction extends Action {
 
 			URI location = response.getLocation();
 			log.info("Response location: "+location);
+			ArrayList<CloudProcess> listProcesses;
 			if(location != null) {
 				URI[] refs = response.getRefs();
 				log.info("Refs length: "+refs.length);
@@ -355,9 +356,9 @@ public class CreateVMAction extends Action {
 					} catch (Exception e) {
 						log.log(Level.SEVERE, "VM fetch", e);
 					}
-					createVMProcesses(refs, forceAgentRestart, myCloud.getFactoryCredential(), agentCredential);
+					listProcesses = createVMProcesses(refs, forceAgentRestart, myCloud.getFactoryCredential(), agentCredential);
 				} else {
-					createVMProcesses(refs, false, myCloud.getFactoryCredential(), agentCredential);
+					listProcesses = createVMProcesses(refs, false, myCloud.getFactoryCredential(), agentCredential);
 					logger.info(Integer.toString(refs.length)+" vm(s) creation started.");
 				}
 			} else {
@@ -375,8 +376,9 @@ public class CreateVMAction extends Action {
 		
 	}
 	
-	private void createVMProcesses(URI[] refs, boolean forceAgentRestart, Credential factoryCredential, Credential agentCredential) throws NotFoundException, IllegalArgumentException, ClassNotFoundException {
+	private ArrayList<CloudProcess> createVMProcesses(URI[] refs, boolean forceAgentRestart, Credential factoryCredential, Credential agentCredential) throws NotFoundException, IllegalArgumentException, ClassNotFoundException {
 		
+		ArrayList<CloudProcess> listProcesses = new ArrayList<CloudProcess>();
 		CloudProcess[] children = new CloudProcess[refs.length];
 		URI[] siblingActions = new URI[refs.length];
 		String name = this.context.getValue("name");
@@ -414,11 +416,14 @@ public class CreateVMAction extends Action {
 
 
 		for(CloudProcess child : children) {
+			listProcesses.add(child);
 			VMAction action = (VMAction) ActionResource.dao.load(child.getAction());
 			action.getContext().putValue("cloudVM", siblingActions);
 			ActionResource.dao.update(action);
 			processLifecycle().init(child);
 		}
+		
+		return listProcesses;
 	}
 
 
