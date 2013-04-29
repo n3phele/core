@@ -332,7 +332,7 @@ public class CommandResource {
 		}
 
 		@Override
-		protected GenericModelDao<Command> itemDaoFactory() {
+		public GenericModelDao<Command> itemDaoFactory() {
 			return new ServiceModelDao<Command>(Command.class);
 		}
 

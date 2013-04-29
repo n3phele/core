@@ -295,6 +295,13 @@ public class CreateVMAction extends Action {
 			}
 		}
 	}
+	
+	private void setCloudProcessPrice(Account account, ArrayList<CloudProcess> processList){
+		for(CloudProcess process: processList){
+			processLifecycle().setCloudProcessPrice(account.getUri().toString(), process);
+		}
+	}
+	
 	private void createVMs(Account account, Cloud myCloud) throws Exception {
 		
 		log.info("Create VMAction called");
@@ -334,7 +341,7 @@ public class CreateVMAction extends Action {
 			log.info("Factory response: "+response.getStatus() + " "+response);
 
 			URI location = response.getLocation();
-			log.info("Response location: "+location);
+			log.info("Response location: "+location);			
 			if(location != null) {
 				URI[] refs = response.getRefs();
 				log.info("Refs length: "+refs.length);
@@ -355,9 +362,12 @@ public class CreateVMAction extends Action {
 					} catch (Exception e) {
 						log.log(Level.SEVERE, "VM fetch", e);
 					}
-					createVMProcesses(refs, forceAgentRestart, myCloud.getFactoryCredential(), agentCredential);
+					ArrayList<CloudProcess> listProcesses = createVMProcesses(refs, forceAgentRestart, myCloud.getFactoryCredential(), agentCredential);
+					setCloudProcessPrice(account,listProcesses);
+					
 				} else {
-					createVMProcesses(refs, false, myCloud.getFactoryCredential(), agentCredential);
+					ArrayList<CloudProcess> listProcesses = createVMProcesses(refs, false, myCloud.getFactoryCredential(), agentCredential);
+					setCloudProcessPrice(account,listProcesses);
 					logger.info(Integer.toString(refs.length)+" vm(s) creation started.");
 				}
 			} else {
@@ -375,8 +385,9 @@ public class CreateVMAction extends Action {
 		
 	}
 	
-	private void createVMProcesses(URI[] refs, boolean forceAgentRestart, Credential factoryCredential, Credential agentCredential) throws NotFoundException, IllegalArgumentException, ClassNotFoundException {
+	private ArrayList<CloudProcess> createVMProcesses(URI[] refs, boolean forceAgentRestart, Credential factoryCredential, Credential agentCredential) throws NotFoundException, IllegalArgumentException, ClassNotFoundException {
 		
+		ArrayList<CloudProcess> listProcesses = new ArrayList<CloudProcess>();
 		CloudProcess[] children = new CloudProcess[refs.length];
 		URI[] siblingActions = new URI[refs.length];
 		String name = this.context.getValue("name");
@@ -414,11 +425,14 @@ public class CreateVMAction extends Action {
 
 
 		for(CloudProcess child : children) {
+			listProcesses.add(child);
 			VMAction action = (VMAction) ActionResource.dao.load(child.getAction());
 			action.getContext().putValue("cloudVM", siblingActions);
 			ActionResource.dao.update(action);
 			processLifecycle().init(child);
 		}
+		
+		return listProcesses;
 	}
 
 
@@ -426,6 +440,7 @@ public class CreateVMAction extends Action {
 		ArrayList<NameValue> result = new ArrayList<NameValue>();
 		for(TypedParameter param : Helpers.safeIterator(cloud.getInputParameters())) {
 			String name = param.getName();
+			log.info("Parameter name: "+name);
 			if(this.context.containsKey(name)) {
 				String value = this.context.getValue(name);
 				/*
@@ -441,9 +456,11 @@ public class CreateVMAction extends Action {
 
 					}
 				}
+				log.info("Parameter exists, updating value: "+value);
 				NameValue nv = new NameValue(name, value);
 				result.add(nv);
 			}
+			log.info("Parameter doesn't exist");
 		}
 		return result;
 	}

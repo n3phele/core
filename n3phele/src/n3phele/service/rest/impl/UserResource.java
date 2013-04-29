@@ -312,7 +312,7 @@ public class UserResource {
 		}
 
 		@Override
-		protected GenericModelDao<User> itemDaoFactory() {
+		public GenericModelDao<User> itemDaoFactory() {
 			return new ServiceModelDao<User>(User.class);
 		}
 

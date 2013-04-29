@@ -471,7 +471,7 @@ public class RepositoryResource {
 		}
 
 		@Override
-		protected GenericModelDao<Repository> itemDaoFactory() {
+		public GenericModelDao<Repository> itemDaoFactory() {
 			return new ServiceModelDao<Repository>(Repository.class);
 		}
 	

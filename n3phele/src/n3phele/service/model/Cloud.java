@@ -7,6 +7,10 @@ package n3phele.service.model;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
@@ -23,7 +27,7 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Unindex;
 
 @XmlRootElement(name="Cloud")
-@XmlType(name="Cloud", propOrder={"description", "location", "factory", "inputParameters", "outputParameters", "costDriverName"})
+@XmlType(name="Cloud", propOrder={"description", "location", "costDriverName","costMap", "factory", "inputParameters", "outputParameters"})
 @Unindex
 @Cache
 @com.googlecode.objectify.annotation.Entity
@@ -32,23 +36,46 @@ public class Cloud extends Entity {
 	private Text description;
 	private String location;
 	private String factory;
+	private String costDriverName;
+	private Map<String, Double> costMap;
 	@Embed private Credential factoryCredential;
 	@Embed private ArrayList<TypedParameter> inputParameters; 
 	@Embed private ArrayList<TypedParameter> outputParameters; 
 	private String costDriverName;
 	
+	
 	public Cloud() {}
 	
 
 	public Cloud(String name, String description,
-		 URI location, URI factory, Credential factoryCredential, URI owner, boolean isPublic) {
+		 URI location, URI factory, Credential factoryCredential, URI owner, boolean isPublic, String costDriverName) {
 		super(name, null, owner, isPublic);
 		this.id = null;
 		setDescription(description);
 		this.location = (location==null)? null : location.toString();
 		this.factory = (factory==null)? null : factory.toString();
 		this.factoryCredential = factoryCredential;
+		this.costDriverName = costDriverName;
+		this.costMap = new HashMap<String,Double>();
 	}
+	
+	/**
+	 * @param costMap the costs mapping
+	 */
+	public void setCostMap(Map<String, Double> costMap){	
+		
+		this.costMap = costMap;
+	}	
+	
+	
+	/**
+	 * @return the costs mapping
+	 */
+	public Map<String,Double> getCostMap(){
+		if(this.costMap == null)return new HashMap<String,Double>();
+		return this.costMap;
+	}
+	
 	
 	/**
 	 * @return the server cost driver name
@@ -56,7 +83,7 @@ public class Cloud extends Entity {
 	public String getCostDriverName(){
 		return costDriverName;
 	}
-	  
+	
 	/**
 	 * @param costDriverName the server cost driver name
 	 */
@@ -183,7 +210,7 @@ public class Cloud extends Entity {
 
 	public static Cloud summary(Cloud c) {
 			if(c == null) return null;
-			Cloud result = new Cloud(c.name, null, null, null, null, c.getOwner(), c.isPublic);
+			Cloud result = new Cloud(c.name, null, null, null, null, c.getOwner(), c.isPublic, c.costDriverName);
 			result.uri = c.uri;
 			return result;
 	}

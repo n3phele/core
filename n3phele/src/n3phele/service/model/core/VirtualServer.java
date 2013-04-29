@@ -23,10 +23,12 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
+
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
+
 
 
 @XmlRootElement(name="VirtualServer")
@@ -48,6 +50,7 @@ public class VirtualServer extends Entity {
 	private String encryptedKey;
 	private ArrayList<String> siblings;
 	@Index private String idempotencyKey;
+	//TODO: check if it is the date it was created and not the date it was made into zombie
 	private Date created;
 	private boolean zombie;
 	@Embed private ArrayList<NameValue> outputParameters;
@@ -107,7 +110,7 @@ public class VirtualServer extends Entity {
 				null, null, accessKey, encryptedKey, owner, idempotencyKey);
 		this.parametersList = parameters;
 	}
-
+	
 
 	/**
 	 * @return the id
@@ -212,7 +215,7 @@ public class VirtualServer extends Entity {
 	}
 
 
-	/**
+	
 	 * @param status the status to set
 	 */
 	public void setStatus(VirtualServerStatus status) {
@@ -396,5 +399,3 @@ public class VirtualServer extends Entity {
 	}
 
 
-
-}

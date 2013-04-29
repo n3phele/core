@@ -190,7 +190,7 @@ public class AccountResource {
 		}
 
 		@Override
-		protected GenericModelDao<Account> itemDaoFactory() {
+		public GenericModelDao<Account> itemDaoFactory() {
 			return new ServiceModelDao<Account>(Account.class);
 		}
 
