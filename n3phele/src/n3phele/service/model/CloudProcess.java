@@ -62,7 +62,8 @@ public class CloudProcess extends Entity {
 	protected String action = null;
 	@Index protected String parent = null;
 	@Parent Key<CloudProcess> root;
-	@Index(IfTrue.class) boolean topLevel = false; 
+	@Index(IfTrue.class) boolean topLevel = false;
+	@Index(IfTrue.class) boolean haveCost = false;
 	@Index(IfNotZero.class)protected float costPerHour = 0;
 	protected Date epoch = null;
 	protected URI account = null;
@@ -135,6 +136,7 @@ public class CloudProcess extends Entity {
 	 */
 	public void setCostPerHour(float costPerHour){
 		this.costPerHour = costPerHour;
+		this.haveCost = (costPerHour > 0);
 	}
 	
 	/**

@@ -393,20 +393,9 @@ public class CloudProcessResource {
 			Calendar calendar = Calendar.getInstance();
 			calendar.add(Calendar.MONTH, -1);
 			
-			Query<CloudProcess> q = ofy().load().type(CloudProcess.class).filter("owner", owner.toString()).filter("complete >", calendar.getTime()); //.filter("costPerHour >", 0.00);
+			Query<CloudProcess> q = ofy().load().type(CloudProcess.class).filter("owner", owner.toString()).filter("complete >", calendar.getTime()).filter("haveCost", true); //.filter("costPerHour >", 0.00);
 			
-			List<CloudProcess> items = new ArrayList<CloudProcess>();
-			
-			long start = System.currentTimeMillis();
-			for(CloudProcess p : q)
-			{
-				if(p.getCostPerHour() == 0.00)
-					break;
-				
-				items.add(p);
-			}
-			long time = System.currentTimeMillis() - start;
-			System.out.println("[getColletion] cloudProcessCompletedWorkload time: "+ time);
+			List<CloudProcess> items = q.list();
 			
 			result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, items);
 			result.setTotal(items.size());
