@@ -41,7 +41,6 @@ public class Cloud extends Entity {
 	@Embed private Credential factoryCredential;
 	@Embed private ArrayList<TypedParameter> inputParameters; 
 	@Embed private ArrayList<TypedParameter> outputParameters; 
-	private String costDriverName;
 	
 	
 	public Cloud() {}

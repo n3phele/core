@@ -215,7 +215,7 @@ public class VirtualServer extends Entity {
 	}
 
 
-	
+	/*
 	 * @param status the status to set
 	 */
 	public void setStatus(VirtualServerStatus status) {
@@ -396,6 +396,6 @@ public class VirtualServer extends Entity {
 						notification, instanceId, spotId, accessKey,
 						encryptedKey, siblings, idempotencyKey, created,
 						zombie, outputParameters);
-	}
+	}}
 
 
