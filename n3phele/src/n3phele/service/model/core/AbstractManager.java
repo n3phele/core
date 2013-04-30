@@ -232,7 +232,7 @@ public abstract class AbstractManager<Item extends Entity> {
 				item.setUri(URI.create(this.path+"/"+key.getParent().getId()+"_"+key.getId()));
 			}
 			itemDao.put(item);
-			log.info("item "+item.getName()+" has id "+item.getUri());
+			//log.info("item "+item.getName()+" has id "+item.getUri());
 		} else 
 			throw new IllegalArgumentException("attempt to persist a null object");
 	}

@@ -17,8 +17,11 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
@@ -27,9 +30,11 @@ import javax.ws.rs.core.SecurityContext;
 import n3phele.service.actions.CountDownAction;
 import n3phele.service.actions.JobAction;
 import n3phele.service.lifecycle.ProcessLifecycle;
+import n3phele.service.model.Action;
 import n3phele.service.model.ActionState;
 import n3phele.service.model.CloudProcess;
 import n3phele.service.model.Context;
+import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.User;
 import n3phele.service.rest.impl.ActionResource;
 import n3phele.service.rest.impl.CloudProcessResource;
@@ -97,6 +102,44 @@ public class CloudProcessTest  {
 		CloudResourceTestWrapper.dao.clear();
 		CountDownAction action = (CountDownAction) ActionResource.dao.load(process.getAction());
 		assertEquals("Count value", 3, action.getCount());
+	}
+	
+	/** Creates and runs a simple test process verifying preservation of running task state
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
+	 * @throws URISyntaxException 
+	 */
+	@Test
+	public void cloudProcessCompletedTest() throws InterruptedException, ClassNotFoundException, InstantiationException, IllegalAccessException, URISyntaxException
+	{
+		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper();
+		cpr.addSecurityContext(null);
+		CloudResourceTestWrapper.dao.clear();
+		
+		Action task = new CountDownAction();
+		task.setUri(new URI("http://www.google.com.br"));
+		
+		// tom
+		CloudProcess tom   = new CloudProcess(UserResource.Root.getUri(), "tom", null, true, task);
+		tom.setCostPerHour((float)1.5);
+		tom.setComplete(Calendar.getInstance().getTime());
+		
+		CloudResourceTestWrapper.dao.add(tom);
+		
+		// jerry
+		Calendar calendar = Calendar.getInstance();
+		calendar.add(Calendar.MONTH, -2);
+		
+		CloudProcess jerry = new CloudProcess(UserResource.Root.getUri(), "jerry", null, true, task);
+		jerry.setCostPerHour((float)1.5);
+		jerry.setComplete(calendar.getTime());
+		
+		CloudResourceTestWrapper.dao.add(jerry);
+		
+		
+		Collection<CloudProcess> cpList = CloudResourceTestWrapper.dao.getCollection(UserResource.Root.getUri());
+		assertNotNull(cpList);
+		assertEquals(1, cpList.getElements().size());
 	}
 
 	/** Creates and runs a simple test process verifying preservation of running task state
