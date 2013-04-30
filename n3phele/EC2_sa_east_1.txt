@@ -1,0 +1,12 @@
+m1.small 0.080
+m1.medium 0.160
+m1.large 0.320
+m1.xlarge 0.640
+m3.xlarge 0.680
+m3.2xlarge 1.360
+t1.micro 0.027
+m2.xlarge 0.540
+m2.2xlarge 1.080
+m2.4xlarge 2.160
+c1.medium 0.200
+c1.xlarge 0.800

@@ -25,6 +25,8 @@ import java.util.logging.Logger;
 import n3phele.service.core.NotFoundException;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.ObjectifyService;
 
 public class GenericModelDao<T> {
 final static Logger log = Logger.getLogger(GenericModelDao.class.getName());
@@ -44,6 +46,7 @@ public final Class<T> clazz;
 
 	{
 		return ofy().save().entity(entity).now();
+		
 	}
 
 	public Map<Key<T>,T> putAll(Iterable<T> entities) {
@@ -100,6 +103,7 @@ public final Class<T> clazz;
 	 * @return the item
 	 */
 	public T get(URI uri) throws NotFoundException {
+		log.log(Level.INFO, "Retrieving item: "+uri);
 		try {
 			String s = uri.getPath();
 			String identity = s.substring(s.lastIndexOf("/")+1);
@@ -223,6 +227,10 @@ public final Class<T> clazz;
 
 	public List<Key<T>> listKeysByProperty(String propName, Object propValue) {
 		return ofy().load().type(clazz).filter(propName, propValue).keys().list();
+	}
+	
+	public List<Key<T>> listKeys() {
+		return ofy().load().type(clazz).keys().list();
 	}
 	
 	public List<T> listByPropertyForUser(URI user, String propName, Object propValue) {

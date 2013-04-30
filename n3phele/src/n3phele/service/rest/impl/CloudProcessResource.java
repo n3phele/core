@@ -282,7 +282,7 @@ public class CloudProcessResource {
 		}
 
 		@Override
-		protected GenericModelDao<CloudProcess> itemDaoFactory() {
+		public GenericModelDao<CloudProcess> itemDaoFactory() {
 			return new ServiceModelDao<CloudProcess>(CloudProcess.class);
 		}
 		public void clear() { super.itemDao.clear(); }
@@ -303,7 +303,10 @@ public class CloudProcessResource {
 		 * @return the item
 		 * @throws NotFoundException is the object does not exist
 		 */
-		public CloudProcess load(URI uri) throws NotFoundException { return super.get(uri); }
+		public CloudProcess load(URI uri) throws NotFoundException { 
+
+			log.info("Loading cloudProcess: "+uri);
+			return super.get(uri); }
 		
 		public CloudProcess load(Key<CloudProcess> group, Long id) throws NotFoundException { return super.get(group, id); }
 		

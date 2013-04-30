@@ -64,6 +64,7 @@ public abstract class AbstractManager<Item extends Entity> {
 	 * @return the item
 	 */
 	protected Item get(URI uri) throws NotFoundException {
+		log.log(Level.INFO, "Retrieving from Dao: "+uri);
 		return itemDao.get(uri);
 	}
 
@@ -352,7 +353,7 @@ public abstract class AbstractManager<Item extends Entity> {
 	 * @param transactional true to create a transactional persistent model management, false for non-transactional 
 	 * @return the modelDao
 	 */
-	protected abstract GenericModelDao<Item> itemDaoFactory();
+	public abstract GenericModelDao<Item> itemDaoFactory();
 	
 	public <R> R transact(com.googlecode.objectify.Work<R> codeBody) {
 		return com.googlecode.objectify.ObjectifyService.ofy().transact(codeBody);

@@ -152,6 +152,24 @@ public class ProcessLifecycle {
 			}});
 		
 	}
+	
+	public void setCloudProcessPrice(String account, CloudProcess process){
+		log.info("Called setCloudProcessPrice on processLifeCycle");
+		final String acc = account;
+		final URI processURI = process.getUri();
+		final Long processId = process.getId();
+		final Key<CloudProcess> processRoot = process.getRoot();
+		CloudProcessResource.dao.transact(new VoidWork(){
+			public void vrun() {
+				CloudProcess cloudProc = CloudProcessResource.dao.load(processRoot,processId);
+				cloudProc.setAccount(acc);
+				log.info("Process Account: "+acc);
+				log.info("Process URI: "+cloudProc.toString());
+				CloudProcessResource.dao.update(cloudProc);
+			}
+		});		
+		log.info("CloudProcess account set");
+	}
 	private static class Schedule implements DeferredTask {
 		private static final long serialVersionUID = 1L;
 		final private URI process;
@@ -188,6 +206,7 @@ public class ProcessLifecycle {
 		    public NextStep run() {
 		    	log.info(">>>>>>>>>Dispatch "+processId);
 		        CloudProcess process = CloudProcessResource.dao.load(processId);
+		        log.info("Process URI -error-: "+process.toString());
 				if(process.isFinalized()) {
 					log.warning("Processing called on process "+processId+" finalized="+process.isFinalized()+" state="+process.getState());
 					log.info("<<<<<<<<Dispatch "+processId);
@@ -1103,6 +1122,7 @@ public class ProcessLifecycle {
 				.filter("parent", process.getUri().toString())
 				.filter("finalized", false).list();
 	}
+	
 	
 	
 	private final static ProcessLifecycle processLifecycle = new ProcessLifecycle();

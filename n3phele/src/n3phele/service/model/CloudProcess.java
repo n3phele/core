@@ -40,11 +40,11 @@ import com.googlecode.objectify.condition.IfNotZero;
 
 @XmlRootElement(name="CloudProcess")
 @XmlType(name="CloudProcess", propOrder={"description", "state", "running", "waitTimeout", "pendingInit", "pendingCall", "pendingCancel", "pendingDump", "pendingAssertion", 
-		"dependentOn", "dependencyFor", "start", "complete", "finalized", "action", "parent", "topLevel", "narrative", "costPerHour", "epoch", "account"})
+		"dependentOn", "dependencyFor", "start", "complete", "finalized", "action", "parent", "topLevel", "narrative","costPerHour","epoch","account"})
 @Unindex
 @com.googlecode.objectify.annotation.Entity
 public class CloudProcess extends Entity {
-	//final private static java.util.logging.Logger log = java.util.logging.Logger.getLogger(CloudProcess.class.getName()); 
+	final private static java.util.logging.Logger log = java.util.logging.Logger.getLogger(CloudProcess.class.getName()); 
 	@Id protected Long id;
 	protected ActionState state = ActionState.NEWBORN;
 	protected Date running = null;
@@ -66,7 +66,8 @@ public class CloudProcess extends Entity {
 	@Index(IfTrue.class) boolean haveCost = false;
 	@Index(IfNotZero.class)protected float costPerHour = 0;
 	protected Date epoch = null;
-	protected URI account = null;
+	protected String account = null;
+
 
 	
 	
@@ -99,38 +100,38 @@ public class CloudProcess extends Entity {
 	/**
 	 * @param account the process account
 	 */
-	public void setAccount(URI account){
+	public void setAccount(String account){
 		this.account = account;
 	}
-
+	
 	/**
 	 * @return the account associated with the process
 	 */
-	public URI getAccount(){
+	public String getAccount(){
 		return this.account;
 	}
-
+	
 	/**
 	 * @return the epoch of the server
 	 */
 	public Date getEpoch(){
 		return epoch;
 	}
-
+	
 	/**
 	 * @param epoch the epoch date of the server
 	 */
 	public void setEpoch(Date epoch){
 		this.epoch = epoch;
 	}
-
+	
 	/**
 	 * @return the cost per hour
 	 */
 	public float getCostPerHour(){
 		return costPerHour;
 	}
-
+	
 	/**
 	 * @param costPerHour the cost per hour to set
 	 */

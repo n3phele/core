@@ -8,6 +8,7 @@ package n3phele.service.rest.impl;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -81,10 +82,11 @@ public class CloudResource {
 			@FormParam("factory") URI factory,
 			@FormParam("factoryId") String factoryId,
 			@FormParam("secret") String secret,
-			@FormParam("isPublic") boolean isPublic)  {
+			@FormParam("isPublic") boolean isPublic,
+			@FormParam("costDriverName") String costDriverName)  {
 
 		Cloud result = new Cloud(name, description, location, factory, new Credential(factoryId, secret).encrypt(), 
-				UserResource.toUser(securityContext).getUri(), isPublic);
+				UserResource.toUser(securityContext).getUri(), isPublic, costDriverName);
 		fetchParameters(result);
 		dao.add(result);
 
@@ -122,6 +124,23 @@ public class CloudResource {
 		dao.update(cloud);
 		log.info("Added "+cloud.getName()+" "+newValue);
 		return Response.created(URI.create(cloud.getUri().toString()+"/inputParameter")).build();
+	}
+	
+	@POST
+	@RolesAllowed("authenticated")
+	@Produces("application/json")
+	@Path("{id}/costMap") 
+	public Response setCostMap(@PathParam ("id") Long id,
+									  @FormParam("key") String key,
+									  @FormParam("value") String value) throws NotFoundException {
+		Cloud cloud = dao.load(id, UserResource.toUser(securityContext));
+		Map<String,Double> map = cloud.getCostMap();
+		map.put(key.replace(".","_"), Double.parseDouble(value));
+		cloud.setCostMap(map);
+		
+		log.info("Updated "+cloud.getName()+" costMap "+key+" "+value);
+		dao.update(cloud);
+		return Response.ok().build();
 	}
 	
 
@@ -222,7 +241,7 @@ public class CloudResource {
 		}
 
 		@Override
-		protected GenericModelDao<Cloud> itemDaoFactory() {
+		public GenericModelDao<Cloud> itemDaoFactory() {
 			return new ServiceModelDao<Cloud>(Cloud.class);
 		}
 

@@ -735,7 +735,7 @@ public class CreateVMActionTest {
 	 }
 	 
 	 private URI createTestCloud() {
-		 Cloud cloud = new Cloud("testCloud", "cloud for testing", URI.create("https://mycloudprovider.com"), URI.create("https://mycloudfactory.com"), new Credential("factory", "factorySecret").encrypt(), getRoot().getUri(), true);
+		 Cloud cloud = new Cloud("testCloud", "cloud for testing", URI.create("https://mycloudprovider.com"), URI.create("https://mycloudfactory.com"), new Credential("factory", "factorySecret").encrypt(), getRoot().getUri(), true, "flavorRef");
 		 CloudResource.dao.add(cloud);
 		 return cloud.getUri();
  

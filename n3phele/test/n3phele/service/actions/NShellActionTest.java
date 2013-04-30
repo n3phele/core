@@ -1069,7 +1069,7 @@ public class NShellActionTest {
 	 }
 	 
 	 private URI createTestCloud() {
-		 Cloud cloud = new Cloud("testCloud", "cloud for testing", URI.create("https://mycloudprovider.com"), URI.create("https://mycloudfactory.com"), new Credential("factory", "factorySecret").encrypt(), getRoot().getUri(), true);
+		 Cloud cloud = new Cloud("testCloud", "cloud for testing", URI.create("https://mycloudprovider.com"), URI.create("https://mycloudfactory.com"), new Credential("factory", "factorySecret").encrypt(), getRoot().getUri(), true, "flavorRef");
 		 CloudResource.dao.add(cloud);
 		 return cloud.getUri();
  
@@ -1183,7 +1183,7 @@ public class NShellActionTest {
 				log.info("Get virtualServer "+uri+" "+CreateVMActionWrapper.virtualServer.get(URI.create(uri)));
 				VirtualServer result = CreateVMActionWrapper.virtualServer.get(URI.create(uri));
 				if(processState != null)
-					result.setStatus(processState);
+					result.setStatus(VirtualServerStatus.running);
 				return result;
 			}
 	 }
