@@ -14,6 +14,8 @@ package n3phele.service.rest.impl;
 import static com.googlecode.objectify.ObjectifyService.ofy;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +53,7 @@ import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.User;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.cmd.Query;
 
 @Path("/process")
 public class CloudProcessResource {
@@ -60,6 +63,16 @@ public class CloudProcessResource {
 	
 	protected @Context UriInfo uriInfo;
 	protected @Context SecurityContext securityContext;
+	
+	@GET
+	@Produces("application/json")
+	@RolesAllowed("authenticated")
+	@Path("/lastcompleted")
+	public CloudProcessCollection listLastCompleted() throws NotFoundException {
+		log.info("Querying last complete processes");
+		Collection<CloudProcess> result = dao.getCollection(UserResource.toUser(securityContext).getUri());
+		return new CloudProcessCollection(result);
+	}
 
 	@GET
 	@Produces("application/json")
@@ -371,7 +384,38 @@ public class CloudProcessResource {
 			return result;
 		}
 
-
+		/**
+		 * Get completed processes in last month.
+		 * @return the collection
+		 */
+		public Collection<CloudProcess> getCollection(URI owner)
+		{
+			//log.info("non-admin query");
+			Collection<CloudProcess> result	= null;
+			
+			Calendar calendar = Calendar.getInstance();
+			calendar.add(Calendar.MONTH, -1);
+			
+			Query<CloudProcess> q = ofy().load().type(CloudProcess.class).filter("owner", owner.toString()).filter("complete >", calendar.getTime()); //.filter("costPerHour >", 0.00);
+			
+			List<CloudProcess> items = new ArrayList<CloudProcess>();
+			
+			long start = System.currentTimeMillis();
+			for(CloudProcess p : q)
+			{
+				if(p.getCostPerHour() == 0.00)
+					break;
+				
+				items.add(p);
+			}
+			long time = System.currentTimeMillis() - start;
+			System.out.println("[getColletion] cloudProcessCompletedWorkload time: "+ time);
+			
+			result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, items);
+			result.setTotal(items.size());
+			
+			return result;
+		}
 	}
 	final public static CloudProcessManager dao = new CloudProcessManager();
 	

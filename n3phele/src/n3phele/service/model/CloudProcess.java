@@ -57,7 +57,7 @@ public class CloudProcess extends Entity {
 	protected ArrayList<String> dependentOn = new ArrayList<String>();
 	protected ArrayList<String> dependencyFor = new ArrayList<String>();
 	@Index protected Date start = null;
-	protected Date complete = null;
+	@Index protected Date complete = null;
 	@Index protected boolean finalized = false;
 	protected String action = null;
 	@Index protected String parent = null;
