@@ -65,8 +65,8 @@ public class CloudProcess extends Entity {
 	@Index(IfTrue.class) boolean topLevel = false;
 	@Index(IfTrue.class) boolean haveCost = false;
 	@Index(IfNotZero.class)protected float costPerHour = 0;
-	protected Date epoch = null;
-	protected String account = null;
+	@Index(IfNotZero.class)protected Date epoch = null;
+	@Index(IfNotZero.class)protected String account = null;
 
 
 	
