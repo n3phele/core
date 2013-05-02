@@ -37,6 +37,7 @@ import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.condition.IfTrue;
 import com.googlecode.objectify.condition.IfNotZero;
+import com.googlecode.objectify.condition.IfNotNull;
 
 @XmlRootElement(name="CloudProcess")
 @XmlType(name="CloudProcess", propOrder={"description", "state", "running", "waitTimeout", "pendingInit", "pendingCall", "pendingCancel", "pendingDump", "pendingAssertion", 
@@ -65,7 +66,7 @@ public class CloudProcess extends Entity {
 	@Index(IfTrue.class) boolean topLevel = false;
 	@Index(IfTrue.class) boolean haveCost = false;
 	@Index(IfNotZero.class)protected float costPerHour = 0;
-	@Index(IfNotZero.class)protected Date epoch = null;
+	@Index(IfNotNull.class)protected Date epoch = null;
 	@Index(IfNotZero.class)protected String account = null;
 
 
