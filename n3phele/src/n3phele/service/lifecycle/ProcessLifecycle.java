@@ -153,16 +153,20 @@ public class ProcessLifecycle {
 		
 	}
 	
-	public void setCloudProcessPrice(String account, CloudProcess process){
+	public void setCloudProcessPrice(String account, CloudProcess process,double value,Date date){
 		log.info("Called setCloudProcessPrice on processLifeCycle");
 		final String acc = account;
 		final URI processURI = process.getUri();
 		final Long processId = process.getId();
+		final Date datefinal = date;
 		final Key<CloudProcess> processRoot = process.getRoot();
+		final double v = value;
 		CloudProcessResource.dao.transact(new VoidWork(){
 			public void vrun() {
 				CloudProcess cloudProc = CloudProcessResource.dao.load(processRoot,processId);
 				cloudProc.setAccount(acc);
+				cloudProc.setCostPerHour(v);
+				cloudProc.setEpoch(datefinal);
 				log.info("Process Account: "+acc);
 				log.info("Process URI: "+cloudProc.toString());
 				CloudProcessResource.dao.update(cloudProc);
