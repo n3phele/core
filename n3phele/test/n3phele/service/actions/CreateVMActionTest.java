@@ -644,6 +644,7 @@ public class CreateVMActionTest {
 					
 					vs.setOutputParameters(parameters);
 					virtualServer.put(ref, vs);
+
 				}
 				try {
 					Thread.sleep((long) (Math.random()*200));
@@ -843,7 +844,7 @@ public class CreateVMActionTest {
 		
 		@Test
 		/*
-		 * This method tests everything that the twoVmCreation tests and also checks if the Map of costs, the account and the Epoch are being set correctly
+		 * This method tests everything that the method twoVmCreation tests and also checks if the Map of costs, the account and the Epoch are being set correctly
 		 * The new assertions tests if CloudProcess cost is set correctly, if the Epoch of a CloudProcess is equal to the corresponding Virtual Server created value
 		 * and if the value account in the CloudProcess class is equals to root URI. 
 		 */
