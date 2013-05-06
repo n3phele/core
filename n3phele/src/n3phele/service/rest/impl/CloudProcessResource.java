@@ -14,7 +14,6 @@ package n3phele.service.rest.impl;
 import static com.googlecode.objectify.ObjectifyService.ofy;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -53,7 +52,6 @@ import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.User;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.cmd.Query;
 
 @Path("/process")
 public class CloudProcessResource {
@@ -64,16 +62,6 @@ public class CloudProcessResource {
 	protected @Context UriInfo uriInfo;
 	protected @Context SecurityContext securityContext;
 	
-	@GET
-	@Produces("application/json")
-	@RolesAllowed("authenticated")
-	@Path("/lastcompleted")
-	public CloudProcessCollection listLastCompleted() throws NotFoundException {
-		log.info("Querying last complete processes");
-		Collection<CloudProcess> result = dao.getCollection(UserResource.toUser(securityContext).getUri());
-		return new CloudProcessCollection(result);
-	}
-
 	@GET
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
@@ -91,6 +79,16 @@ public class CloudProcessResource {
 
 		return new CloudProcessCollection(result);
 	}
+	
+//	Ancestor query
+//	@GET
+//	@Produces("application/json")
+//	@RolesAllowed("authenticated")
+//	@Path("{id:[0-9]+}/childrencosts") 
+//	public CloudProcessCollection listChildrenWithCosts(@PathParam("id") Long id){
+//		Collection<CloudProcess> result = dao.getChildrenWithCostsCollection(id);
+//		return new CloudProcessCollection(result);
+//	}
 	
 	@GET
 	@Produces("application/json")
@@ -276,6 +274,7 @@ public class CloudProcessResource {
 	public static class CloudProcessManager extends CachingAbstractManager<CloudProcess> {		
 		public CloudProcessManager() {
 		}
+
 		@Override
 		protected URI myPath() {
 			return UriBuilder.fromUri(Resource.get("baseURI", "http://127.0.0.1:8888/resources")).path(CloudProcessResource.class).build();
@@ -384,27 +383,19 @@ public class CloudProcessResource {
 			return result;
 		}
 
-		/**
-		 * Get completed processes in last month.
-		 * @return the collection
-		 */
-		public Collection<CloudProcess> getCollection(URI owner)
-		{
-			//log.info("non-admin query");
-			Collection<CloudProcess> result	= null;
-			
-			Calendar calendar = Calendar.getInstance();
-			calendar.add(Calendar.MONTH, -1);
-			
-			Query<CloudProcess> q = ofy().load().type(CloudProcess.class).filter("owner", owner.toString()).filter("complete >", calendar.getTime()).filter("haveCost", true); //.filter("costPerHour >", 0.00);
-			
-			List<CloudProcess> items = q.list();
-			
-			result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, items);
-			result.setTotal(items.size());
-			
-			return result;
-		}
+
+//		Ancestor query		
+//		public Collection<CloudProcess> getChildrenWithCostsCollection(Long id) {
+//			Collection<CloudProcess> result	= null;
+//			System.out.println(get(id).getAccount());
+//			List<CloudProcess> items = ofy().load().type(CloudProcess.class).ancestor(get(id)).filter("costPerHour >", 0).list();
+//			
+//			result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, items);
+//			result.setTotal(items.size());
+//			
+//			return result;
+//		}
+		
 	}
 	final public static CloudProcessManager dao = new CloudProcessManager();
 	
