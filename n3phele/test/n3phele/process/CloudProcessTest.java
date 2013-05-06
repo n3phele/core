@@ -110,11 +110,8 @@ public class CloudProcessTest  {
 	 * @throws URISyntaxException 
 	 */
 	@Test
-	public void cloudProcessCompletedTest() throws InterruptedException, ClassNotFoundException, InstantiationException, IllegalAccessException, URISyntaxException
+	public void cloudProcessCompletedAddTest() throws InterruptedException, ClassNotFoundException, InstantiationException, IllegalAccessException, URISyntaxException
 	{
-		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper();
-		cpr.addSecurityContext(null);
-		CloudResourceTestWrapper.dao.clear();
 		
 		Action task = new CountDownAction();
 		task.setUri(new URI("http://www.google.com.br"));
@@ -122,9 +119,10 @@ public class CloudProcessTest  {
 		// tom
 		CloudProcess tom   = new CloudProcess(UserResource.Root.getUri(), "tom", null, true, task);
 		tom.setCostPerHour((float)1.5);
+		tom.setAccount("conta");
 		tom.setComplete(Calendar.getInstance().getTime());
 		
-		CloudResourceTestWrapper.dao.add(tom);
+		CloudProcessResource.dao.add(tom);
 		
 		// jerry
 		Calendar calendar = Calendar.getInstance();
@@ -132,14 +130,11 @@ public class CloudProcessTest  {
 		
 		CloudProcess jerry = new CloudProcess(UserResource.Root.getUri(), "jerry", null, true, task);
 		jerry.setCostPerHour((float)1.5);
+		jerry.setAccount("conta");
 		jerry.setComplete(calendar.getTime());
 		
-		CloudResourceTestWrapper.dao.add(jerry);
+		CloudProcessResource.dao.add(jerry);
 		
-		
-		Collection<CloudProcess> cpList = CloudResourceTestWrapper.dao.getCollection(UserResource.Root.getUri());
-		assertNotNull(cpList);
-		assertEquals(1, cpList.getElements().size());
 	}
 
 	/** Creates and runs a simple test process verifying preservation of running task state
@@ -1029,9 +1024,6 @@ public class CloudProcessTest  {
 		assertEquals("dump has been called", 2000, ja.getCount());
 	}
 
-
-	
-	
 
 	public static class CloudResourceTestWrapper extends CloudProcessResource {
 		public void addSecurityContext(User user) {
