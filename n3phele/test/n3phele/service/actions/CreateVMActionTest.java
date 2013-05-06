@@ -4,11 +4,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.net.URI;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import junit.framework.Assert;
 
 import n3phele.service.actions.CreateVMAction.CreateVirtualServerResult;
 import n3phele.service.core.NotFoundException;
@@ -38,6 +41,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.reflect.Whitebox;
 
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
@@ -626,11 +632,19 @@ public class CreateVMActionTest {
 					ArrayList<NameValue> parameters = new ArrayList<NameValue>();
 					parameters.add(new NameValue("publicIpAddress", "192.168.1."+i));
 					parameters.add(new NameValue("privateIpAddress", "10.0.0."+i));
+					//this new parameter is for testing the twoVmCreationWithCloudMapEpochandAccount, if you want to do more testing cases 
+					//you can do some modifications here
+					parameters.add(new NameValue("flavorRef", "10"));
 					VirtualServer vs = new VirtualServer(createRequest.name, createRequest.description, ref, parameters, 
 							createRequest.notification, "instanceid_"+i++, null, null, null, createRequest.owner, createRequest.idempotencyKey );
+					java.util.Date today = new java.util.Date();
+					today.setTime(today.getTime() + i *60000);
+					vs.setCreated(today);
 					vs.setStatus(initalState);
+					
 					vs.setOutputParameters(parameters);
 					virtualServer.put(ref, vs);
+
 				}
 				try {
 					Thread.sleep((long) (Math.random()*200));
@@ -736,10 +750,244 @@ public class CreateVMActionTest {
 	 
 	 private URI createTestCloud() {
 		 Cloud cloud = new Cloud("testCloud", "cloud for testing", URI.create("https://mycloudprovider.com"), URI.create("https://mycloudfactory.com"), new Credential("factory", "factorySecret").encrypt(), getRoot().getUri(), true, "flavorRef");
+		 HashMap<String, Double> map = new HashMap<String, Double>();
+		 map.put("10", 0.03);
+		 map.put("100", 0.035);
+		 cloud.setCostMap(map);
 		 CloudResource.dao.add(cloud);
 		 return cloud.getUri();
  
 	 }
 	 
+	 	/*
+	 	 * Tests the method getValueByCDN in the class CreateVMAction with the map initialized.
+	 	 * It expects the value within the map that has the key 100(0.35)
+	 	 */
+	 	@Test
+		public void getValueByCDNWithMapInitializeds() throws Exception
+		{
+			CreateVMAction cvma = PowerMockito.spy(new CreateVMAction());
+			
+			Cloud cloud = PowerMockito.mock(Cloud.class);
+			PowerMockito.when(cloud.getCostDriverName()).thenReturn("flavor");			
+			HashMap<String, Double> map = new HashMap<String, Double>();
+			map.put("10", 0.03);
+			map.put("100", 0.035);
+			PowerMockito.when(cloud.getCostMap()).thenReturn(map);
+			
+			ArrayList<NameValue> list = new ArrayList<NameValue>();
+			//For testing the key
+			list.add(new NameValue("flavor","100"));
+			list.add(new NameValue("flavorRef","100"));
+			
+			ActionLogger logger = PowerMockito.mock(ActionLogger.class);
+			Whitebox.setInternalState(cvma, "logger", logger);
+			
+			double result = (Double)Whitebox.invokeMethod(cvma, "getValueByCDN", cloud, list);
+			double expected = 0.035;
+			
+			Assert.assertEquals("Wrong value", expected, result);
+		}
+		/*
+	 	 * Tests the method getValueByCDN in the class CreateVMAction with the map initialized but no entry using the key flavor.
+	 	 * It expects the method to return 0, since there is no key matching the cloud costDriverName
+	 	 */
+	 	@Test
+			public void getValueByCDNWithResult0() throws Exception
+			{
+				CreateVMAction cvma = PowerMockito.spy(new CreateVMAction());
+				
+				Cloud cloud = PowerMockito.mock(Cloud.class);
+				PowerMockito.when(cloud.getCostDriverName()).thenReturn("flavor");			
+				HashMap<String, Double> map = new HashMap<String, Double>();
+				map.put("10", 0.03);
+				map.put("100", 0.035);
+				PowerMockito.when(cloud.getCostMap()).thenReturn(map);
+				
+				ArrayList<NameValue> list = new ArrayList<NameValue>();
+				list.add(new NameValue("flavor2","100"));
+				list.add(new NameValue("flavor2","100"));
+				
+				ActionLogger logger = PowerMockito.mock(ActionLogger.class);
+				Whitebox.setInternalState(cvma, "logger", logger);
+				
+				double result = (Double)Whitebox.invokeMethod(cvma, "getValueByCDN", cloud, list);
+				double expected = 0;
+				
+				Assert.assertEquals("Wrong value", expected, result);
+			}
+	 	/*
+	 	 * Tests the method getValueByCDN in the class CreateVMAction with both maps empty
+	 	 * It expects that the method returns 0, since there is no value on the map
+	 	 */
+	 	@Test
+	 	public void getValueByCDNWithResult0andMapsEmpty() throws Exception
+		{
+			CreateVMAction cvma = PowerMockito.spy(new CreateVMAction());
+			
+			Cloud cloud = PowerMockito.mock(Cloud.class);
+			PowerMockito.when(cloud.getCostDriverName()).thenReturn("flavor");			
+			HashMap<String, Double> map = new HashMap<String, Double>();
 
+			PowerMockito.when(cloud.getCostMap()).thenReturn(map);
+			
+			ArrayList<NameValue> list = new ArrayList<NameValue>();
+			
+			ActionLogger logger = PowerMockito.mock(ActionLogger.class);
+			Whitebox.setInternalState(cvma, "logger", logger);
+			
+			double result = (Double)Whitebox.invokeMethod(cvma, "getValueByCDN", cloud, list);
+			double expected = 0;
+			
+			Assert.assertEquals("Wrong value", expected, result);
+		}
+		
+		@Test
+		/*
+		 * This method tests everything that the method twoVmCreation tests and also checks if the Map of costs, the account and the Epoch are being set correctly
+		 * The new assertions tests if CloudProcess cost is set correctly, if the Epoch of a CloudProcess is equal to the corresponding Virtual Server created value
+		 * and if the value account in the CloudProcess class is equals to root URI. 
+		 */
+		public void twoVmCreationWithCloudMapEpochandAccountInCloudProcess() throws NotFoundException, IllegalArgumentException, ClassNotFoundException, InterruptedException {
+			 log.info("test3");
+			 User root = UserResource.Root;
+			 assertNotNull(root);
+			 URI cloud = createTestCloud();
+			 URI account = createTestAccount(cloud);
+			 CreateVMActionWrapper.initalState = VirtualServerStatus.running;
+			 VMActionWrapper.processState = VirtualServerStatus.running;
+			 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234", "https://myFactory/VM/4321");
+			 Context context = new Context();		 
+			 context.putValue("account", account);
+			 context.putValue("n", 2);
+			 context.putValue("arg", "CreateVM");
+			 CloudProcess service = ProcessLifecycleWrapper.mgr().spawn(getRoot().getUri(), "two", context, null, null, "Service");
+			 ProcessLifecycleWrapper.mgr().init(service);
+			 Thread.sleep(1000);
+			 CloudProcessResource.dao.clear();
+			 ServiceAction action = (ServiceAction) ActionResource.dao.load(service.getAction());
+			 CloudProcess process = CloudProcessResource.dao.load(action.getChildProcess());
+			 
+			Thread.sleep(4000);
+			CloudProcessResource.dao.clear();		
+			String refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
+			assertEquals("{\"RUNABLE_Wait\": 3}", refresh);
+			process = CloudProcessResource.dao.load(process.getUri());
+			
+			assertEquals(ActionState.COMPLETE, process.getState());
+			CreateVMAction cvma = (CreateVMAction) ActionResource.dao.load(process.getAction());
+			VMAction vmAction = (VMAction) ActionResource.dao.load(cvma.getContext().getURIList("cloudVM").get(0));
+			VMAction vmAction2 = (VMAction) ActionResource.dao.load(cvma.getContext().getURIList("cloudVM").get(1));
+			CloudProcess childVM = CloudProcessResource.dao.load(vmAction.getProcess());
+			CloudProcess vm2 = CloudProcessResource.dao.load(vmAction2.getProcess());
+			Account acc = AccountResource.dao.load(account,root.getUri());
+				
+			URI[] siblings = new URI[] { childVM.getAction(), vm2.getAction() };
+			
+			assertEquals("createVM context has 2 child vm", 2, cvma.getContext().getURIList("cloudVM").size());
+			assertEquals("name defaults to process name", "two.CreateVM", cvma.getContext().getValue("name"));
+			assertEquals("instance count", 2L, cvma.getContext().getObjectValue("n"));
+			assertEquals("account", account, cvma.getContext().getObjectValue("account"));
+			
+			assertEquals(URI.create("http://192.168.1.0:8887/task"), vmAction.getContext().getURIValue("agentURI"));
+			assertEquals("test", vmAction.getContext().getValue("agentUser"));
+			assertEquals(VariableType.Secret, vmAction.getContext().get("agentUser").getType());
+			assertEquals("password", vmAction.getContext().getValue("agentSecret"));
+			assertEquals(VariableType.Secret, vmAction.getContext().get("agentSecret").getType());
+			assertEquals("factory", vmAction.getContext().getValue("factoryUser"));
+			assertEquals(VariableType.Secret, vmAction.getContext().get("factoryUser").getType());
+			assertEquals("factorySecret", vmAction.getContext().getValue("factorySecret"));
+			assertEquals(VariableType.Secret, vmAction.getContext().get("factorySecret").getType());
+			
+			assertEquals(false, vmAction.getContext().getBooleanValue("forceAgentRestart"));
+			assertEquals(2, vmAction.getContext().getIntegerValue("n"));
+			assertEquals(0, vmAction.getContext().getIntegerValue("vmIndex"));
+			assertEquals("10.0.0.0", vmAction.getContext().getValue("privateIpAddress"));
+			assertEquals("192.168.1.0", vmAction.getContext().getValue("publicIpAddress"));
+			assertEquals(URI.create("https://myFactory/VM/1234"), vmAction.getContext().getObjectValue("vmFactory"));
+			assertEquals("n3phele-testAccount", vmAction.getContext().getValue("keyName"));
+			assertEquals("two.CreateVM_0", vmAction.getContext().getValue("name"));
+			assertEquals(Arrays.asList(siblings), vmAction.getContext().getObjectValue("cloudVM"));
+			Assert.assertEquals("Wrong value of costPerHour "+ vm2.getCostPerHour(), vm2.getCostPerHour(), 0.03);
+			Assert.assertEquals("Wrong value of costPerHour"+ childVM.getCostPerHour(), childVM.getCostPerHour(), 0.03);
+			
+			VirtualServer vs1= vmAction.getVirtualServer(null, "https://myFactory/VM/1234");
+			VirtualServer vs2= vmAction.getVirtualServer(null, "https://myFactory/VM/4321");
+			Assert.assertEquals("Epoch not equals to Created Date of VS" +" DATE: " +vs1.getCreated(), vs1.getCreated(), childVM.getEpoch());
+			Assert.assertEquals("Epoch not equals to Created Date of VS" +" DATE: " +vs2.getCreated(), vs2.getCreated(), vm2.getEpoch());
+			Assert.assertEquals("Account is not set, expected " + acc.getUri() , acc.getUri().toString(), childVM.getAccount().toString());
+			Assert.assertEquals("Account is not set, expected " + acc.getUri() , acc.getUri().toString(), vm2.getAccount().toString());
+			vmAction = (VMAction) ActionResource.dao.load(vm2.getAction());
+			assertEquals(URI.create("http://192.168.1.1:8887/task"), vmAction.getContext().getURIValue("agentURI"));
+			assertEquals("test", vmAction.getContext().getValue("agentUser"));
+			assertEquals(VariableType.Secret, vmAction.getContext().get("agentUser").getType());
+			assertEquals("password", vmAction.getContext().getValue("agentSecret"));
+			assertEquals(VariableType.Secret, vmAction.getContext().get("agentSecret").getType());
+			assertEquals("factory", vmAction.getContext().getValue("factoryUser"));
+			assertEquals(VariableType.Secret, vmAction.getContext().get("factoryUser").getType());
+			assertEquals("factorySecret", vmAction.getContext().getValue("factorySecret"));
+			assertEquals(VariableType.Secret, vmAction.getContext().get("factorySecret").getType());
+			
+			assertEquals(false, vmAction.getContext().getBooleanValue("forceAgentRestart"));
+			assertEquals(2, vmAction.getContext().getIntegerValue("n"));
+			assertEquals(1, vmAction.getContext().getIntegerValue("vmIndex"));
+			assertEquals("10.0.0.1", vmAction.getContext().getValue("privateIpAddress"));
+			assertEquals("192.168.1.1", vmAction.getContext().getValue("publicIpAddress"));
+			assertEquals(URI.create("https://myFactory/VM/4321"), vmAction.getContext().getObjectValue("vmFactory"));
+			assertEquals("n3phele-testAccount", vmAction.getContext().getValue("keyName"));
+			assertEquals("two.CreateVM_1", vmAction.getContext().getValue("name"));
+			assertEquals(Arrays.asList(siblings), vmAction.getContext().getObjectValue("cloudVM"));
+		 }
+		@Test
+		/*
+		 * This method tests only if the Map of costs, the account and the Epoch are being set correctly
+		 */
+		public void twoVmCreationWithCloudMapEpochandAccountInCloudProcessOnly() throws NotFoundException, IllegalArgumentException, ClassNotFoundException, InterruptedException {
+			 log.info("test3");
+			 User root = UserResource.Root;
+			 assertNotNull(root);
+			 URI cloud = createTestCloud();
+			 URI account = createTestAccount(cloud);
+			 CreateVMActionWrapper.initalState = VirtualServerStatus.running;
+			 VMActionWrapper.processState = VirtualServerStatus.running;
+			 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234", "https://myFactory/VM/4321");
+			 Context context = new Context();		 
+			 context.putValue("account", account);
+			 context.putValue("n", 2);
+			 context.putValue("arg", "CreateVM");
+			 CloudProcess service = ProcessLifecycleWrapper.mgr().spawn(getRoot().getUri(), "two", context, null, null, "Service");
+			 ProcessLifecycleWrapper.mgr().init(service);
+			 Thread.sleep(1000);
+			 CloudProcessResource.dao.clear();
+			 ServiceAction action = (ServiceAction) ActionResource.dao.load(service.getAction());
+			 CloudProcess process = CloudProcessResource.dao.load(action.getChildProcess());
+			 
+			Thread.sleep(4000);
+			CloudProcessResource.dao.clear();		
+			String refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
+			process = CloudProcessResource.dao.load(process.getUri());
+			CreateVMAction cvma = (CreateVMAction) ActionResource.dao.load(process.getAction());
+			VMAction vmAction = (VMAction) ActionResource.dao.load(cvma.getContext().getURIList("cloudVM").get(0));
+			VMAction vmAction2 = (VMAction) ActionResource.dao.load(cvma.getContext().getURIList("cloudVM").get(1));
+			CloudProcess childVM = CloudProcessResource.dao.load(vmAction.getProcess());
+			CloudProcess vm2 = CloudProcessResource.dao.load(vmAction2.getProcess());
+			Account acc = AccountResource.dao.load(account,root.getUri());
+			System.out.println("DATA: " + acc.getUri());
+	
+			
+			URI[] siblings = new URI[] { childVM.getAction(), vm2.getAction() };
+			
+			
+			Assert.assertEquals("Wrong value of costPerHour "+ vm2.getCostPerHour(), vm2.getCostPerHour(), 0.03);
+			Assert.assertEquals("Wrong value of costPerHour"+ childVM.getCostPerHour(), childVM.getCostPerHour(), 0.03);
+			
+			VirtualServer vs1= vmAction.getVirtualServer(null, "https://myFactory/VM/1234");
+			VirtualServer vs2= vmAction.getVirtualServer(null, "https://myFactory/VM/4321");
+			Assert.assertEquals("Epoch not equals to Created Date of VS" +" DATE: " +vs1.getCreated(), vs1.getCreated(), childVM.getEpoch());
+			Assert.assertEquals("Epoch not equals to Created Date of VS" +" DATE: " +vs2.getCreated(), vs2.getCreated(), vm2.getEpoch());
+			Assert.assertEquals("Account is not set, expected " + acc.getUri() , acc.getUri().toString(), childVM.getAccount().toString());
+			Assert.assertEquals("Account is not set, expected " + acc.getUri() , acc.getUri().toString(), vm2.getAccount().toString());
+			vmAction = (VMAction) ActionResource.dao.load(vm2.getAction());
+			
+		 }
 }
