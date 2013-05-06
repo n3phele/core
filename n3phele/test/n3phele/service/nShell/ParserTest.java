@@ -30,6 +30,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.google.appengine.api.datastore.Text;
+
 /**
  * @author Nigel Cook
  *
@@ -857,7 +859,7 @@ public class ParserTest {
 	public void shellTest_ON_1() throws ParseException, n3phele.service.nShell.ParseException {
 		String test = "  ON $$DenoiseMaster --needsAll --producesNone\n"+
 					  "    ls -lx | sort | cat > /tmp/foo.bar\n";
-		Shell s = new Shell(test, 1);
+		Shell s = new Shell(new Text(test), 1);
 		SimpleNode node = s.script();
 		String result = dump(node, "", ".");
 		String expected = "script:null\n"
@@ -894,7 +896,7 @@ public class ParserTest {
 						"    			    singletons.fasta:output/singletons.fasta,\n"+
 						"    			    denoiser_mapping.txt: output/denoiser_mapping.txt]\n"+
 						"	    	cp $QIIME/qiime/support_files/qiime_config_n3phele ~/.qiime_config_default\n";
-		Shell s = new Shell(test, 1);
+		Shell s = new Shell(new Text(test), 1);
 		SimpleNode node = s.script();
 		String result = dump(node, "", ".");
 		String expected = "script:null\n"
@@ -939,7 +941,7 @@ public class ParserTest {
 					  "			second -help\n" +
 					  "	ON $$DenoiseMaster\n" +
 					  "			third foobar > file.txt\n";
-		Shell s = new Shell(test, 1);
+		Shell s = new Shell(new Text(test), 1);
 		SimpleNode node = s.script();
 		String result = dump(node, "", ".");
 		String expected = "script:null\n"
@@ -1039,7 +1041,7 @@ public class ParserTest {
 						"		wget -q -O - https://n3phele-agent.s3.amazonaws.com/n3ph-install-tgz-basic | su - -c '/bin/bash -s ubuntu ~/agent /mnt/sandbox' ubuntu\n"+
 						"		ln -s /mnt/sandbox ~ubuntu/sandbox\n"+
 						"	 }%%\n";
-		Shell s = new Shell(test, 1);
+		Shell s = new Shell(new Text(test), 1);
 		SimpleNode node = s.script();
 		String result = dump(node, "", ".");
 		String expected = "script:null\n"
