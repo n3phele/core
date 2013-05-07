@@ -1,4 +1,3 @@
-
 /**
  * @author Gabriela Lavina
  *
@@ -15,14 +14,20 @@
  */
 
 package n3phele.client.view;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import n3phele.client.ClientFactory;
 import n3phele.client.N3phele;
 import n3phele.client.model.Account;
 import n3phele.client.model.Activity;
+import n3phele.service.model.CloudProcess;
+import n3phele.service.model.CloudProcessCollection;
+import n3phele.service.model.CloudProcessSummary;
+//import n3phele.client.model.CloudProcess;
 import n3phele.client.model.VirtualServer;
 import n3phele.client.presenter.AccountHyperlinkActivity;
 import n3phele.client.presenter.helpers.AuthenticatedRequestFactory;
@@ -33,6 +38,9 @@ import n3phele.client.widgets.MenuItem;
 import n3phele.client.widgets.SectionPanel;
 import n3phele.client.widgets.ValidInputIndicatorWidget;
 import n3phele.client.widgets.WorkspaceVerticalPanel;
+import n3phele.service.rest.impl.AccountResource;
+import n3phele.service.rest.impl.CloudProcessResource;
+
 import com.google.gwt.cell.client.ActionCell.Delegate;
 import com.google.gwt.cell.client.ClickableTextCell;
 import com.google.gwt.cell.client.FieldUpdater;
@@ -47,6 +55,7 @@ import com.google.gwt.http.client.RequestBuilder;
 import com.google.gwt.http.client.RequestCallback;
 import com.google.gwt.http.client.RequestException;
 import com.google.gwt.http.client.Response;
+import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.DataGrid;
 import com.google.gwt.user.cellview.client.TextColumn;
@@ -63,13 +72,18 @@ import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwt.visualization.client.AbstractDataTable;
+import com.google.gwt.visualization.client.Color3D;
 import com.google.gwt.visualization.client.DataTable;
 import com.google.gwt.visualization.client.LegendPosition;
 import com.google.gwt.visualization.client.VisualizationUtils;
 import com.google.gwt.visualization.client.AbstractDataTable.ColumnType;
+import com.google.gwt.visualization.client.visualizations.AnnotatedTimeLine;
 import com.google.gwt.visualization.client.visualizations.LineChart;
 import com.google.gwt.visualization.client.visualizations.LineChart.Options;
 import com.google.gwt.user.datepicker.client.CalendarUtil;
+//import com.sun.jersey.api.client.Client;
+//import com.sun.jersey.api.client.ClientResponse;
+//import com.sun.jersey.api.client.WebResource;
 
 @SuppressWarnings("deprecation")
 public class AccountHyperlinkView extends WorkspaceVerticalPanel implements EntryPoint {
@@ -94,13 +108,12 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 	private Button hours, days, month;
 
 	public AccountHyperlinkView(String uri) {
-		super(new MenuItem(N3phele.n3pheleResource.accountIcon(), "Account", null),
-				new MenuItem(N3phele.n3pheleResource.accountAddIcon(), "Account Edit", "account:"+uri));
+		super(new MenuItem(N3phele.n3pheleResource.accountIcon(), "Account", null), new MenuItem(N3phele.n3pheleResource.accountAddIcon(), "Account Edit", "account:" + uri));
 
-		if(resource == null)
+		if (resource == null)
 			resource = GWT.create(DataGridResource.class);
 
-		//TABLE
+		// TABLE
 		table = new FlexTable();
 		table.setCellPadding(10);
 		errorsOnPage = new ValidInputIndicatorWidget("check for missing or invalid parameters marked with this icon", false);
@@ -114,7 +127,7 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		table.setCellPadding(1);
 		table.setCellSpacing(1);
 
-		//DATAGRID
+		// DATAGRID
 		dataGrid = new DataGrid<VirtualServer>(15, resource);
 		dataGrid.setSize("495px", "100px");
 
@@ -122,7 +135,7 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 			@Override
 			public String getValue(VirtualServer item) {
 				String result = "";
-				if(item != null){
+				if (item != null) {
 					result += item.getName();
 				}
 				return result;
@@ -131,12 +144,12 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		dataGrid.addColumn(nameColumn, "Name");
 		dataGrid.setColumnWidth(nameColumn, "130px");
 
-		Column<VirtualServer, String> activityColumn = new Column<VirtualServer, String>(new  ClickableTextCell()){
+		Column<VirtualServer, String> activityColumn = new Column<VirtualServer, String>(new ClickableTextCell()) {
 			@Override
-			public String getValue(VirtualServer item){
+			public String getValue(VirtualServer item) {
 				String result = "";
-				if(item != null){
-					if(item.getActivity() == null || !(activityPerVS.containsKey(item)) || activityPerVS.get(item) == null){
+				if (item != null) {
+					if (item.getActivity() == null || !(activityPerVS.containsKey(item)) || activityPerVS.get(item) == null) {
 						result += "none";
 					} else {
 						result += activityPerVS.get(item).getName();
@@ -146,15 +159,14 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 			}
 
 		};
-		activityColumn.setFieldUpdater(new FieldUpdater<VirtualServer, String>(){
+		activityColumn.setFieldUpdater(new FieldUpdater<VirtualServer, String>() {
 			@Override
-			public void update(int index, VirtualServer obj, String value){
-				if(presenter != null) {
-					if(obj.getActivity() == null || !(activityPerVS.containsKey(obj)) || activityPerVS.get(obj) == null){
+			public void update(int index, VirtualServer obj, String value) {
+				if (presenter != null) {
+					if (obj.getActivity() == null || !(activityPerVS.containsKey(obj)) || activityPerVS.get(obj) == null) {
 						Window.alert(obj.getName() + " has no activities running on n3phele.");
-					}
-					else
-						presenter.onSelect(activityPerVS.get(obj));					
+					} else
+						presenter.onSelect(activityPerVS.get(obj));
 				}
 			}
 		});
@@ -166,52 +178,53 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 			@Override
 			public String getValue(VirtualServer item) {
 				String result = "";
-				if(item != null){
+				if (item != null) {
 					Date now = new Date();
-					if(now.before(item.getCreated())){
+					if (now.before(item.getCreated())) {
 						result += 0;
 					} else {
 						int minutes = 0;
 						int hours = 0;
 						int days = 0;
 
-						//MINUTES
-						if(now.getMinutes() < item.getCreated().getMinutes())
-							minutes = 60+now.getMinutes()-item.getCreated().getMinutes();
+						// MINUTES
+						if (now.getMinutes() < item.getCreated().getMinutes())
+							minutes = 60 + now.getMinutes() - item.getCreated().getMinutes();
 						else
-							minutes = now.getMinutes()-item.getCreated().getMinutes();
+							minutes = now.getMinutes() - item.getCreated().getMinutes();
 
-						//HOURS
-						if(now.getHours() > item.getCreated().getHours()){
+						// HOURS
+						if (now.getHours() > item.getCreated().getHours()) {
 							hours += now.getHours() - item.getCreated().getHours();
-							if(now.getMinutes() - item.getCreated().getMinutes() < 0)
+							if (now.getMinutes() - item.getCreated().getMinutes() < 0)
 								hours--;
-						}
-						else if(now.getHours() < item.getCreated().getHours())
+						} else if (now.getHours() < item.getCreated().getHours())
 							hours += 24 - (item.getCreated().getHours() - now.getHours());
 
-						//DAYS
-						days = (int)((now.getTime() - item.getCreated().getTime()) / (1000 * 60 * 60 * 24));
+						// DAYS
+						days = (int) ((now.getTime() - item.getCreated().getTime()) / (1000 * 60 * 60 * 24));
 
-						if(days == 0){
+						if (days == 0) {
 							int hoursDifference = 0;
-							if(now.getHours() >= item.getCreated().getHours()) hoursDifference = now.getHours() - item.getCreated().getHours();
-							else hoursDifference = 24 - (item.getCreated().getHours() - now.getHours());
+							if (now.getHours() >= item.getCreated().getHours())
+								hoursDifference = now.getHours() - item.getCreated().getHours();
+							else
+								hoursDifference = 24 - (item.getCreated().getHours() - now.getHours());
 							int minutesDifference = now.getMinutes() - item.getCreated().getMinutes();
-							if(hoursDifference == 0 || (hoursDifference == 1 && minutesDifference < 0)){
+							if (hoursDifference == 0 || (hoursDifference == 1 && minutesDifference < 0)) {
 								result += minutes + "min";
 							} else {
 								result += hours + "h " + minutes + "min";
 							}
 						} else {
-							if(hours == 0 && minutes == 0)
+							if (hours == 0 && minutes == 0)
 								result += days + "d";
-							else if(hours == 0 && minutes > 0)
+							else if (hours == 0 && minutes > 0)
 								result += days + "d " + minutes + "min";
-							else if(hours > 0 && minutes == 0)
+							else if (hours > 0 && minutes == 0)
 								result += days + "d " + hours + "h";
 							else
-								result += days + "d " + hours + "h " + minutes + "min"; 
+								result += days + "d " + hours + "h " + minutes + "min";
 						}
 					}
 				}
@@ -225,24 +238,24 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 			@Override
 			public String getValue(VirtualServer item) {
 				String result = "";
-				if(item != null) {
+				if (item != null) {
 					double price = Double.parseDouble(item.getPrice());
 					Date now = new Date();
-					if(now.before(item.getCreated())){
+					if (now.before(item.getCreated())) {
 						result += 0;
-					} else if(item.getEndDate() == null){
+					} else if (item.getEndDate() == null) {
 						Date test = new Date();
-						int hours = (int)(((now.getTime() - item.getCreated().getTime()) / (1000 * 60 * 60 * 24))*24);
-						if(now.getHours() >= item.getCreated().getHours()){
-							hours += now.getHours()-item.getCreated().getHours()+1;
+						int hours = (int) (((now.getTime() - item.getCreated().getTime()) / (1000 * 60 * 60 * 24)) * 24);
+						if (now.getHours() >= item.getCreated().getHours()) {
+							hours += now.getHours() - item.getCreated().getHours() + 1;
 						} else {
-							hours += 24 - (item.getCreated().getHours() - now.getHours())+1;
+							hours += 24 - (item.getCreated().getHours() - now.getHours()) + 1;
 						}
-						if(now.getMinutes() - item.getCreated().getMinutes() < 0){
+						if (now.getMinutes() - item.getCreated().getMinutes() < 0) {
 							hours--;
 						}
 						double total = price * hours;
-						result += "US$" + (double)Math.round(total * 1000) / 1000;
+						result += "US$" + (double) Math.round(total * 1000) / 1000;
 					}
 				}
 				return result;
@@ -260,16 +273,15 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 			}
 		});
 
-		Column<VirtualServer, VirtualServer> cancelColumn = new Column<VirtualServer, VirtualServer>(
-				new CancelButtonCell<VirtualServer>(new Delegate<VirtualServer>() {
-					@Override
-					public void execute(VirtualServer value) {
-						if(value != null) {
-							dataGrid.getSelectionModel().setSelected(value, false);
-							getDialog(value).show();
-						}
-					}
-				}, "delete virtual machine")) {
+		Column<VirtualServer, VirtualServer> cancelColumn = new Column<VirtualServer, VirtualServer>(new CancelButtonCell<VirtualServer>(new Delegate<VirtualServer>() {
+			@Override
+			public void execute(VirtualServer value) {
+				if (value != null) {
+					dataGrid.getSelectionModel().setSelected(value, false);
+					getDialog(value).show();
+				}
+			}
+		}, "delete virtual machine")) {
 			@Override
 			public VirtualServer getValue(VirtualServer object) {
 				return object;
@@ -279,11 +291,10 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		dataGrid.addColumn(cancelColumn);
 		dataGrid.setColumnWidth(cancelColumn, "50px");
 
-
 		// CALL onModuleLoad()
-		onModuleLoad();		
+		onModuleLoad();
 	}
-	
+
 	public void onModuleLoad() {
 		Runnable onLoadCallback = new Runnable() {
 			public void run() {
@@ -303,40 +314,40 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		VisualizationUtils.loadVisualizationApi(onLoadCallback, LineChart.PACKAGE);
 	}
 
-	public void setTableData(){
+	public void setTableData() {
 		table.setCellSpacing(8);
 		table.setTitle("HP Cloud account information");
-		if(account != null) {
+		if (account != null) {
 			HTML name = new InlineHTML(account.getName());
 			name.addStyleName(N3phele.n3pheleResource.css().commandDetailHeader());
-			table.setHTML(0, 0, ""+name);
+			table.setHTML(0, 0, "" + name);
 			HTML description = new InlineHTML(account.getDescription());
 			description.addStyleName(N3phele.n3pheleResource.css().commandDetailText());
-			table.setHTML(0, 1, ""+description);
-			HTML cloudName = new InlineHTML(""+account.getCloudName());
+			table.setHTML(0, 1, "" + description);
+			HTML cloudName = new InlineHTML("" + account.getCloudName());
 			cloudName.addStyleName(N3phele.n3pheleResource.css().commandDetailText());
-			table.setHTML(1, 0, ""+cloudName);
+			table.setHTML(1, 0, "" + cloudName);
 		} else {
 			HTML name = new InlineHTML("");
 			name.addStyleName(N3phele.n3pheleResource.css().commandDetailHeader());
-			table.setHTML(0, 0, ""+name);
+			table.setHTML(0, 0, "" + name);
 			HTML description = new InlineHTML("");
 			description.addStyleName(N3phele.n3pheleResource.css().commandDetailText());
-			table.setHTML(0, 1, ""+description);
+			table.setHTML(0, 1, "" + description);
 			HTML cloudName = new InlineHTML("");
 			cloudName.addStyleName(N3phele.n3pheleResource.css().commandDetailText());
-			table.setHTML(1, 0, ""+cloudName);
+			table.setHTML(1, 0, "" + cloudName);
 		}
 		table.setWidget(2, 0, errorsOnPage);
 	}
 
 	public void setDisplayList(List<VirtualServer> list) {
-		if(list == null)
+		if (list == null)
 			list = new ArrayList<VirtualServer>();
 		setTableData();
-		vsData = list;		
+		vsData = list;
 		this.dataGrid.setRowCount(list.size(), true);
-		this.dataGrid.setRowData(vsData=list);
+		this.dataGrid.setRowData(vsData = list);
 	}
 
 	public void setPresenter(AccountHyperlinkActivity accountHyperlinkActivity) {
@@ -344,7 +355,7 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 
 	}
 
-	public void updateActivity(Activity activity){
+	public void updateActivity(Activity activity) {
 		this.activity = activity;
 	}
 
@@ -355,29 +366,28 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 	}
 
 	public void refresh(int i, String update) {
-		this.dataGrid.setRowData(i, vsData.subList(i, i+1));
+		this.dataGrid.setRowData(i, vsData.subList(i, i + 1));
 	}
-
 
 	public void refreshAccount(Account update) {
 		setData(update);
 	}
 
 	protected ActionDialogBox<VirtualServer> getDialog(VirtualServer item) {
-		if(dialog == null) {
-			dialog = new ActionDialogBox<VirtualServer>("VirtualMachine Removal Confirmation",
-					"No", "Yes", new Delegate<VirtualServer>(){
+		if (dialog == null) {
+			dialog = new ActionDialogBox<VirtualServer>("VirtualMachine Removal Confirmation", "No", "Yes", new Delegate<VirtualServer>() {
 
 				@Override
 				public void execute(VirtualServer object) {
 					kill(object.getUri());
 
-				}});
+				}
+			});
 			dialog.setGlassEnabled(true);
 			dialog.setAnimationEnabled(false);
 
 		}
-		dialog.setValue("Remove virtual machine \""+item.getName()+"\"?<p>", item);
+		dialog.setValue("Remove virtual machine \"" + item.getName() + "\"?<p>", item);
 		dialog.center();
 		return dialog;
 	}
@@ -391,12 +401,12 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 			@SuppressWarnings("unused")
 			Request request = builder.sendRequest(null, new RequestCallback() {
 				public void onError(Request request, Throwable exception) {
-					Window.alert("Couldn't delete "+exception.getMessage());
+					Window.alert("Couldn't delete " + exception.getMessage());
 				}
 
 				public void onResponseReceived(Request request, Response response) {
 					if (204 == response.getStatusCode()) {
-						if(AccountHyperlinkView.this.presenter != null)
+						if (AccountHyperlinkView.this.presenter != null)
 							AccountHyperlinkView.this.presenter.getVSList();
 					} else {
 						Window.alert("Couldn't delete (" + response.getStatusText() + ")");
@@ -404,17 +414,17 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 				}
 			});
 		} catch (RequestException e) {
-			Window.alert("Couldn't delete "+e.getMessage());
+			Window.alert("Couldn't delete " + e.getMessage());
 
 		}
 	}
 
-	public void requestChartData(String time){
+	public void requestChartData(String time) {
 		this.presenter.getChartData(time);
 	}
 
-	public void setChartData(List<Double> valuesList){
-		if(valuesList == null || valuesList.size() == 0)
+	public void setChartData(List<Double> valuesList) {
+		if (valuesList == null || valuesList.size() == 0)
 			chartValues = null;
 		else
 			chartValues = valuesList;
@@ -425,32 +435,33 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		setTableData();
 	}
 
-
-	private AccountHyperlinkView get(){
+	private AccountHyperlinkView get() {
 		return this;
 	}
 
-	private void setChartTableData(){
+	private void setChartTableData() {
 
 		ChangeHandler dropBoxEvent = new ChangeHandler() {
 			public void onChange(ChangeEvent event) {
 				if (options.isItemSelected(0)) {
 					costOption = "normal";
-					if(historyTable.isCellPresent(2, 0)) historyTable.clearCell(2, 0);
+					if (historyTable.isCellPresent(2, 0))
+						historyTable.clearCell(2, 0);
 					chart = new LineChart(createTable(), createOptions(chartTitle));
 					historyTable.setWidget(2, 0, chart);
 				} else {
 					costOption = "cumulative";
-					if(historyTable.isCellPresent(2, 0)) historyTable.clearCell(2, 0);
+					if (historyTable.isCellPresent(2, 0))
+						historyTable.clearCell(2, 0);
 					chart = new LineChart(createTable(), createOptions(chartTitle));
 					historyTable.setWidget(2, 0, chart);
 				}
 			}
 		};
 
-		vsTable.getColumnFormatter().setWidth(0, chartPanel.getOffsetWidth()+"px");
+		vsTable.getColumnFormatter().setWidth(0, chartPanel.getOffsetWidth() + "px");
 
-		historyTable.getColumnFormatter().setWidth(0, chartPanel.getOffsetWidth()+"px");
+		historyTable.getColumnFormatter().setWidth(0, chartPanel.getOffsetWidth() + "px");
 		HorizontalPanel chartOptionsTable = new HorizontalPanel();
 		options.insertItem("Cost", 0);
 		options.insertItem("Cumulative Cost", 1);
@@ -458,35 +469,66 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		options.addChangeHandler(dropBoxEvent);
 		chartOptionsTable.add(options);
 		chartOptionsTable.setCellWidth(options, "160px");
-		hours = new Button("24 hours",  new ClickHandler() {
+		hours = new Button("24 hours", new ClickHandler() {
 			public void onClick(ClickEvent event) {
 				requestChartData("24hours");
 				chartTitle = "24 Hours Costs Chart";
-				if(historyTable.isCellPresent(2, 0)) historyTable.clearCell(2, 0);
+				if (historyTable.isCellPresent(2, 0))
+					historyTable.clearCell(2, 0);
 				chart = new LineChart(createTable(), createOptions(chartTitle));
 				historyTable.setWidget(2, 0, chart);
+				List<Double> mockValues = new ArrayList<Double>();
+				for (int i = 0; i < 24; i++) {
+					mockValues.add((double) i);
+				}
+				setChartData(mockValues);
+				AbstractDataTable data = createTable();
+				Options options = createOptions("24 hours");
+				chart.draw(data, options);
 			}
 		});
 		hours.setWidth("70px");
 		chartOptionsTable.add(hours);
-		days = new Button("7 days",  new ClickHandler() {
+		days = new Button("7 days", new ClickHandler() {
 			public void onClick(ClickEvent event) {
 				requestChartData("7days");
 				chartTitle = "7 Days Costs Chart";
-				if(historyTable.isCellPresent(2, 0)) historyTable.clearCell(2, 0);
+				if (historyTable.isCellPresent(2, 0))
+					historyTable.clearCell(2, 0);
 				chart = new LineChart(createTable(), createOptions(chartTitle));
 				historyTable.setWidget(2, 0, chart);
+
+				List<Double> mockValues = new ArrayList<Double>();
+				for (int i = 0; i < 7; i++) {
+					mockValues.add((double) i);
+				}
+				setChartData(mockValues);
+				AbstractDataTable data = createTable();
+				Options options = createOptions("7 days");
+				chart.draw(data, options);
 			}
 		});
 		days.setWidth("70px");
 		chartOptionsTable.add(days);
-		month = new Button("30 days",  new ClickHandler() {
+		month = new Button("30 days", new ClickHandler() {
 			public void onClick(ClickEvent event) {
 				requestChartData("30days");
 				chartTitle = "30 Days Costs Chart";
-				if(historyTable.isCellPresent(2, 0)) historyTable.clearCell(2, 0);
+				if (historyTable.isCellPresent(2, 0))
+					historyTable.clearCell(2, 0);
 				chart = new LineChart(createTable(), createOptions(chartTitle));
 				historyTable.setWidget(2, 0, chart);
+				List<Double> mockValues = new ArrayList<Double>();
+				for (int i = 0; i < 30; i++) {
+					mockValues.add((double) i);
+				}
+
+				setChartData(mockValues);
+
+				AbstractDataTable data = createTable();
+
+				Options options = createOptions("30 days");
+				chart.draw(data, options);
 			}
 		});
 		month.setWidth("70px");
@@ -495,16 +537,53 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		historyTable.getCellFormatter().setHorizontalAlignment(1, 0, HasHorizontalAlignment.ALIGN_CENTER);
 
 		requestChartData("24hours");
-		if(historyTable.isCellPresent(2, 0)) historyTable.clearCell(2, 0);
+		if (historyTable.isCellPresent(2, 0))
+			historyTable.clearCell(2, 0);
 		chart = new LineChart(createTable(), createOptions(chartTitle));
 		historyTable.setWidget(2, 0, chart);
 		historyTable.setWidget(2, 0, new LineChart(createTable(), createOptions(chartTitle)));
 		historyTable.getCellFormatter().setHorizontalAlignment(2, 0, HasHorizontalAlignment.ALIGN_CENTER);
 
+		historyTable.setVisible(true);
+
 		vsTable.setWidget(1, 0, dataGrid);
 		vsTable.getCellFormatter().setHorizontalAlignment(1, 0, HasHorizontalAlignment.ALIGN_CENTER);
 
 	}
+
+
+	
+
+//	private List<Double> setCosts30days() {
+////		Client client = Client.create();
+////
+////		WebResource webResource = client.resource("http://localhost:8888/resource/account/lastcompleted/344004/30");
+////
+////		ClientResponse response = webResource.accept("application/json").get(ClientResponse.class);
+////
+////		if (response.getStatus() != 200) {
+////			throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
+////		}
+////
+////		CloudProcessCollection output = response.getEntity(CloudProcessCollection.class);
+//
+//		List<CloudProcessSummary> list = output.getElements();
+//		List<Double> listfinal = new ArrayList<Double>();
+//		Date date = new Date();
+//		long today = date.getTime();
+//		for (int i = 0; i < 30; i++) {
+//			listfinal.add(0.0);
+//		}
+//		for (CloudProcessSummary cloudProcess : list) {
+//			long time = cloudProcess.getComplete().getTime();
+//			long result = today - time;
+//			int pos = (int) Math.floor(result / 1000 / 3600 / 24);
+//			System.out.println("TESTING : " + pos);
+//			pos = 29 - pos;
+//			listfinal.set(pos, listfinal.get(pos) + cloudProcess.getCostPerHour());
+//		}
+//		return listfinal;
+//	}
 
 	private LineChart.Options createOptions(String time) {
 		Options options = Options.create();
@@ -515,8 +594,8 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		options.setTitleFontSize(13.0);
 		double max = maxValue();
 		double min = minValue(maxValue());
-		options.setMax((int)max+1);
-		options.setMin((int)min);
+		options.setMax((int) max + 1);
+		options.setMin((int) min);
 		options.setPointSize(2);
 		options.setAxisFontSize(11.0);
 		return options;
@@ -527,77 +606,77 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		data.addColumn(ColumnType.STRING, "Time");
 		data.addColumn(ColumnType.NUMBER, "Cost");
 		Date date = new Date();
-		if(chartValues != null){
-			if(chartValues.size() == 24){
-				if(chartValues != null){
+		if (chartValues != null) {
+			if (chartValues.size() == 24) {
+				if (chartValues != null) {
 					int time = 0;
-					if((date.getHours()+1)-23 < 0)
-						time = date.getHours()+1; 
+					if ((date.getHours() + 1) - 23 < 0)
+						time = date.getHours() + 1;
 					else
-						time = date.getHours()-23;
-					if(costOption.equals("cumulative")){
+						time = date.getHours() - 23;
+					if (costOption.equals("cumulative")) {
 						double value = 0.0;
-						for(int i = 0; i < chartValues.size(); i++){
+						for (int i = 0; i < chartValues.size(); i++) {
 							value += chartValues.get(i);
 							data.addRow();
-							data.setValue(i, 0, time+"h");
+							data.setValue(i, 0, time + "h");
 							data.setValue(i, 1, value);
 							time++;
-							if(time == 24)
+							if (time == 24)
 								time = 0;
 						}
 					} else {
-						for(int i = 0; i < chartValues.size(); i++){
+						for (int i = 0; i < chartValues.size(); i++) {
 							data.addRow();
-							data.setValue(i, 0, time+"h");
+							data.setValue(i, 0, time + "h");
 							data.setValue(i, 1, chartValues.get(i));
 							time++;
-							if(time == 24)
+							if (time == 24)
 								time = 0;
 						}
 					}
 				}
-			}
-			else if(chartValues.size() == 7){
-				String[] month = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-				if(chartValues != null){
+			} else if (chartValues.size() == 7) {
+				String[] month = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+				if (chartValues != null) {
 					CalendarUtil.addDaysToDate(date, -6);
-					if(costOption.equals("cumulative")){
+					if (costOption.equals("cumulative")) {
 						double value = 0.0;
-						for(int i = 0; i < chartValues.size(); i++){
+						for (int i = 0; i < chartValues.size(); i++) {
+
 							value += chartValues.get(i);
 							data.addRow();
-							data.setValue(i, 0, ""+month[date.getMonth()]+date.getDate());
+							data.setValue(i, 0, "" + month[date.getMonth()] + date.getDate());
 							data.setValue(i, 1, value);
 							CalendarUtil.addDaysToDate(date, 1);
 						}
 					} else {
-						for(int i = 0; i < chartValues.size(); i++){
-							//data.addRow();
+						for (int i = 0; i < chartValues.size(); i++) {
+							// data.addRow();
 							data.addRow();
-							data.setValue(i, 0, ""+month[date.getMonth()]+date.getDate());
+							data.setValue(i, 0, "" + month[date.getMonth()] + date.getDate());
 							data.setValue(i, 1, chartValues.get(i));
 							CalendarUtil.addDaysToDate(date, 1);
 						}
 					}
 				}
 			} else {
-				String[] month = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-				if(chartValues != null){
+				String[] month = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+				if (chartValues != null) {
 					CalendarUtil.addDaysToDate(date, -29);
-					if(costOption.equals("cumulative")){
+					if (costOption.equals("cumulative")) {
 						double value = 0.0;
-						for(int i = 0; i < chartValues.size(); i++){
+						for (int i = 0; i < chartValues.size(); i++) {
 							value += chartValues.get(i);
 							data.addRow();
-							data.setValue(i, 0, ""+month[date.getMonth()]+date.getDate());
+							data.setValue(i, 0, "" + month[date.getMonth()] + date.getDate());
 							data.setValue(i, 1, value);
 							CalendarUtil.addDaysToDate(date, 1);
 						}
 					} else {
-						for(int i = 0; i < chartValues.size(); i++){
+						for (int i = 0; i < chartValues.size(); i++) {
 							data.addRow();
-							data.setValue(i, 0, ""+month[date.getMonth()]+date.getDate());
+							data.setValue(i, 0, "" + month[date.getMonth()] + date.getDate());
 							data.setValue(i, 1, chartValues.get(i));
 							CalendarUtil.addDaysToDate(date, 1);
 						}
@@ -608,34 +687,37 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		return data;
 	}
 
-	public double maxValue(){
-		if(chartValues == null)
+	public double maxValue() {
+		if (chartValues == null)
 			return 0.0;
 		double max = 0.0;
-		for(int i=0; i<chartValues.size();i++){
+		for (int i = 0; i < chartValues.size(); i++) {
 			double j = chartValues.get(i);
-			if(chartValues.get(i) > max)
+			if (chartValues.get(i) > max)
 				max = j;
 		}
-		return max;	
+		return max;
 	}
 
-	public double minValue(double maxValue){
-		if(chartValues == null) 
+	public double minValue(double maxValue) {
+		if (chartValues == null)
 			return 0.0;
 		double min = maxValue;
-		for(int i=0; i<chartValues.size();i++){
-			if(chartValues.get(i) < min)
+		for (int i = 0; i < chartValues.size(); i++) {
+			if (chartValues.get(i) < min)
 				min = chartValues.get(i);
 		}
-		return min;	
+		return min;
 	}
 
-	public void refreshChart(){
-		if(chart == null || historyTable == null) return;
+	public void refreshChart() {
+		if (chart == null || historyTable == null)
+			return;
 		requestChartData("24hours");
-		if(chartValues == null)	return;
-		if(historyTable.isCellPresent(2, 0)) historyTable.clearCell(2, 0);
+		if (chartValues == null)
+			return;
+		if (historyTable.isCellPresent(2, 0))
+			historyTable.clearCell(2, 0);
 		chart = new LineChart(createTable(), createOptions(chartTitle));
 		historyTable.setWidget(2, 0, chart);
 	}
