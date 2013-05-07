@@ -128,8 +128,9 @@ public class AccountResource {
 	@GET
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
-	@Path("/lastcompleted/{days:[0-9]+}")
-	public CloudProcessCollection listCloudProcessWithCosts(@QueryParam("account") String account, @PathParam("days") int days) {
+//	@Path("/lastcompleted/{days:[0-9]+}")
+	@Path("/lastcompleted/{account}/{days:[0-9]+}")
+	public CloudProcessCollection listCloudProcessWithCosts(@PathParam("account") String account, @PathParam("days") int days) {
 
 		Collection<CloudProcess> result = dao.getCostsOfAccount(account, days);
 		return new CloudProcessCollection(result);
@@ -291,7 +292,7 @@ public class AccountResource {
 
 			Calendar calendar = Calendar.getInstance();
 			calendar.add(Calendar.DAY_OF_YEAR,0 - days);
-			List<CloudProcess> costs = ofy().load().type(CloudProcess.class).filter("account", account).filter("complete >", calendar.getTime()).list();
+			List<CloudProcess> costs = ofy().load().type(CloudProcess.class).filter("account", super.path + "/" + account).filter("complete >", calendar.getTime()).list();
 			Collection<CloudProcess> result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, costs);
 			result.setTotal(costs.size());
 			return result;
