@@ -362,7 +362,7 @@ public class ProcessLifecycle {
 		final Key<CloudProcess> processRoot = process.getRoot();
 		log.info("Complete "+process.getName()+":"+process.getUri());
 		giveChildrenToGrandparent(process);
-		final List<String> dependents = CloudProcessResource.dao.transact(new Work<List<String>>() {
+		final List<String> parentAndDependents = CloudProcessResource.dao.transact(new Work<List<String>>() {
 			@Override
 			public List<String> run() {
 				log.info(">>>>>>>>>toComplete "+processId);
@@ -382,7 +382,7 @@ public class ProcessLifecycle {
 				return result;
 			}
 		});
-		URI parentURI = Helpers.stringToURI(dependents.get(0));
+		URI parentURI = Helpers.stringToURI(parentAndDependents.get(0));
 		if(parentURI != null) {
 			CloudProcess parent;
 			try {
@@ -394,8 +394,8 @@ public class ProcessLifecycle {
 				log.log(Level.SEVERE, "Signal failure to "+parentURI+" "+process, e);
 			}
 		}
-		if(dependents != null && dependents.size() > 1) {
-			for(String dependent : dependents.subList(1, dependents.size())) {
+		if(parentAndDependents != null && parentAndDependents.size() > 1) {
+			for(String dependent : parentAndDependents.subList(1, parentAndDependents.size())) {
 				signalDependentProcessIsComplete(process, URI.create(dependent));
 			}
 		}
@@ -422,6 +422,8 @@ public class ProcessLifecycle {
 						} 
 						dprocess.setState(ActionState.RUNABLE);
 						schedule(dprocess, true);
+					} else {
+						CloudProcessResource.dao.update(dprocess);
 					}
 				} else {
 					if(dprocess.getState() == ActionState.NEWBORN){
@@ -543,7 +545,7 @@ public class ProcessLifecycle {
 		final Long processId = process.getId();
 		final Key<CloudProcess> processRoot = process.getRoot();
 		giveChildrenToGrandparent(process);
-		List<String> dependents = CloudProcessResource.dao.transact(new Work<List<String>>() {
+		List<String> parentAndDependents = CloudProcessResource.dao.transact(new Work<List<String>>() {
 
 			@Override
 			public List<String> run() {
@@ -568,7 +570,7 @@ public class ProcessLifecycle {
 				log.info("<<<<<<<<toFailed "+processId);
 				return result;
 			}});
-		URI parentURI = Helpers.stringToURI(dependents.get(0));
+		URI parentURI = Helpers.stringToURI(parentAndDependents.get(0));
 		if(parentURI != null) {
 			CloudProcess parent;
 			try {
@@ -580,8 +582,8 @@ public class ProcessLifecycle {
 				log.log(Level.SEVERE, "Signal failure to "+parentURI+" "+process, e);
 			}
 		}
-		if(dependents != null && dependents.size() > 1) {
-			for(String dependent : dependents.subList(1, dependents.size())) {
+		if(parentAndDependents != null && parentAndDependents.size() > 1) {
+			for(String dependent : parentAndDependents.subList(1, parentAndDependents.size())) {
 				CloudProcess dprocess = CloudProcessResource.dao.load(URI.create(dependent));
 				if(!dprocess.isFinalized()) {
 					toCancelled(dprocess);
