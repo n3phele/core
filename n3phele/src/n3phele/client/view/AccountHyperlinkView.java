@@ -24,12 +24,16 @@ import n3phele.client.ClientFactory;
 import n3phele.client.N3phele;
 import n3phele.client.model.Account;
 import n3phele.client.model.Activity;
+import n3phele.client.model.Collection;
+import n3phele.client.model.FileNode;
+import n3phele.client.model.RepoListResponse;
 import n3phele.service.model.CloudProcess;
 import n3phele.service.model.CloudProcessCollection;
 import n3phele.service.model.CloudProcessSummary;
 //import n3phele.client.model.CloudProcess;
 import n3phele.client.model.VirtualServer;
 import n3phele.client.presenter.AccountHyperlinkActivity;
+import n3phele.client.presenter.CommandActivity;
 import n3phele.client.presenter.helpers.AuthenticatedRequestFactory;
 import n3phele.client.resource.DataGridResource;
 import n3phele.client.widgets.ActionDialogBox;
@@ -55,6 +59,7 @@ import com.google.gwt.http.client.RequestBuilder;
 import com.google.gwt.http.client.RequestCallback;
 import com.google.gwt.http.client.RequestException;
 import com.google.gwt.http.client.Response;
+import com.google.gwt.http.client.URL;
 import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.DataGrid;
@@ -106,6 +111,7 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 	private String costOption = "normal";
 	private String chartTitle = "24 Hours Costs Chart";
 	private Button hours, days, month;
+	private List<n3phele.client.model.CloudProcessSummary> pricesQuerry; 
 
 	public AccountHyperlinkView(String uri) {
 		super(new MenuItem(N3phele.n3pheleResource.accountIcon(), "Account", null), new MenuItem(N3phele.n3pheleResource.accountAddIcon(), "Account Edit", "account:" + uri));
@@ -440,7 +446,7 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 	}
 
 	private void setChartTableData() {
-
+		
 		ChangeHandler dropBoxEvent = new ChangeHandler() {
 			public void onChange(ChangeEvent event) {
 				if (options.isItemSelected(0)) {
@@ -471,17 +477,14 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		chartOptionsTable.setCellWidth(options, "160px");
 		hours = new Button("24 hours", new ClickHandler() {
 			public void onClick(ClickEvent event) {
+				//getProcessByDay(1);
 				requestChartData("24hours");
 				chartTitle = "24 Hours Costs Chart";
 				if (historyTable.isCellPresent(2, 0))
 					historyTable.clearCell(2, 0);
 				chart = new LineChart(createTable(), createOptions(chartTitle));
 				historyTable.setWidget(2, 0, chart);
-				List<Double> mockValues = new ArrayList<Double>();
-				for (int i = 0; i < 24; i++) {
-					mockValues.add((double) i);
-				}
-				setChartData(mockValues);
+				//setChartData(getCost24h());
 				AbstractDataTable data = createTable();
 				Options options = createOptions("24 hours");
 				chart.draw(data, options);
@@ -491,18 +494,14 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		chartOptionsTable.add(hours);
 		days = new Button("7 days", new ClickHandler() {
 			public void onClick(ClickEvent event) {
+				//getProcessByDay(7);
 				requestChartData("7days");
 				chartTitle = "7 Days Costs Chart";
 				if (historyTable.isCellPresent(2, 0))
 					historyTable.clearCell(2, 0);
 				chart = new LineChart(createTable(), createOptions(chartTitle));
 				historyTable.setWidget(2, 0, chart);
-
-				List<Double> mockValues = new ArrayList<Double>();
-				for (int i = 0; i < 7; i++) {
-					mockValues.add((double) i);
-				}
-				setChartData(mockValues);
+				//setChartData(getCost7());
 				AbstractDataTable data = createTable();
 				Options options = createOptions("7 days");
 				chart.draw(data, options);
@@ -512,21 +511,15 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		chartOptionsTable.add(days);
 		month = new Button("30 days", new ClickHandler() {
 			public void onClick(ClickEvent event) {
+				//getProcessByDay(30);
 				requestChartData("30days");
 				chartTitle = "30 Days Costs Chart";
 				if (historyTable.isCellPresent(2, 0))
 					historyTable.clearCell(2, 0);
 				chart = new LineChart(createTable(), createOptions(chartTitle));
 				historyTable.setWidget(2, 0, chart);
-				List<Double> mockValues = new ArrayList<Double>();
-				for (int i = 0; i < 30; i++) {
-					mockValues.add((double) i);
-				}
-
-				setChartData(mockValues);
-
+				//setChartData(getCost30());
 				AbstractDataTable data = createTable();
-
 				Options options = createOptions("30 days");
 				chart.draw(data, options);
 			}
@@ -536,7 +529,7 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		historyTable.setWidget(1, 0, chartOptionsTable);
 		historyTable.getCellFormatter().setHorizontalAlignment(1, 0, HasHorizontalAlignment.ALIGN_CENTER);
 
-		requestChartData("24hours");
+		//requestChartData("24hours");
 		if (historyTable.isCellPresent(2, 0))
 			historyTable.clearCell(2, 0);
 		chart = new LineChart(createTable(), createOptions(chartTitle));
@@ -551,40 +544,7 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 
 	}
 
-
 	
-
-//	private List<Double> setCosts30days() {
-////		Client client = Client.create();
-////
-////		WebResource webResource = client.resource("http://localhost:8888/resource/account/lastcompleted/344004/30");
-////
-////		ClientResponse response = webResource.accept("application/json").get(ClientResponse.class);
-////
-////		if (response.getStatus() != 200) {
-////			throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
-////		}
-////
-////		CloudProcessCollection output = response.getEntity(CloudProcessCollection.class);
-//
-//		List<CloudProcessSummary> list = output.getElements();
-//		List<Double> listfinal = new ArrayList<Double>();
-//		Date date = new Date();
-//		long today = date.getTime();
-//		for (int i = 0; i < 30; i++) {
-//			listfinal.add(0.0);
-//		}
-//		for (CloudProcessSummary cloudProcess : list) {
-//			long time = cloudProcess.getComplete().getTime();
-//			long result = today - time;
-//			int pos = (int) Math.floor(result / 1000 / 3600 / 24);
-//			System.out.println("TESTING : " + pos);
-//			pos = 29 - pos;
-//			listfinal.set(pos, listfinal.get(pos) + cloudProcess.getCostPerHour());
-//		}
-//		return listfinal;
-//	}
-
 	private LineChart.Options createOptions(String time) {
 		Options options = Options.create();
 		options.setWidth(460);

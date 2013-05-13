@@ -6,8 +6,10 @@
 package n3phele.client.presenter;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import n3phele.client.AppActivityMapper;
 import n3phele.client.AppPlaceHistoryMapper;
@@ -15,7 +17,9 @@ import n3phele.client.CacheManager;
 import n3phele.client.ClientFactory;
 import n3phele.client.model.Account;
 import n3phele.client.model.Activity;
+import n3phele.client.model.CloudProcessSummary;
 import n3phele.client.model.Collection;
+import n3phele.client.model.CostsCollection;
 import n3phele.client.model.VirtualServerCollection;
 
 import n3phele.client.model.VirtualServer;
@@ -24,6 +28,7 @@ import n3phele.client.view.AccountHyperlinkView;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
@@ -51,6 +56,7 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 	private EventBus eventBus;
 	private HandlerRegistration handlerRegistration;
 	private HashMap<VirtualServer, Activity> activityPerVS = null;
+	private List<Double> pricesQuery;
 
 	public AccountHyperlinkActivity(String accountUri, ClientFactory factory) {
 		this.factory = factory;
@@ -140,20 +146,146 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 
 	public void getChartData(String time){
 		List<Double> values = null;
-		if(vsCol != null){
+		System.out.println("!!CHEGUEI: " + time);
+		
 			if(time.equals("24hours")){
-				values = vsCol.dayCost();
+				getProcessByDay(1);
+				values = pricesQuery;
 			}
 			else if(time.equals("7days")){
-				values = vsCol.weekCost();
+				getProcessByDay(7);
+				values = pricesQuery;
 			}
 			else if(time.equals("30days")){
-				values = vsCol.monthCost();
+				getProcessByDay(30);
+				values = pricesQuery;
 			}
-		}
+		
 		display.setChartData(values);
 	}
+	private void getProcessByDay(int day){
+		final String url = account.getUri() +"/lastcompleted/" + day+"/get";
+		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, url);
+		try {
+			builder.sendRequest(null, new RequestCallback() {
+				public void onError(Request request, Throwable exception) {
+					GWT.log("Couldn't retrieve JSON " + exception.getMessage());
+				}
+	
+				public void onResponseReceived(Request request, Response response) {
+					if (200 == response.getStatusCode()) {
+						System.out.println("!CHEGOU!");
+						System.out.println(account.getUri().substring(0,account.getUri().lastIndexOf('/') + 1));
+						System.out.println(url);
+						GWT.log("!TESTE " + response.getText());
+						System.out.println("!RESPONSE " + response.getText());
+						CostsCollection result = CostsCollection.asCostsCollection(response.getText());					
+						System.out.println("!RESULT "+ result.getElements());
+						System.out.println("!JSON " + result.toString());
+						pricesQuery = result.getElements();
+					} else {
+						GWT.log("Couldn't retrieve JSON ("
+								+ response.getStatusText() + ")");
+					}
+				}
+			});
+		} catch (RequestException e) {
+			GWT.log("Couldn't retrieve JSON " + e.getMessage());
+			System.out.println("!NÃO CHEGOU!");
+		}
+		
+	}
+		
+//	private List<Double> getCost30(){
+//		//getProcessByDay(30);
+//		System.out.println("HERE" + pricesQuery.toString());
+//		List<n3phele.client.model.CloudProcessSummary> list = pricesQuery;
+//		List<Double> listfinal = new ArrayList<Double>();
+//		Date date = new Date();
+//		date.setHours(0);
+//		date.setMinutes(0);
+//		date.setSeconds(0);
+//		long today = date.getTime();
+//		for (int i = 0; i < 30; i++) {
+//			listfinal.add(0.0);
+//		}
+//		for (n3phele.client.model.CloudProcessSummary cloudProcess : list) {
+//			Date date2 = cloudProcess.getComplete();
+//			date2.setHours(0);
+//			date2.setMinutes(0);
+//			date2.setSeconds(0);
+//			long time = date2.getTime();
+//			long result = today - time;
+//			int pos = (int) Math.floor(result / 1000 / 3600 / 24);
+//			System.out.println("TESTING : " + pos);
+//			pos = 29 - pos;
+//			listfinal.set(pos, listfinal.get(pos) + cloudProcess.getCost());
+//		}
+//		System.out.println("HERE2" + listfinal.toString() + " " + listfinal.get(27));
+//		return listfinal;
+//		
+//	}
+//
+//	private List<Double> getCost7(){
+//		//getProcessByDay(7);
+//		System.out.println("HERE" + pricesQuery.toString());
+//		List<n3phele.client.model.CloudProcessSummary> list = pricesQuery;
+//		List<Double> listfinal = new ArrayList<Double>();
+//		Date date = new Date();
+//		date.setHours(0);
+//		date.setMinutes(0);
+//		date.setSeconds(0);
+//		long today = date.getTime();
+//		for (int i = 0; i < 7; i++) {
+//			listfinal.add(0.0);
+//		}
+//		for (n3phele.client.model.CloudProcessSummary cloudProcess : list) {
+//			Date date2 = cloudProcess.getComplete();
+//			date2.setHours(0);
+//			date2.setMinutes(0);
+//			date2.setSeconds(0);
+//			long time = date2.getTime();
+//			long result = today - time;
+//			int pos = (int)Math.floor(result / 1000 / 3600 / 24); 
+//			System.out.println("TESTING : " + pos);
+//			pos = 6 - pos;
+//			listfinal.set(pos, listfinal.get(pos) + cloudProcess.getCost());
+//		}
+//		System.out.println("HERE2" + listfinal.toString());
+//		return listfinal;		
+//	}
+//	private List<Double> getCost24h(){
+//		//getProcessByDay(1);
+//		//System.out.println("HERE" + pricesQuerry.toString());
+//		List<n3phele.client.model.CloudProcessSummary> list = pricesQuery;
+//		List<Double> listfinal = new ArrayList<Double>();
+//		Date date = new Date();
+//		System.out.println("DATE NOW: " + date.toString());
+//		date.setMinutes(0);
+//		date.setSeconds(0);
+//		long today = date.getTime();
+//		for (int i = 0; i < 24; i++) {
+//			listfinal.add(0.0);
+//		}
+//		System.out.println("DATE NOW: " + date.toString());
+//		for (n3phele.client.model.CloudProcessSummary cloudProcess : list) {
+//			Date date2 = cloudProcess.getComplete();
+//			System.out.println("CP COMPLETE: " + date2.toString());			
+//			date2.setMinutes(0);
+//			date2.setSeconds(0);
+//			System.out.println("CP COMPLETE2: " + date2.toString());
+//			long time = date2.getTime();
+//			long result = today - time;
+//			int pos = (int) Math.floor(result / 1000 / 3600);
+//			//System.out.println("TESTING : " + pos);
+//			pos = 23 - pos;
+//			listfinal.set(pos, listfinal.get(pos) + cloudProcess.getCost());
+//		}
+//		//System.out.println("HERE2" + listfinal.toString());
+//		return listfinal;		
+//	}
 
+	
 	public void updatetActivity(VirtualServer vs, Activity activity){
 		if(activityPerVS == null) return;
 		activityPerVS.put(vs, activity);
