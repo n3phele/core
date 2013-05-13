@@ -1,19 +1,22 @@
 # installJujuDeployCharm.n
 # Author: Lucas Pugens
 name	   :  installJujuDeployCharm
-description: install Juju on a virtual machine, initialize the bootstrap and deploy a charm
-version	   : 0.1.3
+description: install Juju on a virtual machine, initialize if do not exists the bootstrap and deploy a charm
+version	   : 0.2.7
 preferred  : true
 public	   : true
 icon	   : http://www.n3phele.com/icons/custom
 parameters :
-	optional int n	= 1 	# how many to create
-	string juju_version = "0.6"
-	string charm = "nyancat"
+	int n	= 1 	# how many to create
+	string juju_version = "0.6" #version to download of juju
+	string charm = "nyancat" #charm to deploy
+	string charm_name = "nyan01" #a name to deployed charm
+	boolean bootstrap_ready = false #set if you already had set up the server 0 for juju
 input files:
 	environments.yaml # Input file to configure juju
+	juju_sshKey_input.key #ssh key if you already have a bootstrap machine
 output files:
-	juju_sshKey.txt # Output ssh key to access the bootstrap
+	juju_sshKey.key # Output ssh key to access the bootstrap
 EC2: # Amazon EC2
 	$$my_vmPugens = CREATEVM --name myVM --n $$n
 	ON $$my_vmPugens sudo apt-get -y install python-software-properties
@@ -23,15 +26,11 @@ EC2: # Amazon EC2
 	ON $$my_vmPugens mv environments.yaml ~/.juju/environments.yaml
 	ON $$my_vmPugens chmod go-rxw ~/.juju/environments.yaml
 	ON $$my_vmPugens ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ""
-	ON $$my_vmPugens --produces [juju_sshKey.txt: output/juju_sshKey.txt] mkdir output; cp ~/.ssh/id_rsa output/juju_sshKey.txt
-	ON $$my_vmPugens juju bootstrap
-	ON $$my_vmPugens juju status << EOF
+	#if bootstrap is setup the it just put the uju_sshKey_input.key in the right place to acess bootstrap, if not it setup bootstrap and return the ssh new key
+	ON $$my_vmPugens if[ $$bootstrap_ready ]; then mv juju_sshKey_input.key ~/.ssh/id_rsa; else ssh-keygen -t rsa -f ~/.ssh/id_rsa -N "";	--produces [juju_sshKey.txt: output/juju_sshKey.txt] mkdir output; cp ~/.ssh/id_rsa output/juju_sshKey.txt; juju bootstrap; fi
+	ON $$my_vmPugens juju deploy $$charm $$charm_name << EOF
 		yes
 	EOF
-	ON $$my_vmPugens juju deploy $$charm << EOF
-		yes
-	EOF
-	ON $$my_vmPugens juju expose nyancat
 HPZone1: # HP Cloud
 	$$my_vmPugens = CREATEVM --name myVM --n $$n
 	ON $$my_vmPugens sudo apt-get -y install python-software-properties
@@ -40,13 +39,8 @@ HPZone1: # HP Cloud
 	ON $$my_vmPugens mkdir ~/.juju/
 	ON $$my_vmPugens mv environments.yaml ~/.juju/environments.yaml
 	ON $$my_vmPugens chmod go-rxw ~/.juju/environments.yaml
-	ON $$my_vmPugens ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ""
-	ON $$my_vmPugens --produces [juju_sshKey.txt: output/juju_sshKey.txt] mkdir output; cp ~/.ssh/id_rsa output/juju_sshKey.txt
-	ON $$my_vmPugens juju bootstrap
-	ON $$my_vmPugens juju status << EOF
+	#if bootstrap is setup the it just put the uju_sshKey_input.key in the right place to acess bootstrap, if not it setup bootstrap and return the ssh new key
+	ON $$my_vmPugens if[ $$bootstrap_ready ]; then mv juju_sshKey.key ~/.ssh/id_rsa; else ssh-keygen -t rsa -f ~/.ssh/id_rsa -N "";	--produces [juju_sshKey.txt: output/juju_sshKey.txt] mkdir output; cp ~/.ssh/id_rsa output/juju_sshKey.txt; juju bootstrap; fi
+	ON $$my_vmPugens juju deploy $$charm $$charm_name << EOF
 		yes
 	EOF
-	ON $$my_vmPugens juju deploy $$charm << EOF
-		yes
-	EOF
-	ON $$my_vmPugens juju expose nyancat
