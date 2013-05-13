@@ -2,7 +2,7 @@
 # Author: Lucas Pugens
 name	   :  installJujuDeployCharm
 description: install Juju on a virtual machine, initialize if do not exists the bootstrap and deploy a charm
-version	   : 0.2.7
+version	   : 0.3.5
 preferred  : true
 public	   : true
 icon	   : http://www.n3phele.com/icons/custom
@@ -26,8 +26,7 @@ EC2: # Amazon EC2
 	ON $$my_vmPugens mv environments.yaml ~/.juju/environments.yaml
 	ON $$my_vmPugens chmod go-rxw ~/.juju/environments.yaml
 	ON $$my_vmPugens ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ""
-	#if bootstrap is setup the it just put the uju_sshKey_input.key in the right place to acess bootstrap, if not it setup bootstrap and return the ssh new key
-	ON $$my_vmPugens if[ $$bootstrap_ready ]; then mv juju_sshKey_input.key ~/.ssh/id_rsa; else ssh-keygen -t rsa -f ~/.ssh/id_rsa -N "";	--produces [juju_sshKey.txt: output/juju_sshKey.txt] mkdir output; cp ~/.ssh/id_rsa output/juju_sshKey.txt; juju bootstrap; fi
+	ON $$my_vmPugens --produces [juju_sshKey.txt: output/juju_sshKey.txt] if $$bootstrap_ready ; then mv juju_sshKey_input.key ~/.ssh/id_rsa; else ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ""; mkdir output; cp ~/.ssh/id_rsa output/juju_sshKey.txt; juju bootstrap; fi
 	ON $$my_vmPugens juju deploy $$charm $$charm_name << EOF
 		yes
 	EOF
@@ -39,8 +38,7 @@ HPZone1: # HP Cloud
 	ON $$my_vmPugens mkdir ~/.juju/
 	ON $$my_vmPugens mv environments.yaml ~/.juju/environments.yaml
 	ON $$my_vmPugens chmod go-rxw ~/.juju/environments.yaml
-	#if bootstrap is setup the it just put the uju_sshKey_input.key in the right place to acess bootstrap, if not it setup bootstrap and return the ssh new key
-	ON $$my_vmPugens if[ $$bootstrap_ready ]; then mv juju_sshKey.key ~/.ssh/id_rsa; else ssh-keygen -t rsa -f ~/.ssh/id_rsa -N "";	--produces [juju_sshKey.txt: output/juju_sshKey.txt] mkdir output; cp ~/.ssh/id_rsa output/juju_sshKey.txt; juju bootstrap; fi
+	ON $$my_vmPugens --produces [juju_sshKey.txt: output/juju_sshKey.txt] if $$bootstrap_ready ; then mv juju_sshKey_input.key ~/.ssh/id_rsa; else ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ""; mkdir output; cp ~/.ssh/id_rsa output/juju_sshKey.txt; juju bootstrap; fi
 	ON $$my_vmPugens juju deploy $$charm $$charm_name << EOF
 		yes
 	EOF
