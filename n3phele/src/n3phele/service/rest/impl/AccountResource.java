@@ -141,15 +141,16 @@ public class AccountResource {
 	// @RolesAllowed("authenticated")
 	@Path("/{account}/lastcompleted/{days:[0-9]+}/get")
 	public CostsCollection listCostPerDays(@PathParam("account") String account, @PathParam("days") int days) {
-		
+
 		List<CloudProcess> list = dao.getCostsOfAccount(account, days).getElements();
 		List<Double> listfinal = new ArrayList<Double>();
-		Calendar date = Calendar.getInstance();
-		date.set(Calendar.HOUR_OF_DAY, 0);
-		date.set(Calendar.MINUTE, 0);
-		date.set(Calendar.SECOND, 0);
-		date.set(Calendar.MILLISECOND, 0);
-		long today = date.getTimeInMillis();
+		MutableDateTime date = new MutableDateTime();
+		date.setHourOfDay(0);
+		date.setMinuteOfHour(0);
+		date.setSecondOfMinute(0);
+		date.setMillisOfSecond(0);
+		long today = date.getMillis();
+		MutableDateTime cloudProcessEpoch, cloudProcessComplete;
 		if (days == 1) {
 
 			return listCost24hours(account);
@@ -159,45 +160,48 @@ public class AccountResource {
 		}
 		List<CloudProcess> list2 = list;
 		for (CloudProcess cloudProcess : list2) {
-			//just for the fake data
-			if(cloudProcess.getEpoch() == null)
+			// just for the fake data
+			if (cloudProcess.getEpoch() == null)
 				cloudProcess.setEpoch(cloudProcess.getStart());
-			Calendar dateComplete = Calendar.getInstance();
-			dateComplete.setTimeInMillis(cloudProcess.getComplete().getTime());
-			dateComplete.set(Calendar.HOUR_OF_DAY, 0);
-			dateComplete.set(Calendar.MINUTE, 0);
-			dateComplete.set(Calendar.SECOND, 0);
-			dateComplete.set(Calendar.MILLISECOND, 0);
-
-			Calendar dateStart = Calendar.getInstance();
-			dateStart.setTimeInMillis(cloudProcess.getEpoch().getTime());
+			cloudProcessEpoch = new MutableDateTime();
+			cloudProcessEpoch.setTime(cloudProcess.getEpoch().getTime());
+			cloudProcessComplete = new MutableDateTime();
+			cloudProcessComplete.setTime(cloudProcess.getComplete().getTime());
 			
-			dateStart.setTimeInMillis(cloudProcess.getEpoch().getTime());
-			dateStart.set(Calendar.HOUR_OF_DAY, 0);
-			dateStart.set(Calendar.MINUTE, 0);
-			dateStart.set(Calendar.SECOND, 0);
-			dateStart.set(Calendar.MILLISECOND, 0);
+			MutableDateTime dateComplete = new MutableDateTime();
+			dateComplete.setMillis(cloudProcessComplete);
+			dateComplete.setHourOfDay(0);
+			dateComplete.setMinuteOfHour(0);
+			dateComplete.setSecondOfMinute(0);
+			dateComplete.setMillisOfSecond(0);
 
-			if (dateStart.getTimeInMillis() == dateComplete.getTimeInMillis()) {
-				dateStart.setTimeInMillis(cloudProcess.getEpoch().getTime());
-				long time = dateComplete.getTimeInMillis();
-				dateComplete.setTimeInMillis(cloudProcess.getComplete().getTime());
+			MutableDateTime dateStart = new MutableDateTime();
+			dateStart.setMillis(cloudProcessEpoch);
+			dateStart.setHourOfDay(0);
+			dateStart.setMinuteOfHour(0);
+			dateStart.setSecondOfMinute(0);
+			dateStart.setMillisOfSecond(0);
+
+			if (dateStart.getMillis() == dateComplete.getMillis()) {
+				dateStart.setMillis(cloudProcessEpoch);
+				long time = dateComplete.getMillis();
+				dateComplete.setMillis(cloudProcessComplete);
 				long result = today - time;
 
 				int pos = (int) (result / 1000 / 3600 / 24);
-				int hoursCharged = (int) Math.floor((dateComplete.getTimeInMillis() - dateStart.getTimeInMillis()) / 3600000);
+				int hoursCharged = (int) Math.floor((dateComplete.getMillis() - dateStart.getMillis()) / 3600000);
 				double test = hoursCharged;
-				if (test != (double) (dateComplete.getTimeInMillis() - dateStart.getTimeInMillis()) / 3600000)
+				if (test != (double) (dateComplete.getMillis() - dateStart.getMillis()) / 3600000)
 					hoursCharged = hoursCharged + 1;
 				pos = (days - 1) - pos;
 				listfinal.set(pos, listfinal.get(pos) + cloudProcess.getCostPerHour() * (hoursCharged));
 			} else {
-				long daysDif = cloudProcess.getComplete().getTime() - cloudProcess.getEpoch().getTime();
+				long daysDif = cloudProcessComplete.getMillis() - cloudProcessEpoch.getMillis();
 				int numDays = (int) (daysDif / 1000 / 3600 / 24);
 				double test = numDays;
-				if (test != ((double)daysDif / 1000 / 3600 / 24))
+				if (test != ((double) daysDif / 1000 / 3600 / 24))
 					numDays = numDays + 1;
-				long result = today - dateComplete.getTimeInMillis();
+				long result = today - dateComplete.getMillis();
 				for (int i = 0; i < numDays - 1; i++) {
 					int pos = (int) (result / 1000 / 3600 / 24);
 					pos = (days - 1) - pos;
@@ -211,39 +215,39 @@ public class AccountResource {
 
 				int posFinal = (int) (result / 1000 / 3600 / 24);
 				// setting the first day
-				dateStart.setTimeInMillis(cloudProcess.getEpoch().getTime());
-				dateComplete.setTimeInMillis(cloudProcess.getEpoch().getTime());
-				dateComplete.set(Calendar.DAY_OF_MONTH, dateComplete.get(Calendar.DAY_OF_MONTH) + 1);
-				dateComplete.set(Calendar.HOUR_OF_DAY, 0);
-				int hoursCharged = (int) Math.floor((dateComplete.getTimeInMillis() - dateStart.getTimeInMillis()) / 3600000);
-				 test = hoursCharged;
-				if (test != (double) (dateComplete.getTimeInMillis() - dateStart.getTimeInMillis()) / 3600000)
+				dateStart.setMillis(cloudProcessEpoch);
+				dateComplete.setMillis(cloudProcessEpoch);
+				dateComplete.addDays(1);
+				dateComplete.setHourOfDay(0);
+				int hoursCharged = (int) Math.floor((dateComplete.getMillis() - dateStart.getMillis()) / 3600000);
+				test = hoursCharged;
+				if (test != (double) (dateComplete.getMillis() - dateStart.getMillis()) / 3600000)
 					hoursCharged = hoursCharged + 1;
 
 				posFinal = (days - 1) - posFinal - numDays;
 				if (posFinal >= 0)
-					listfinal.set(posFinal, listfinal.get(posFinal) + cloudProcess.getCostPerHour() * (hoursCharged));			
-				
+					listfinal.set(posFinal, listfinal.get(posFinal) + cloudProcess.getCostPerHour() * (hoursCharged));
+
 				// setting the last day
 				posFinal = (int) (result / 1000 / 3600 / 24);
-				dateStart.setTimeInMillis(cloudProcess.getComplete().getTime());
-				dateComplete.setTimeInMillis(cloudProcess.getComplete().getTime());
-				dateStart.set(Calendar.HOUR_OF_DAY, 0);
-				dateStart.set(Calendar.MINUTE, cloudProcess.getEpoch().getMinutes());
-				dateStart.set(Calendar.SECOND, cloudProcess.getEpoch().getSeconds());
-				hoursCharged = (int) Math.floor((dateComplete.getTimeInMillis() - dateStart.getTimeInMillis()) / 3600000);
+				dateStart.setMillis(cloudProcessComplete);
+				dateComplete.setMillis(cloudProcessComplete);
+				dateStart.setHourOfDay(0);
+				dateStart.setMinuteOfHour(cloudProcessEpoch.getMinuteOfHour());
+				dateStart.setSecondOfMinute(cloudProcessEpoch.getSecondOfMinute());
+				hoursCharged = (int) Math.floor((dateComplete.getMillis() - dateStart.getMillis()) / 3600000);
 				test = hoursCharged;
-				if (test != (double) (dateComplete.getTimeInMillis() - dateStart.getTimeInMillis()) / 3600000)
+				if (test != (double) (dateComplete.getMillis() - dateStart.getMillis()) / 3600000)
 					hoursCharged = hoursCharged + 1;
 				posFinal = (days - 1) - posFinal;
-				listfinal.set(posFinal, listfinal.get(posFinal) + cloudProcess.getCostPerHour() * (hoursCharged ));
+				listfinal.set(posFinal, listfinal.get(posFinal) + cloudProcess.getCostPerHour() * (hoursCharged));
 
 			}
 		}
 
 		return new CostsCollection(listfinal);
 	}
-	
+
 	private CostsCollection listCost24hours(String account) {
 
 		List<CloudProcess> list = dao.getCostsOfAccount(account, 1).getElements();
@@ -328,9 +332,10 @@ public class AccountResource {
 			System.out.println(dateStart.getHourOfDay() + " -> " + d);
 			dateStart.addHours(1);
 		}
-		
+
 		return new CostsCollection(listfinal);
 	}
+
 	@GET
 	@Produces("application/json")
 	@Path("{id}")
@@ -524,6 +529,5 @@ public class AccountResource {
 		CloudProcessResource.dao.add(cloudProcess);
 		return cloudProcess.toString();
 	}
-	
 
 }
