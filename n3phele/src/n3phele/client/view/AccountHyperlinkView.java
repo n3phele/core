@@ -488,6 +488,7 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 				AbstractDataTable data = createTable();
 				Options options = createOptions("24 hours");
 				chart.draw(data, options);
+				
 			}
 		});
 		hours.setWidth("70px");
@@ -505,6 +506,7 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 				AbstractDataTable data = createTable();
 				Options options = createOptions("7 days");
 				chart.draw(data, options);
+				
 			}
 		});
 		days.setWidth("70px");
@@ -522,6 +524,7 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 				AbstractDataTable data = createTable();
 				Options options = createOptions("30 days");
 				chart.draw(data, options);
+				
 			}
 		});
 		month.setWidth("70px");
@@ -532,12 +535,10 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		//requestChartData("24hours");
 		if (historyTable.isCellPresent(2, 0))
 			historyTable.clearCell(2, 0);
-		chart = new LineChart(createTable(), createOptions(chartTitle));
+		//chart = new LineChart(createTable(), createOptions(chartTitle));
 		historyTable.setWidget(2, 0, chart);
 		historyTable.setWidget(2, 0, new LineChart(createTable(), createOptions(chartTitle)));
 		historyTable.getCellFormatter().setHorizontalAlignment(2, 0, HasHorizontalAlignment.ALIGN_CENTER);
-
-		historyTable.setVisible(true);
 
 		vsTable.setWidget(1, 0, dataGrid);
 		vsTable.getCellFormatter().setHorizontalAlignment(1, 0, HasHorizontalAlignment.ALIGN_CENTER);
@@ -576,10 +577,10 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 						time = date.getHours() - 23;
 					if (costOption.equals("cumulative")) {
 						double value = 0.0;
+						
 						for (int i = 0; i < chartValues.size(); i++) {
 							value += chartValues.get(i);
 							data.addRow();
-							data.setValue(i, 0, time + "h");
 							data.setValue(i, 1, value);
 							time++;
 							if (time == 24)
@@ -612,7 +613,6 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 						}
 					} else {
 						for (int i = 0; i < chartValues.size(); i++) {
-							// data.addRow();
 							data.addRow();
 							data.setValue(i, 0, "" + month[date.getMonth()] + date.getDate());
 							data.setValue(i, 1, chartValues.get(i));
