@@ -484,18 +484,19 @@ public class AccountResource {
 
 		public Collection<CloudProcess> getCostsOfAccount(String account, int days) {
 
-			Calendar calendar = Calendar.getInstance();
-			calendar.set(Calendar.MINUTE, 0);
-			calendar.set(Calendar.SECOND, 0);
-			calendar.set(Calendar.MILLISECOND, 0);
+			MutableDateTime date = new MutableDateTime();
+			date.setMinuteOfHour(0);
+			date.setSecondOfMinute(0);
+			date.setMillisOfSecond(0);
 			if (days == 1) {
-				calendar.add(Calendar.HOUR_OF_DAY, 1);
-				calendar.add(Calendar.DAY_OF_YEAR, 0 - 1);
+				date.addHours(1);
+				date.addDays(-1);
 			} else {
-				calendar.set(Calendar.HOUR_OF_DAY, 0);
-				calendar.add(Calendar.DAY_OF_YEAR, 0 - (days - 1));
+				date.setHourOfDay(0);
+				date.addDays(-days - 1);
 			}
-			List<CloudProcess> costs = ofy().load().type(CloudProcess.class).filter("account", super.path + "/" + account).filter("complete >", calendar.getTime()).list();
+			System.out.println(date);
+			List<CloudProcess> costs = ofy().load().type(CloudProcess.class).filter("account", super.path + "/" + account).filter("complete >", date.toDate()).list();
 			Collection<CloudProcess> result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, costs);
 			result.setTotal(costs.size());
 			return result;
