@@ -64,6 +64,7 @@ import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.DataGrid;
 import com.google.gwt.user.cellview.client.TextColumn;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlexTable;
@@ -111,6 +112,7 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 	private String costOption = "normal";
 	private String chartTitle = "24 Hours Costs Chart";
 	private Button hours, days, month;
+	private boolean semaph;
 	private List<n3phele.client.model.CloudProcessSummary> pricesQuerry; 
 
 	public AccountHyperlinkView(String uri) {
@@ -351,6 +353,9 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		if (list == null)
 			list = new ArrayList<VirtualServer>();
 		setTableData();
+		VirtualServer vs;
+		System.out.println("CALLED!");
+		list.add(null);
 		vsData = list;
 		this.dataGrid.setRowCount(list.size(), true);
 		this.dataGrid.setRowData(vsData = list);
@@ -485,10 +490,9 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 				chart = new LineChart(createTable(), createOptions(chartTitle));
 				historyTable.setWidget(2, 0, chart);
 				//setChartData(getCost24h());
-				AbstractDataTable data = createTable();
-				Options options = createOptions("24 hours");
-				chart.draw(data, options);
-				
+//				AbstractDataTable data = createTable();
+//				Options options = createOptions("24 hours");
+//				chart.draw(data, options);
 			}
 		});
 		hours.setWidth("70px");
@@ -496,16 +500,27 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		days = new Button("7 days", new ClickHandler() {
 			public void onClick(ClickEvent event) {
 				//getProcessByDay(7);
+				semaph = false;
 				requestChartData("7days");
+				//while(!semaph){}
+				
+				Timer togglebuttonTimer = new Timer() { 
+				    public void run() { 
+				        
+				    } 
+				}; 
+				togglebuttonTimer.schedule(2000); 
+				System.out.println("ESCAPOU DO SEMAFORO!");
 				chartTitle = "7 Days Costs Chart";
 				if (historyTable.isCellPresent(2, 0))
 					historyTable.clearCell(2, 0);
 				chart = new LineChart(createTable(), createOptions(chartTitle));
 				historyTable.setWidget(2, 0, chart);
 				//setChartData(getCost7());
-				AbstractDataTable data = createTable();
-				Options options = createOptions("7 days");
-				chart.draw(data, options);
+//				AbstractDataTable data = createTable();
+//				Options options = createOptions("7 days");
+//				
+//				chart.draw(data, options);
 				
 			}
 		});
@@ -521,9 +536,9 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 				chart = new LineChart(createTable(), createOptions(chartTitle));
 				historyTable.setWidget(2, 0, chart);
 				//setChartData(getCost30());
-				AbstractDataTable data = createTable();
-				Options options = createOptions("30 days");
-				chart.draw(data, options);
+//				AbstractDataTable data = createTable();
+//				Options options = createOptions("30 days");
+//				chart.draw(data, options);
 				
 			}
 		});
@@ -544,7 +559,29 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		vsTable.getCellFormatter().setHorizontalAlignment(1, 0, HasHorizontalAlignment.ALIGN_CENTER);
 
 	}
-
+	public void updateChartTable(){
+		Options options = null;
+		switch(chartValues.size()){
+			case 24:
+				chartTitle = "24 Hours Costs Chart";
+				options = createOptions("24 Hours Costs Chart");
+				break;
+			case 30:
+				chartTitle = "30 Days Costs Chart";
+				options = createOptions("30 Days Costs Chart");
+				break;
+			case 7:
+				chartTitle = "7 Days Costs Chart";
+				options = createOptions("7 Days Costs Chart");
+				break;
+		}
+		if (historyTable.isCellPresent(2, 0))
+			historyTable.clearCell(2, 0);
+		chart = new LineChart(createTable(), createOptions(chartTitle));
+		historyTable.setWidget(2, 0, chart);
+		AbstractDataTable data = createTable();
+		chart.draw(data, options);
+	}
 	
 	private LineChart.Options createOptions(String time) {
 		Options options = Options.create();
@@ -581,6 +618,7 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 						for (int i = 0; i < chartValues.size(); i++) {
 							value += chartValues.get(i);
 							data.addRow();
+							data.setValue(i, 0, time + "h");
 							data.setValue(i, 1, value);
 							time++;
 							if (time == 24)

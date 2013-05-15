@@ -145,24 +145,17 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 	}
 
 	public void getChartData(String time){
-		List<Double> values = null;
-		System.out.println("!!CHEGUEI: " + time);
-		
 			if(time.equals("24hours")){
-				getProcessByDay(1);
-				values = pricesQuery;
+				getProcessByDay(1);			
 			}
 			else if(time.equals("7days")){
-				getProcessByDay(7);
-				values = pricesQuery;
+				getProcessByDay(7);			
 			}
 			else if(time.equals("30days")){
 				getProcessByDay(30);
-				values = pricesQuery;
 			}
 		
-		display.setChartData(values);
-		
+		display.setChartData(pricesQuery);	
 	}
 	private void getProcessByDay(int day){
 		final String url = account.getUri() +"/lastcompleted/" + day+"/get";
@@ -175,9 +168,12 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 	
 				public void onResponseReceived(Request request, Response response) {
 					if (200 == response.getStatusCode()) {
-						GWT.log("!TESTE " + response.getText());
+						GWT.log("Got reply");
 						CostsCollection result = CostsCollection.asCostsCollection(response.getText());					
 						pricesQuery = result.getElements();
+						display.setChartData(pricesQuery);
+						display.updateChartTable();
+						
 					} else {
 						GWT.log("Couldn't retrieve JSON ("
 								+ response.getStatusText() + ")");
