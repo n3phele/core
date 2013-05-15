@@ -28,7 +28,7 @@ public class CloudProcessSummary extends Entity {
 		this.owner = full.getOwner().toString();
 		this.state = full.getState();
 		this.costPerHour = full.getCostPerHour();
-		this.start = full.getEpoch();
+		this.epoch = full.getEpoch();
 		this.start = full.getStart();
 		this.complete = full.getComplete();
 		
