@@ -10,11 +10,12 @@ import n3phele.service.model.core.Helpers;
 import n3phele.service.rest.impl.NarrativeResource;
 
 @XmlRootElement(name="CloudProcessSummary")
-@XmlType(name="CloudProcess", propOrder={"state", "narrative", "costPerHour", "start", "complete"})
+@XmlType(name="CloudProcess", propOrder={"state", "narrative", "costPerHour", "epoch", "start", "complete"})
 public class CloudProcessSummary extends Entity {
 	private ActionState state = ActionState.NEWBORN;
 	private Narrative[] narrative;
 	private double costPerHour;
+	private Date epoch;
 	private Date start;
 	private Date complete;
 	
@@ -27,6 +28,7 @@ public class CloudProcessSummary extends Entity {
 		this.owner = full.getOwner().toString();
 		this.state = full.getState();
 		this.costPerHour = full.getCostPerHour();
+		this.start = full.getEpoch();
 		this.start = full.getStart();
 		this.complete = full.getComplete();
 		
@@ -87,6 +89,14 @@ public class CloudProcessSummary extends Entity {
 
 	public void setComplete(Date complete) {
 		this.complete = complete;
+	}
+
+	public Date getEpoch() {
+		return this.epoch;
+	}
+
+	public void setEpoch(Date epoch) {
+		this.epoch = epoch;
 	}
 	
 }
