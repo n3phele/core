@@ -11,8 +11,6 @@ import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -126,6 +124,12 @@ public class AccountResource {
 		return item;
 	}
 
+	/**
+	 * @param account
+	 * @param days
+	 * @return All CloudProcess of the account passed who were completed in the
+	 *         number of days given.
+	 */
 	@GET
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
@@ -136,56 +140,80 @@ public class AccountResource {
 		return new CloudProcessCollection(result);
 	}
 
+	/**
+	 * @param account
+	 * @param days
+	 * @return All CloudProcess of the account passed who still running or were
+	 *         completed in the number of days given.
+	 */
+	@GET
+	@Produces("application/json")
+	@RolesAllowed("authenticated")
+	@Path("/{account}/lastcompleted/{days:[0-9]+}/all")
+	public CloudProcessCollection listAllCloudProcessWithCosts(@PathParam("account") String account, @PathParam("days") int days) {
+
+		Collection<CloudProcess> result = dao.getAllProcessByDays(account, days);
+		return new CloudProcessCollection(result);
+	}
+
+	/**
+	 * @param account
+	 * @return All CloudProcess who still running.
+	 */
+	@GET
+	@Produces("application/json")
+	@RolesAllowed("authenticated")
+	@Path("/{account}/runningprocess")
+	public CloudProcessCollection listRunningCloudProcessWithCosts(@PathParam("account") String account, @PathParam("days") int days) {
+
+		Collection<CloudProcess> result = dao.getRunningProcess(account);
+		return new CloudProcessCollection(result);
+	}
+
+	/**
+	 * 
+	 * @param account
+	 * @param days
+	 * @return Collection of costs for the graphs
+	 */
+
 	@GET
 	@Produces("application/json")
 	// @RolesAllowed("authenticated")
 	@Path("/{account}/lastcompleted/{days:[0-9]+}/get")
 	public CostsCollection listCostPerDays(@PathParam("account") String account, @PathParam("days") int days) {
 
+		if (days == 1) {
+			return listCost24hours(account);
+		}
+
 		List<CloudProcess> list = dao.getCostsOfAccount(account, days).getElements();
 		List<Double> listfinal = new ArrayList<Double>();
 		MutableDateTime date = new MutableDateTime();
-		date.setHourOfDay(0);
-		date.setMinuteOfHour(0);
-		date.setSecondOfMinute(0);
-		date.setMillisOfSecond(0);
-		long today = date.getMillis();
-		MutableDateTime cloudProcessEpoch, cloudProcessComplete;
-		if (days == 1) {
+		date.setMillisOfDay(0);
 
-			return listCost24hours(account);
-		}
+		DateTime cloudProcessEpoch, cloudProcessComplete;
+		long today = date.getMillis();
+
 		for (int i = 0; i < days; i++) {
 			listfinal.add(0.0);
 		}
-		List<CloudProcess> list2 = list;
-		for (CloudProcess cloudProcess : list2) {
+		for (CloudProcess cloudProcess : list) {
 			// just for the fake data
 			if (cloudProcess.getEpoch() == null)
 				cloudProcess.setEpoch(cloudProcess.getStart());
-			cloudProcessEpoch = new MutableDateTime();
-			cloudProcessEpoch.setTime(cloudProcess.getEpoch().getTime());
-			cloudProcessComplete = new MutableDateTime();
-			cloudProcessComplete.setTime(cloudProcess.getComplete().getTime());
-			
-			MutableDateTime dateComplete = new MutableDateTime();
-			dateComplete.setMillis(cloudProcessComplete);
-			dateComplete.setHourOfDay(0);
-			dateComplete.setMinuteOfHour(0);
-			dateComplete.setSecondOfMinute(0);
-			dateComplete.setMillisOfSecond(0);
 
-			MutableDateTime dateStart = new MutableDateTime();
-			dateStart.setMillis(cloudProcessEpoch);
-			dateStart.setHourOfDay(0);
-			dateStart.setMinuteOfHour(0);
-			dateStart.setSecondOfMinute(0);
-			dateStart.setMillisOfSecond(0);
+			cloudProcessEpoch = new DateTime(cloudProcess.getEpoch());
+			cloudProcessComplete = new DateTime(cloudProcess.getComplete());
+			MutableDateTime dateStart = new MutableDateTime(cloudProcessEpoch);
+			dateStart.setMillisOfDay(0);
+			MutableDateTime dateComplete = new MutableDateTime(cloudProcessComplete);
+			dateComplete.setMillisOfDay(0);
 
 			if (dateStart.getMillis() == dateComplete.getMillis()) {
-				dateStart.setMillis(cloudProcessEpoch);
+				dateStart.setTime(cloudProcessEpoch);
 				long time = dateComplete.getMillis();
-				dateComplete.setMillis(cloudProcessComplete);
+				dateComplete.setTime(cloudProcessComplete);
 				long result = today - time;
 
 				int pos = (int) (result / 1000 / 3600 / 24);
@@ -215,9 +243,9 @@ public class AccountResource {
 
 				int posFinal = (int) (result / 1000 / 3600 / 24);
 				// setting the first day
-				dateStart.setMillis(cloudProcessEpoch);
-				dateComplete.setMillis(cloudProcessEpoch);
-				dateComplete.addDays(1);
+				dateStart.setMillis(cloudProcess.getEpoch().getTime());
+				dateComplete.setMillis(cloudProcess.getEpoch().getTime());
+				dateComplete.setDayOfMonth(dateComplete.getDayOfMonth() + 1);
 				dateComplete.setHourOfDay(0);
 				int hoursCharged = (int) Math.floor((dateComplete.getMillis() - dateStart.getMillis()) / 3600000);
 				test = hoursCharged;
@@ -230,8 +258,8 @@ public class AccountResource {
 
 				// setting the last day
 				posFinal = (int) (result / 1000 / 3600 / 24);
-				dateStart.setMillis(cloudProcessComplete);
-				dateComplete.setMillis(cloudProcessComplete);
+				dateStart.setMillis(cloudProcess.getComplete().getTime());
+				dateComplete.setMillis(cloudProcess.getComplete().getTime());
 				dateStart.setHourOfDay(0);
 				dateStart.setMinuteOfHour(cloudProcessEpoch.getMinuteOfHour());
 				dateStart.setSecondOfMinute(cloudProcessEpoch.getSecondOfMinute());
@@ -272,7 +300,10 @@ public class AccountResource {
 
 		for (CloudProcess cloudProcess : list) {
 			cpStart = new DateTime(cloudProcess.getEpoch());
-			cpComplete = new DateTime(cloudProcess.getComplete());
+			if (cloudProcess.getComplete() != null)
+				cpComplete = new DateTime(cloudProcess.getComplete());
+			else
+				cpComplete = new DateTime(Long.MAX_VALUE);
 
 			System.out.println("cpStart: " + cpStart);
 			System.out.println("cpComplete: " + cpComplete);
@@ -294,10 +325,18 @@ public class AccountResource {
 					hourEnd = cpComplete.getHourOfDay() - dateStart.getHourOfDay();
 					if (hourEnd < 0)
 						hourEnd += 24;
-					if (cpComplete.getMinuteOfHour() > cpStart.getMinuteOfHour())
-						if (cpComplete.getSecondOfMinute() > cpStart.getSecondOfMinute())
-							if (cpComplete.getMillisOfSecond() > cpStart.getMillisOfSecond())
+					
+					if (cpComplete.getMinuteOfHour() > cpStart.getMinuteOfHour()) {
+						hourEnd++;
+					} else if (cpComplete.getMinuteOfHour() == cpStart.getMinuteOfHour()) {
+						if (cpComplete.getSecondOfMinute() > cpStart.getSecondOfMinute()) {
+							hourEnd++;
+						} else if (cpComplete.getSecondOfMinute() == cpStart.getSecondOfMinute()) {
+							if (cpComplete.getMillisOfSecond() > cpStart.getMillisOfSecond()) {
 								hourEnd++;
+							}
+						}
+					}
 				}
 
 			} else {
@@ -317,10 +356,19 @@ public class AccountResource {
 						hourStart += 24;
 						hourEnd += 24;
 					}
-					if (cpComplete.getMinuteOfHour() > cpStart.getMinuteOfHour())
-						if (cpComplete.getSecondOfMinute() > cpStart.getSecondOfMinute())
-							if (cpComplete.getMillisOfSecond() > cpStart.getMillisOfSecond())
+
+					if (cpComplete.getMinuteOfHour() > cpStart.getMinuteOfHour()) {
+						hourEnd++;
+					} else if (cpComplete.getMinuteOfHour() == cpStart.getMinuteOfHour()) {
+						if (cpComplete.getSecondOfMinute() > cpStart.getSecondOfMinute()) {
+							hourEnd++;
+						} else if (cpComplete.getSecondOfMinute() == cpStart.getSecondOfMinute()) {
+							if (cpComplete.getMillisOfSecond() > cpStart.getMillisOfSecond()) {
 								hourEnd++;
+							}
+						}
+					}
+
 				}
 			}
 			for (int j = hourStart; j < hourEnd; j++) {
@@ -498,7 +546,7 @@ public class AccountResource {
 				date.addDays(-1);
 			} else {
 				date.setHourOfDay(0);
-				date.addDays(-days - 1);
+				date.addDays(-days + 1);
 			}
 			System.out.println(date);
 			List<CloudProcess> costs = ofy().load().type(CloudProcess.class).filter("account", super.path + "/" + account).filter("complete >", date.toDate()).list();
@@ -508,6 +556,22 @@ public class AccountResource {
 
 		}
 
+		public Collection<CloudProcess> getRunningProcess(String account) {
+
+			List<CloudProcess> costs = ofy().load().type(CloudProcess.class).filter("account", super.path + "/" + account).filter("complete", null).list();
+			Collection<CloudProcess> result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, costs);
+			result.setTotal(costs.size());
+			return result;
+
+		}
+
+		public Collection<CloudProcess> getAllProcessByDays(String account, int days) {
+			List<CloudProcess> list = dao.getCostsOfAccount(account, days).getElements();
+			list.addAll(dao.getRunningProcess(account).getElements());
+			Collection<CloudProcess> result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, list);
+			result.setTotal(list.size());
+			return result;
+		}
 	}
 
 	final public static AccountManager dao = new AccountManager();
@@ -524,7 +588,8 @@ public class AccountResource {
 		cloudProcess.setCostPerHour(cost);
 		cloudProcess.setAccount(account);
 		DateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-		cloudProcess.setComplete(df.parse(dateComplete));
+		if (dateComplete != null)
+			cloudProcess.setComplete(df.parse(dateComplete));
 		cloudProcess.setEpoch(df.parse(dateStart));
 		CloudProcessResource.dao.add(cloudProcess);
 		return cloudProcess.toString();
