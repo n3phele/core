@@ -278,10 +278,10 @@ public class AccountResource {
 
 	private CostsCollection listCost24hours(String account) {
 
-		List<CloudProcess> list = dao.getCostsOfAccount(account, 1).getElements();
+		List<CloudProcess> list = dao.getAllProcessByDays(account, 1).getElements();
 		List<Double> listfinal = new ArrayList<Double>();
 		MutableDateTime dateStart, dateEnd;
-		DateTime cpStart, cpComplete;
+		DateTime cpStart, cpComplete, now;
 		dateStart = new MutableDateTime();
 		dateEnd = new MutableDateTime();
 		dateStart.setMinuteOfHour(0);
@@ -290,9 +290,11 @@ public class AccountResource {
 		dateStart.addHours(1);
 		dateEnd = dateStart.copy();
 		dateStart.addDays(-1);
-
+		now = new DateTime();
+		
 		System.out.println("dateStart: " + dateStart);
 		System.out.println("dateEnd: " + dateEnd);
+		System.out.println("now: " + now + "\n");
 
 		for (int i = 0; i < 24; i++) {
 			listfinal.add(0.0);
@@ -306,18 +308,30 @@ public class AccountResource {
 				cpComplete = new DateTime(Long.MAX_VALUE);
 
 			System.out.println("cpStart: " + cpStart);
-			System.out.println("cpComplete: " + cpComplete);
+			System.out.println("cpComplete: " + cpComplete + "\n");
 
 			int hourStart = 0;
 			int hourEnd = 0;
 
 			if (cpStart.isBefore(dateStart)) {
-				// CloudProcess started before this date
+				// CloudProcess started before last 24h
 
 				if (cpComplete.isAfter(dateEnd)) {
 					// CloudProcess still running
 					hourStart = 0;
-					hourEnd = 24;
+					hourEnd = 23;
+					
+					if (now.getMinuteOfHour() > cpStart.getMinuteOfHour()) {
+						hourEnd++;
+					} else if (now.getMinuteOfHour() == cpStart.getMinuteOfHour()) {
+						if (now.getSecondOfMinute() > cpStart.getSecondOfMinute()) {
+							hourEnd++;
+						} else if (now.getSecondOfMinute() == cpStart.getSecondOfMinute()) {
+							if (now.getMillisOfSecond() > cpStart.getMillisOfSecond()) {
+								hourEnd++;
+							}
+						}
+					}
 
 				} else {
 					// CloudProcess terminated in this day
@@ -325,7 +339,7 @@ public class AccountResource {
 					hourEnd = cpComplete.getHourOfDay() - dateStart.getHourOfDay();
 					if (hourEnd < 0)
 						hourEnd += 24;
-					
+
 					if (cpComplete.getMinuteOfHour() > cpStart.getMinuteOfHour()) {
 						hourEnd++;
 					} else if (cpComplete.getMinuteOfHour() == cpStart.getMinuteOfHour()) {
@@ -347,7 +361,20 @@ public class AccountResource {
 					hourStart = cpStart.getHourOfDay() - dateStart.getHourOfDay();
 					if (hourStart < 0)
 						hourStart += 24;
-					hourEnd = 24;
+					hourEnd = 23;
+					
+					if (now.getMinuteOfHour() > cpStart.getMinuteOfHour()) {
+						hourEnd++;
+					} else if (now.getMinuteOfHour() == cpStart.getMinuteOfHour()) {
+						if (now.getSecondOfMinute() > cpStart.getSecondOfMinute()) {
+							hourEnd++;
+						} else if (now.getSecondOfMinute() == cpStart.getSecondOfMinute()) {
+							if (now.getMillisOfSecond() > cpStart.getMillisOfSecond()) {
+								hourEnd++;
+							}
+						}
+					}
+					
 				} else {
 					// CloudProcess terminated today
 					hourStart = cpStart.getHourOfDay() - dateStart.getHourOfDay();
@@ -376,10 +403,11 @@ public class AccountResource {
 			}
 		}
 
-		for (Double d : listfinal) {
-			System.out.println(dateStart.getHourOfDay() + " -> " + d);
-			dateStart.addHours(1);
-		}
+//		Just for tests
+//		for (Double d : listfinal) {
+//			System.out.println(dateStart.getHourOfDay() + " -> " + d);
+//			dateStart.addHours(1);
+//		}
 
 		return new CostsCollection(listfinal);
 	}
