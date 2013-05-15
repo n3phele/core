@@ -241,6 +241,7 @@ public abstract class AbstractCloudProcessActivity extends AbstractActivity {
 	public void refresh(int start) {
 	
 		String url = buildUrlForProcesses(start);		
+		this.start = start;
 		
 		final int total = this.total;
 		
