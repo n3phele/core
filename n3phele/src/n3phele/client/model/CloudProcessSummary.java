@@ -46,12 +46,20 @@ public class CloudProcessSummary extends Entity {
 		return this.complete;
 	}-*/;
 	
+	
+	public native final String epoch() /*-{
+		return this.epoch;
+	}-*/;
 	private native final String getCost2() /*-{
 		return this.costPerHour;
 	}-*/;
 	public final double getCost(){
 		return Double.parseDouble(getCost2());
 	};
+	
+	public final Date getEpoch() {
+		return SafeDate.parse(epoch());
+	}
 
 	public static final native Collection<CloudProcessSummary> asCollection(String assumedSafe) /*-{
 		return eval("("+assumedSafe+")");

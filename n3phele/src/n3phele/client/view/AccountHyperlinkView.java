@@ -27,11 +27,11 @@ import n3phele.client.model.Activity;
 import n3phele.client.model.Collection;
 import n3phele.client.model.FileNode;
 import n3phele.client.model.RepoListResponse;
-import n3phele.service.model.CloudProcess;
+//import n3phele.service.model.CloudProcessSummary;
 import n3phele.service.model.CloudProcessCollection;
-import n3phele.service.model.CloudProcessSummary;
-//import n3phele.client.model.CloudProcess;
-import n3phele.client.model.VirtualServer;
+//import n3phele.service.model.CloudProcessSummary;
+//import n3phele.client.model.CloudProcessSummary;
+import n3phele.client.model.CloudProcessSummary;
 import n3phele.client.presenter.AccountHyperlinkActivity;
 import n3phele.client.presenter.CommandActivity;
 import n3phele.client.presenter.helpers.AuthenticatedRequestFactory;
@@ -93,18 +93,17 @@ import com.google.gwt.user.datepicker.client.CalendarUtil;
 
 @SuppressWarnings("deprecation")
 public class AccountHyperlinkView extends WorkspaceVerticalPanel implements EntryPoint {
-	private DataGrid<VirtualServer> dataGrid;
-	private List<VirtualServer> vsData = null;
+	private DataGrid<CloudProcessSummary> dataGrid;
+	private List<CloudProcessSummary> vsData = null;
 	private final FlexTable table;
 	private Account account = null;
 	private AccountHyperlinkActivity presenter = null;
-	private ActionDialogBox<VirtualServer> dialog;
+	private ActionDialogBox<CloudProcessSummary> dialog;
 	private final ValidInputIndicatorWidget errorsOnPage;
 	private static DataGridResource resource = null;
 	private List<Double> chartValues;
-	private Activity activity = null;
 	private LineChart chart = null;
-	private HashMap<VirtualServer, Activity> activityPerVS = null;
+	private HashMap<CloudProcessSummary, Activity> activityPerVS = null;
 	private Panel chartPanel = null;
 	final private FlexTable historyTable = new FlexTable();
 	final private FlexTable vsTable = new FlexTable();
@@ -113,7 +112,7 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 	private String chartTitle = "24 Hours Costs Chart";
 	private Button hours, days, month;
 	private boolean semaph;
-	private List<n3phele.client.model.CloudProcessSummary> pricesQuerry; 
+	private List<CloudProcessSummary> pricesQuerry; 
 
 	public AccountHyperlinkView(String uri) {
 		super(new MenuItem(N3phele.n3pheleResource.accountIcon(), "Account", null), new MenuItem(N3phele.n3pheleResource.accountAddIcon(), "Account Edit", "account:" + uri));
@@ -136,12 +135,12 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		table.setCellSpacing(1);
 
 		// DATAGRID
-		dataGrid = new DataGrid<VirtualServer>(15, resource);
+		dataGrid = new DataGrid<CloudProcessSummary>(15, resource);
 		dataGrid.setSize("495px", "100px");
 
-		TextColumn<VirtualServer> nameColumn = new TextColumn<VirtualServer>() {
+		TextColumn<CloudProcessSummary> nameColumn = new TextColumn<CloudProcessSummary>() {
 			@Override
-			public String getValue(VirtualServer item) {
+			public String getValue(CloudProcessSummary item) {
 				String result = "";
 				if (item != null) {
 					result += item.getName();
@@ -151,44 +150,51 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		};
 		dataGrid.addColumn(nameColumn, "Name");
 		dataGrid.setColumnWidth(nameColumn, "130px");
-
-		Column<VirtualServer, String> activityColumn = new Column<VirtualServer, String>(new ClickableTextCell()) {
+		
+		//TODO: Working on Activity column
+		
+		Column<CloudProcessSummary, String> activityColumn = new Column<CloudProcessSummary, String>(new ClickableTextCell()) {
 			@Override
-			public String getValue(VirtualServer item) {
+			public String getValue(CloudProcessSummary item) {
 				String result = "";
-				if (item != null) {
-					if (item.getActivity() == null || !(activityPerVS.containsKey(item)) || activityPerVS.get(item) == null) {
-						result += "none";
-					} else {
-						result += activityPerVS.get(item).getName();
-					}
-				}
-				return result;
+				System.out.println(item.getName() + " " + item.getUri());
+//				if (item != null) {
+//					if (item.getActivity() == null || !(activityPerVS.containsKey(item)) || activityPerVS.get(item) == null) {
+//						result += "none";
+//					} else {
+//						result += activityPerVS.get(item).getName();
+//					}
+//				}
+				System.out.println("CLICKABLE ACTIVITY");
+
+				return "TESTE";
 			}
 
 		};
-		activityColumn.setFieldUpdater(new FieldUpdater<VirtualServer, String>() {
+		activityColumn.setFieldUpdater(new FieldUpdater<CloudProcessSummary, String>() {
 			@Override
-			public void update(int index, VirtualServer obj, String value) {
-				if (presenter != null) {
-					if (obj.getActivity() == null || !(activityPerVS.containsKey(obj)) || activityPerVS.get(obj) == null) {
-						Window.alert(obj.getName() + " has no activities running on n3phele.");
-					} else
-						presenter.onSelect(activityPerVS.get(obj));
-				}
+			public void update(int index, CloudProcessSummary obj, String value) {
+//				if (presenter != null) {
+//					if (obj.getActivity() == null || !(activityPerVS.containsKey(obj)) || activityPerVS.get(obj) == null) {
+//						Window.alert(obj.getName() + " has no activities running on n3phele.");
+//					} else
+//						presenter.onSelect(activityPerVS.get(obj));
+//				}
+				System.out.println("UPDATE ACTIVITY");
 			}
 		});
 		activityColumn.setCellStyleNames(N3phele.n3pheleResource.css().clickableTextCellEffect());
 		dataGrid.addColumn(activityColumn, "Activity");
 		dataGrid.setColumnWidth(activityColumn, "100px");
 
-		TextColumn<VirtualServer> ageColumn = new TextColumn<VirtualServer>() {
+		TextColumn<CloudProcessSummary> ageColumn = new TextColumn<CloudProcessSummary>() {
 			@Override
-			public String getValue(VirtualServer item) {
+			public String getValue(CloudProcessSummary item) {
 				String result = "";
+				
 				if (item != null) {
 					Date now = new Date();
-					if (now.before(item.getCreated())) {
+					if (now.before(item.getEpoch())) {
 						result += 0;
 					} else {
 						int minutes = 0;
@@ -196,29 +202,29 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 						int days = 0;
 
 						// MINUTES
-						if (now.getMinutes() < item.getCreated().getMinutes())
-							minutes = 60 + now.getMinutes() - item.getCreated().getMinutes();
+						if (now.getMinutes() < item.getEpoch().getMinutes())
+							minutes = 60 + now.getMinutes() - item.getEpoch().getMinutes();
 						else
-							minutes = now.getMinutes() - item.getCreated().getMinutes();
+							minutes = now.getMinutes() - item.getEpoch().getMinutes();
 
 						// HOURS
-						if (now.getHours() > item.getCreated().getHours()) {
-							hours += now.getHours() - item.getCreated().getHours();
-							if (now.getMinutes() - item.getCreated().getMinutes() < 0)
+						if (now.getHours() > item.getEpoch().getHours()) {
+							hours += now.getHours() - item.getEpoch().getHours();
+							if (now.getMinutes() - item.getEpoch().getMinutes() < 0)
 								hours--;
-						} else if (now.getHours() < item.getCreated().getHours())
-							hours += 24 - (item.getCreated().getHours() - now.getHours());
+						} else if (now.getHours() < item.getEpoch().getHours())
+							hours += 24 - (item.getEpoch().getHours() - now.getHours());
 
 						// DAYS
-						days = (int) ((now.getTime() - item.getCreated().getTime()) / (1000 * 60 * 60 * 24));
+						days = (int) ((now.getTime() - item.getEpoch().getTime()) / (1000 * 60 * 60 * 24));
 
 						if (days == 0) {
 							int hoursDifference = 0;
-							if (now.getHours() >= item.getCreated().getHours())
-								hoursDifference = now.getHours() - item.getCreated().getHours();
+							if (now.getHours() >= item.getEpoch().getHours())
+								hoursDifference = now.getHours() - item.getEpoch().getHours();
 							else
-								hoursDifference = 24 - (item.getCreated().getHours() - now.getHours());
-							int minutesDifference = now.getMinutes() - item.getCreated().getMinutes();
+								hoursDifference = 24 - (item.getEpoch().getHours() - now.getHours());
+							int minutesDifference = now.getMinutes() - item.getEpoch().getMinutes();
 							if (hoursDifference == 0 || (hoursDifference == 1 && minutesDifference < 0)) {
 								result += minutes + "min";
 							} else {
@@ -242,24 +248,24 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		dataGrid.addColumn(ageColumn, "Age");
 		dataGrid.setColumnWidth(ageColumn, "80px");
 
-		TextColumn<VirtualServer> priceColumn = new TextColumn<VirtualServer>() {
+		TextColumn<CloudProcessSummary> priceColumn = new TextColumn<CloudProcessSummary>() {
 			@Override
-			public String getValue(VirtualServer item) {
+			public String getValue(CloudProcessSummary item) {
 				String result = "";
 				if (item != null) {
-					double price = Double.parseDouble(item.getPrice());
+					double price = item.getCost();
 					Date now = new Date();
-					if (now.before(item.getCreated())) {
+					if (now.before(item.getEpoch())) {
 						result += 0;
-					} else if (item.getEndDate() == null) {
+					} else if (item.getComplete() == null) {
 						Date test = new Date();
-						int hours = (int) (((now.getTime() - item.getCreated().getTime()) / (1000 * 60 * 60 * 24)) * 24);
-						if (now.getHours() >= item.getCreated().getHours()) {
-							hours += now.getHours() - item.getCreated().getHours() + 1;
+						int hours = (int) (((now.getTime() - item.getEpoch().getTime()) / (1000 * 60 * 60 * 24)) * 24);
+						if (now.getHours() >= item.getEpoch().getHours()) {
+							hours += now.getHours() - item.getEpoch().getHours() + 1;
 						} else {
-							hours += 24 - (item.getCreated().getHours() - now.getHours()) + 1;
+							hours += 24 - (item.getEpoch().getHours() - now.getHours()) + 1;
 						}
-						if (now.getMinutes() - item.getCreated().getMinutes() < 0) {
+						if (now.getMinutes() - item.getEpoch().getMinutes() < 0) {
 							hours--;
 						}
 						double total = price * hours;
@@ -273,7 +279,7 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		dataGrid.setColumnWidth(priceColumn, "75px");
 
 		// Add a selection model to handle user selection.
-		final SingleSelectionModel<VirtualServer> selectionModel = new SingleSelectionModel<VirtualServer>();
+		final SingleSelectionModel<CloudProcessSummary> selectionModel = new SingleSelectionModel<CloudProcessSummary>();
 		dataGrid.setSelectionModel(selectionModel);
 		selectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
 			public void onSelectionChange(SelectionChangeEvent event) {
@@ -281,9 +287,9 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 			}
 		});
 
-		Column<VirtualServer, VirtualServer> cancelColumn = new Column<VirtualServer, VirtualServer>(new CancelButtonCell<VirtualServer>(new Delegate<VirtualServer>() {
+		Column<CloudProcessSummary, CloudProcessSummary> cancelColumn = new Column<CloudProcessSummary, CloudProcessSummary>(new CancelButtonCell<CloudProcessSummary>(new Delegate<CloudProcessSummary>() {
 			@Override
-			public void execute(VirtualServer value) {
+			public void execute(CloudProcessSummary value) {
 				if (value != null) {
 					dataGrid.getSelectionModel().setSelected(value, false);
 					getDialog(value).show();
@@ -291,7 +297,7 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 			}
 		}, "delete virtual machine")) {
 			@Override
-			public VirtualServer getValue(VirtualServer object) {
+			public CloudProcessSummary getValue(CloudProcessSummary object) {
 				return object;
 			}
 		};
@@ -317,6 +323,8 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 				chartPanel.add(historyTable);
 				chartPanel.add(new SectionPanel("Active Machines"));
 				chartPanel.add(vsTable);
+				requestChartData("24hours");
+
 			}
 		};
 		VisualizationUtils.loadVisualizationApi(onLoadCallback, LineChart.PACKAGE);
@@ -349,13 +357,12 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		table.setWidget(2, 0, errorsOnPage);
 	}
 
-	public void setDisplayList(List<VirtualServer> list) {
+	public void setDisplayList(List<CloudProcessSummary> list) {
 		if (list == null)
-			list = new ArrayList<VirtualServer>();
+			list = new ArrayList<CloudProcessSummary>();
 		setTableData();
-		VirtualServer vs;
+		CloudProcessSummary vs;
 		System.out.println("CALLED!");
-		list.add(null);
 		vsData = list;
 		this.dataGrid.setRowCount(list.size(), true);
 		this.dataGrid.setRowData(vsData = list);
@@ -367,10 +374,10 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 	}
 
 	public void updateActivity(Activity activity) {
-		this.activity = activity;
+		//this.activity = activity;
 	}
 
-	public void refresh(List<VirtualServer> newList, HashMap<VirtualServer, Activity> activityPerVS) {
+	public void refresh(List<CloudProcessSummary> newList, HashMap<CloudProcessSummary, Activity> activityPerVS) {
 		this.activityPerVS = activityPerVS;
 		setDisplayList(newList);
 		refreshChart();
@@ -384,13 +391,13 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		setData(update);
 	}
 
-	protected ActionDialogBox<VirtualServer> getDialog(VirtualServer item) {
+	protected ActionDialogBox<CloudProcessSummary> getDialog(CloudProcessSummary item) {
 		if (dialog == null) {
-			dialog = new ActionDialogBox<VirtualServer>("VirtualMachine Removal Confirmation", "No", "Yes", new Delegate<VirtualServer>() {
+			dialog = new ActionDialogBox<CloudProcessSummary>("VirtualMachine Removal Confirmation", "No", "Yes", new Delegate<CloudProcessSummary>() {
 
 				@Override
-				public void execute(VirtualServer object) {
-					kill(object.getUri());
+				public void execute(CloudProcessSummary object) {
+					kill(object.getUri().toString());
 
 				}
 			});
@@ -561,6 +568,10 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 	}
 	public void updateChartTable(){
 		Options options = null;
+		/*
+		 * FIXME 
+		 * chartValues might not have been initialized
+		 */
 		switch(chartValues.size()){
 			case 24:
 				chartTitle = "24 Hours Costs Chart";

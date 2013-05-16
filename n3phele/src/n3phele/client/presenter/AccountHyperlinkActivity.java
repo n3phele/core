@@ -17,14 +17,16 @@ import n3phele.client.CacheManager;
 import n3phele.client.ClientFactory;
 import n3phele.client.model.Account;
 import n3phele.client.model.Activity;
+import n3phele.client.model.CloudProcess;
 import n3phele.client.model.CloudProcessSummary;
 import n3phele.client.model.Collection;
 import n3phele.client.model.CostsCollection;
-import n3phele.client.model.VirtualServerCollection;
+//import n3phele.client.model.CloudProcessCollection;
 
-import n3phele.client.model.VirtualServer;
+import n3phele.client.model.CloudProcessSummary;
 import n3phele.client.presenter.helpers.AuthenticatedRequestFactory;
 import n3phele.client.view.AccountHyperlinkView;
+import n3phele.service.model.CloudProcessCollection;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
@@ -47,15 +49,15 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 	private final ClientFactory factory;
 	private AccountHyperlinkView display;
 	private Account account = null;
-	private List<VirtualServer> vsList;
-	private VirtualServerCollection<VirtualServer> vsCol;
+	private List<CloudProcessSummary> vsList;
+	private Collection<CloudProcessSummary> vsCol;
 	private final AppPlaceHistoryMapper historyMapper;
 	private String accountCollection;
 	private String virtualServerCollection;
 	private final CacheManager cacheManager;
 	private EventBus eventBus;
 	private HandlerRegistration handlerRegistration;
-	private HashMap<VirtualServer, Activity> activityPerVS = null;
+	private HashMap<CloudProcessSummary, Activity> activityPerVS = null;
 	private List<Double> pricesQuery;
 
 	public AccountHyperlinkActivity(String accountUri, ClientFactory factory) {
@@ -70,6 +72,7 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 		String id = accountUri.substring(accountUri.lastIndexOf("/")+1);
 		this.virtualServerCollection = URL.encode(factory.getCacheManager().ServiceAddress + "virtualServers/account/");
 		this.virtualServerCollection += id;
+		
 	}
 
 	@Override
@@ -80,6 +83,7 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 		handlerRegistration(eventBus);
 		display.setPresenter(this);
 		panel.setWidget(display);
+		display.requestChartData("24hours");
 		//display.setDisplayList(null);
 	}
 
@@ -97,19 +101,19 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 		unregister();
 	}
 
-	protected void updateVSList(VirtualServerCollection<VirtualServer> list) {
+	protected void updateVSList(Collection<CloudProcessSummary> list) {
 		vsCol = list;
-		this.vsList = new ArrayList<VirtualServer>(list.getElements());
-		for (VirtualServer vs : list.getElements()) {
-			if(vs.getEndDate() != null)
+		this.vsList = list.getElements();
+		for (CloudProcessSummary vs : list.getElements()) {
+			if(vs.getComplete() != null)
 				vsList.remove(vs);
 		}
-		activityPerVS = new HashMap<VirtualServer, Activity>(vsList.size());
-		for(int i=0; i<vsList.size(); i++){
-			if(vsList.get(i).getActivity() != null)
-				getActivity(vsList.get(i));
-		}
-		display.refresh(vsList, activityPerVS);
+//		activityPerVS = new HashMap<CloudProcessSummary, Activity>(vsList.size());
+//		for(int i=0; i<vsList.size(); i++){
+//			if(vsList.get(i).getActivity() != null)
+//				getActivity(vsList.get(i));
+//		}
+//		display.refresh(vsList, activityPerVS);
 	}
 
 	protected void updateAccount(Account account) {
@@ -183,12 +187,75 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 		} catch (RequestException e) {
 			GWT.log("Couldn't retrieve JSON " + e.getMessage());
 		}
+		getRunningProcess();
+	}
+	public void callGetTopLevel(String uri){
+		getTopLevel(uri);
+	}
+	private void getTopLevel(String uri){
+		final String url = uri + "/toplevel";
+		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, url);
+		try {
+			builder.sendRequest(null, new RequestCallback() {
+				public void onError(Request request, Throwable exception) {
+					GWT.log("Couldn't retrieve JSON " + exception.getMessage());
+				}
+	
+				public void onResponseReceived(Request request, Response response) {
+					if (200 == response.getStatusCode()) {
+						GWT.log("Got reply");
+						CloudProcess result = CloudProcess.asCloudProcess(response.getText());					
+						//TODO
+						//do something with the "display"
+						//result
+					
+						
+					} else {
+						GWT.log("Couldn't retrieve JSON ("
+								+ response.getStatusText() + ")");
+					}
+				}
+			});
+		} catch (RequestException e) {
+			GWT.log("Couldn't retrieve JSON " + e.getMessage());
+		}
+		getRunningProcess();
+	}
+	
+	private void getRunningProcess(){
+		final String url = account.getUri() +"/runningprocess";
+		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, url);
+		try {
+			builder.sendRequest(null, new RequestCallback() {
+				public void onError(Request request, Throwable exception) {
+					GWT.log("Couldn't retrieve JSON " + exception.getMessage());
+				}
+	
+				public void onResponseReceived(Request request, Response response) {
+					if (200 == response.getStatusCode()) {
+						GWT.log("Got reply");
+						System.out.println("CHEGOU!");
+						System.out.println(response.getText());
+						Collection<CloudProcessSummary> result = CloudProcessSummary.asCollection(response.getText());				
+						List<CloudProcessSummary> list = result.getElements();
+						//do something with the display and the list
+						System.out.println(list.get(0).getState());
+						display.setDisplayList(list);
+						
+					} else {
+						GWT.log("Couldn't retrieve JSON ("
+								+ response.getStatusText() + ")");
+					}
+				}
+			});
+		} catch (RequestException e) {
+			GWT.log("Couldn't retrieve JSON " + e.getMessage());
+		}
 		
 	}
-		
 
 	
-	public void updatetActivity(VirtualServer vs, Activity activity){
+	public void updatetActivity(CloudProcessSummary vs, Activity activity){
 		if(activityPerVS == null) return;
 		activityPerVS.put(vs, activity);
 		display.refresh(this.vsList, this.activityPerVS);
@@ -200,9 +267,13 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 	 * -------------
 	 */
 
-	public void getActivity(final VirtualServer vs){
-		String uri = vs.getActivity();
-			// Send request to server and catch any errors.
+	public void getActivity(final CloudProcessSummary vs){
+		//String uri = vs.getActivity();
+		/*
+		 * FIXME Still not working, have to find a replace for vs.getActivity() on CloudProcessSummary
+		 */
+		String uri = "";	
+		// Send request to server and catch any errors.
 			RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, uri);
 			try {
 				Request request = builder.sendRequest(null, new RequestCallback() {
@@ -237,7 +308,7 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 				public void onResponseReceived(Request request, Response response) {
 					GWT.log("Got reply");
 					if (200 == response.getStatusCode()) {
-						VirtualServerCollection<VirtualServer> vs = VirtualServer.asCollection(response.getText());
+						Collection<CloudProcessSummary> vs = CloudProcessSummary.asCollection(response.getText());
 						updateVSList(vs);
 					} else {
 
