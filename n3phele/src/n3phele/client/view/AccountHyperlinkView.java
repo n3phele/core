@@ -24,6 +24,7 @@ import n3phele.client.ClientFactory;
 import n3phele.client.N3phele;
 import n3phele.client.model.Account;
 import n3phele.client.model.Activity;
+import n3phele.client.model.CloudProcess;
 import n3phele.client.model.Collection;
 import n3phele.client.model.FileNode;
 import n3phele.client.model.RepoListResponse;
@@ -718,7 +719,10 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		}
 		return min;
 	}
-
+	public CloudProcess requestTopLevel(CloudProcess c){
+		
+		return c;
+	}
 	public void refreshChart() {
 		if (chart == null || historyTable == null)
 			return;
