@@ -182,7 +182,7 @@ public class AccountResource {
 	// @RolesAllowed("authenticated")
 	@Path("/{account}/lastcompleted/{days:[0-9]+}/get")
 	public CostsCollection listCostPerDays(@PathParam("account") String account, @PathParam("days") int days) {
-
+		
 		if (days == 1) {
 			return listCost24hours(account);
 		}
@@ -200,6 +200,7 @@ public class AccountResource {
 		}
 		for (CloudProcess cloudProcess : list) {
 			// just for the fake data
+			
 			if (cloudProcess.getEpoch() == null)
 				cloudProcess.setEpoch(cloudProcess.getStart());
 			
@@ -211,6 +212,8 @@ public class AccountResource {
 			
 			cloudProcessEpoch = new DateTime(cloudProcess.getEpoch());
 			cloudProcessComplete = new DateTime(cloudProcess.getComplete());
+
+			
 			MutableDateTime dateStart = new MutableDateTime(cloudProcessEpoch);
 			dateStart.setMillisOfDay(0);
 			MutableDateTime dateComplete = new MutableDateTime(cloudProcessComplete);
@@ -230,7 +233,8 @@ public class AccountResource {
 				pos = (days - 1) - pos;
 				listfinal.set(pos, listfinal.get(pos) + cloudProcess.getCostPerHour() * (hoursCharged));
 			} else {
-				long daysDif = cloudProcessComplete.getMillis() - cloudProcessEpoch.getMillis();
+				//long daysDif = cloudProcessComplete.getMillis() - cloudProcessEpoch.getMillis();
+				long daysDif = dateComplete.getMillis() - dateStart.getMillis();
 				int numDays = (int) (daysDif / 1000 / 3600 / 24);
 				double test = numDays;
 				if (test != ((double) daysDif / 1000 / 3600 / 24))
@@ -274,7 +278,8 @@ public class AccountResource {
 				if (test != (double) (dateComplete.getMillis() - dateStart.getMillis()) / 3600000)
 					hoursCharged = hoursCharged + 1;
 				posFinal = (days - 1) - posFinal;
-				listfinal.set(posFinal, listfinal.get(posFinal) + cloudProcess.getCostPerHour() * (hoursCharged));
+				//if (posFinal >= 0)
+					listfinal.set(posFinal, listfinal.get(posFinal) + cloudProcess.getCostPerHour() * (hoursCharged));
 
 			}
 		}
@@ -289,7 +294,6 @@ public class AccountResource {
 	}
 
 	private CostsCollection listCost24hours(String account) {
-
 		List<CloudProcess> list = dao.getAllProcessByDays(account, 1).getElements();
 		List<Double> listfinal = new ArrayList<Double>();
 		MutableDateTime dateStart, dateEnd;
@@ -303,10 +307,11 @@ public class AccountResource {
 		dateEnd = dateStart.copy();
 		dateStart.addDays(-1);
 		now = new DateTime();
-
-		System.out.println("dateStart: " + dateStart);
-		System.out.println("dateEnd: " + dateEnd);
-		System.out.println("now: " + now + "\n");
+//
+//		System.out.println("Size " + list.size());
+//		System.out.println("dateStart: " + dateStart);
+//		System.out.println("dateEnd: " + dateEnd);
+//		System.out.println("now: " + now + "\n");
 
 		for (int i = 0; i < 24; i++) {
 			listfinal.add(0.0);
@@ -319,8 +324,8 @@ public class AccountResource {
 			else
 				cpComplete = new DateTime(Long.MAX_VALUE);
 
-			System.out.println("cpStart: " + cpStart);
-			System.out.println("cpComplete: " + cpComplete + "\n");
+//			System.out.println("cpStart: " + cpStart);
+//			System.out.println("cpComplete: " + cpComplete + "\n");
 
 			int hourStart = 0;
 			int hourEnd = 0;
@@ -391,10 +396,11 @@ public class AccountResource {
 					// CloudProcess terminated today
 					hourStart = cpStart.getHourOfDay() - dateStart.getHourOfDay();
 					hourEnd = cpComplete.getHourOfDay() - dateStart.getHourOfDay();
-					if (hourStart < 0) {
+					if (hourStart < 0) 
 						hourStart += 24;
+					if(hourEnd < 0)
 						hourEnd += 24;
-					}
+						
 
 					if (cpComplete.getMinuteOfHour() > cpStart.getMinuteOfHour()) {
 						hourEnd++;
@@ -589,7 +595,6 @@ public class AccountResource {
 				date.setHourOfDay(0);
 				date.addDays(-days + 1);
 			}
-			System.out.println(date);
 			List<CloudProcess> costs = ofy().load().type(CloudProcess.class).filter("account", super.path + "/" + account).filter("complete >", date.toDate()).list();
 			Collection<CloudProcess> result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, costs);
 			result.setTotal(costs.size());
