@@ -30,7 +30,6 @@ public class CostsCollection extends Entity {
 	public final List<Double> getElements() {
 		JavaScriptObject jsa = getStringElements();
 		List<Double> list = new ArrayList<Double>();
-		System.out.println("jsa: " + jsa);
 		String[] costs = jsa.toString().split(",");
 		for (int i = 0; i < costs.length; i++) {
 			list.add(Double.parseDouble(costs[i]));

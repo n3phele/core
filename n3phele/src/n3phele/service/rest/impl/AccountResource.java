@@ -11,6 +11,7 @@ import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -42,6 +43,8 @@ import n3phele.service.core.Resource;
 import n3phele.service.model.Account;
 import n3phele.service.model.AccountCollection;
 import n3phele.service.model.Action;
+import n3phele.service.model.ActivityData;
+import n3phele.service.model.ActivityDataCollection;
 import n3phele.service.model.CachingAbstractManager;
 import n3phele.service.model.Cloud;
 import n3phele.service.model.CloudProcess;
@@ -169,7 +172,109 @@ public class AccountResource {
 		Collection<CloudProcess> result = dao.getRunningProcess(account);
 		return new CloudProcessCollection(result);
 	}
+	
+	@GET
+	@Produces("application/json")
+	@RolesAllowed("authenticated")
+	@Path("/{account}/runningprocess/get")
+	public ActivityDataCollection listRunningCloudProcessWithCostsActivityData(@PathParam("account") String account, @PathParam("days") int days) {
+		Collection<CloudProcess> result = dao.getRunningProcess(account);
+		List<ActivityData> list = new ArrayList<ActivityData>();
+		for (CloudProcess c : result.getElements()) {
+			String costs = "";
+			double price = c.getCostPerHour();
+			int index = c.getUri().toString().lastIndexOf("_");
+			String  uri = c.getUri().toString();
+			if(index > 0)
+				uri = c.getUri().toString().substring(0, index);
+			String age = calcAge(c);
+			Date now = new Date();
+			if (now.before(c.getEpoch())) {
+				costs += 0;
+			} else if (c.getComplete() == null) {
+				Date test = new Date();
+				int hours = (int) (((now.getTime() - c.getEpoch().getTime()) / (1000 * 60 * 60 * 24)) * 24);
+				if (now.getHours() >= c.getEpoch().getHours()) {
+					hours += now.getHours() - c.getEpoch().getHours() + 1;
+				} else {
+					hours += 24 - (c.getEpoch().getHours() - now.getHours()) + 1;
+				}
+				if (now.getMinutes() - c.getEpoch().getMinutes() < 0) {
+					hours--;
+				}
+				double total = price * hours;
+				costs += "US$" + (double) Math.round(total * 1000) / 1000;
+			}
+			CloudProcess cTop = new CloudProcess();
+			try {
+				cTop = CloudProcessResource.dao.load(new URI(uri));
+	
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
+			list.add(new ActivityData(c.getUri().toString(),c.getName(),uri,costs,age,cTop.getName()));
+		}
+		return new ActivityDataCollection(list);
+	}
+	
+	private String calcAge(CloudProcess item){
+		String result = "";
+		
+		if (item != null) {
+			Date now = new Date();
+			if (now.before(item.getEpoch())) {
+				result += 0;
+			} else {
+				int minutes = 0;
+				int hours = 0;
+				int days = 0;
+
+				// MINUTES
+				if (now.getMinutes() < item.getEpoch().getMinutes())
+					minutes = 60 + now.getMinutes() - item.getEpoch().getMinutes();
+				else
+					minutes = now.getMinutes() - item.getEpoch().getMinutes();
+
+				// HOURS
+				if (now.getHours() > item.getEpoch().getHours()) {
+					hours += now.getHours() - item.getEpoch().getHours();
+					if (now.getMinutes() - item.getEpoch().getMinutes() < 0)
+						hours--;
+				} else if (now.getHours() < item.getEpoch().getHours())
+					hours += 24 - (item.getEpoch().getHours() - now.getHours());
+
+				// DAYS
+				days = (int) ((now.getTime() - item.getEpoch().getTime()) / (1000 * 60 * 60 * 24));
+
+				if (days == 0) {
+					int hoursDifference = 0;
+					if (now.getHours() >= item.getEpoch().getHours())
+						hoursDifference = now.getHours() - item.getEpoch().getHours();
+					else
+						hoursDifference = 24 - (item.getEpoch().getHours() - now.getHours());
+					int minutesDifference = now.getMinutes() - item.getEpoch().getMinutes();
+					if (hoursDifference == 0 || (hoursDifference == 1 && minutesDifference < 0)) {
+						result += minutes + "min";
+					} else {
+						result += hours + "h " + minutes + "min";
+					}
+				} else {
+					if (hours == 0 && minutes == 0)
+						result += days + "d";
+					else if (hours == 0 && minutes > 0)
+						result += days + "d " + minutes + "min";
+					else if (hours > 0 && minutes == 0)
+						result += days + "d " + hours + "h";
+					else
+						result += days + "d " + hours + "h " + minutes + "min";
+				}
+			}
+		}
+		return result;
+	}
+	
 	/**
 	 * 
 	 * @param account
