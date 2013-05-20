@@ -5,9 +5,11 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import n3phele.service.model.core.Entity;
+
 @XmlRootElement(name="CostsCollection")
 @XmlType(name="Costs", propOrder={"total", "elements"})
-public class CostsCollection {
+public class CostsCollection extends Entity{
 	private int total;
 	private List<Double> elements;
 	
