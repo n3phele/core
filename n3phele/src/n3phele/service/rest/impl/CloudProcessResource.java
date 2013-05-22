@@ -14,7 +14,6 @@ package n3phele.service.rest.impl;
 import static com.googlecode.objectify.ObjectifyService.ofy;
 
 import java.net.URI;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -68,14 +67,15 @@ public class CloudProcessResource {
 	public CloudProcessCollection list(
 			@DefaultValue("false") @QueryParam("summary") Boolean summary,
 			@DefaultValue("0") @QueryParam("start") int start,
-			@DefaultValue("-1") @QueryParam("end") int end) throws NotFoundException {
+			@DefaultValue("-1") @QueryParam("end") int end,
+			@DefaultValue("false") @QueryParam("count") Boolean count) throws NotFoundException {
 
 		log.info("list entered with summary "+summary+" from start="+start+" to end="+end);
 
 		if(start < 0)
 			start = 0;
 		
-		Collection<CloudProcess> result = dao.getCollection(start, end, UserResource.toUser(securityContext));// .collection(summary);
+		Collection<CloudProcess> result = dao.getCollection(start, end, UserResource.toUser(securityContext), count);// .collection(summary);
 
 		return new CloudProcessCollection(result);
 	}
@@ -328,8 +328,13 @@ public class CloudProcessResource {
 		 * in the future to return the collection of resources accessible to a particular user.
 		 * @return the collection
 		 */
-		public Collection<CloudProcess> getCollection(int start, int end, User owner) {
-			return owner.isAdmin()? getCollection(start, end):getCollection(start, end, owner.getUri());
+		public Collection<CloudProcess> getCollection(int start, int end, User owner, boolean count) {
+			return owner.isAdmin()? getCollection(start, end, count):getCollection(start, end, owner.getUri(), count);
+		}
+		
+		
+		public Collection<CloudProcess> getCollection(int start, int end){
+			return getCollection(start,end,false);
 		}
 		
 		/**
@@ -337,7 +342,7 @@ public class CloudProcessResource {
 		 * in the future to return the collection of resources accessible to a particular user.
 		 * @return the collection
 		 */
-		public Collection<CloudProcess> getCollection(int start, int end) {
+		public Collection<CloudProcess> getCollection(int start, int end, boolean count) {
 			log.info("admin query");
 			Collection<CloudProcess> result = null;
 			List<CloudProcess> items;
@@ -352,11 +357,19 @@ public class CloudProcessResource {
 
 			result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, items);
 
-			result.setTotal(ofy().load().type(CloudProcess.class).filter("topLevel", true).count());
-
+			if(count)
+			{
+				result.setTotal(ofy().load().type(CloudProcess.class).filter("topLevel", true).count());
+			}
+			
 			log.info("admin query total (with sort) -is- "+result.getTotal());
 
 			return result;
+		}
+		
+
+		public Collection<CloudProcess> getCollection(int start, int end, URI owner) {
+			return getCollection(start,end,owner,false);			
 		}
 		
 		/**
@@ -364,7 +377,7 @@ public class CloudProcessResource {
 		 * in the future to return the collection of resources accessible to a particular user.
 		 * @return the collection
 		 */
-		public Collection<CloudProcess> getCollection(int start, int end, URI owner) {
+		public Collection<CloudProcess> getCollection(int start, int end, URI owner, boolean count) {
 			log.info("non-admin query");
 			Collection<CloudProcess> result = null;
 			List<CloudProcess> items;
@@ -379,7 +392,11 @@ public class CloudProcessResource {
 
 			result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, items);
 
-			result.setTotal(ofy().load().type(CloudProcess.class).filter("owner", owner.toString()).filter("topLevel", true).count());
+			if(count)
+			{
+				result.setTotal(ofy().load().type(CloudProcess.class).filter("owner", owner.toString()).filter("topLevel", true).count());
+			}
+						
 			return result;
 		}
 
