@@ -1,0 +1,21 @@
+# testTwoFilesSend.n
+# Author: Lucas Pugens
+name	   :  testTwoFilesSend
+description: bla bla
+version	   : 0.0.4
+preferred  : true
+public	   : true
+icon	   : http://www.n3phele.com/icons/custom
+parameters :
+	int n	= 1 	# how many to create
+input files:
+	environments.yaml # Input file to configure juju
+	optional juju_sshKey_input.key #ssh key if you already have a bootstrap machine
+EC2: # Amazon EC2
+	$$my_vmLucas = CREATEVM --name myVM --n $$n
+	ON $$my_vmLucas cat environments.yaml
+	ON $$my_vmLucas if[ -f "~/juju_sshKey_input.key" ] ; then cat juju_sshKey_input.key; fi
+HPZone1: # HP Cloud
+	$$my_vmLucas = CREATEVM --name myVM --n $$n
+	ON $$my_vmLucas cat environments.yaml
+	ON $$my_vmLucas if[ -f "~/juju_sshKey_input.key" ] ; then cat juju_sshKey_input.key; fi

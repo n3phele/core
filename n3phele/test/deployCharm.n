@@ -1,0 +1,51 @@
+# deployCharm.n
+# Author: Lucas Pugens
+name	   : deployCharm
+description: deploy a charm
+version	   : 0.2.9
+preferred  : true
+public	   : true
+icon	   : http://www.n3phele.com/icons/custom
+parameters :
+	int n	= 1 	# how many to create
+	string juju_version = "0.6" # version to download of juju
+	string charm = "nyancat" # charm to deploy
+	string charm_name = "nyan01" # a name to deployed charm
+input files:
+	environments.yaml # Input file to configure juju
+	juju_sshKey.txt # ssh private key to access the bootstrap
+	juju_sshKey.pub # ssh public key to access the bootstrap
+EC2: # Amazon EC2
+	$$my_vmPugens = CREATEVM --name myVM --n $$n 
+	ON $$my_vmPugens mkdir ~/.juju/
+	ON $$my_vmPugens mv environments.yaml ~/.juju/environments.yaml
+	ON $$my_vmPugens mv juju_sshKey.txt ~/.ssh/id_rsa
+	ON $$my_vmPugens chmod go-rxw ~/.ssh/id_rsa
+	ON $$my_vmPugens cat juju_sshKey.pub >> ~/.ssh/authorized_keys
+	ON $$my_vmPugens mv juju_sshKey.pub ~/.ssh/id_rsa.pub
+
+	ON $$my_vmPugens ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i n3phele-.pem ubuntu@localhost exec ssh-agent ssh-add
+
+	ON $$my_vmPugens sudo apt-get -y install python-software-properties
+	ON $$my_vmPugens sudo add-apt-repository -y ppa:juju/$$juju_version
+	ON $$my_vmPugens sudo apt-get update -y && sudo apt-get install -y -qq juju
+
+	ON $$my_vmPugens juju deploy $$charm $$charm_name
+HPZone1: # HP Cloud
+	$$my_vmPugens = CREATEVM --name myVM --n $$n
+	ON $$my_vmPugens mkdir ~/.juju/
+	ON $$my_vmPugens mv environments.yaml ~/.juju/environments.yaml
+	ON $$my_vmPugens mv juju_sshKey.txt ~/.ssh/id_rsa
+	ON $$my_vmPugens chmod go-rxw ~/.ssh/id_rsa
+	ON $$my_vmPugens cat juju_sshKey.pub >> ~/.ssh/authorized_keys
+	ON $$my_vmPugens mv juju_sshKey.pub ~/.ssh/id_rsa.pub
+
+	ON $$my_vmPugens ssh -t -t -v -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@localhost exec ssh-agent ssh-add
+
+	ON $$my_vmPugens sudo apt-get -y install python-software-properties
+	ON $$my_vmPugens sudo add-apt-repository -y ppa:juju/$$juju_version
+	ON $$my_vmPugens sudo apt-get update -y && sudo apt-get install -y -qq juju
+
+	ON $$my_vmPugens echo -e "Host *\nStrictHostKeyChecking no" >> ~/.ssh/config
+	ON $$my_vmPugens juju deploy $$charm $$charm_name
+	ON $$my_vmPugens rm -f ~/.ssh/config
