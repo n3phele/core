@@ -546,7 +546,7 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		options.setMax((int) max + 1);
 		options.setMin((int) min);
 		options.setPointSize(2);
-		options.setAxisFontSize(11.0);
+		options.setAxisFontSize(12.5);
 		return options;
 	}
 
@@ -596,14 +596,14 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 
 							value += chartValues.get(i);
 							data.addRow();
-							data.setValue(i, 0, "" + month[date.getMonth()] + date.getDate());
+							data.setValue(i, 0, "" + month[date.getMonth()] +" "+ date.getDate());
 							data.setValue(i, 1, value);
 							CalendarUtil.addDaysToDate(date, 1);
 						}
 					} else {
 						for (int i = 0; i < chartValues.size(); i++) {
 							data.addRow();
-							data.setValue(i, 0, "" + month[date.getMonth()] + date.getDate());
+							data.setValue(i, 0, "" + month[date.getMonth()] +" "+ date.getDate());
 							data.setValue(i, 1, chartValues.get(i));
 							CalendarUtil.addDaysToDate(date, 1);
 						}
@@ -618,14 +618,14 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 						for (int i = 0; i < chartValues.size(); i++) {
 							value += chartValues.get(i);
 							data.addRow();
-							data.setValue(i, 0, "" + month[date.getMonth()] + date.getDate());
+							data.setValue(i, 0, "" + month[date.getMonth()] +" "+ date.getDate());
 							data.setValue(i, 1, value);
 							CalendarUtil.addDaysToDate(date, 1);
 						}
 					} else {
 						for (int i = 0; i < chartValues.size(); i++) {
 							data.addRow();
-							data.setValue(i, 0, "" + month[date.getMonth()] + date.getDate());
+							data.setValue(i, 0, "" + month[date.getMonth()] +" "+ date.getDate());
 							data.setValue(i, 1, chartValues.get(i));
 							CalendarUtil.addDaysToDate(date, 1);
 						}

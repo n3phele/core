@@ -67,7 +67,6 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 		this.factory = factory;
 		this.historyMapper = factory.getHistoryMapper();
 		this.accountUri = accountUri;
-
 		this.display = factory.getAccountHyperlinkView(accountUri);
 		this.cacheManager = factory.getCacheManager();
 		this.eventBus = factory.getEventBus();
@@ -213,6 +212,7 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 						GWT.log("Got reply");
 						CloudProcess result = CloudProcess.asCloudProcess(response.getText());
 						// TODO
+						// This method is not being used yet
 						// do something with the "display"
 						// result
 
