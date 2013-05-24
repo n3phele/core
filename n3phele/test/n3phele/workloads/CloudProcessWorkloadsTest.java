@@ -33,7 +33,7 @@ import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
 import com.googlecode.objectify.Key;
 
-public class CloudProcessWorkloads  {
+public class CloudProcessWorkloadsTest  {
 	
 	private final LocalServiceTestHelper helper =   new LocalServiceTestHelper(
 			new LocalDatastoreServiceTestConfig()
