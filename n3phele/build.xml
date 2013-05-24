@@ -4,11 +4,18 @@
 	<property name="gwt.dir" location="/home/ubuntu/gwt-2.5.0" />
 	<property name="src.dir" value="src"/>
 	<property name="classes.dir" value="build/classes"/>
-	<path id="project.classpath">
-		<pathelement path="${classes.dir}"/>
-		<path refid="classpath" />
-	</path>
+	<property name="emma.dir" value="war/WEB-INF/lib"/>
+	<property name="emma-coverage.file" value="${emma.dir}/coverage.emma"/>
+	<property name="instrument.dir" value="${emma.dir}/instrument"/>
+		
 	<import file="${sdk.dir}/config/user/ant-macros.xml" />
+	
+	<path id="emma.classpath" >
+		<pathelement location="${emma.dir}/emma.jar" />
+		<pathelement location="${emma.dir}/emma_ant.jar" />
+	</path>
+	
+	<taskdef resource="emma_ant.properties" classpathref="emma.classpath" />
 
 	<target name="copyjars"
       description="Copies the App Engine JARs to the WAR.">
@@ -23,6 +30,7 @@
 
 	<path id="project.classpath">
 		<pathelement path="war/WEB-INF/classes" />
+		<path refid="classpath" />
 		<fileset dir="war/WEB-INF/lib">
 			<include name="**/*.jar" />
 		</fileset>
@@ -106,15 +114,18 @@
 			<appcfg action="update" war="war" />
 	</target>
 	
-	<target name="report-test" depends="gwt_compile">
+	<target name="report-test" depends="instrument">
 		<mkdir dir="${test-reports.dir}"/>
 		<mkdir dir="${test-reports-xml.dir}"/>
 		<mkdir dir="${test-reports-html.dir}"/>
+		<mkdir dir="${emma.dir}"/>
 		
-		<junit printsummary="on" haltonfailure="false">
+		<junit fork="yes" printsummary="on" haltonfailure="false" forkmode="once">
 		    
 			<classpath>
+				<pathelement location="${instrument.dir}" />
 				<path refid="project.classpath" />
+				<path refid="emma.classpath" />
 			</classpath>
 			
 			<formatter type="xml"/>
@@ -123,6 +134,9 @@
 						<include name="**/*Test.java"/>
 					</fileset>
 				</batchtest>
+				
+			<jvmarg value="-Demma.coverage.out.file=${emma-coverage.file}" />
+			<jvmarg value="-Demma.coverage.out.merge=true" />
 		</junit>
 		
 		<junitreport todir="${test-reports-xml.dir}">
@@ -131,9 +145,20 @@
 			</fileset>
 			<report format="frames" todir="${test-reports-html.dir}"/>
 		</junitreport>
-		
-		
-		
+		<delete file="${test-reports-xml.dir}/TESTS-TestSuites.xml"/>		
+	</target>
+	
+	<target name="instrument" depends="gwt_compile">
+		<mkdir dir="${instrument.dir}"/>
+		<emma enabled="true" >
+			<instr instrpathref="project.classpath"
+					destdir="${instrument.dir}"
+					metadatafile="${emma-coverage.file}"
+					merge="true"
+			>
+			<filter excludes="org.*, junit.*, *.tests.*" />
+			</instr>
+		</emma>
 	</target>
 
 </project>
