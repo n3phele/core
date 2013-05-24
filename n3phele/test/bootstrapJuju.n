@@ -2,7 +2,7 @@
 # Author: Lucas Pugens
 name	   :  bootstrapJuju
 description: just bootstrap juju and save a ssh_key to access bootstrap
-version	   : 0.2.8
+version	   : 0.2.9
 preferred  : true
 public	   : true
 icon	   : http://www.n3phele.com/icons/custom
@@ -57,3 +57,5 @@ HPZone1: # HP Cloud
 	ON $$my_vmPugens hpcloud copy ~/.ssh/id_rsa :n3phele-service
 	ON $$my_vmPugens hpcloud copy ~/.ssh/id_rsa.pub :n3phele-service
 	ON $$my_vmPugens juju bootstrap
+	ON $$my_vmPugens juju status > /tmp/jujuStatus.txt
+	ON $$my_vmPugens hpcloud copy /tmp/jujuStatus.txt :n3phele-service/juju_status.txt
