@@ -118,7 +118,7 @@
 			<appcfg action="update" war="war" />
 	</target>
 	
-	<target name="report-test" depends="instrument">
+	<target name="report-test" depends="gwt_compile">
 		<mkdir dir="${test-reports.dir}"/>
 		<mkdir dir="${test-reports-xml.dir}"/>
 		<mkdir dir="${test-reports-html.dir}"/>
@@ -152,7 +152,7 @@
 		<delete file="${test-reports-xml.dir}/TESTS-TestSuites.xml"/>		
 	</target>
 	
-	<target name="instrument" depends="gwt_compile">
+	<target name="instrument" depends="report-testgwt_compile">
 		<mkdir dir="${instrument.dir}"/>
 		<emma enabled="true" >
 			<instr instrpathref="project.classpath"
