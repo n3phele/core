@@ -152,7 +152,7 @@
 		<delete file="${test-reports-xml.dir}/TESTS-TestSuites.xml"/>		
 	</target>
 	
-	<target name="instrument" depends="report-testgwt_compile">
+	<target name="instrument" depends="report-test">
 		<mkdir dir="${instrument.dir}"/>
 		<emma enabled="true" >
 			<instr instrpathref="project.classpath"
