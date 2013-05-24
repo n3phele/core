@@ -2,6 +2,12 @@
 
 	<property name="sdk.dir" location="/home/ubuntu/appengine-java-sdk-1.7.5" />
 	<property name="gwt.dir" location="/home/ubuntu/gwt-2.5.0" />
+	<property name="src.dir" value="src"/>
+	<property name="classes.dir" value="build/classes"/>
+	<path id="project.classpath">
+		<pathelement path="${classes.dir}"/>
+		<path refid="classpath" />
+	</path>
 	<import file="${sdk.dir}/config/user/ant-macros.xml" />
 
 	<target name="copyjars"
@@ -98,6 +104,37 @@
 	<target name="update" depends="junit"
 		description="Uploads the application to App Engine.">
 			<appcfg action="update" war="war" />
+	</target>
+	
+	<target name="report-test" depends="gwt_compile">
+		<mkdir dir="${test-reports.dir}"/>
+		<mkdir dir="${test-reports-xml.dir}"/>
+		<mkdir dir="${test-reports-html.dir}"/>
+		
+		<junit printsummary="on" haltonfailure="false">
+		    
+			<classpath>
+				<path refid="project.classpath" />
+			</classpath>
+			
+			<formatter type="xml"/>
+				<batchtest todir="${test-reports-xml.dir}">
+					<fileset dir="${src.dir}">
+						<include name="**/*Test.java"/>
+					</fileset>
+				</batchtest>
+		</junit>
+		
+		<junitreport todir="${test-reports-xml.dir}">
+			<fileset dir="${test-reports-xml.dir}">
+				<include name="TEST-*.xml"/>
+			</fileset>
+			<report format="frames" todir="${test-reports-html.dir}"/>
+		</junitreport>
+		<delete file="${test-reports-xml.dir}/TESTS-TestSuites.xml"/>
+		
+		
+		
 	</target>
 
 </project>
