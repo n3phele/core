@@ -118,7 +118,7 @@
 			<appcfg action="update" war="war" />
 	</target>
 	
-	<target name="report-test" depends="gwt_compile">
+	<target name="report-test" depends="junit">
 		<mkdir dir="${test-reports.dir}"/>
 		<mkdir dir="${test-reports-xml.dir}"/>
 		<mkdir dir="${test-reports-html.dir}"/>
