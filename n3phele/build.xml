@@ -2,6 +2,9 @@
 
 	<property name="sdk.dir" location="/home/ubuntu/appengine-java-sdk-1.7.5" />
 	<property name="gwt.dir" location="/home/ubuntu/gwt-2.5.0" />
+	<property name="emma.dir" location="war/WEB-INF/lib" />
+	<property name="emma-coverage.file" value="${emma.dir}/coverage.emma"/>
+	<property name="instrument.dir" value="${emma.dir}/instrument"/>
 	<import file="${sdk.dir}/config/user/ant-macros.xml" />
 
 	<target name="copyjars"
@@ -26,7 +29,7 @@
 		<fileset dir="${gwt.dir}">
 			<include name="**/*.jar" />
 		</fileset>
-	</path>
+	</path>	
 
 	<path id="test.classpath">
 		<pathelement location="testClasses" />
@@ -38,6 +41,13 @@
 			<include name="**/*.jar" />
 		</fileset>
 	</path>
+	
+	<path id="emma.classpath" >
+		<pathelement location="${emma.dir}/emma.jar" />
+		<pathelement location="${emma.dir}/emma_ant.jar" />
+	</path>
+	
+	<taskdef resource="emma_ant.properties" classpathref="emma.classpath" />
 
 	<target name="compile" depends="copyjars"
       description="Compiles Java source and copies other source files to the WAR.">
@@ -87,17 +97,36 @@
       />
 	</target>
 
-	<target name="junit" depends="gwt_compile">
-		<junit fork="no" haltonfailure="yes">
+	<target name="junit" depends="instrument">
+	    <mkdir dir="${emma.dir}"/> 
+		<junit fork="yes" printsummary="on" haltonfailure="false" forkmode="once">
 			<test name="n3phele.AllUnitTests" />
 			<formatter type="plain" usefile="false" />
-			<classpath refid="test.classpath" />
+			<classpath>
+			    <path refid="test.classpath"  />
+			    <path refid="emma.classpath" />
+				<jvmarg value="-Demma.coverage.out.file=${emma-coverage.file}" />
+				<jvmarg value="-Demma.coverage.out.merge=true" />
+			</classpath>
 		</junit>
 	</target>
 	
 	<target name="update" depends="junit"
 		description="Uploads the application to App Engine.">
 			<appcfg action="update" war="war" />
+	</target>
+	
+	<target name="instrument" depends="gwt_compile">
+		<mkdir dir="${instrument.dir}"/>
+		<emma enabled="true" >
+		<instr instrpathref="project.classpath"
+			destdir="${instrument.dir}"
+			metadatafile="${emma-coverage.file}"
+			merge="true"
+			>
+			<filter excludes="org.*, junit.*, *.tests.*" />
+		</instr>
+		</emma>
 	</target>
 
 </project>
