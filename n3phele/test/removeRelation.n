@@ -1,7 +1,7 @@
-# addRelationService.n
+# removeRelationService.n
 # Author: Lucas Pugens
-name	   : addRelationService
-description: create a relation between two services
+name	   : removeRelationService
+description: remove a relation betwee two services
 version	   : 0.1.0
 preferred  : true
 public	   : true
@@ -30,7 +30,7 @@ EC2: # Amazon EC2
 	ON $$my_vmPugens sudo apt-get update -y && sudo apt-get install -y -qq juju
 
 	ON $$my_vmPugens echo -e "Host *\nStrictHostKeyChecking no" >> ~/.ssh/config
-	ON $$my_vmPugens juju add-relation $$charm_name01 $$charm_name02
+	ON $$my_vmPugens juju remove-relation $$charm_name01 $$charm_name02
 	ON $$my_vmPugens rm -f ~/.ssh/config
 HPZone1: # HP Cloud
 	$$my_vmPugens = CREATEVM --name myVM --n $$n
@@ -64,5 +64,5 @@ HPZone1: # HP Cloud
 	ON $$my_vmPugens sudo add-apt-repository -y ppa:juju/$$juju_version
 	ON $$my_vmPugens sudo apt-get update -y && sudo apt-get install -y -qq juju
 	ON $$my_vmPugens echo -e "Host *\nStrictHostKeyChecking no" >> ~/.ssh/config
-	ON $$my_vmPugens juju add-relation $$charm_name01 $$charm_name02
+	ON $$my_vmPugens juju remove-relation $$charm_name01 $$charm_name02
 	ON $$my_vmPugens rm -f ~/.ssh/config
