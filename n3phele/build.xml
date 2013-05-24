@@ -138,9 +138,10 @@
 						<include name="**/*Test.java"/>
 					</fileset>
 				</batchtest>
-				
+				<classpath>
 			<jvmarg value="-Demma.coverage.out.file=${emma-coverage.file}" />
 			<jvmarg value="-Demma.coverage.out.merge=true" />
+			</classpath>
 		</junit>
 		
 		<junitreport todir="${test-reports-xml.dir}">
