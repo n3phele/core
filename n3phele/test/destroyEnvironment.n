@@ -68,3 +68,6 @@ HPZone1: # HP Cloud
 	yes
 	EOF
 	ON $$my_vmPugens rm -f ~/.ssh/config
+	ON $$my_vmPugens hpcloud remove :n3phele-service/juju_status.txt
+	ON $$my_vmPugens hpcloud remove :n3phele-service/id_rsa
+	ON $$my_vmPugens hpcloud remove :n3phele-service/id_rsa.pub

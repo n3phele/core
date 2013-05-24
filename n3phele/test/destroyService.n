@@ -2,7 +2,7 @@
 # Author: Lucas Pugens
 name	   : destroyService
 description: destroy a service
-version	   : 0.1.0
+version	   : 0.1.1
 preferred  : true
 public	   : true
 icon	   : http://www.n3phele.com/icons/custom
@@ -65,3 +65,5 @@ HPZone1: # HP Cloud
 	ON $$my_vmPugens echo -e "Host *\nStrictHostKeyChecking no" >> ~/.ssh/config
 	ON $$my_vmPugens juju destroy-service $$charm_name
 	ON $$my_vmPugens rm -f ~/.ssh/config
+	ON $$my_vmPugens juju status > /tmp/jujuStatus.txt
+	ON $$my_vmPugens hpcloud copy /tmp/jujuStatus.txt :n3phele-service/juju_status.txt

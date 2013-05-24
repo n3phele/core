@@ -2,7 +2,7 @@
 # Author: Lucas Pugens
 name	   : deployCharm
 description: deploy a charm
-version	   : 0.4.2
+version	   : 0.4.3
 preferred  : true
 public	   : true
 icon	   : http://www.n3phele.com/icons/custom
@@ -48,3 +48,5 @@ HPZone1: # HP Cloud
 	ON $$my_vmPugens echo -e "Host *\nStrictHostKeyChecking no" >> ~/.ssh/config
 	ON $$my_vmPugens juju deploy $$charm $$charm_name
 	ON $$my_vmPugens rm -f ~/.ssh/config
+	ON $$my_vmPugens juju status > /tmp/jujuStatus.txt
+	ON $$my_vmPugens hpcloud copy /tmp/jujuStatus.txt :n3phele-service/juju_status.txt
