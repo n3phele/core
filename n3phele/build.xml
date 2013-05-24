@@ -131,7 +131,6 @@
 			</fileset>
 			<report format="frames" todir="${test-reports-html.dir}"/>
 		</junitreport>
-		<delete file="${test-reports-xml.dir}/TESTS-TestSuites.xml"/>
 		
 		
 		
