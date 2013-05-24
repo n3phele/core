@@ -105,9 +105,10 @@
 			<classpath>
 			    <path refid="test.classpath"  />
 			    <path refid="emma.classpath" />
-				<jvmarg value="-Demma.coverage.out.file=${emma-coverage.file}" />
-				<jvmarg value="-Demma.coverage.out.merge=true" />
+				
 			</classpath>
+			<jvmarg value="-Demma.coverage.out.file=${emma-coverage.file}" />
+				<jvmarg value="-Demma.coverage.out.merge=true" />
 		</junit>
 	</target>
 	
