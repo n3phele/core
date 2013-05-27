@@ -3,9 +3,6 @@ package n3phele.workloads;
 
 import static org.junit.Assert.assertEquals;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.Principal;
@@ -32,7 +29,6 @@ import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestC
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
 import com.googlecode.objectify.Key;
-import com.ibm.icu.impl.Assert;
 
 public class CloudProcessWorkloadsTest  {
 	
