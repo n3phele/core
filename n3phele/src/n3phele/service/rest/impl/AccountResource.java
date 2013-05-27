@@ -294,7 +294,7 @@ public class AccountResource {
 
 		List<CloudProcess> list = dao.getAllProcessByDays(account, days).getElements();
 		List<Double> listfinal = new ArrayList<Double>();
-		MutableDateTime date = new MutableDateTime();
+		MutableDateTime date = createMutableTime();
 		date.setMillisOfDay(0);
 
 		DateTime cloudProcessEpoch, cloudProcessComplete;
@@ -310,10 +310,9 @@ public class AccountResource {
 				cloudProcess.setEpoch(cloudProcess.getStart());
 			
 			if(cloudProcess.getComplete() == null){
-				MutableDateTime fakecomplete = new MutableDateTime();
+				MutableDateTime fakecomplete = createMutableTime();
 				cloudProcess.setComplete(fakecomplete.toDate());
-			}
-				
+			}				
 			
 			cloudProcessEpoch = new DateTime(cloudProcess.getEpoch());
 			cloudProcessComplete = new DateTime(cloudProcess.getComplete());
@@ -398,20 +397,24 @@ public class AccountResource {
 		return new CostsCollection(listfinal);
 	}
 
+	public MutableDateTime createMutableTime() {
+		return new MutableDateTime();
+	}
+
 	private CostsCollection listCost24hours(String account) {
 		List<CloudProcess> list = dao.getAllProcessByDays(account, 1).getElements();
 		List<Double> listfinal = new ArrayList<Double>();
 		MutableDateTime dateStart, dateEnd;
-		DateTime cpStart, cpComplete, now;
-		dateStart = new MutableDateTime();
-		dateEnd = new MutableDateTime();
+		MutableDateTime cpStart, cpComplete, now;
+		dateStart = createMutableTime();
+		dateEnd = createMutableTime();
 		dateStart.setMinuteOfHour(0);
 		dateStart.setSecondOfMinute(0);
 		dateStart.setMillisOfSecond(0);
 		dateStart.addHours(1);
 		dateEnd = dateStart.copy();
 		dateStart.addDays(-1);
-		now = new DateTime();
+		now = createMutableTime();
 //
 //		System.out.println("Size " + list.size());
 //		System.out.println("dateStart: " + dateStart);
@@ -423,11 +426,11 @@ public class AccountResource {
 		}
 
 		for (CloudProcess cloudProcess : list) {
-			cpStart = new DateTime(cloudProcess.getEpoch());
+			cpStart = new MutableDateTime(cloudProcess.getEpoch());
 			if (cloudProcess.getComplete() != null)
-				cpComplete = new DateTime(cloudProcess.getComplete());
+				cpComplete = new MutableDateTime(cloudProcess.getComplete());
 			else
-				cpComplete = new DateTime(Long.MAX_VALUE);
+				cpComplete = new MutableDateTime(Long.MAX_VALUE);
 
 //			System.out.println("cpStart: " + cpStart);
 //			System.out.println("cpComplete: " + cpComplete + "\n");
