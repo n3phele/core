@@ -136,6 +136,7 @@ public abstract class AbstractCloudProcessActivity extends AbstractActivity {
 			}
 		};
 		refreshTimer.scheduleRepeating(30000);
+		
 	}
 	
 	private void killRefreshTimer() {

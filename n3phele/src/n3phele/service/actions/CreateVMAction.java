@@ -94,7 +94,7 @@ public class CreateVMAction extends Action {
 	/* (non-Javadoc)
 	 * @see n3phele.service.model.Action#getDescription()
 	 */
-	@Override
+	@Override 
 	public String getDescription() {
 		StringBuilder desc = new StringBuilder("Create ");
 		int n = this.getContext().getIntegerValue("n");
@@ -360,7 +360,7 @@ public class CreateVMAction extends Action {
 						log.log(Level.SEVERE, "VM fetch", e);
 					}
 					ArrayList<CloudProcess> listProcesses = createVMProcesses(refs, forceAgentRestart, myCloud.getFactoryCredential(), agentCredential);
-					double value = -1;
+					double value = 0;
 					if(vs!= null)
 					value = getValueByCDN(myCloud, vs.getParameters());
 					Date date = null;
