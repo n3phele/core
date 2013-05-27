@@ -55,6 +55,12 @@ public class ServiceModelDao<T> extends GenericModelDao<T> {
 		ObjectifyService.register(OnAction.class);
 		ObjectifyService.register(ServiceAction.class);
 		ObjectifyService.register(VMAction.class);
+	
+		
+		//new classes for Services and Stacks structure
+		
+		ObjectifyService.register(Stack.class);
+		ObjectifyService.register(Service.class);
 	}
 	public ServiceModelDao(Class<T> clazz) {
 		super(clazz);
