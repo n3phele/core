@@ -386,12 +386,12 @@ public class AccountResource {
 
 			}
 		}
-//		int i = 0;
-//		for (Double double1 : listfinal) {
-//			String s = String.format("%.2f", double1);
-//			listfinal.set(i, Double.parseDouble(s));
-//			i++;
-//		}
+		
+		// ?? format double - use ValueOf or Parse?
+		/*for (int i = 0; i < listfinal.size(); i++) {
+			listfinal.set(i, Double.valueOf(String.format("%.3f", listfinal.get(i)).replace(',', '.')));
+		}*/
+		formatDoubleList(listfinal);
 		
 		return new CostsCollection(listfinal);
 	}
@@ -414,12 +414,7 @@ public class AccountResource {
 		dateEnd = dateStart.copy();
 		dateStart.addDays(-1);
 		now = createMutableTime();
-//
-//		System.out.println("Size " + list.size());
-//		System.out.println("dateStart: " + dateStart);
-//		System.out.println("dateEnd: " + dateEnd);
-//		System.out.println("now: " + now + "\n");
-
+		
 		for (int i = 0; i < 24; i++) {
 			listfinal.add(0.0);
 		}
@@ -430,9 +425,6 @@ public class AccountResource {
 				cpComplete = new MutableDateTime(cloudProcess.getComplete());
 			else
 				cpComplete = new MutableDateTime(Long.MAX_VALUE);
-
-//			System.out.println("cpStart: " + cpStart);
-//			System.out.println("cpComplete: " + cpComplete + "\n");
 
 			int hourStart = 0;
 			int hourEnd = 0;
@@ -527,14 +519,16 @@ public class AccountResource {
 				listfinal.set(j, listfinal.get(j) + cloudProcess.getCostPerHour());
 			}
 		}
-
-//		Just for tests
-//		for (Double d : listfinal) {
-//			System.out.println(dateStart.getHourOfDay() + " -> " + d);
-//			dateStart.addHours(1);
-//		}
+		
+		formatDoubleList(listfinal);
 
 		return new CostsCollection(listfinal);
+	}
+
+	protected void formatDoubleList(List<Double> listfinal) {
+		for (int i = 0; i < listfinal.size(); i++) {
+			listfinal.set(i, Double.parseDouble(String.format("%.3f", listfinal.get(i)).replace(',', '.')));
+		}
 	}
 
 
@@ -557,28 +551,7 @@ public class AccountResource {
 		Account item = dao.load(id, UserResource.toUser(securityContext));
 		return item;
 	}
-
-	// @GET
-	// @Path("{id}/init")
-	// @Produces("text/plain")
-	// @RolesAllowed("authenticated")
-	// public Response init(@PathParam ("id") Long id) throws NotFoundException
-	// {
-	// Account item = dao.load(id, UserResource.toUser(securityContext));
-	// Cloud myCloud = CloudResource.dao.load(item.getCloud(),
-	// UserResource.toUser(securityContext));
-	// String result = CloudResource.testAccount(myCloud,
-	// UserResource.toUser(securityContext), item, true);
-	// if(result == null || result.trim().length()==0) {
-	// return
-	// Response.ok("ok",MediaType.TEXT_PLAIN_TYPE).location(item.getUri()).build();
-	// } else {
-	// log.warning("Init "+item.getUri()+" with warnings "+result);
-	// return
-	// Response.ok(result,MediaType.TEXT_PLAIN_TYPE).location(item.getUri()).build();
-	// }
-	// }
-
+	
 	@DELETE
 	@Path("{id}")
 	@RolesAllowed("authenticated")
