@@ -6,7 +6,6 @@ import java.util.List;
 import n3phele.client.presenter.helpers.SafeDate;
 
 import com.google.gwt.core.client.JavaScriptObject;
-import com.ibm.icu.text.DecimalFormat;
 
 public class CloudProcess extends Entity {
 	protected CloudProcess() {}
@@ -80,12 +79,6 @@ public class CloudProcess extends Entity {
 	public native final String complete() /*-{
 		return this.complete;
 	}-*/;
-	public native final String getCost2() /*-{
-		return this.costPerHour;
-	}-*/;
-	public final double getCost(){
-		return Double.parseDouble(getCost2());
-	};
 	
 	public static final native CloudProcess asCloudProcess(String assumedSafe) /*-{
 		return eval("("+assumedSafe+")");

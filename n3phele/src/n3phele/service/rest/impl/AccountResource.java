@@ -6,9 +6,8 @@
 package n3phele.service.rest.impl;
 
 import static com.googlecode.objectify.ObjectifyService.ofy;
-
 import java.net.URI;
-import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -37,15 +36,11 @@ import n3phele.service.model.CachingAbstractManager;
 import n3phele.service.model.Cloud;
 import n3phele.service.model.CloudProcess;
 import n3phele.service.model.CloudProcessCollection;
-import n3phele.service.model.CostsCollection;
 import n3phele.service.model.ServiceModelDao;
 import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.Credential;
 import n3phele.service.model.core.GenericModelDao;
 import n3phele.service.model.core.User;
-
-import org.joda.time.DateTime;
-import org.joda.time.MutableDateTime;
 
 @Path("/account")
 public class AccountResource {
@@ -54,12 +49,14 @@ public class AccountResource {
 	@Context
 	UriInfo uriInfo;
 	@Context
-	protected SecurityContext securityContext;
+	protected
+	SecurityContext securityContext;
 
 	@GET
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
-	public AccountCollection list(@DefaultValue("false") @QueryParam("summary") Boolean summary) {
+	public AccountCollection list(
+			@DefaultValue("false") @QueryParam("summary") Boolean summary) {
 
 		log.warning("list Accounts entered with summary " + summary);
 
@@ -71,13 +68,18 @@ public class AccountResource {
 	@POST
 	@Produces("text/plain")
 	@RolesAllowed("authenticated")
-	public Response add(@FormParam("name") String name, @FormParam("description") String description, @FormParam("cloud") URI cloud, @FormParam("accountId") String accountId, @FormParam("secret") String secret) {
+	public Response add(@FormParam("name") String name,
+			@FormParam("description") String description,
+			@FormParam("cloud") URI cloud,
+			@FormParam("accountId") String accountId,
+			@FormParam("secret") String secret) {
 
 		Cloud myCloud = CloudResource.dao.load(cloud, UserResource.toUser(securityContext));
 		if (name == null || name.trim().length() == 0) {
 			throw new IllegalArgumentException("bad name");
 		}
-		Account account = new Account(name, description, cloud, myCloud.getName(), new Credential(accountId, secret).encrypt(), UserResource.toUser(securityContext).getUri(), false);
+		Account account = new Account(name, description, cloud, myCloud.getName(), new Credential(accountId, secret).encrypt(),
+				UserResource.toUser(securityContext).getUri(), false);
 
 		dao.add(account);
 		String result = CloudResource.testAccount(myCloud, UserResource.toUser(securityContext), account, true);
@@ -94,7 +96,12 @@ public class AccountResource {
 	@Produces("application/json")
 	@Path("{id}")
 	@RolesAllowed("authenticated")
-	public Account update(@PathParam("id") Long id, @FormParam("name") String name, @FormParam("description") String description, @FormParam("cloud") URI cloud, @FormParam("accountId") String accountId, @FormParam("secret") String secret) {
+	public Account update(@PathParam("id") Long id,
+			@FormParam("name") String name,
+			@FormParam("description") String description,
+			@FormParam("cloud") URI cloud,
+			@FormParam("accountId") String accountId,
+			@FormParam("secret") String secret) {
 
 		Cloud myCloud = CloudResource.dao.load(cloud, UserResource.toUser(securityContext));
 		Account item = dao.load(id, UserResource.toUser(securityContext));
@@ -118,301 +125,16 @@ public class AccountResource {
 		return item;
 	}
 
-	/**
-	 * @param account
-	 * @param days
-	 * @return All CloudProcess of the account passed who were completed in the
-	 *         number of days given.
-	 */
 	@GET
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
-	@Path("/{account}/lastcompleted/{days:[0-9]+}")
+//	@Path("/lastcompleted/{days:[0-9]+}")
+	@Path("/lastcompleted/{account}/{days:[0-9]+}")
 	public CloudProcessCollection listCloudProcessWithCosts(@PathParam("account") String account, @PathParam("days") int days) {
 
 		Collection<CloudProcess> result = dao.getCostsOfAccount(account, days);
 		return new CloudProcessCollection(result);
 	}
-
-	/**
-	 * @param account
-	 * @param days
-	 * @return All CloudProcess of the account passed who still running or were
-	 *         completed in the number of days given.
-	 */
-	@GET
-	@Produces("application/json")
-	@RolesAllowed("authenticated")
-	@Path("/{account}/lastcompleted/{days:[0-9]+}/all")
-	public CloudProcessCollection listAllCloudProcessWithCosts(@PathParam("account") String account, @PathParam("days") int days) {
-
-		Collection<CloudProcess> result = dao.getAllProcessByDays(account, days);
-		return new CloudProcessCollection(result);
-	}
-
-	/**
-	 * @param account
-	 * @return All CloudProcess who still running.
-	 */
-	@GET
-	@Produces("application/json")
-	@RolesAllowed("authenticated")
-	@Path("/{account}/runningprocess")
-	public CloudProcessCollection listRunningCloudProcessWithCosts(@PathParam("account") String account, @PathParam("days") int days) {
-
-		Collection<CloudProcess> result = dao.getRunningProcess(account);
-		return new CloudProcessCollection(result);
-	}
-
-	/**
-	 * 
-	 * @param account
-	 * @param days
-	 * @return Collection of costs for the graphs
-	 */
-	
-	@GET
-	@Produces("application/json")
-	@RolesAllowed("authenticated")
-	@Path("/{account}/lastcompleted/{days:[0-9]+}/get")
-	public CostsCollection listCostPerDays(@PathParam("account") String account, @PathParam("days") int days) {
-		
-		if (days == 1) {
-			return listCost24hours(account);
-		}
-	
-		List<CloudProcess> list = dao.getAllProcessByDays(account, days).getElements();
-		List<Double> listfinal = new ArrayList<Double>();
-		MutableDateTime date = new MutableDateTime();
-		date.setMillisOfDay(0);
-	
-		DateTime cloudProcessEpoch, cloudProcessComplete;
-		long today = date.getMillis();
-	
-		for (int i = 0; i < days; i++) {
-			listfinal.add(0.0);
-		}
-		for (CloudProcess cloudProcess : list) {
-			// just for the fake data
-			
-			if (cloudProcess.getEpoch() == null)
-				cloudProcess.setEpoch(cloudProcess.getStart());
-			
-			if(cloudProcess.getComplete() == null){
-				MutableDateTime fakecomplete = new MutableDateTime();
-				cloudProcess.setComplete(fakecomplete.toDate());
-			}
-				
-			
-			cloudProcessEpoch = new DateTime(cloudProcess.getEpoch());
-			cloudProcessComplete = new DateTime(cloudProcess.getComplete());
-	
-			
-			MutableDateTime dateStart = new MutableDateTime(cloudProcessEpoch);
-			dateStart.setMillisOfDay(0);
-			MutableDateTime dateComplete = new MutableDateTime(cloudProcessComplete);
-			dateComplete.setMillisOfDay(0);
-	
-			if (dateStart.getMillis() == dateComplete.getMillis()) {
-				dateStart.setTime(cloudProcessEpoch);
-				long time = dateComplete.getMillis();
-				dateComplete.setTime(cloudProcessComplete);
-				long result = today - time;
-	
-				int pos = (int) (result / 1000 / 3600 / 24);
-				int hoursCharged = (int) Math.floor((dateComplete.getMillis() - dateStart.getMillis()) / 3600000);
-				double test = hoursCharged;
-				if (test != (double) (dateComplete.getMillis() - dateStart.getMillis()) / 3600000)
-					hoursCharged = hoursCharged + 1;
-				pos = (days - 1) - pos;
-				listfinal.set(pos, listfinal.get(pos) + cloudProcess.getCostPerHour() * (hoursCharged));
-			} else {
-				//long daysDif = cloudProcessComplete.getMillis() - cloudProcessEpoch.getMillis();
-				long daysDif = dateComplete.getMillis() - dateStart.getMillis();
-				int numDays = (int) (daysDif / 1000 / 3600 / 24);
-				double test = numDays;
-				if (test != ((double) daysDif / 1000 / 3600 / 24))
-					numDays = numDays + 1;
-				long result = today - dateComplete.getMillis();
-				for (int i = 0; i < numDays - 1; i++) {
-					int pos = (int) (result / 1000 / 3600 / 24);
-					pos = (days - 1) - pos;
-					pos = pos - (numDays - 1 - i);
-					if (pos >= 0)
-						listfinal.set(pos, listfinal.get(pos) + cloudProcess.getCostPerHour() * 24);
-				}
-				// after setting the 24hours(an entire day of the machine
-				// running) cases, let's go to the days that were partially
-				// executed
-	
-				int posFinal = (int) (result / 1000 / 3600 / 24);
-				// setting the first day
-				dateStart.setMillis(cloudProcess.getEpoch().getTime());
-				dateComplete.setMillis(cloudProcess.getEpoch().getTime());
-				dateComplete.setDayOfMonth(dateComplete.getDayOfMonth() + 1);
-				dateComplete.setHourOfDay(0);
-				int hoursCharged = (int) Math.floor((dateComplete.getMillis() - dateStart.getMillis()) / 3600000);
-				test = hoursCharged;
-				if (test != (double) (dateComplete.getMillis() - dateStart.getMillis()) / 3600000)
-					hoursCharged = hoursCharged + 1;
-	
-				posFinal = (days - 1) - posFinal - numDays;
-				if (posFinal >= 0)
-					listfinal.set(posFinal, listfinal.get(posFinal) + cloudProcess.getCostPerHour() * (hoursCharged));
-	
-				// setting the last day
-				posFinal = (int) (result / 1000 / 3600 / 24);
-				dateStart.setMillis(cloudProcess.getComplete().getTime());
-				dateComplete.setMillis(cloudProcess.getComplete().getTime());
-				dateStart.setHourOfDay(0);
-				dateStart.setMinuteOfHour(cloudProcessEpoch.getMinuteOfHour());
-				dateStart.setSecondOfMinute(cloudProcessEpoch.getSecondOfMinute());
-				hoursCharged = (int) Math.floor((dateComplete.getMillis() - dateStart.getMillis()) / 3600000);
-				test = hoursCharged;
-				if (test != (double) (dateComplete.getMillis() - dateStart.getMillis()) / 3600000)
-					hoursCharged = hoursCharged + 1;
-				posFinal = (days - 1) - posFinal;
-				//if (posFinal >= 0)
-					listfinal.set(posFinal, listfinal.get(posFinal) + cloudProcess.getCostPerHour() * (hoursCharged));
-	
-			}
-		}
-		//format double
-		for (int i = 0; i < listfinal.size(); i++) {
-			listfinal.set(i, Double.valueOf(String.format("%.3f", listfinal.get(i)).replace(',', '.')));
-		}
-		
-		return new CostsCollection(listfinal);
-	}
-
-	private CostsCollection listCost24hours(String account) {
-		List<CloudProcess> list = dao.getAllProcessByDays(account, 1).getElements();
-		List<Double> listfinal = new ArrayList<Double>();
-		MutableDateTime dateStart, dateEnd;
-		DateTime cpStart, cpComplete, now;
-		dateStart = new MutableDateTime();
-		dateEnd = new MutableDateTime();
-		dateStart.setMinuteOfHour(0);
-		dateStart.setSecondOfMinute(0);
-		dateStart.setMillisOfSecond(0);
-		dateStart.addHours(1);
-		dateEnd = dateStart.copy();
-		dateStart.addDays(-1);
-		now = new DateTime();
-	
-		for (int i = 0; i < 24; i++) {
-			listfinal.add(0.0);
-		}
-	
-		for (CloudProcess cloudProcess : list) {
-			cpStart = new DateTime(cloudProcess.getEpoch());
-			if (cloudProcess.getComplete() != null)
-				cpComplete = new DateTime(cloudProcess.getComplete());
-			else
-				cpComplete = new DateTime(Long.MAX_VALUE);
-	
-			int hourStart = 0;
-			int hourEnd = 0;
-	
-			if (cpStart.isBefore(dateStart)) {
-				// CloudProcess started before last 24h
-	
-				if (cpComplete.isAfter(dateEnd)) {
-					// CloudProcess still running
-					hourStart = 0;
-					hourEnd = 23;
-	
-					if (now.getMinuteOfHour() > cpStart.getMinuteOfHour()) {
-						hourEnd++;
-					} else if (now.getMinuteOfHour() == cpStart.getMinuteOfHour()) {
-						if (now.getSecondOfMinute() > cpStart.getSecondOfMinute()) {
-							hourEnd++;
-						} else if (now.getSecondOfMinute() == cpStart.getSecondOfMinute()) {
-							if (now.getMillisOfSecond() > cpStart.getMillisOfSecond()) {
-								hourEnd++;
-							}
-						}
-					}
-	
-				} else {
-					// CloudProcess terminated in this day
-					hourStart = 0;
-					hourEnd = cpComplete.getHourOfDay() - dateStart.getHourOfDay();
-					if (hourEnd < 0)
-						hourEnd += 24;
-	
-					if (cpComplete.getMinuteOfHour() > cpStart.getMinuteOfHour()) {
-						hourEnd++;
-					} else if (cpComplete.getMinuteOfHour() == cpStart.getMinuteOfHour()) {
-						if (cpComplete.getSecondOfMinute() > cpStart.getSecondOfMinute()) {
-							hourEnd++;
-						} else if (cpComplete.getSecondOfMinute() == cpStart.getSecondOfMinute()) {
-							if (cpComplete.getMillisOfSecond() > cpStart.getMillisOfSecond()) {
-								hourEnd++;
-							}
-						}
-					}
-				}
-	
-			} else {
-				// CloudProcess started today
-	
-				if (cpComplete.isAfter(dateEnd)) {
-					// CloudProcess still running
-					hourStart = cpStart.getHourOfDay() - dateStart.getHourOfDay();
-					if (hourStart < 0)
-						hourStart += 24;
-					hourEnd = 23;
-	
-					if (now.getMinuteOfHour() > cpStart.getMinuteOfHour()) {
-						hourEnd++;
-					} else if (now.getMinuteOfHour() == cpStart.getMinuteOfHour()) {
-						if (now.getSecondOfMinute() > cpStart.getSecondOfMinute()) {
-							hourEnd++;
-						} else if (now.getSecondOfMinute() == cpStart.getSecondOfMinute()) {
-							if (now.getMillisOfSecond() > cpStart.getMillisOfSecond()) {
-								hourEnd++;
-							}
-						}
-					}
-	
-				} else {
-					// CloudProcess terminated today
-					hourStart = cpStart.getHourOfDay() - dateStart.getHourOfDay();
-					hourEnd = cpComplete.getHourOfDay() - dateStart.getHourOfDay();
-					if (hourStart < 0) 
-						hourStart += 24;
-					if(hourEnd < 0)
-						hourEnd += 24;
-						
-	
-					if (cpComplete.getMinuteOfHour() > cpStart.getMinuteOfHour()) {
-						hourEnd++;
-					} else if (cpComplete.getMinuteOfHour() == cpStart.getMinuteOfHour()) {
-						if (cpComplete.getSecondOfMinute() > cpStart.getSecondOfMinute()) {
-							hourEnd++;
-						} else if (cpComplete.getSecondOfMinute() == cpStart.getSecondOfMinute()) {
-							if (cpComplete.getMillisOfSecond() > cpStart.getMillisOfSecond()) {
-								hourEnd++;
-							}
-						}
-					}
-	
-				}
-			}
-			for (int j = hourStart; j < hourEnd; j++) {
-				listfinal.set(j, listfinal.get(j) + cloudProcess.getCostPerHour());
-			}
-		}
-	
-		//format double
-		for (int i = 0; i < listfinal.size(); i++) {
-			listfinal.set(i, Double.parseDouble(String.format("%.3f", listfinal.get(i)).replace(',', '.')));
-		}
-		
-		return new CostsCollection(listfinal);
-	}
-
 
 	@GET
 	@Produces("application/json")
@@ -467,7 +189,8 @@ public class AccountResource {
 	 * Helpers
 	 */
 
-	public String createAccountForUser(User user, String accountId, String secret) throws NotFoundException {
+	public String createAccountForUser(User user, String accountId,
+			String secret) throws NotFoundException {
 		Cloud ec2 = CloudResource.dao.load("EC2", user);
 		Credential credential = null;
 		if (secret != null && secret.trim().length() != 0) {
@@ -567,42 +290,16 @@ public class AccountResource {
 
 		public Collection<CloudProcess> getCostsOfAccount(String account, int days) {
 
-			MutableDateTime date = new MutableDateTime();
-			date.setMinuteOfHour(0);
-			date.setSecondOfMinute(0);
-			date.setMillisOfSecond(0);
-			if (days == 1) {
-				date.addHours(1);
-				date.addDays(-1);
-			} else {
-				date.setHourOfDay(0);
-				date.addDays(-days + 1);
-			}
-			List<CloudProcess> costs = ofy().load().type(CloudProcess.class).filter("account", super.path + "/" + account).filter("complete >", date.toDate()).list();
+			Calendar calendar = Calendar.getInstance();
+			calendar.add(Calendar.DAY_OF_YEAR,0 - days);
+			List<CloudProcess> costs = ofy().load().type(CloudProcess.class).filter("account", super.path + "/" + account).filter("complete >", calendar.getTime()).list();
 			Collection<CloudProcess> result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, costs);
 			result.setTotal(costs.size());
 			return result;
 
 		}
-
-		public Collection<CloudProcess> getRunningProcess(String account) {
-
-			List<CloudProcess> costs = ofy().load().type(CloudProcess.class).filter("account", super.path + "/" + account).filter("complete", null).list();
-			Collection<CloudProcess> result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, costs);
-			result.setTotal(costs.size());
-			return result;
-
-		}
-
-		public Collection<CloudProcess> getAllProcessByDays(String account, int days) {
-			List<CloudProcess> list = dao.getCostsOfAccount(account, days).getElements();
-			list.addAll(dao.getRunningProcess(account).getElements());
-			Collection<CloudProcess> result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, list);
-			result.setTotal(list.size());
-			return result;
-		}
+		
 	}
 
 	final public static AccountManager dao = new AccountManager();
-
 }
