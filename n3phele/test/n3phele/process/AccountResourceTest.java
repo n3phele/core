@@ -240,8 +240,13 @@ public class AccountResourceTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		System.out.println(list);
+		
 		PowerMockito.when(accm.getAllProcessByDays("acc", 7)).thenReturn(col);
 		CostsCollection costs = accr.listCostPerDays("acc", 7);
+		
+		System.out.println(costs.getElements());
 
 		List<Double> listfinal = costs.getElements();
 
