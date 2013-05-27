@@ -64,12 +64,7 @@
 			<jvmarg value="-Xss16M" />
 			<arg value="n3phele.N3phele"/>
 		</java>
-	</target>
-
-	<!-- <target name="datanucleusenhance" depends="gwt_compile"
-      description="Performs JDO enhancement on compiled data classes.">
-		<enhance_war war="war" />
-	</target> -->
+	</target>	
 
 	<target name="compile_tests" depends="compile"
       description="Compiles Java source tests.">
