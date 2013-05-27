@@ -188,11 +188,10 @@ public class AccountResource {
 			if(index > 0)
 				uri = c.getUri().toString().substring(0, index);
 			String age = calcAge(c);
-			Date now = new Date();
+			Date now = createMutableTime().toDate();
 			if (now.before(c.getEpoch())) {
 				costs += 0;
 			} else if (c.getComplete() == null) {
-				Date test = new Date();
 				int hours = (int) (((now.getTime() - c.getEpoch().getTime()) / (1000 * 60 * 60 * 24)) * 24);
 				if (now.getHours() >= c.getEpoch().getHours()) {
 					hours += now.getHours() - c.getEpoch().getHours() + 1;
@@ -223,7 +222,7 @@ public class AccountResource {
 		String result = "";
 		
 		if (item != null) {
-			Date now = new Date();
+			Date now = createMutableTime().toDate();
 			if (now.before(item.getEpoch())) {
 				result += 0;
 			} else {
