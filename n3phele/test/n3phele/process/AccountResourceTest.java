@@ -241,12 +241,8 @@ public class AccountResourceTest {
 			e.printStackTrace();
 		}
 		
-		System.out.println(list);
-		
 		PowerMockito.when(accm.getAllProcessByDays("acc", 7)).thenReturn(col);
 		CostsCollection costs = accr.listCostPerDays("acc", 7);
-		
-		System.out.println(costs.getElements());
 
 		List<Double> listfinal = costs.getElements();
 
@@ -257,7 +253,6 @@ public class AccountResourceTest {
 		Assert.assertEquals("Wrong Value", 12.0, listfinal.get(4));
 		Assert.assertEquals("Wrong Value", 3.0, listfinal.get(5));
 		Assert.assertEquals("Wrong Value", 0.0, listfinal.get(6));
-
 	}
 
 	protected MutableDateTime createMutableTime(long time) {
