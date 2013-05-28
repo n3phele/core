@@ -28,10 +28,10 @@ public class CommandImplementationDefinition {
 	public CommandImplementationDefinition() {}
 
 	public CommandImplementationDefinition(String name, String annotation,
-			Text body, int lineNo) {
+			String body, int lineNo) {
 		this.name = name;
 		this.annotation = annotation;
-		this.body = body;
+		this.body = new Text(body);
 		this.lineNo = lineNo;
 	}
 
@@ -66,15 +66,15 @@ public class CommandImplementationDefinition {
 	/**
 	 * @return the body
 	 */
-	public Text getBody() {
-		return body;
+	public String getBody() {
+		return body.getValue();
 	}
 
 	/**
 	 * @param body the body to set
 	 */
-	public void setBody(Text body) {
-		this.body = body;
+	public void setBody(String body) {
+		this.body = new Text(body);
 	}
 
 	/**
