@@ -122,7 +122,7 @@ public class UserWebServiceTest  {
 
 	}
 	
- @Test
+ //@Test
   public void testAccountDelete() throws Exception {
 	 String myName = "test-user@gmail.com";
 	User user = webResource.path("byName").queryParam("id",myName).accept(MediaType.APPLICATION_JSON_TYPE).get(User.class);

@@ -80,8 +80,18 @@ public class AccountResourceTest {
 	}
 
 	@After
-	public void tearDown() {
+	public void tearDown() throws IllegalArgumentException, IllegalAccessException, SecurityException, NoSuchFieldException {
 		helper.tearDown();
+						
+		Field field = AccountResource.class.getField("dao");
+		field.setAccessible(true);
+
+		// remove final modifier from field
+		Field modifiersField = Field.class.getDeclaredField("modifiers");
+		modifiersField.setAccessible(true);
+		modifiersField.setInt(field, field.getModifiers() | Modifier.FINAL);
+
+		field.set(null, new AccountManager());
 	}
 
 	@Test
@@ -89,11 +99,13 @@ public class AccountResourceTest {
 		AccountResource accr = PowerMockito.spy(new AccountResource());
 		AccountManager accm = PowerMockito.mock(AccountManager.class);
 		PowerMockito.mockStatic(AccountManager.class);
-		DateTimeUtils.setCurrentMillisFixed(1000200000000L);
+		//DateTimeUtils.setCurrentMillisFixed(1000200000000L);
+		PowerMockito.when(accr.createMutableTime()).thenReturn(new MutableDateTime(1000200000000L));
+		
 		ArrayList<CloudProcess> list = new ArrayList<CloudProcess>();
 		CloudProcess p = new CloudProcess();
 		p.setAccount("acc");
-		MutableDateTime c = new MutableDateTime();
+		MutableDateTime c = createMutableTime(1000200000000L);
 		p.setComplete(c.toDate());
 		c.addHours(-10);
 		c.addMinutes(-2);
@@ -105,7 +117,7 @@ public class AccountResourceTest {
 		// second process
 		p = new CloudProcess();
 		p.setAccount("acc");
-		c = new MutableDateTime();
+		c = createMutableTime(1000200000000L);
 		c.addHours(-20);
 		p.setComplete(c.toDate());
 		c.addHours(-5);
@@ -118,7 +130,7 @@ public class AccountResourceTest {
 		// third process
 		p = new CloudProcess();
 		p.setAccount("acc");
-		c = new MutableDateTime();
+		c = createMutableTime(1000200000000L);
 		c.addHours(-1);
 		c.addMinutes(2);
 		p.setEpoch(c.toDate());
@@ -180,13 +192,16 @@ public class AccountResourceTest {
 		AccountManager accm = PowerMockito.mock(AccountManager.class);
 		PowerMockito.mockStatic(AccountManager.class);
 		ArrayList<CloudProcess> list = new ArrayList<CloudProcess>();
-		DateTimeUtils.setCurrentMillisFixed(1000200000000L);
+		//DateTimeUtils.setCurrentMillisFixed(1000200000000L);
+		
+		PowerMockito.when(accr.createMutableTime()).thenReturn(new MutableDateTime(1000200000000L));
+		
 		CloudProcess p = new CloudProcess();
 		p.setAccount("acc");
-		MutableDateTime c = new MutableDateTime();
+		MutableDateTime c = createMutableTime(1000200000000L);
 		c.addDays(-1);
 		p.setComplete(c.toDate());
-		c = new MutableDateTime();
+		c = createMutableTime(1000200000000L);
 		c.addDays(-3);
 		c.addMinutes(3);
 		p.setEpoch(c.toDate());
@@ -195,10 +210,10 @@ public class AccountResourceTest {
 		list.add(p);
 		
 		p = new CloudProcess();
-		c = new MutableDateTime();
+		c = createMutableTime(1000200000000L);
 		c.addDays(-5);
 		p.setComplete(c.toDate());
-		c = new MutableDateTime();
+		c = createMutableTime(1000200000000L);
 		c.addDays(-8);
 		c.addMinutes(1);
 		p.setEpoch(c.toDate());
@@ -207,10 +222,10 @@ public class AccountResourceTest {
 		list.add(p);
 		
 		p = new CloudProcess();
-		c = new MutableDateTime();
+		c = createMutableTime(1000200000000L);
 		c.addDays(-4);
 		p.setComplete(c.toDate());
-		c = new MutableDateTime();
+		c = createMutableTime(1000200000000L);
 		c.addDays(-5);
 		c.addMinutes(-1);
 		p.setEpoch(c.toDate());
@@ -225,6 +240,7 @@ public class AccountResourceTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
 		PowerMockito.when(accm.getAllProcessByDays("acc", 7)).thenReturn(col);
 		CostsCollection costs = accr.listCostPerDays("acc", 7);
 
@@ -237,7 +253,10 @@ public class AccountResourceTest {
 		Assert.assertEquals("Wrong Value", 12.0, listfinal.get(4));
 		Assert.assertEquals("Wrong Value", 3.0, listfinal.get(5));
 		Assert.assertEquals("Wrong Value", 0.0, listfinal.get(6));
+	}
 
+	protected MutableDateTime createMutableTime(long time) {
+		return new MutableDateTime(time);
 	}
 
 	@Test
@@ -246,13 +265,15 @@ public class AccountResourceTest {
 		AccountManager accm = PowerMockito.mock(AccountManager.class);
 		PowerMockito.mockStatic(AccountManager.class);
 		ArrayList<CloudProcess> list = new ArrayList<CloudProcess>();
-		DateTimeUtils.setCurrentMillisFixed(1000200000000L);
+		//DateTimeUtils.setCurrentMillisFixed(1000200000000L);
+
+		PowerMockito.when(accr.createMutableTime()).thenReturn(new MutableDateTime(1000200000000L));
 		CloudProcess p = new CloudProcess();
 		p.setAccount("acc");
-		MutableDateTime c = new MutableDateTime();
+		MutableDateTime c = createMutableTime(1000200000000L);
 		c.addDays(-1);
 		p.setComplete(c.toDate());
-		c = new MutableDateTime();
+		c = createMutableTime(1000200000000L);
 		c.addDays(-3);
 		c.addMinutes(3);
 		p.setEpoch(c.toDate());
@@ -261,10 +282,10 @@ public class AccountResourceTest {
 		list.add(p);
 		
 		p = new CloudProcess();
-		c = new MutableDateTime();
+		c = createMutableTime(1000200000000L);
 		c.addDays(-5);
 		p.setComplete(c.toDate());
-		c = new MutableDateTime();
+		c = createMutableTime(1000200000000L);
 		c.addDays(-8);
 		c.addMinutes(1);
 		p.setEpoch(c.toDate());
@@ -273,10 +294,10 @@ public class AccountResourceTest {
 		list.add(p);
 		
 		p = new CloudProcess();
-		c = new MutableDateTime();
+		c = createMutableTime(1000200000000L);
 		c.addDays(-28);
 		p.setComplete(c.toDate());
-		c = new MutableDateTime();
+		c = createMutableTime(1000200000000L);
 		c.addDays(-30);
 		c.addMinutes(-1);
 		p.setEpoch(c.toDate());
@@ -285,10 +306,10 @@ public class AccountResourceTest {
 		list.add(p);
 		
 		p = new CloudProcess();
-		c = new MutableDateTime();
+		c = createMutableTime(1000200000000L);
 		c.addDays(-5);
 		p.setComplete(c.toDate());
-		c = new MutableDateTime();
+		c = createMutableTime(1000200000000L);
 		c.addDays(-4);
 		c.addMinutes(3);
 		p.setEpoch(c.toDate());
@@ -297,10 +318,10 @@ public class AccountResourceTest {
 		list.add(p);
 
 		p = new CloudProcess();
-		c = new MutableDateTime();
+		c = createMutableTime(1000200000000L);
 		c.addDays(-10);
 		p.setComplete(c.toDate());
-		c = new MutableDateTime();
+		c = createMutableTime(1000200000000L);
 		c.addDays(-10);
 		c.addHours(-3);
 		p.setEpoch(c.toDate());
