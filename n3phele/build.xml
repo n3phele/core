@@ -5,10 +5,10 @@
 	<import file="${sdk.dir}/config/user/ant-macros.xml" />
 	
 	 <!-- Target directory for instrumentation files -->  
-    <property name="emma.instr.dir" value="/home/ubuntu/instrumentation" />  
+    <property name="emma.instr.dir" value="/home/ubuntu" />  
       
     <!-- Target directory for coverage files -->  
-    <property name="emma.coverage.dir" value="/home/ubuntu/coverage" /> 
+    <property name="emma.coverage.dir" value="/home/ubuntu" /> 
 
 	<target name="copyjars"
       description="Copies the App Engine JARs to the WAR.">
