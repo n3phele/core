@@ -115,13 +115,7 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 			// if (vs.getComplete() != null)
 			// vsList.remove(vs);
 		}
-		// activityPerVS = new HashMap<CloudProcessSummary,
-		// Activity>(vsList.size());
-		// for(int i=0; i<vsList.size(); i++){
-		// if(vsList.get(i).getActivity() != null)
-		// getActivity(vsList.get(i));
-		// }
-		// display.refresh(vsList, activityPerVS);
+
 	}
 
 	protected void updateAccount(Account account) {
@@ -198,6 +192,7 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 		getTopLevel(uri);
 	}
 
+	// not being used
 	private void getTopLevel(String uri) {
 		final String url = uri + "/toplevel";
 		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, url);
@@ -211,7 +206,6 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 					if (200 == response.getStatusCode()) {
 						GWT.log("Got reply");
 						CloudProcess result = CloudProcess.asCloudProcess(response.getText());
-						// TODO
 						// This method is not being used yet
 						// do something with the "display"
 						// result
@@ -242,9 +236,6 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 						ActivityDataCollection result = ActivityDataCollection.asActivityDataCollection(response.getText());
 						result.getStringElements();
 						List<ActivityData> list = result.getElements();
-						// //do something with the display and the list
-						// System.out.println(list.get(0).getState());
-						// display.setDisplayList(list);
 						display.setDisplayList(list);
 					} else {
 						GWT.log("Couldn't retrieve JSON (" + response.getStatusText() + ")");
@@ -257,38 +248,6 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 
 	}
 
-	// private void getRunningProcess2() {
-	// final String url = account.getUri() + "/runningprocess";
-	// RequestBuilder builder =
-	// AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, url);
-	// try {
-	// builder.sendRequest(null, new RequestCallback() {
-	// public void onError(Request request, Throwable exception) {
-	// GWT.log("Couldn't retrieve JSON " + exception.getMessage());
-	// }
-	//
-	// public void onResponseReceived(Request request, Response response) {
-	// if (200 == response.getStatusCode()) {
-	// GWT.log("Got reply");
-	// System.out.println("CHEGOU!");
-	// System.out.println(response.getText());
-	// Collection<ActivityData> result =
-	// CloudProcessSummary.asCollection(response.getText());
-	// List<ActivityData> list = result.getElements();
-	// // do something with the display and the list
-	// System.out.println(list.get(0).getState());
-	// display.setDisplayList(list);
-	//
-	// } else {
-	// GWT.log("Couldn't retrieve JSON (" + response.getStatusText() + ")");
-	// }
-	// }
-	// });
-	// } catch (RequestException e) {
-	// GWT.log("Couldn't retrieve JSON " + e.getMessage());
-	// }
-	//
-	// }
 
 	public void updateActivity(ActivityData vs, Activity activity) {
 		if (activityPerVS == null)
@@ -301,6 +260,7 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 	 * ------------- Data Handling -------------
 	 */
 
+	//not being used
 	public void getActivity(final ActivityData vs) {
 		// String uri = vs.getActivity();
 		/*
@@ -390,28 +350,7 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 					updateAccount(account);
 	}
 
-	/*
-	 * public void getAccount() { // Send request to server and catch any
-	 * errors. RequestBuilder builder =
-	 * AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, accountUri);
-	 * try { Request request = builder.sendRequest(null, new RequestCallback() {
-	 * public void onError(Request request, Throwable exception) { //
-	 * displayError("Couldn't retrieve JSON "+exception.getMessage()); }
-	 * 
-	 * public void onResponseReceived(Request request, Response response) {
-	 * GWT.log("Got reply"); if (200 == response.getStatusCode()) { Account
-	 * account = Account.asAccount(response.getText()); updateAccount(account);
-	 * } else {
-	 * 
-	 * } }
-	 * 
-	 * }); } catch (RequestException e) {
-	 * //displayError("Couldn't retrieve JSON "+e.getMessage()); } }
-	 */
-
-	/*
-	 * ---------------- Event Definition ----------------
-	 */
+	
 
 	public interface AccountListUpdateEventHandler extends EventHandler {
 		void onMessageReceived(AccountListUpdate commandListUpdate);

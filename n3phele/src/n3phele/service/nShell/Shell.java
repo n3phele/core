@@ -4,21 +4,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.google.appengine.api.datastore.Text;
 
 import n3phele.service.model.ShellFragment;
 /** * (C) Copyright 2010-2013. Nigel Cook. All rights reserved. * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER. *  * Licensed under the terms described in LICENSE file that accompanied this code, (the "License"); you may not use this file * except in compliance with the License.  *  *  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on  *  an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the  *  specific language governing permissions and limitations under the License. */
 
 public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants {/*@bgen(jjtree)*/
   protected JJTShellState jjtree = new JJTShellState();protected Expression expressionHandler = null;
-        public Shell(Text s, int lineNo)
+        public Shell(String s, int lineNo)
         {
-                if(s.getValue().charAt(0) != '\u005cn')
+                if(s.charAt(0) != '\u005cn')
                 {
                         lineNo = lineNo -1;
-                        s = new Text("\u005cn"+s.getValue());
+                        s = "\u005cn"+s;
            }
-                jj_input_stream = new SimpleCharStream(new java.io.StringReader(s.getValue()), lineNo, 1);
+                jj_input_stream = new SimpleCharStream(new java.io.StringReader(s), lineNo, 1);
         jj_input_stream.setTabSize(4);
         token_source = new ShellTokenManager(jj_input_stream);
         token = new Token();

@@ -170,7 +170,7 @@ public class CloudProcessWorkloadsTest  {
 //		}
 	 
 	 
-	@Test
+	//@Test
 	public void cloudProcessCompletedWithAccountWorkload() throws InterruptedException, ClassNotFoundException, InstantiationException, IllegalAccessException, URISyntaxException
 	{
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper();

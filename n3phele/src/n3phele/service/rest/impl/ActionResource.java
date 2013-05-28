@@ -142,9 +142,7 @@ public class ActionResource {
 		 * @return the item
 		 * @throws NotFoundException if the object does not exist
 		 */
-		public Action load(URI uri) throws NotFoundException { 
-			log.info("URI requested: "+uri);
-			return super.get(uri); }
+		public Action load(URI uri) throws NotFoundException { return super.get(uri); }
 		
 		public Action load(Long id) throws NotFoundException { return super.get(id); }
 		
