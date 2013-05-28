@@ -44,6 +44,7 @@ import n3phele.service.rest.impl.AccountResource.AccountManager;
 import n3phele.service.rest.impl.CloudProcessResource.CloudProcessManager;
 
 import org.joda.time.DateTimeUtils;
+import org.joda.time.DateTimeZone;
 import org.joda.time.MutableDateTime;
 import org.junit.After;
 import org.junit.Before;
@@ -100,7 +101,8 @@ public class AccountResourceTest {
 		AccountManager accm = PowerMockito.mock(AccountManager.class);
 		PowerMockito.mockStatic(AccountManager.class);
 		//DateTimeUtils.setCurrentMillisFixed(1000200000000L);
-		PowerMockito.when(accr.createMutableTime()).thenReturn(new MutableDateTime(1000200000000L));
+		
+		PowerMockito.when(accr.createMutableTime()).thenReturn(createMutableTime(1000200000000L));
 		
 		ArrayList<CloudProcess> list = new ArrayList<CloudProcess>();
 		CloudProcess p = new CloudProcess();
@@ -193,8 +195,8 @@ public class AccountResourceTest {
 		PowerMockito.mockStatic(AccountManager.class);
 		ArrayList<CloudProcess> list = new ArrayList<CloudProcess>();
 		//DateTimeUtils.setCurrentMillisFixed(1000200000000L);
-		
-		PowerMockito.when(accr.createMutableTime()).thenReturn(new MutableDateTime(1000200000000L));
+
+		PowerMockito.when(accr.createMutableTime()).thenReturn(createMutableTime(1000200000000L));
 		
 		CloudProcess p = new CloudProcess();
 		p.setAccount("acc");
@@ -256,7 +258,9 @@ public class AccountResourceTest {
 	}
 
 	protected MutableDateTime createMutableTime(long time) {
-		return new MutableDateTime(time);
+		MutableDateTime date = new MutableDateTime(time);
+		date.setZone(DateTimeZone.forOffsetHours(-3));
+		return date;
 	}
 
 	@Test
@@ -267,7 +271,8 @@ public class AccountResourceTest {
 		ArrayList<CloudProcess> list = new ArrayList<CloudProcess>();
 		//DateTimeUtils.setCurrentMillisFixed(1000200000000L);
 
-		PowerMockito.when(accr.createMutableTime()).thenReturn(new MutableDateTime(1000200000000L));
+		PowerMockito.when(accr.createMutableTime()).thenReturn(createMutableTime(1000200000000L));
+		
 		CloudProcess p = new CloudProcess();
 		p.setAccount("acc");
 		MutableDateTime c = createMutableTime(1000200000000L);
