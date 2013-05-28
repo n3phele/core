@@ -3,6 +3,12 @@
 	<property name="sdk.dir" location="/home/ubuntu/appengine-java-sdk-1.7.5" />
 	<property name="gwt.dir" location="/home/ubuntu/gwt-2.5.0" />
 	<import file="${sdk.dir}/config/user/ant-macros.xml" />
+	
+	 <!-- Target directory for instrumentation files -->  
+    <property name="emma.instr.dir" value="/home/ubuntu/instrumentation" />  
+      
+    <!-- Target directory for coverage files -->  
+    <property name="emma.coverage.dir" value="/home/ubuntu/coverage" /> 
 
 	<target name="copyjars"
       description="Copies the App Engine JARs to the WAR.">
@@ -36,8 +42,20 @@
 		</fileset>
 		<fileset dir="testLibs/">
 			<include name="**/*.jar" />
-		</fileset>
+		</fileset>			
 	</path>
+	
+	<taskdef resource="emma_ant.properties" classpathref="test.classpath" /> 
+	
+	  <!-- Analyzes the compiled code and adds instrumentation details for testing -->  
+    <target name="emma-instrument" depends="gwt_compile">  
+        <mkdir dir="${emma.instr.dir}" />  
+        <mkdir dir="${emma.coverage.dir}" />  
+        <emma enabled="true">  
+            <instr instrpath="war/WEB-INF/classes/n3phele" destdir="${emma.instr.dir}"  
+                metadatafile="${emma.coverage.dir}/coverage.emma" merge="true" />  
+        </emma>  
+    </target> 
 
 	<target name="compile" depends="copyjars"
       description="Compiles Java source and copies other source files to the WAR.">
@@ -82,13 +100,27 @@
       />
 	</target>
 
-	<target name="junit" depends="gwt_compile">
-		<junit fork="no" haltonfailure="yes">
+	<target name="junit" depends="emma-instrument">
+		 <junit fork="yes" printsummary="yes" haltonfailure="no">  
 			<test name="n3phele.AllUnitTests" />
 			<formatter type="plain" usefile="false" />
 			<classpath refid="test.classpath" />
+			<jvmarg value="-Demma.coverage.out.file=${emma.coverage.dir}/coverage.emma" />  
+            <jvmarg value="-Demma.coverage.out.merge=true" /> 
 		</junit>
 	</target>
+	
+	 <!-- Create XML reports from the coverage information -->  
+    <target name="emma-report" depends="junit">  
+        <emma enabled="true">  
+            <report sourcepath="test">  
+                <fileset dir="${emma.coverage.dir}">  
+                    <include name="*.emma" />  
+                </fileset>  
+                <xml outfile="${emma.coverage.dir}/coverage.xml" />  
+            </report>  
+        </emma>  
+    </target>  
 
 	<target name="update" depends="junit"
 		description="Uploads the application to App Engine.">
