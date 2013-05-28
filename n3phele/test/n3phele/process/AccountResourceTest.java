@@ -42,7 +42,9 @@ import n3phele.service.rest.impl.CloudResource;
 import n3phele.service.rest.impl.UserResource;
 import n3phele.service.rest.impl.AccountResource.AccountManager;
 import n3phele.service.rest.impl.CloudProcessResource.CloudProcessManager;
+import n3phele.time.MutableTimeFactory;
 
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
 import org.joda.time.DateTimeZone;
 import org.joda.time.MutableDateTime;
@@ -102,7 +104,8 @@ public class AccountResourceTest {
 		PowerMockito.mockStatic(AccountManager.class);
 		//DateTimeUtils.setCurrentMillisFixed(1000200000000L);
 		
-		PowerMockito.when(accr.createMutableTime()).thenReturn(createMutableTime(1000200000000L));
+		MutableTimeFactory factory = mockTimeFactory();
+		accr.setTimeFactory(factory);
 		
 		ArrayList<CloudProcess> list = new ArrayList<CloudProcess>();
 		CloudProcess p = new CloudProcess();
@@ -177,6 +180,16 @@ public class AccountResourceTest {
 		Assert.assertEquals("Wrong Value", 0.5, listfinal.get(23));
 	}
 
+	protected MutableTimeFactory mockTimeFactory() {
+		MutableTimeFactory factory = Mockito.spy(new MutableTimeFactory());
+		Mockito.when(factory.createMutableDateTime()).thenReturn(createMutableTime(1000200000000L));
+		factory.setTimeZone( DateTimeZone.forOffsetHours(-3));
+//		Mockito.when(factory.createMutableDateTime(Mockito.anyLong())).thenReturn(createMutableTime(1000200000000L));
+//		Mockito.when(factory.createMutableDateTime(Mockito.any(Date.class))).thenReturn(createMutableTime(1000200000000L));
+//		Mockito.when(factory.createMutableDateTime(Mockito.any(DateTime.class))).thenReturn(createMutableTime(1000200000000L));
+		return factory;
+	}
+
 	static void setFinalStatic(Field field, Object newValue) throws Exception {
 		field.setAccessible(true);
 
@@ -196,7 +209,8 @@ public class AccountResourceTest {
 		ArrayList<CloudProcess> list = new ArrayList<CloudProcess>();
 		//DateTimeUtils.setCurrentMillisFixed(1000200000000L);
 
-		PowerMockito.when(accr.createMutableTime()).thenReturn(createMutableTime(1000200000000L));
+		MutableTimeFactory factory = mockTimeFactory();
+		accr.setTimeFactory(factory);
 		
 		CloudProcess p = new CloudProcess();
 		p.setAccount("acc");
@@ -258,6 +272,7 @@ public class AccountResourceTest {
 	}
 
 	protected MutableDateTime createMutableTime(long time) {
+		System.out.println("THIS WAS CALLED");
 		MutableDateTime date = new MutableDateTime(time);
 		date.setZone(DateTimeZone.forOffsetHours(-3));
 		return date;
@@ -271,7 +286,8 @@ public class AccountResourceTest {
 		ArrayList<CloudProcess> list = new ArrayList<CloudProcess>();
 		//DateTimeUtils.setCurrentMillisFixed(1000200000000L);
 
-		PowerMockito.when(accr.createMutableTime()).thenReturn(createMutableTime(1000200000000L));
+		MutableTimeFactory factory = mockTimeFactory();
+		accr.setTimeFactory(factory);
 		
 		CloudProcess p = new CloudProcess();
 		p.setAccount("acc");

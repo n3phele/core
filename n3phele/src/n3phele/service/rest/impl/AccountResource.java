@@ -33,6 +33,7 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.MutableDateTime;
 
 import java.text.SimpleDateFormat;
@@ -55,10 +56,13 @@ import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.Credential;
 import n3phele.service.model.core.GenericModelDao;
 import n3phele.service.model.core.User;
+import n3phele.time.MutableTimeFactory;
 
 @Path("/account")
 public class AccountResource {
 	private static Logger log = Logger.getLogger(AccountResource.class.getName());
+	
+	private MutableTimeFactory timeFactory = new MutableTimeFactory();	
 
 	@Context
 	UriInfo uriInfo;
@@ -188,7 +192,7 @@ public class AccountResource {
 			if(index > 0)
 				uri = c.getUri().toString().substring(0, index);
 			String age = calcAge(c);
-			Date now = createMutableTime().toDate();
+			Date now = timeFactory.createMutableDateTime().toDate();
 			if (now.before(c.getEpoch())) {
 				costs += 0;
 			} else if (c.getComplete() == null) {
@@ -222,7 +226,7 @@ public class AccountResource {
 		String result = "";
 		
 		if (item != null) {
-			Date now = createMutableTime().toDate();
+			Date now = timeFactory.createMutableDateTime().toDate();
 			if (now.before(item.getEpoch())) {
 				result += 0;
 			} else {
@@ -293,7 +297,7 @@ public class AccountResource {
 
 		List<CloudProcess> list = dao.getAllProcessByDays(account, days).getElements();
 		List<Double> listfinal = new ArrayList<Double>();
-		MutableDateTime date = createMutableTime();
+		MutableDateTime date = timeFactory.createMutableDateTime();
 		date.setMillisOfDay(0);
 
 		DateTime cloudProcessEpoch, cloudProcessComplete;
@@ -309,7 +313,7 @@ public class AccountResource {
 				cloudProcess.setEpoch(cloudProcess.getStart());
 			
 			if(cloudProcess.getComplete() == null){
-				MutableDateTime fakecomplete = createMutableTime();
+				MutableDateTime fakecomplete = timeFactory.createMutableDateTime();
 				cloudProcess.setComplete(fakecomplete.toDate());
 			}				
 			
@@ -317,9 +321,9 @@ public class AccountResource {
 			cloudProcessComplete = new DateTime(cloudProcess.getComplete());
 
 			
-			MutableDateTime dateStart = new MutableDateTime(cloudProcessEpoch);
+			MutableDateTime dateStart = timeFactory.createMutableDateTime(cloudProcessEpoch);
 			dateStart.setMillisOfDay(0);
-			MutableDateTime dateComplete = new MutableDateTime(cloudProcessComplete);
+			MutableDateTime dateComplete = timeFactory.createMutableDateTime(cloudProcessComplete);
 			dateComplete.setMillisOfDay(0);
 
 			if (dateStart.getMillis() == dateComplete.getMillis()) {
@@ -396,35 +400,31 @@ public class AccountResource {
 		return new CostsCollection(listfinal);
 	}
 
-	public MutableDateTime createMutableTime() {
-		return new MutableDateTime();
-	}
-
 	private CostsCollection listCost24hours(String account) {
 		List<CloudProcess> list = dao.getAllProcessByDays(account, 1).getElements();
 		List<Double> listfinal = new ArrayList<Double>();
 		MutableDateTime dateStart, dateEnd;
 		MutableDateTime cpStart, cpComplete, now;
-		dateStart = createMutableTime();
-		dateEnd = createMutableTime();
+		dateStart = timeFactory.createMutableDateTime();
+		dateEnd = timeFactory.createMutableDateTime();
 		dateStart.setMinuteOfHour(0);
 		dateStart.setSecondOfMinute(0);
 		dateStart.setMillisOfSecond(0);
 		dateStart.addHours(1);
 		dateEnd = dateStart.copy();
 		dateStart.addDays(-1);
-		now = createMutableTime();
+		now = timeFactory.createMutableDateTime();
 		
 		for (int i = 0; i < 24; i++) {
 			listfinal.add(0.0);
 		}
 
 		for (CloudProcess cloudProcess : list) {
-			cpStart = new MutableDateTime(cloudProcess.getEpoch());
+			cpStart = timeFactory.createMutableDateTime(cloudProcess.getEpoch());
 			if (cloudProcess.getComplete() != null)
-				cpComplete = new MutableDateTime(cloudProcess.getComplete());
+				cpComplete = timeFactory.createMutableDateTime(cloudProcess.getComplete());
 			else
-				cpComplete = new MutableDateTime(Long.MAX_VALUE);
+				cpComplete = timeFactory.createMutableDateTime(Long.MAX_VALUE);
 
 			int hourStart = 0;
 			int hourEnd = 0;
@@ -721,4 +721,11 @@ public class AccountResource {
 		return cloudProcess.toString();
 	}
 
+	public MutableTimeFactory getTimeFactory() {
+		return this.timeFactory;
+	}
+
+	public void setTimeFactory(MutableTimeFactory timeFactory) {
+		this.timeFactory = timeFactory;
+	}
 }
