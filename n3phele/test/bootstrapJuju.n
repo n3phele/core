@@ -57,5 +57,5 @@ HPZone1: # HP Cloud
 	ON $$my_vmPugens hpcloud copy ~/.ssh/id_rsa :n3phele-service
 	ON $$my_vmPugens hpcloud copy ~/.ssh/id_rsa.pub :n3phele-service
 	ON $$my_vmPugens juju bootstrap
-	ON $$my_vmPugens juju status > /tmp/jujuStatus.txt
+	ON $$my_vmPugens echo "bootstrap" > /tmp/jujuStatus.txt
 	ON $$my_vmPugens hpcloud copy /tmp/jujuStatus.txt :n3phele-service/juju_status.txt
