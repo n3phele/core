@@ -158,32 +158,12 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 			public String getValue(ActivityData item) {
 
 				return item.getNameTop();
-				// requestTopLevel(item.getUri());
-				// if (item != null) {
-				// if (item.getActivity() == null ||
-				// !(activityPerVS.containsKey(item)) || activityPerVS.get(item)
-				// == null) {
-				// result += "none";
-				// } else {
-				// result += activityPerVS.get(item).getName();
-				// }
-				// }
-
 			}
 
 		};
 		activityColumn.setFieldUpdater(new FieldUpdater<ActivityData, String>() {
 			@Override
 			public void update(int index, ActivityData obj, String value) {
-				// if (presenter != null) {
-				// if (obj.getActivity() == null ||
-				// !(activityPerVS.containsKey(obj)) || activityPerVS.get(obj)
-				// == null) {
-				// Window.alert(obj.getName() +
-				// " has no activities running on n3phele.");
-				// } else
-				// presenter.onSelect(activityPerVS.get(obj));
-				// }
 				presenter.onSelect(obj);
 
 			}
@@ -445,10 +425,6 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 					historyTable.clearCell(2, 0);
 				chart = new LineChart(createTable(), createOptions(chartTitle));
 				historyTable.setWidget(2, 0, chart);
-				// setChartData(getCost24h());
-				// AbstractDataTable data = createTable();
-				// Options options = createOptions("24 hours");
-				// chart.draw(data, options);
 			}
 		});
 		hours.setWidth("70px");
@@ -481,10 +457,6 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 					historyTable.clearCell(2, 0);
 				chart = new LineChart(createTable(), createOptions(chartTitle));
 				historyTable.setWidget(2, 0, chart);
-				// setChartData(getCost30());
-				// AbstractDataTable data = createTable();
-				// Options options = createOptions("30 days");
-				// chart.draw(data, options);
 
 			}
 		});
@@ -493,10 +465,9 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		historyTable.setWidget(1, 0, chartOptionsTable);
 		historyTable.getCellFormatter().setHorizontalAlignment(1, 0, HasHorizontalAlignment.ALIGN_CENTER);
 
-		// requestChartData("24hours");
+
 		if (historyTable.isCellPresent(2, 0))
 			historyTable.clearCell(2, 0);
-		// chart = new LineChart(createTable(), createOptions(chartTitle));
 		historyTable.setWidget(2, 0, chart);
 		historyTable.setWidget(2, 0, new LineChart(createTable(), createOptions(chartTitle)));
 		historyTable.getCellFormatter().setHorizontalAlignment(2, 0, HasHorizontalAlignment.ALIGN_CENTER);
@@ -509,9 +480,7 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 	public void updateChartTable() {
 		Options options = null;
 		setChartTableData();
-		/*
-		 * FIXME chartValues might not have been initialized
-		 */
+		if(chartValues == null) return;
 		switch (chartValues.size()) {
 		case 24:
 			chartTitle = "24 Hours Costs Chart";
