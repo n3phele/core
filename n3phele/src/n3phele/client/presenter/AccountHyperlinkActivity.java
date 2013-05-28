@@ -72,7 +72,7 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 		this.eventBus = factory.getEventBus();
 		this.accountCollection = URL.encode(factory.getCacheManager().ServiceAddress + "account");
 		String id = accountUri.substring(accountUri.lastIndexOf("/") + 1);
-		this.virtualServerCollection = URL.encode(factory.getCacheManager().ServiceAddress + "virtualServers/account/");
+		this.virtualServerCollection = URL.encode(factory.getCacheManager().ServiceAddress );
 		this.virtualServerCollection += id;
 
 	}
