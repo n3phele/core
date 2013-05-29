@@ -130,7 +130,7 @@ public class VMAction extends Action {
 			if(epoch+timeout < Calendar.getInstance().getTimeInMillis()) {
 				logger.error("vm creation FAILED due to timeout");
 				log.log(Level.SEVERE, "vm creation FAILED due to timeout");
-				killVM();
+				killVM(true);
 				throw new UnprocessableEntityException("vm creation FAILED due to timeout");
 			}
 				
@@ -269,13 +269,13 @@ public class VMAction extends Action {
 
 	@Override
 	public void cancel() {
-		killVM();
+		killVM(false);
 
 	}
 
 	@Override
 	public void dump() {
-		killVM();
+		killVM(true);
 
 	}
 
@@ -285,7 +285,7 @@ public class VMAction extends Action {
 	}
 
 
-	public void killVM() {
+	public void killVM(boolean isError) {
 		Client client = ClientFactory.create();
 		ClientFilter factoryAuth = new HTTPBasicAuthFilter(this.context.getValue("factoryUser"), 
 				this.context.getValue("factorySecret"));
@@ -294,9 +294,10 @@ public class VMAction extends Action {
 		client.addFilter(factoryAuth);
 		try {
 			boolean debug = Resource.get("suppressDeleteVM", false);
-			int status = terminate(client, this.context.getValue("vmFactory"), true, debug);
+			int status = terminate(client, this.context.getValue("vmFactory"), isError, isError && debug);
+			logger.warning("VM Terminate error="+isError);	
 			log.info("Delete status is "+status);
-			if(debug) {
+			if(isError && debug) {
 				logger.warning("Attempting to create a debug VM to allow error inspection. Debug instance will be removed aproximately 55 minutes after inital creation.");
 			}
 		} catch (Exception e) {

@@ -242,7 +242,7 @@ public class CloudProcessTest  {
 		assertEquals("Count value", 1000, action.getCount());
 		job = CloudResourceTestWrapper.dao.load(job.getUri());
 		jobAction = (JobAction) ActionResource.dao.load(jobAction.getId());
-		assertEquals(ActionState.COMPLETE, job.getState());
+		assertEquals(ActionState.FAILED, job.getState());
 		assertEquals(ActionState.CANCELLED, jobAction.getChildEndState());
 	}
 	
@@ -337,7 +337,7 @@ public class CloudProcessTest  {
 		CloudResourceTestWrapper.dao.clear();
 		job = CloudResourceTestWrapper.dao.load(job.getUri());
 		jobAction = (JobAction) ActionResource.dao.load(jobAction.getId());
-		assertEquals(ActionState.COMPLETE, job.getState());
+		assertEquals(ActionState.FAILED, job.getState());
 		assertEquals(ActionState.FAILED, jobAction.getChildEndState());
 	}
 	
@@ -394,7 +394,7 @@ public class CloudProcessTest  {
 		
 		job = CloudResourceTestWrapper.dao.load(job.getUri());
 		jobAction = (JobAction) ActionResource.dao.load(jobAction.getId());
-		assertEquals(ActionState.COMPLETE, job.getState());
+		assertEquals(ActionState.FAILED, job.getState());
 		assertEquals(ActionState.FAILED, jobAction.getChildEndState());
 	}
 	
@@ -1078,7 +1078,7 @@ public class CloudProcessTest  {
 		assertEquals(ActionState.CANCELLED, tom.getState());
 		assertEquals(ActionState.CANCELLED, jerry.getState());
 		CountDownAction ta = (CountDownAction) ActionResource.dao.load(tom.getAction());
-		assertEquals("cancel has been called", 1000, ta.getCount());
+		assertEquals("dump has been called", 2000, ta.getCount());
 		CountDownAction ja = (CountDownAction) ActionResource.dao.load(jerry.getAction());
 		assertEquals("dump has been called", 2000, ja.getCount());
 	}

@@ -13,8 +13,10 @@ package n3phele.service.actions;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.logging.Level;
 
 import javax.mail.Message;
@@ -25,6 +27,7 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 import n3phele.service.core.NotFoundException;
@@ -74,6 +77,7 @@ public class JobAction extends Action {
 	private String childProcess;									/* job process URI */
 	private boolean childComplete = false;							/* child completed */
 	private ActionState childEndState = null;
+	private Set<String> adopted = new HashSet<String>();			/* adopted children */
 	
 	public JobAction() {}
 	private ActionLogger logger;
@@ -171,10 +175,18 @@ public class JobAction extends Action {
 			switch(this.childEndState) {
 			case CANCELLED:
 				notifyOwner(true, "Processing was cancelled");
-				break;
+				for(String process : adopted) {
+					URI processURI = URI.create(process);
+					ProcessLifecycle.mgr().dump(processURI);
+				}
+				throw new RuntimeException("Processing was cancelled");
 			case FAILED:
 				notifyOwner(true, "Processing encountered a failure");
-				break;
+				for(String process : adopted) {
+					URI processURI = URI.create(process);
+					ProcessLifecycle.mgr().dump(processURI);
+				}
+				throw new RuntimeException("Processing encountered a failure");
 			default:
 				notifyOwner(false, "");
 				break;
@@ -214,10 +226,11 @@ public class JobAction extends Action {
 		case Adoption:
 			log.info((isChild?"Child ":"Unknown ")+assertion+" adoption");
 			URI processURI = URI.create(assertion);
-			ProcessLifecycle.mgr().dump(processURI);
+			adopted.add(processURI.toString());
 			return;
-		case Cancel:;
-			log.info((isChild?"Child ":"Unknown ")+assertion+" cancelled");
+		case Cancel:
+		case Dump:
+			log.info((isChild?"Child ":"Unknown ")+assertion+" cancelled or dumped");
 			if(isChild) {
 				this.childEndState = ActionState.CANCELLED;
 			}
@@ -415,6 +428,25 @@ public class JobAction extends Action {
 	public void setChildEndState(ActionState childEndState) {
 		this.childEndState = childEndState;
 	}
+	
+	
+
+	/**
+	 * @return the adopted
+	 */
+	@XmlTransient
+	public Set<String> getAdopted() {
+		return this.adopted;
+	}
+
+
+	/**
+	 * @param adopted the adopted to set
+	 */
+	public void setAdopted(Set<String> adopted) {
+		this.adopted = adopted;
+	}
+
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
@@ -422,10 +454,12 @@ public class JobAction extends Action {
 	@Override
 	public String toString() {
 		return String
-				.format("JobAction [%s, notify=%s, actionName=%s, childProcess=%s, childComplete=%s, childEndState=%s]",
-						super.toString(), notify, actionName, childProcess, childComplete,
-						childEndState );
+				.format("JobAction [notify=%s, actionName=%s, childProcess=%s, childComplete=%s, childEndState=%s, adopted=%s, logger=%s]",
+						this.notify, this.actionName, this.childProcess,
+						this.childComplete, this.childEndState, this.adopted,
+						this.logger);
 	}
+
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
@@ -436,6 +470,8 @@ public class JobAction extends Action {
 		int result = super.hashCode();
 		result = prime * result
 				+ ((this.actionName == null) ? 0 : this.actionName.hashCode());
+		result = prime * result
+				+ ((this.adopted == null) ? 0 : this.adopted.hashCode());
 		result = prime * result + (this.childComplete ? 1231 : 1237);
 		result = prime
 				* result
@@ -450,6 +486,7 @@ public class JobAction extends Action {
 		result = prime * result + (this.notify ? 1231 : 1237);
 		return result;
 	}
+
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#equals(java.lang.Object)
@@ -467,6 +504,11 @@ public class JobAction extends Action {
 			if (other.actionName != null)
 				return false;
 		} else if (!this.actionName.equals(other.actionName))
+			return false;
+		if (this.adopted == null) {
+			if (other.adopted != null)
+				return false;
+		} else if (!this.adopted.equals(other.adopted))
 			return false;
 		if (this.childComplete != other.childComplete)
 			return false;
