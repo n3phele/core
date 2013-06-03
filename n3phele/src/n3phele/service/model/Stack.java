@@ -1,5 +1,6 @@
 package n3phele.service.model;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -16,7 +17,7 @@ import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 
 @XmlRootElement(name="Stack")
-@XmlType(name="Stack", propOrder={"id","description"})
+@XmlType(name="Stack", propOrder={"id","description","vms"})
 @Unindex
 @Cache
 @com.googlecode.objectify.annotation.Entity
@@ -33,9 +34,10 @@ public class Stack extends Entity{
 
 	public Stack () {}
 	
-	public Stack(String description,String name, URI uri, URI owner, boolean isPublic) {
-		super(name, uri, owner, isPublic);
+	public Stack(String description,String name, URI owner, boolean isPublic) {
+		super(name, null, owner, isPublic);
 		this.description = description;
+		vms = new ArrayList<CloudProcess>();
 	}
 
 	public String getDescription() {

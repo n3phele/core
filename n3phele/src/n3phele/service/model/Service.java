@@ -1,6 +1,7 @@
 package n3phele.service.model;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -26,11 +27,13 @@ public class Service extends Entity{
 	private String description;
 	//Not sure if stacks are going to be organized on a list...
 	private List<Stack> stacks;
-	public Service(){};
-	public Service(String description,String name, URI uri, URI owner, boolean isPublic){
-		super(name, uri, owner, isPublic);
+	
+	public Service(){}
+	
+	public Service(String description,String name, URI owner, boolean isPublic){
+		super(name, null, owner, isPublic);
 		this.description = description;
-		stacks = null;
+		stacks = new ArrayList<Stack>();
 	}
 
 

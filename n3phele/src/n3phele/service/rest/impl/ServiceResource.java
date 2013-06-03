@@ -58,7 +58,7 @@ import n3phele.service.rest.impl.AccountResource.AccountManager;
 //Starting a new Resource, Service class will need it's JSons counterparts.
 @Path("/service")
 public class ServiceResource {
-	private static Logger log = Logger.getLogger(AccountResource.class.getName());
+	private static Logger log = Logger.getLogger(ServiceResource.class.getName());
 
 	@Context
 	UriInfo uriInfo;
@@ -100,7 +100,7 @@ public class ServiceResource {
 			@FormParam("owner") URI owner,  
 			@FormParam("isPublic") boolean isPublic) {
 
-		Service service = new Service(description, name, null, owner, isPublic);
+		Service service = new Service(description, name, owner, isPublic);
 		dao.add(service);
 		//TODO Override toString of service
 		log.warning("Created " +service);

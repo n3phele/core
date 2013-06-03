@@ -46,9 +46,13 @@ import n3phele.service.model.Cloud;
 import n3phele.service.model.CloudProcess;
 import n3phele.service.model.CloudProcessCollection;
 import n3phele.service.model.CostsCollection;
+import n3phele.service.model.Relationship;
+import n3phele.service.model.RelationshipCollection;
+import n3phele.service.model.Service;
+import n3phele.service.model.ServiceCollection;
+import n3phele.service.model.ServiceModelDao;
 import n3phele.service.model.Stack;
 import n3phele.service.model.StackCollection;
-import n3phele.service.model.ServiceModelDao;
 import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.Credential;
 import n3phele.service.model.core.GenericModelDao;
@@ -56,9 +60,9 @@ import n3phele.service.model.core.User;
 import n3phele.service.rest.impl.AccountResource.AccountManager;
 
 //Starting a new Resource, Stack class will need it's JSons counterparts.
-@Path("/stack")
-public class StackResource {
-	private static Logger log = Logger.getLogger(StackResource.class.getName());
+@Path("/relationship")
+public class RelationshipResource {
+	private static Logger log = Logger.getLogger(RelationshipResource.class.getName());
 
 	@Context
 	UriInfo uriInfo;
@@ -69,39 +73,42 @@ public class StackResource {
 	@GET
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
-	public StackCollection list() {
+	public RelationshipCollection list() {
 		
-		log.warning("list Stack no summary");
-		Collection<Stack> result = dao.getCollection(UserResource.toUser(securityContext));
-		//return new StackCollection(result, 0, -1);
-		return new StackCollection(result);
+		log.warning("list relationship no summary");
+		Collection<Relationship> result = dao.getCollection(UserResource.toUser(securityContext));
+		//return new ServiceCollection(result, 0, -1);
+		return new RelationshipCollection(result);
 	}
 	
-	//As Stack class is modified this method will have need to be modified too
-	//testStack don't exists... may have to create a testStack method
+	//As Service class is modified this method will have need to be modified too
+	//testService don't exists... may have to create a testService method
 		
 	@POST
 	@Produces("text/plain")
 	@RolesAllowed("authenticated")
 	public Response add(
+			@FormParam("uriStackMaster") String uriStackMaster,
+			@FormParam("uriStackSubordinate") String uriStackSubordinate,
+			@FormParam("type") String type,
 			@FormParam("description") String description, 
 			@FormParam("name") String name, 
 			@FormParam("owner") URI owner, 
 			@FormParam("isPublic") boolean isPublic) {
 
-		Stack stack = new Stack(description, null, owner, isPublic);
-		dao.add(stack);
+		Relationship relationship = new Relationship(uriStackMaster,uriStackSubordinate,type,description, null, owner, isPublic);
+		dao.add(relationship);
 		//TODO Override toString of service
-		log.warning("Created " +stack);
-		return Response.created(stack.getUri()).build();
+		log.warning("Created " +relationship);
+		return Response.created(relationship.getUri()).build();
 	}
 	
 	@GET
 	@Produces("application/json")
 	@Path("{id}")
 	@RolesAllowed("authenticated")
-	public Stack get(@PathParam("id") Long id) throws NotFoundException {
-		Stack item = dao.load(id, UserResource.toUser(securityContext));
+	public Relationship get(@PathParam("id") Long id) throws NotFoundException {
+		Relationship item = dao.load(id, UserResource.toUser(securityContext));
 		return item;
 	}
 	
@@ -109,17 +116,18 @@ public class StackResource {
 	@Produces("application/json")
 	@Path("byName")
 	@RolesAllowed("authenticated")
-	public Stack get(@QueryParam("id") String id){
-		Stack item = dao.load(id, UserResource.toUser(securityContext)); 
+	public Relationship get(@QueryParam("id") String id){
+		Relationship item = dao.load(id, UserResource.toUser(securityContext)); 
 		return item;
 	}
 	@DELETE
 	@RolesAllowed("authenticated")
 	@Path("{id}")
 	public void delete(@PathParam ("id") Long id) throws NotFoundException {
-		Stack item = dao.load(id, UserResource.toUser(securityContext));
+		Relationship item = dao.load(id, UserResource.toUser(securityContext));
 		dao.delete(item);
 	}
+	
 
-	final public static StackManager dao = new StackManager();
+	final public static RelationshipManager dao = new RelationshipManager();
 }
