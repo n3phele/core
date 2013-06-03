@@ -17,13 +17,13 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.logging.Level;
-import java.util.Date;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
@@ -94,7 +94,7 @@ public class CreateVMAction extends Action {
 	/* (non-Javadoc)
 	 * @see n3phele.service.model.Action#getDescription()
 	 */
-	@Override 
+	@Override
 	public String getDescription() {
 		StringBuilder desc = new StringBuilder("Create ");
 		int n = this.getContext().getIntegerValue("n");
@@ -184,7 +184,7 @@ public class CreateVMAction extends Action {
 
 	@Override
 	public void signal(SignalKind kind, String assertion) {
-		log.info("Signal "+kind+":"+assertion);
+		log.info("CreateVM gets Signal "+kind+":"+assertion);
 		boolean isChild = this.inProgress.contains(assertion);
 		switch(kind) {
 		case Adoption:
@@ -193,15 +193,15 @@ public class CreateVMAction extends Action {
 			processLifecycle().dump(processURI);
 			return;
 		case Cancel:
-			log.info((isChild?"Child ":"Unknown ")+assertion+" cancelled");
+		case Dump:
+			log.info((isChild?"Child ":"Unknown ")+assertion+" cancelled or dumped");
 			if(isChild) {
 				// FIXME: Not sure if the failure semantics belong here
 				// FIXME: Of if there are parameterized..
 				// FIXME: --onFailure: killAll
 				// FIXME: --onFailure: continue
 				this.inProgress.remove(assertion);
-				if(!failed)
-					this.killVM();
+				this.killVM();
 				failed = true;
 			}
 			break;
@@ -250,8 +250,7 @@ public class CreateVMAction extends Action {
 			log.info((isChild?"Child ":"Unknown ")+assertion+" failed");
 			if(isChild) {
 				this.inProgress.remove(assertion);
-				if(!failed)
-					this.killVM();
+				this.killVM();
 				failed = true;
 			}
 			break;
@@ -360,7 +359,7 @@ public class CreateVMAction extends Action {
 						log.log(Level.SEVERE, "VM fetch", e);
 					}
 					ArrayList<CloudProcess> listProcesses = createVMProcesses(refs, forceAgentRestart, myCloud.getFactoryCredential(), agentCredential);
-					double value = 0;
+					double value = -1;
 					if(vs!= null)
 					value = getValueByCDN(myCloud, vs.getParameters());
 					Date date = null;

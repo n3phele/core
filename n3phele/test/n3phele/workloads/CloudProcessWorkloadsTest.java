@@ -55,6 +55,7 @@ public class CloudProcessWorkloadsTest  {
 	 public void tearDown() {         helper.tearDown();     } 
 
 	
+	 //FIXME remove this?
 	/** Creates and runs a simple test process verifying preservation of running task state
 	 * @throws IllegalAccessException 
 	 * @throws InstantiationException 
