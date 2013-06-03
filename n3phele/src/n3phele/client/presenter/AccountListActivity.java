@@ -21,7 +21,10 @@ import n3phele.client.AppPlaceHistoryMapper;
 import n3phele.client.CacheManager;
 import n3phele.client.ClientFactory;
 import n3phele.client.model.Account;
+import n3phele.client.model.ActivityData;
+import n3phele.client.model.ActivityDataCollection;
 import n3phele.client.model.Collection;
+import n3phele.client.model.CostsCollection;
 import n3phele.client.model.VirtualServerCollection;
 import n3phele.client.model.VirtualServer;
 import n3phele.client.presenter.helpers.AuthenticatedRequestFactory;
@@ -141,26 +144,23 @@ public class AccountListActivity extends AbstractActivity {
 		return total;
 	}*/
 
-	protected double getCost(List<Double> list) {
-		double total = 0.0;
-		for(int i=0; i<list.size(); i++)
-			total+=list.get(i);
-		return total;
-	}
+
 
 	protected void updateAccountList(List<Account> list) {
 		this.accountList = list;
 		for(int i=0; i<accountList.size(); i++){
 			runningHours = 0;
 			runningMinutes = 0;
-			getVSList(accountList.get(i));
+			//getVSList(accountList.get(i));
+			getRunningProcess(accountList.get(i));
+			getProcessByDay(accountList.get(i));
 		}
 		display.refresh(this.accountList, this.costPerAccount, this.vsPerAccount);
 	}
 
-	protected void updateCostPerAccount(Account account, List<Double> values) {
+	protected void updateCostPerAccount(Account account, double cost) {
 		if(costPerAccount == null) return;
-		costPerAccount.put(account, getCost(values));
+		costPerAccount.put(account, cost);
 		display.refresh(this.accountList, this.costPerAccount, this.vsPerAccount);
 	}
 
@@ -293,7 +293,7 @@ public class AccountListActivity extends AbstractActivity {
 					int cont = 0;
 					if (200 == response.getStatusCode()) {
 						VirtualServerCollection<VirtualServer> virtualServerCollection = VirtualServer.asCollection(response.getText());
-						updateCostPerAccount(account, virtualServerCollection.dayCost());
+						//updateCostPerAccount(account, virtualServerCollection.dayCost());
 						for(VirtualServer vs : virtualServerCollection.getElements()){
 							//updateTimePerAccount(account, vs);
 							if(vs.getStatus().equalsIgnoreCase("running")) cont++;
@@ -307,6 +307,61 @@ public class AccountListActivity extends AbstractActivity {
 			});
 		} catch (RequestException e) {
 			//displayError("Couldn't retrieve JSON "+e.getMessage());
+		}
+	}
+	
+	private void getRunningProcess(final Account account) {
+		final String url = account.getUri() + "/runningprocess/get";
+		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, url);
+		try {
+			builder.sendRequest(null, new RequestCallback() {
+				public void onError(Request request, Throwable exception) {
+					GWT.log("Couldn't retrieve JSON " + exception.getMessage());
+				}
+
+				public void onResponseReceived(Request request, Response response) {
+					if (200 == response.getStatusCode()) {
+						GWT.log("Got reply");
+						ActivityDataCollection result = ActivityDataCollection.asActivityDataCollection(response.getText());
+						result.getStringElements();
+						List<ActivityData> list = result.getElements();
+						vsPerAccount.put(account, list.size());
+						updateVsPerAccount(account, list.size());
+					} else {
+						GWT.log("Couldn't retrieve JSON (" + response.getStatusText() + ")");
+					}
+				}
+			});
+		} catch (RequestException e) {
+			GWT.log("Couldn't retrieve JSON " + e.getMessage());
+		}
+
+	}
+	
+	private void getProcessByDay(final Account account) {
+		final String url = account.getUri() + "/totalCost24Hour";
+		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, url);
+		try {
+			builder.sendRequest(null, new RequestCallback() {
+				public void onError(Request request, Throwable exception) {
+					GWT.log("Couldn't retrieve JSON " + exception.getMessage());
+				}
+
+				public void onResponseReceived(Request request, Response response) {
+					if (200 == response.getStatusCode()) {
+						GWT.log("Got reply");
+						CostsCollection result = CostsCollection.asCostsCollection(response.getText());
+						List<Double> value = result.getElements();
+						double d = value.get(0);
+						costPerAccount.put(account, d);		
+						updateCostPerAccount(account, d); 
+					} else {
+						GWT.log("Couldn't retrieve JSON (" + response.getStatusText() + ")");
+					}
+				}
+			});
+		} catch (RequestException e) {
+			GWT.log("Couldn't retrieve JSON " + e.getMessage());
 		}
 	}
 
@@ -325,6 +380,11 @@ public class AccountListActivity extends AbstractActivity {
 						Collection<Account> account = Account.asCollection(response.getText());
 						costPerAccount = new HashMap<Account, Double>(account.getElements().size());
 						vsPerAccount = new HashMap<Account, Integer>(account.getElements().size());
+						for(Account acc : account.getElements()){
+							getRunningProcess(acc);
+							
+						}
+						
 						updateAccountList(account.getElements());
 					} else {
 

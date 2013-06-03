@@ -79,7 +79,7 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 
 	@Override
 	public void start(AcceptsOneWidget panel, EventBus eventBus) {
-		getVSList();
+		//getVSList();
 		getAccountList();
 		this.eventBus = eventBus;
 		handlerRegistration(eventBus);
@@ -108,15 +108,7 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 		unregister();
 	}
 
-	protected void updateVSList(Collection<ActivityData> list) {
-		vsCol = list;
-		this.vsList = list.getElements();
-		for (ActivityData vs : list.getElements()) {
-			// if (vs.getComplete() != null)
-			// vsList.remove(vs);
-		}
 
-	}
 
 	protected void updateAccount(Account account) {
 		this.account = account;
@@ -159,7 +151,9 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 
 		display.setChartData(pricesQuery);
 	}
-
+	/*
+	 * ------------- Data Handling -------------
+	 */
 	private void getProcessByDay(int day) {
 		final String url = account.getUri() + "/lastcompleted/" + day + "/get";
 		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, url);
@@ -188,38 +182,10 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 		getRunningProcess();
 	}
 
-	public void callGetTopLevel(String uri) {
-		getTopLevel(uri);
-	}
-
-	// not being used
-	private void getTopLevel(String uri) {
-		final String url = uri + "/toplevel";
-		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, url);
-		try {
-			builder.sendRequest(null, new RequestCallback() {
-				public void onError(Request request, Throwable exception) {
-					GWT.log("Couldn't retrieve JSON " + exception.getMessage());
-				}
-
-				public void onResponseReceived(Request request, Response response) {
-					if (200 == response.getStatusCode()) {
-						GWT.log("Got reply");
-						CloudProcess result = CloudProcess.asCloudProcess(response.getText());
-						// This method is not being used yet
-						// do something with the "display"
-						// result
-
-					} else {
-						GWT.log("Couldn't retrieve JSON (" + response.getStatusText() + ")");
-					}
-				}
-			});
-		} catch (RequestException e) {
-			GWT.log("Couldn't retrieve JSON " + e.getMessage());
-		}
+	public void callGetTopLevel() {
 		getRunningProcess();
 	}
+
 
 	private void getRunningProcess() {
 		final String url = accountUri + "/runningprocess/get";
@@ -256,65 +222,7 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 		display.refresh(this.vsList, this.activityPerVS);
 	}
 
-	/*
-	 * ------------- Data Handling -------------
-	 */
 
-	//not being used
-	public void getActivity(final ActivityData vs) {
-		// String uri = vs.getActivity();
-		/*
-		 * FIXME Still not working, have to find a replace for vs.getActivity()
-		 * on ActivityData
-		 */
-		String uri = "";
-		// Send request to server and catch any errors.
-		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, uri);
-		try {
-			Request request = builder.sendRequest(null, new RequestCallback() {
-				public void onError(Request request, Throwable exception) {
-					// displayError("Couldn't retrieve JSON "+exception.getMessage());
-				}
-
-				public void onResponseReceived(Request request, Response response) {
-					GWT.log("Got reply");
-					if (200 == response.getStatusCode()) {
-						Activity activity = Activity.asActivity(response.getText());
-						updateActivity(vs, activity);
-					} else {
-					}
-				}
-
-			});
-		} catch (RequestException e) {
-			// displayError("Couldn't retrieve JSON "+e.getMessage());
-		}
-	}
-
-	public void getVSList() {
-		// Send request to server and catch any errors.
-		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, virtualServerCollection);
-		try {
-			Request request = builder.sendRequest(null, new RequestCallback() {
-				public void onError(Request request, Throwable exception) {
-					// displayError("Couldn't retrieve JSON "+exception.getMessage());
-				}
-
-				public void onResponseReceived(Request request, Response response) {
-					GWT.log("Got reply");
-					if (200 == response.getStatusCode()) {
-						Collection<ActivityData> vs = ActivityData.asCollection(response.getText());
-						updateVSList(vs);
-					} else {
-
-					}
-				}
-
-			});
-		} catch (RequestException e) {
-			// displayError("Couldn't retrieve JSON "+e.getMessage());
-		}
-	}
 
 	public void getAccountList() {
 		// Send request to server and catch any errors.
@@ -386,11 +294,39 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 		Timer refreshTimer = new Timer() {
 			public void run() {
 				if (display.isAttached()) {
-					display.onModuleLoad();
-					getRunningProcess();
+					updateCall();
 				}else this.cancel();
 			}
 		};
 		refreshTimer.scheduleRepeating(300000);
+	}
+	public void initTimerDelete(){
+		final List<ActivityData>  param =  display.getVsData();
+		Timer refreshTimer = new Timer() {
+			public void run() {
+				
+				if(param == null || param != display.getVsData()){
+					System.out.println("!CANCELED");
+					param.removeAll(display.getVsData());
+					for (ActivityData activityData : param) {
+						display.getVsData().remove(activityData);
+					}
+					updateCall();
+					this.cancel();
+				}else{
+					System.out.println("!NOT CANCELED");
+					updateCall();
+					
+				}
+			}
+
+			
+		};
+		refreshTimer.scheduleRepeating(5000);
+	}
+	private void updateCall() {
+		getRunningProcess();
+		display.onModuleLoad();
+		
 	}
 }
