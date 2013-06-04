@@ -50,7 +50,6 @@ public class AccountListView extends WorkspaceVerticalPanel {
 	private AccountListActivity presenter = null;
 	private ActionDialogBox<Account> dialog;
 	private static ClickableCellTableResource resource = null;
-	private double cost = 0.0;
 	private HashMap<Account, Double> costPerAccount = null;
 	private HashMap<Account, Integer> vsPerAccount = null;
 	public AccountListView() {
@@ -190,9 +189,7 @@ public class AccountListView extends WorkspaceVerticalPanel {
 		this.costPerAccount = cost;
 	}
 
-	public void set24HoursCost(double cost){
-		this.cost = cost;
-	}
+
 
 	protected ActionDialogBox<Account> getDialog(Account item) {
 		if(dialog == null) {

@@ -287,7 +287,7 @@ public class AccountResource {
 
 	@GET
 	@Produces("application/json")
-	// @RolesAllowed("authenticated")
+	@RolesAllowed("authenticated")
 	@Path("/{account}/lastcompleted/{days:[0-9]+}/get")
 	public CostsCollection listCostPerDays(@PathParam("account") String account, @PathParam("days") int days) {
 		
@@ -524,7 +524,22 @@ public class AccountResource {
 
 		return new CostsCollection(listfinal);
 	}
-
+	
+	@GET
+	@Produces("application/json")
+	@RolesAllowed("authenticated")
+	@Path("/{account}/totalCost24Hour")
+	public CostsCollection totalCost24Hour(@PathParam("account") String account){
+		List<Double> list = listCost24hours(account).getElements();
+		double totalcost = 0.0;
+		for (Double d : list) {
+			totalcost = totalcost + d;
+		}
+		ArrayList<Double> list2 = new ArrayList<Double>();
+		list2.add(totalcost);
+		list2.add(0.0);
+		return new CostsCollection(list2);
+	}
 	protected void formatDoubleList(List<Double> listfinal) {
 		for (int i = 0; i < listfinal.size(); i++) {
 			listfinal.set(i, Double.parseDouble(String.format("%.3f", listfinal.get(i)).replace(',', '.')));
