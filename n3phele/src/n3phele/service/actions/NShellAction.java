@@ -619,13 +619,15 @@ public class NShellAction extends Action {
 				Map<String,String> inputs = new HashMap<String,String>();
 				for(FileSpecification i : Helpers.safeIterator(cmd.getInputFiles())) {
 					URI source = context.getFileValue(i.getName());
-					if(source == null && !i.isOptional()) {
-						log.warning("Missing file "+i.getName());
-						logger.error("Missing file "+i.getName());
-						if(missing == null)
-							missing = i.getName();
-						else
-							missing = missing+" "+i.getName();
+					if(source == null) {
+						if(!i.isOptional()) {
+							log.warning("Missing file "+i.getName());
+							logger.error("Missing file "+i.getName());
+							if(missing == null)
+								missing = i.getName();
+							else
+								missing = missing+" "+i.getName();
+						}
 					} else {
 						inputs.put(i.getName(), i.getName());
 						FileTracker inputFile = new FileTracker();
