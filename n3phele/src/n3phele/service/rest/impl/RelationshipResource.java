@@ -96,7 +96,7 @@ public class RelationshipResource {
 			@FormParam("owner") URI owner, 
 			@FormParam("isPublic") boolean isPublic) {
 
-		Relationship relationship = new Relationship(uriStackMaster,uriStackSubordinate,type,description, null, owner, isPublic);
+		Relationship relationship = new Relationship(uriStackMaster,uriStackSubordinate,type,description, name, owner, isPublic);
 		dao.add(relationship);
 		//TODO Override toString of service
 		log.warning("Created " +relationship);
@@ -118,6 +118,28 @@ public class RelationshipResource {
 	@RolesAllowed("authenticated")
 	public Relationship get(@QueryParam("id") String id){
 		Relationship item = dao.load(id, UserResource.toUser(securityContext)); 
+		return item;
+	}
+	
+	@POST
+	@Produces("application/json")
+	@Path("{id}")
+	@RolesAllowed("authenticated")
+	public Relationship update(@PathParam("id") Long id, 
+			@FormParam("name") String name, 
+			@FormParam("description") String description
+			) {
+
+		Relationship item = dao.load(id, UserResource.toUser(securityContext));
+		if (name == null || name.trim().length() == 0) {
+			throw new IllegalArgumentException("bad name");
+		}
+		
+		item.setName(name);
+		item.setDescription(description == null ? null : description.trim());
+	
+		dao.update(item);
+		log.warning("Updated " + item.getUri() );
 		return item;
 	}
 	@DELETE

@@ -3,18 +3,20 @@ package n3phele;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import javax.ws.rs.FormParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 
+import n3phele.service.model.Relationship;
 import n3phele.service.model.Service;
 import n3phele.service.model.Stack;
 import n3phele.service.model.core.BaseEntity;
 import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.Entity;
 import n3phele.service.model.core.User;
+import n3phele.service.rest.impl.RelationshipResource;
 import n3phele.service.rest.impl.ServiceResource;
-import n3phele.service.rest.impl.StackResource;
 import n3phele.service.rest.impl.UserResource;
 
 //import org.apache.tools.ant.types.spi.Service;
@@ -30,8 +32,8 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import com.sun.jersey.api.representation.Form;
 
-public class ServiceResourceWebServiceTest  {
-	public ServiceResourceWebServiceTest() throws Exception {
+public class RelationshipResourceWebServiceTest  {
+	public RelationshipResourceWebServiceTest() throws Exception {
 
 	}
 
@@ -45,7 +47,7 @@ public class ServiceResourceWebServiceTest  {
 
 		client = Client.create();
 		client.addFilter(new HTTPBasicAuthFilter("test-user@gmail.com", "testit!"));
-		webResource = client.resource(UriBuilder.fromUri("http://127.0.0.1:8888/resources").path(ServiceResource.class).build());
+		webResource = client.resource(UriBuilder.fromUri("http://127.0.0.1:8888/resources").path(RelationshipResource.class).build());
 	}
 
 	private Client client;
@@ -53,9 +55,12 @@ public class ServiceResourceWebServiceTest  {
 	private URI testUser;
 
 	@Test
-	public void addServiceTest() throws URISyntaxException {
+	public void addRelationshipTest() throws URISyntaxException {
 		Form form = new Form();
-    	form.add("description", "teste desc");
+		form.add("uriStackMaster","oneUriOfAStack");
+		form.add("uriStackSubordinate","AnotherUriOfAStack");
+		form.add("type", "DataBase");
+		form.add("description", "teste desc");
     	form.add("name", "service");
     	form.add("owner", "http://127.0.0.1:8888/resources/user/4");
     	form.add("isPublic", true);
@@ -69,17 +74,23 @@ public class ServiceResourceWebServiceTest  {
 	    	client.removeAllFilters();
 			client.addFilter(new HTTPBasicAuthFilter("test-user@gmail.com", "testit!"));
     	}
-    	Service result = webResource.uri(user).get(Service.class);
-    	System.out.println(webResource.uri(user).get(Service.class).getUri().toString());
+    	Relationship result = webResource.uri(user).get(Relationship.class);
+    	System.out.println(webResource.uri(user).get(Relationship.class).getUri().toString());
+    	Assert.assertEquals("oneUriOfAStack", result.getUriStackMaster());
+    	Assert.assertEquals("AnotherUriOfAStack", result.getUriStackSubordinate());
+    	Assert.assertEquals("DataBase", result.getType());
     	Assert.assertEquals("service", result.getName());
     	Assert.assertEquals("http://127.0.0.1:8888/resources/user/4", result.getOwner().toString());
     	Assert.assertEquals("teste desc", result.getDescription());
     	Assert.assertEquals(true, result.isPublic());
     }
 	@Test
-	public void updateServiceTest() throws URISyntaxException {
+	public void updateRelationshipTest() throws URISyntaxException {
 		Form form = new Form();
-    	form.add("description", "teste desc");
+		form.add("uriStackMaster","oneUriOfAStack");
+		form.add("uriStackSubordinate","AnotherUriOfAStack");
+		form.add("type", "DataBase");
+		form.add("description", "teste desc");
     	form.add("name", "service");
     	form.add("owner", "http://127.0.0.1:8888/resources/user/4");
     	form.add("isPublic", true);
@@ -93,8 +104,10 @@ public class ServiceResourceWebServiceTest  {
 	    	client.removeAllFilters();
 			client.addFilter(new HTTPBasicAuthFilter("test-user@gmail.com", "testit!"));
     	}
-    	Service result = webResource.uri(user).get(Service.class);
-    	System.out.println(webResource.uri(user).get(Service.class).getUri().toString());
+    	Relationship result = webResource.uri(user).get(Relationship.class);
+    	Assert.assertEquals("oneUriOfAStack", result.getUriStackMaster());
+    	Assert.assertEquals("AnotherUriOfAStack", result.getUriStackSubordinate());
+    	Assert.assertEquals("DataBase", result.getType());
     	Assert.assertEquals("service", result.getName());
     	Assert.assertEquals("http://127.0.0.1:8888/resources/user/4", result.getOwner().toString());
     	Assert.assertEquals("teste desc", result.getDescription());
@@ -103,13 +116,14 @@ public class ServiceResourceWebServiceTest  {
     	form = new Form();
     	form.add("description", "teste desc2");
     	form.add("name", "service2");
-    	form.add("owner", "http://127.0.0.1:8888/resources/user/4");
-    	form.add("isPublic", true);
-    	URI uri = new URI("http://127.0.0.1:8888/resources/service/"+result.getId());
+    	URI uri = new URI("http://127.0.0.1:8888/resources/relationship/"+result.getId());
 		ClientResponse resultC = webResource.uri(uri).post(ClientResponse.class,form);
 		Assert.assertEquals(200, resultC.getStatus());  
     	
-    	result = webResource.uri(user).get(Service.class);
+    	result = webResource.uri(user).get(Relationship.class);
+    	Assert.assertEquals("oneUriOfAStack", result.getUriStackMaster());
+    	Assert.assertEquals("AnotherUriOfAStack", result.getUriStackSubordinate());
+    	Assert.assertEquals("DataBase", result.getType());
     	Assert.assertEquals("service2", result.getName());
     	Assert.assertEquals("teste desc2", result.getDescription());
     	Assert.assertEquals("http://127.0.0.1:8888/resources/user/4", result.getOwner().toString());
@@ -117,56 +131,7 @@ public class ServiceResourceWebServiceTest  {
 
 	}
 	@Test
-	public void addStackTest() throws URISyntaxException {
-		Form form = new Form();
-    	form.add("description", "teste desc");
-    	form.add("name", "service");
-    	form.add("owner", "http://127.0.0.1:8888/resources/user/4");
-    	form.add("isPublic", true);
-    	URI user = null;
-    	if(user == null) {
-    		ClientResponse result = webResource.post(ClientResponse.class, form);
-	    	user = result.getLocation();
-	 
-	
-	    	Assert.assertEquals(201, result.getStatus()); 
-	    	client.removeAllFilters();
-			client.addFilter(new HTTPBasicAuthFilter("test-user@gmail.com", "testit!"));
-    	}
-    	Service result = webResource.uri(user).get(Service.class);
-    	System.out.println(webResource.uri(user).get(Service.class).getUri().toString());
-    	Assert.assertEquals("service", result.getName());
-    	Assert.assertEquals("http://127.0.0.1:8888/resources/user/4", result.getOwner().toString());
-    	Assert.assertEquals("teste desc", result.getDescription());
-    	Assert.assertEquals(true, result.isPublic());
-	
-		//Stack stack =  new Stack("tested stack","stackForAdd",result.getUri(),true);
-		//StackResource.dao.add(stack);
-	
-		//FORM FOR THE STACK
-    	form = new Form();
-    	form.add("description", "teste desc");
-    	form.add("name", "Stack");
-    	form.add("owner", "http://127.0.0.1:8888/resources/user/4");
-    	form.add("isPublic", true);
-    	URI uriForm = new URI("http://127.0.0.1:8888/resources/stack");
-    	ClientResponse resultStack = webResource.uri(uriForm).post(ClientResponse.class,form);
-    	Assert.assertEquals(201, resultStack.getStatus());  
-    	Stack stackR = webResource.uri(resultStack.getLocation()).get(Stack.class);
-    	System.out.println("STACK : " + stackR);
-    	
-    	URI uri = new URI("http://127.0.0.1:8888/resources/service/"+result.getId()+"/addStack/"+stackR.getId());
-		ClientResponse resultC = webResource.uri(uri).post(ClientResponse.class,form);
-		Assert.assertEquals(200, resultC.getStatus());  
-	
-		result = webResource.uri(user).get(Service.class);
-		System.out.println("SERVICE: " + result.getStacks());
-		Assert.assertEquals("service", result.getName());
-		Assert.assertEquals(stackR.getUri().toString(), result.getStacks().get(0).toString());
-		
-	}
-	@Test
-	public void listServiceTest() {
+	public void listRelationshipTest() {
     	
     	String myName = "test-user@gmail.com";
     	String mySecret = "testit!";
@@ -197,7 +162,7 @@ public class ServiceResourceWebServiceTest  {
 	    	client.addFilter(new HTTPBasicAuthFilter(myName, mySecret));
     	}
     	
-    	Service result = webResource.uri(user).get(Service.class);
+    	Relationship result = webResource.uri(user).get(Relationship.class);
     	Assert.assertEquals("http://127.0.0.1:8888/resources/user/4", result.getOwner().toString());
     	Assert.assertEquals("teste desc", result.getDescription());
     	Assert.assertEquals(true, result.isPublic());
@@ -205,9 +170,9 @@ public class ServiceResourceWebServiceTest  {
 	}
 	
 	@Test
-	public void testServiceDelete() throws Exception {
+	public void testRelationshipDelete() throws Exception {
 		String myName = "service";
-		Service user = webResource.path("byName").queryParam("id",myName).accept(MediaType.APPLICATION_JSON_TYPE).get(Service.class);
+		Relationship user = webResource.path("byName").queryParam("id",myName).accept(MediaType.APPLICATION_JSON_TYPE).get(Relationship.class);
 	  	System.out.println(user.getUri());
 		ClientResponse response = webResource.uri(user.getUri()).delete(ClientResponse.class);
 	

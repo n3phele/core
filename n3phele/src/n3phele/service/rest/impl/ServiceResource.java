@@ -49,6 +49,7 @@ import n3phele.service.model.CostsCollection;
 import n3phele.service.model.Service;
 import n3phele.service.model.ServiceCollection;
 import n3phele.service.model.ServiceModelDao;
+import n3phele.service.model.Stack;
 import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.Credential;
 import n3phele.service.model.core.GenericModelDao;
@@ -124,6 +125,41 @@ public class ServiceResource {
 		Service item = dao.load(id, UserResource.toUser(securityContext)); 
 		return item;
 	}
+	
+	@POST
+	@Produces("application/json")
+	@Path("{id}")
+	@RolesAllowed("authenticated")
+	public Service update(@PathParam("id") Long id, @FormParam("name") String name, @FormParam("description") String description) {
+
+		Service item = dao.load(id, UserResource.toUser(securityContext));
+		if (name == null || name.trim().length() == 0) {
+			throw new IllegalArgumentException("bad name");
+		}
+		
+		item.setName(name);
+		item.setDescription(description == null ? null : description.trim());
+	
+		dao.update(item);
+		log.warning("Updated " + item.getUri() );
+		return item;
+	}
+	@POST
+	@Produces("application/json")
+	@Path("{id}/addStack/{stackId}")
+	@RolesAllowed("authenticated")
+	public Service addStack(@PathParam("id") Long id,@PathParam("stackId") Long stackId) throws NotFoundException, URISyntaxException {
+		Stack stack = StackResource.dao.load(stackId, UserResource.toUser(securityContext));
+		Service item = dao.load(id, UserResource.toUser(securityContext));
+		if (stack == null) {
+			throw new IllegalArgumentException("Stack Not found!");
+		}
+		if(item.getStacks() == null) System.out.println("IXI");
+		item.addStack(stack.getUri());
+		dao.update(item);
+		log.warning("Updated " + item.getUri() );
+		return item;
+	}
 	@DELETE
 	@RolesAllowed("authenticated")
 	@Path("{id}")
@@ -131,89 +167,7 @@ public class ServiceResource {
 		Service item = dao.load(id, UserResource.toUser(securityContext));
 		dao.delete(item);
 	}
-	// may have to move this inner class, creating a new independent class
-//	static public class ServiceManager extends CachingAbstractManager<Service> {
-//		public ServiceManager() {
-//		}
-//
-//		@Override
-//		protected URI myPath() {
-//			return UriBuilder.fromUri(Resource.get("baseURI", "http://127.0.0.1:8888/resources")).path(ServiceResource.class).build();
-//		}
-//
-//		@Override
-//		public GenericModelDao<Service> itemDaoFactory() {
-//			return new ServiceModelDao<Service>(Service.class);
-//		}
-//
-//		public Service load(Long id, User requestor) throws NotFoundException {
-//			return super.get(id, requestor);
-//		}
-//
-//		/**
-//		 * Locate a item from the persistent store based on the item name.
-//		 * 
-//		 * @param name
-//		 * @param requestor
-//		 *            requesting user
-//		 * @return the item
-//		 * @throws NotFoundException
-//		 *             is the object does not exist
-//		 */
-//		public Service load(String name, User requestor) throws NotFoundException {
-//			return super.get(name, requestor);
-//		}
-//
-//		/**
-//		 * Locate a item from the persistent store based on the item URI.
-//		 * 
-//		 * @param uri
-//		 * @param requestor
-//		 *            requesting user
-//		 * @return the item
-//		 * @throws NotFoundException
-//		 *             is the object does not exist
-//		 */
-//		public Service load(URI uri, User requestor) throws NotFoundException {
-//			return super.get(uri, requestor);
-//		}
-//
-//		public Service load(URI uri, URI requestor) throws NotFoundException {
-//			return super.get(uri, requestor);
-//		}
-//
-//		public void add(Service account) {
-//			super.add(account);
-//		}
-//
-//		public void update(Service account) {
-//			super.update(account);
-//		}
-//
-//		public void delete(Service account) {
-//			super.delete(account);
-//		}
-//
-//		public Collection<Service> getCollection(User user) {
-//			return super.getCollection(user);
-//		}
-//		
-////		public Collection<Service> getAccountList(User user, boolean summary) {
-////
-////			log.warning("list Services entered with summary " + summary);
-////
-////			Collection<Service> result = getCollection(user);
-////
-////			if (result.getElements() != null) {
-////				for (int i = 0; i < result.getElements().size(); i++) {
-////					Service account = result.getElements().get(i);
-////					if (summary)
-////						result.getElements().set(i, Service.summary(account));
-////				}
-////			}
-////			return result;
-////		}
-//	}
+
 
 	final public static ServiceManager dao = new ServiceManager();
 }

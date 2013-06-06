@@ -15,6 +15,7 @@ import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Index;
+import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.annotation.Unindex;
 
 @XmlRootElement(name="Service")
@@ -22,18 +23,18 @@ import com.googlecode.objectify.annotation.Unindex;
 @Unindex
 @Cache
 @com.googlecode.objectify.annotation.Entity
-public class Service extends Entity{
+public class Service extends Entity {
 	@com.googlecode.objectify.annotation.Id private Long id;
 	private String description;
 	//Not sure if stacks are going to be organized on a list...
-	private List<Stack> stacks;
+	@Serialize
+	private List<URI> stacks = new ArrayList<URI>();
 	
 	public Service(){}
 	
 	public Service(String description,String name, URI owner, boolean isPublic){
 		super(name, null, owner, isPublic);
 		this.description = description;
-		stacks = new ArrayList<Stack>();
 	}
 
 
@@ -57,11 +58,13 @@ public class Service extends Entity{
 	public void setId(Long id) {
 		this.id = id;
 	}
-	public List<Stack> getStacks() {
+	public List<URI> getStacks() {
 		return this.stacks;
 	}
-	public void setStacks(List<Stack> stacks) {
+	public void setStacks(List<URI> stacks) {
 		this.stacks = stacks;
 	}
-
+	public boolean addStack(URI stack){
+		return stacks.add(stack);
+	}
 }

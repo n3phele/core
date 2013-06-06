@@ -1,5 +1,6 @@
 package n3phele.service.model;
 
+import java.io.Serializable;
 import java.net.URI;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -12,13 +13,21 @@ import com.googlecode.objectify.annotation.Unindex;
 
 
 @XmlRootElement(name="Relationship")
-@XmlType(name="Relationship", propOrder={"uriStackMaster","uriStackSubordinate","type","description"})
+@XmlType(name="Relationship", propOrder={"id","uriStackMaster","uriStackSubordinate","type","description"})
 @Unindex
 @Cache
 @com.googlecode.objectify.annotation.Entity
 //must add on ServiceModelDao.java
-public class Relationship extends Entity{
+public class Relationship extends Entity implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+
+	@com.googlecode.objectify.annotation.Id private Long id;
 	
+
 	private String uriStackMaster;
 	private String uriStackSubordinate;
 	
@@ -67,4 +76,12 @@ public class Relationship extends Entity{
 	public void setType(String type) {
 		this.type = type;
 	}
+	public Long getId() {
+		return this.id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
 }

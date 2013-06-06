@@ -31,6 +31,8 @@ import org.joda.time.DateTime;
 import org.joda.time.MutableDateTime;
 import org.mortbay.jetty.Server;
 
+import com.googlecode.objectify.Key;
+
 import java.text.SimpleDateFormat;
 
 import n3phele.service.actions.CountDownAction;
@@ -46,6 +48,8 @@ import n3phele.service.model.Cloud;
 import n3phele.service.model.CloudProcess;
 import n3phele.service.model.CloudProcessCollection;
 import n3phele.service.model.CostsCollection;
+import n3phele.service.model.Relationship;
+import n3phele.service.model.Service;
 import n3phele.service.model.Stack;
 import n3phele.service.model.StackCollection;
 import n3phele.service.model.ServiceModelDao;
@@ -89,7 +93,7 @@ public class StackResource {
 			@FormParam("owner") URI owner, 
 			@FormParam("isPublic") boolean isPublic) {
 
-		Stack stack = new Stack(description, null, owner, isPublic);
+		Stack stack = new Stack(description, name, owner, isPublic);
 		dao.add(stack);
 		//TODO Override toString of service
 		log.warning("Created " +stack);
@@ -105,6 +109,25 @@ public class StackResource {
 		return item;
 	}
 	
+	@POST
+	@Produces("application/json")
+	@Path("{id}")
+	@RolesAllowed("authenticated")
+	public Stack update(@PathParam("id") Long id, @FormParam("name") String name, @FormParam("description") String description) {
+
+		Stack item = dao.load(id, UserResource.toUser(securityContext));
+		if (name == null || name.trim().length() == 0) {
+			throw new IllegalArgumentException("bad name");
+		}
+		
+		item.setName(name);
+		item.setDescription(description == null ? null : description.trim());
+	
+		dao.update(item);
+		log.warning("Updated " + item.getUri() );
+		return item;
+	}
+	
 	@GET
 	@Produces("application/json")
 	@Path("byName")
@@ -113,6 +136,43 @@ public class StackResource {
 		Stack item = dao.load(id, UserResource.toUser(securityContext)); 
 		return item;
 	}
+	
+	@POST
+	@Produces("application/json")
+	@Path("{id}/addRelation/{relationId}")
+	@RolesAllowed("authenticated")
+	public Stack addRelationToStack(@PathParam("id") Long id,@PathParam("relationId") Long relationId) throws NotFoundException, URISyntaxException {
+		Relationship relation = RelationshipResource.dao.load(relationId, UserResource.toUser(securityContext));
+		Stack item = dao.load(id, UserResource.toUser(securityContext));
+		if (relation == null) {
+			throw new IllegalArgumentException("Relation Not found!");
+		}
+		item.addRelation(relation.getUri());
+		dao.update(item);
+		log.warning("Updated " + item.getUri() );
+		return item;
+	}
+	
+	@POST
+	@Produces("application/json")
+	@Path("{id}/addVm/{group:[0-9]+_}{vmId:[0-9]+}")
+	@RolesAllowed("authenticated")
+	public Stack addCloudProcessToStack(@PathParam("id") Long id, @PathParam("group") String group ,@PathParam("vmId") Long vmId) throws NotFoundException, URISyntaxException {
+		Key<CloudProcess> root = null;
+		if (group != null) {
+			root = Key.create(CloudProcess.class, Long.valueOf(group.substring(0, group.length() - 1)));
+		}
+		CloudProcess process = CloudProcessResource.dao.load(root, vmId, UserResource.toUser(securityContext));
+		Stack item = dao.load(id, UserResource.toUser(securityContext));
+		if (process == null) {
+			throw new IllegalArgumentException("CloudProcess Not found!");
+		}
+		item.addVm(process.getUri());
+		dao.update(item);
+		log.warning("Updated " + item.getUri() );
+		return item;
+	}
+	
 	@DELETE
 	@RolesAllowed("authenticated")
 	@Path("{id}")
