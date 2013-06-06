@@ -30,6 +30,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.google.appengine.api.datastore.Text;
+
 /**
  * @author Nigel Cook
  *

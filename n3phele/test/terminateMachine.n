@@ -1,0 +1,69 @@
+# terminateService.n
+# Author: Lucas Pugens
+name	   : terminateService
+description: terminate a machine
+version	   : 0.1.1
+preferred  : true
+public	   : true
+icon	   : http://www.n3phele.com/icons/custom
+parameters :
+	int n	= 1 	# how many to create
+	string juju_version = "0.6" # version to download of juju
+	string end_machine = "01" # the number of machine that will be terminated
+	string tenant_id = "" # also called project ID
+input files:
+	environments.yaml # Input file to configure juju
+EC2: # Amazon EC2
+	$$my_vmPugens = CREATEVM --name myVM --n $$n
+	ON $$my_vmPugens mkdir ~/.juju/
+	ON $$my_vmPugens mv environments.yaml ~/.juju/environments.yaml
+	ON $$my_vmPugens mv juju_sshKey.txt ~/.ssh/id_rsa
+	ON $$my_vmPugens chmod go-rxw ~/.ssh/id_rsa
+	ON $$my_vmPugens cat juju_sshKey.pub >> ~/.ssh/authorized_keys
+	ON $$my_vmPugens mv juju_sshKey.pub ~/.ssh/id_rsa.pub
+
+	ON $$my_vmPugens ssh -t -t -v -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@localhost exec ssh-agent ssh-add
+
+	ON $$my_vmPugens sudo apt-get -y install python-software-properties
+	ON $$my_vmPugens sudo add-apt-repository -y ppa:juju/$$juju_version
+	ON $$my_vmPugens sudo apt-get update -y && sudo apt-get install -y -qq juju
+
+	ON $$my_vmPugens echo -e "Host *\nStrictHostKeyChecking no" >> ~/.ssh/config
+	ON $$my_vmPugens juju terminate-machine $$end_machine
+	ON $$my_vmPugens rm -f ~/.ssh/config
+HPZone1: # HP Cloud
+	$$my_vmPugens = CREATEVM --name myVM --n $$n
+	
+	ON $$my_vmPugens sudo apt-get update
+	ON $$my_vmPugens sudo apt-get -y install ruby1.8 ruby-dev
+	ON $$my_vmPugens sudo apt-get -y install rubygems
+	ON $$my_vmPugens sudo apt-get -y install libxml2 libxml2-dev libxslt1-dev libxslt1.1 sgml-base xml-core
+	ON $$my_vmPugens sudo gem install rdoc -y --no-rdoc --no-ri
+	ON $$my_vmPugens sudo curl -sL https://docs.hpcloud.com/file/hpfog-0.0.20.gem >hpfog-0.0.20.gem
+	ON $$my_vmPugens sudo gem install hpfog-0.0.20.gem -y --no-rdoc --no-ri	
+	ON $$my_vmPugens grep -P -o 'access-key: (.*)' environments.yaml | awk '{split($0,a,": "); print a[2]}' >> /tmp/entry
+	ON $$my_vmPugens grep -P -o 'secret-key: (.*)' environments.yaml | awk '{split($0,a,": "); print a[2]}' >> /tmp/entry
+	ON $$my_vmPugens echo -e "\n" $$tenant_id "\n" >> /tmp/entry
+	ON $$my_vmPugens grep -P -o 'region: az-[0-9](.*)' environments.yaml | awk '{split($0,a,": "); print a[2]}' |  awk '{split($0,a,"."); print a[2]"."a[3]}'  >> /tmp/entry
+	ON $$my_vmPugens echo -e "\n\n\n" >> /tmp/entry
+	ON $$my_vmPugens curl -sL https://docs.hpcloud.com/file/hpcloud-1.9.0.gem >hpcloud.gem
+	ON $$my_vmPugens sudo gem install hpcloud.gem -y --no-rdoc --no-ri
+	ON $$my_vmPugens hpcloud account:setup < /tmp/entry	
+
+	ON $$my_vmPugens hpcloud get :n3phele-service/id_rsa :n3phele-service/id_rsa.pub
+	
+	ON $$my_vmPugens mkdir ~/.juju/
+	ON $$my_vmPugens mv environments.yaml ~/.juju/environments.yaml
+	ON $$my_vmPugens mv id_rsa ~/.ssh/id_rsa
+	ON $$my_vmPugens chmod go-rxw ~/.ssh/id_rsa
+	ON $$my_vmPugens cat id_rsa.pub >> ~/.ssh/authorized_keys
+	ON $$my_vmPugens mv id_rsa.pub ~/.ssh/id_rsa.pub
+	ON $$my_vmPugens ssh -t -t -v -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@localhost exec ssh-agent ssh-add
+	ON $$my_vmPugens sudo apt-get -y install python-software-properties
+	ON $$my_vmPugens sudo add-apt-repository -y ppa:juju/$$juju_version
+	ON $$my_vmPugens sudo apt-get update -y && sudo apt-get install -y -qq juju
+	ON $$my_vmPugens echo -e "Host *\nStrictHostKeyChecking no" >> ~/.ssh/config
+	ON $$my_vmPugens juju terminate-machine $$end_machine
+	ON $$my_vmPugens rm -f ~/.ssh/config
+	ON $$my_vmPugens juju status > /tmp/jujuStatus.txt
+	ON $$my_vmPugens hpcloud copy /tmp/jujuStatus.txt :n3phele-service/juju_status.txt

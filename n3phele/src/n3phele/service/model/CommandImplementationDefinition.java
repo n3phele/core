@@ -3,6 +3,7 @@ package n3phele.service.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.annotation.Serialize;
 
 /**
@@ -20,7 +21,7 @@ public class CommandImplementationDefinition {
 	
 	private String name;
 	private String annotation;
-	private String body;
+	private Text body;
 	private int lineNo;
 	@Serialize private List<ShellFragment> compiled = new ArrayList<ShellFragment>();
 	
@@ -30,7 +31,7 @@ public class CommandImplementationDefinition {
 			String body, int lineNo) {
 		this.name = name;
 		this.annotation = annotation;
-		this.body = body;
+		this.body = new Text(body);
 		this.lineNo = lineNo;
 	}
 
@@ -66,14 +67,14 @@ public class CommandImplementationDefinition {
 	 * @return the body
 	 */
 	public String getBody() {
-		return body;
+		return body.getValue();
 	}
 
 	/**
 	 * @param body the body to set
 	 */
 	public void setBody(String body) {
-		this.body = body;
+		this.body = new Text(body);
 	}
 
 	/**

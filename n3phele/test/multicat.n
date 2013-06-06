@@ -1,0 +1,18 @@
+# multicat.n
+# Copyright (c) 2013 Nigel Cook. All Rights reserved
+# xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+name	   :  multicat
+description: output one or more files
+version	   : 1.0
+preferred  : true
+public	   : true
+icon	   : http://www.n3phele.com/icons/custom
+input files:	
+	file1.txt 			# Select a file
+	optional file2.txt 	# Optionally select a file
+EC2: # Amazon EC2
+	$$cat = CREATEVM --n 1
+	ON $$cat cat file[12].txt
+HPZone1: # HP Cloud
+	$$cat = CREATEVM --n 1
+	ON $$cat cat file[12].txt

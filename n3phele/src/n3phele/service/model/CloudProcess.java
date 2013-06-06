@@ -64,8 +64,9 @@ public class CloudProcess extends Entity {
 	@Index protected String parent = null;
 	@Parent Key<CloudProcess> root;
 	@Index(IfTrue.class) boolean topLevel = false;
-	@Index(IfTrue.class) boolean haveCost = false;
-	@Index(IfNotZero.class)protected float costPerHour = 0;
+
+
+	@Index(IfNotZero.class)protected double costPerHour = 0;
 	@Index(IfNotNull.class)protected Date epoch = null;
 	@Index(IfNotNull.class)protected String account = null;
 
@@ -129,16 +130,15 @@ public class CloudProcess extends Entity {
 	/**
 	 * @return the cost per hour
 	 */
-	public float getCostPerHour(){
+	public double getCostPerHour(){
 		return costPerHour;
 	}
 	
 	/**
 	 * @param costPerHour the cost per hour to set
 	 */
-	public void setCostPerHour(float costPerHour){
+	public void setCostPerHour(double costPerHour){
 		this.costPerHour = costPerHour;
-		this.haveCost = (costPerHour > 0);
 	}
 	
 	/**
@@ -446,12 +446,12 @@ public class CloudProcess extends Entity {
 	@Override
 	public String toString() {
 		return String
-				.format("CloudProcess [id=%s, state=%s, running=%s, waitTimeout=%s, pendingInit=%s, pendingCall=%s, pendingCancel=%s, pendingDump=%s, pendingAssertion=%s, dependentOn=%s, dependencyFor=%s, start=%s, complete=%s, finalized=%s, action=%s, parent=%s, root=%s, topLevel=%s]",
+				.format("CloudProcess [id=%s, state=%s, running=%s, waitTimeout=%s, pendingInit=%s, pendingCall=%s, pendingCancel=%s, pendingDump=%s, pendingAssertion=%s, dependentOn=%s, dependencyFor=%s, start=%s, complete=%s, finalized=%s, action=%s, parent=%s, root=%s, topLevel=%s, costPerHour=%s]",
 						id, state, running, waitTimeout, pendingInit,
 						pendingCall, pendingCancel, pendingDump,
 						pendingAssertion, dependentOn, dependencyFor, start,
 						complete, finalized, action,
-						parent, root, topLevel);
+						parent, root, topLevel, costPerHour);
 	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()

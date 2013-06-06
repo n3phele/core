@@ -3,12 +3,15 @@
 # xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 name	   :  cat
 description: output a file
-version	   : 1.0
+version	   : 1.1
 preferred  : true
 public	   : true
 icon	   : http://www.n3phele.com/icons/custom
 input files:	
 	file.txt 	# Select a file
 EC2: # Amazon EC2
+	$$cat = CREATEVM --n 1
+	ON $$cat cat file.txt
+HPZone1: # HP Cloud
 	$$cat = CREATEVM --n 1
 	ON $$cat cat file.txt

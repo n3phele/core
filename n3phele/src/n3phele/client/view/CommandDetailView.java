@@ -315,11 +315,11 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 	public boolean validateRepoRefs (List<FileSpecification> fileSpecs, boolean isInput) {
 		for(FileSpecification p : fileSpecs) {
 			String repoName = null;
-			String repoFile = null;
-			if(p.getRepository() != null) {
-				int i = p.getRepository().indexOf(":");
-				repoName = p.getRepository().substring(0,i);
-				repoFile = p.getRepository().substring(i+3);
+			String repoFile = p.getFilename();
+			String repoURI = p.getRepository();
+			Repository r = uriToRepoMap.get(repoURI);
+			if(r != null) {
+				repoName = r.getName();
 			}
 			boolean isOptional = p.isOptional();
 			if(!validateRepo(repoName, repoFile, isInput && !isOptional)) return false;
@@ -331,12 +331,16 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 
 	for(FileSpecification p : fileSpecs) {
 		String repoURI = p.getRepository();
+		String repoName = "";
+		Repository r = CommandDetailView.this.uriToRepoMap.get(repoURI);
+		if(r != null && r.getName()!=null)
+			repoName = r.getName();
 		String repoFile = p.getFilename();
 		if(repoURI != null) {
-			GWT.log("File "+p.getName()+" maps to "+repoURI+" path "+repoFile);
+			GWT.log("File "+p.getName()+" maps to "+repoName+" path "+repoFile);
 			if(repoFile!=null)
 				repoFile = repoFile.trim();
-			context.put(p.getName(), Variable.newInstance(p.getName(), "File", p.getRepository()));
+			context.put(p.getName(), Variable.newInstance(p.getName(), "File", repoName+":///"+repoFile));
 		} else {
 			GWT.log("File "+p.getName()+" not used");
 		}
@@ -979,7 +983,7 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 					@Override
 					public void save(String repoName, String repoUri, String filename) {
 						fileSpecification.setFilename(filename);
-						fileSpecification.setRepository(repoName+":///"+filename);
+						fileSpecification.setRepository(repoUri);
 						if(isInput)
 							inputTable.redraw();
 						else
@@ -1065,6 +1069,7 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 
 			@Override
 			public String getValue(FileSpecification object) {
+				String target = object.getRepository();
 				Repository r = CommandDetailView.this.uriToRepoMap.get(object.getRepository());
 				if(r != null && r.getName()!=null)
 					return r.getName();

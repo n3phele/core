@@ -17,6 +17,7 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -183,7 +184,7 @@ public class CreateVMAction extends Action {
 
 	@Override
 	public void signal(SignalKind kind, String assertion) {
-		log.info("Signal "+kind+":"+assertion);
+		log.info("CreateVM gets Signal "+kind+":"+assertion);
 		boolean isChild = this.inProgress.contains(assertion);
 		switch(kind) {
 		case Adoption:
@@ -192,15 +193,15 @@ public class CreateVMAction extends Action {
 			processLifecycle().dump(processURI);
 			return;
 		case Cancel:
-			log.info((isChild?"Child ":"Unknown ")+assertion+" cancelled");
+		case Dump:
+			log.info((isChild?"Child ":"Unknown ")+assertion+" cancelled or dumped");
 			if(isChild) {
 				// FIXME: Not sure if the failure semantics belong here
 				// FIXME: Of if there are parameterized..
 				// FIXME: --onFailure: killAll
 				// FIXME: --onFailure: continue
 				this.inProgress.remove(assertion);
-				if(!failed)
-					this.killVM();
+				this.killVM();
 				failed = true;
 			}
 			break;
@@ -249,8 +250,7 @@ public class CreateVMAction extends Action {
 			log.info((isChild?"Child ":"Unknown ")+assertion+" failed");
 			if(isChild) {
 				this.inProgress.remove(assertion);
-				if(!failed)
-					this.killVM();
+				this.killVM();
 				failed = true;
 			}
 			break;
@@ -295,13 +295,7 @@ public class CreateVMAction extends Action {
 			}
 		}
 	}
-	
-	private void setCloudProcessPrice(Account account, ArrayList<CloudProcess> processList){
-		for(CloudProcess process: processList){
-			processLifecycle().setCloudProcessPrice(account.getUri().toString(), process);
-		}
-	}
-	
+		
 	private void createVMs(Account account, Cloud myCloud) throws Exception {
 		
 		log.info("Create VMAction called");
@@ -352,9 +346,11 @@ public class CreateVMAction extends Action {
 				if(refs.length == 1) {
 					logger.info("vm creation started.");
 					boolean forceAgentRestart = false;
+					VirtualServer vs = null;
 					try {
-						VirtualServer vs = fetchVirtualServer(client, refs[0]);
+						vs = fetchVirtualServer(client, refs[0]);
 						log.info("Server status is "+vs.getStatus());
+						
 						if(vs.getStatus().equals(VirtualServerStatus.running)) {
 							forceAgentRestart  = true;
 							log.info("forcing agent restart");
@@ -363,12 +359,33 @@ public class CreateVMAction extends Action {
 						log.log(Level.SEVERE, "VM fetch", e);
 					}
 					ArrayList<CloudProcess> listProcesses = createVMProcesses(refs, forceAgentRestart, myCloud.getFactoryCredential(), agentCredential);
-					setCloudProcessPrice(account,listProcesses);
+					double value = -1;
+					if(vs!= null)
+					value = getValueByCDN(myCloud, vs.getParameters());
+					Date date = null;
+					if(vs!= null) date = vs.getCreated();
 					
+					
+					setCloudProcessPrice(account,listProcesses,value, date);
+
 				} else {
 					ArrayList<CloudProcess> listProcesses = createVMProcesses(refs, false, myCloud.getFactoryCredential(), agentCredential);
-					setCloudProcessPrice(account,listProcesses);
-					logger.info(Integer.toString(refs.length)+" vm(s) creation started.");
+					ArrayList<VirtualServer> listVs = new ArrayList<VirtualServer>();
+					for(int i = 0; i < refs.length; i++){
+						try {
+							VirtualServer vs = fetchVirtualServer(client, refs[i]);
+							listVs.add(vs);
+							log.info("Server status is "+vs.getStatus());
+						} catch (Exception e) {
+							log.log(Level.SEVERE, "VM fetch", e);
+						}
+					}
+					
+					for(int i = 0; i < listProcesses.size(); i++){
+						double value = getValueByCDN(myCloud, listVs.get(i).getParameters());
+						Date date = listVs.get(i).getCreated();
+						setCloudProcessPriceUnit(account,listProcesses.get(i),value, date);
+					}
 				}
 			} else {
 				log.log(Level.SEVERE, this.name+" vm creation initiation FAILED with status "+response.getStatus());
@@ -384,7 +401,23 @@ public class CreateVMAction extends Action {
 		}
 		
 	}
-	
+	private void setCloudProcessPrice(Account account, ArrayList<CloudProcess> processList,double value,Date date){
+		for(CloudProcess process: processList){
+			processLifecycle().setCloudProcessPrice(account.getUri().toString(), process,value,date);
+		}
+	}
+	private void setCloudProcessPriceUnit(Account account, CloudProcess process,double value,Date date){
+			processLifecycle().setCloudProcessPrice(account.getUri().toString(), process,value,date);	
+	}
+	private double getValueByCDN(Cloud myCloud, ArrayList<NameValue> values){
+		for(int i = 0; i < values.size(); i++){
+			if(values.get(i).getKey().equals(myCloud.getCostDriverName())){
+				double value = myCloud.getCostMap().get( values.get(i).getValue());
+				return value;			
+			}
+		}
+		return 0;
+	}
 	private ArrayList<CloudProcess> createVMProcesses(URI[] refs, boolean forceAgentRestart, Credential factoryCredential, Credential agentCredential) throws NotFoundException, IllegalArgumentException, ClassNotFoundException {
 		
 		ArrayList<CloudProcess> listProcesses = new ArrayList<CloudProcess>();

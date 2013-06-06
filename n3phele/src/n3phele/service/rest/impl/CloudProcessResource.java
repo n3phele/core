@@ -1,4 +1,5 @@
 package n3phele.service.rest.impl;
+
 /**
  * (C) Copyright 2010-2013. Nigel Cook. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
@@ -14,7 +15,6 @@ package n3phele.service.rest.impl;
 import static com.googlecode.objectify.ObjectifyService.ofy;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -53,7 +53,6 @@ import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.User;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.cmd.Query;
 
 @Path("/process")
 public class CloudProcessResource {
@@ -64,15 +63,6 @@ public class CloudProcessResource {
 	protected @Context UriInfo uriInfo;
 	protected @Context SecurityContext securityContext;
 	
-	@GET
-	@Produces("application/json")
-	@RolesAllowed("authenticated")
-	@Path("/lastcompleted")
-	public CloudProcessCollection listLastCompleted() throws NotFoundException {
-		log.info("Querying last complete processes");
-		Collection<CloudProcess> result = dao.getCollection(UserResource.toUser(securityContext).getUri());
-		return new CloudProcessCollection(result);
-	}
 
 	@GET
 	@Produces("application/json")
@@ -80,17 +70,28 @@ public class CloudProcessResource {
 	public CloudProcessCollection list(
 			@DefaultValue("false") @QueryParam("summary") Boolean summary,
 			@DefaultValue("0") @QueryParam("start") int start,
-			@DefaultValue("-1") @QueryParam("end") int end) throws NotFoundException {
+			@DefaultValue("-1") @QueryParam("end") int end,
+			@DefaultValue("false") @QueryParam("count") Boolean count) throws NotFoundException {
 
-		log.info("list entered with summary "+summary+" from start="+start+" to end="+end);
+		log.info("list entered with summary " + summary + " from start=" + start + " to end=" + end);
 
-		if(start < 0)
+		if (start < 0)
 			start = 0;
-		
-		Collection<CloudProcess> result = dao.getCollection(start, end, UserResource.toUser(securityContext));// .collection(summary);
+
+		Collection<CloudProcess> result = dao.getCollection(start, end, UserResource.toUser(securityContext), count);// .collection(summary);
 
 		return new CloudProcessCollection(result);
 	}
+	
+//	Ancestor query
+//	@GET
+//	@Produces("application/json")
+//	@RolesAllowed("authenticated")
+//	@Path("{id:[0-9]+}/childrencosts") 
+//	public CloudProcessCollection listChildrenWithCosts(@PathParam("id") Long id){
+//		Collection<CloudProcess> result = dao.getChildrenWithCostsCollection(id);
+//		return new CloudProcessCollection(result);
+//	}
 	
 	@GET
 	@Produces("application/json")
@@ -113,11 +114,31 @@ public class CloudProcessResource {
 		return result.toArray(new CloudProcess[result.size()]);
 	}
 	
+
 	@GET
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
-	@Path("{id:[0-9]+}/children") 
-	public CloudProcess[] listChildren( @PathParam ("id") Long id)  {
+	@Path("/{group:[0-9]+_}{id:[0-9]+}/toplevel")
+	public CloudProcess getTopLevel(@PathParam("group") String group, @PathParam("id") Long id) throws NotFoundException {
+		if (group != null) 
+			return dao.load(null, Long.valueOf(group.substring(0, group.length() - 1)));
+			
+		return dao.load(null, id, UserResource.toUser(securityContext));
+	}
+
+	@GET
+	@Produces("application/json")
+	@RolesAllowed("authenticated")
+	@Path("/toplevel/{id:[0-9]+}")
+	public CloudProcess getTopLevel(@PathParam("id") Long id) throws NotFoundException {
+		return get(null, id);
+	}
+
+	@GET
+	@Produces("application/json")
+	@RolesAllowed("authenticated")
+	@Path("{id:[0-9]+}/children")
+	public CloudProcess[] listChildren(@PathParam("id") Long id) {
 
 		return listChildren(null, id);
 	}
@@ -125,35 +146,34 @@ public class CloudProcessResource {
 	@GET
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
-	@Path("{group:[0-9]+_}{id:[0-9]+}") 
-	public CloudProcess get( @PathParam ("group") String group, @PathParam ("id") Long id) throws NotFoundException {
+	@Path("{group:[0-9]+_}{id:[0-9]+}")
+	public CloudProcess get(@PathParam("group") String group, @PathParam("id") Long id) throws NotFoundException {
 		Key<CloudProcess> root = null;
-		if(group != null) {
-			root = Key.create(CloudProcess.class, Long.valueOf(group.substring(0,group.length()-1)));
+		if (group != null) {
+			root = Key.create(CloudProcess.class, Long.valueOf(group.substring(0, group.length() - 1)));
 		}
 		CloudProcess item = dao.load(root, id, UserResource.toUser(securityContext));
 		return item;
 	}
-	
+
 	@GET
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
-	@Path("{id:[0-9]+}") 
-	public CloudProcess get( @PathParam ("id") Long id) throws NotFoundException {
+	@Path("{id:[0-9]+}")
+	public CloudProcess get(@PathParam("id") Long id) throws NotFoundException {
 		return get(null, id);
 	}
-	
-	
+
 	@DELETE
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
-	@Path("{group:[0-9]+_}{id:[0-9]+}") 
-	public Response killProcess( @PathParam ("group") String group, @PathParam ("id") Long id) throws NotFoundException {
+	@Path("{group:[0-9]+_}{id:[0-9]+}")
+	public Response killProcess(@PathParam("group") String group, @PathParam("id") Long id) throws NotFoundException {
 
 		CloudProcess process = null;
 		Key<CloudProcess> root = null;
-		if(group != null) {
-			root = Key.create(CloudProcess.class, Long.valueOf(group.substring(0,group.length()-1)));
+		if (group != null) {
+			root = Key.create(CloudProcess.class, Long.valueOf(group.substring(0, group.length() - 1)));
 		}
 		try {
 			process = dao.load(root, id, UserResource.toUser(securityContext));
@@ -163,30 +183,30 @@ public class CloudProcessResource {
 		ProcessLifecycle.mgr().cancel(process);
 		return Response.status(Status.NO_CONTENT).build();
 	}
-	
+
 	@DELETE
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
-	@Path("{id:[0-9]+}") 
-	public Response killProcess( @PathParam ("id") Long id) throws NotFoundException {
+	@Path("{id:[0-9]+}")
+	public Response killProcess(@PathParam("id") Long id) throws NotFoundException {
 
 		return killProcess(null, id);
 	}
-		
+
 	/*
 	 * This is an eventing endpoint that can be invoked by an http request with
 	 * no authentication.
 	 */
 	@GET
 	@Produces("text/plain")
-	@Path("{group:.*_}{id}/event") 
-	public Response event( @PathParam ("group") String group, @PathParam ("id") Long id) {
+	@Path("{group:.*_}{id}/event")
+	public Response event(@PathParam("group") String group, @PathParam("id") Long id) {
 
 		log.info(String.format("Event %s", uriInfo.getRequestUri().toString()));
 		CloudProcess a = null;
 		Key<CloudProcess> root = null;
-		if(group != null) {
-			root = Key.create(CloudProcess.class, Long.valueOf(group.substring(0,group.length()-1)));
+		if (group != null) {
+			root = Key.create(CloudProcess.class, Long.valueOf(group.substring(0, group.length() - 1)));
 		}
 		try {
 			a = dao.load(root, id);
@@ -196,36 +216,32 @@ public class CloudProcessResource {
 		ProcessLifecycle.mgr().signal(a, SignalKind.Event, uriInfo.getRequestUri().toString());
 		return Response.ok().build();
 	}
-	
+
 	/*
 	 * This is an eventing endpoint that can be invoked by an http request with
 	 * no authentication.
 	 */
 	@GET
 	@Produces("text/plain")
-	@Path("{id:[0-9]+}")  
-	public Response event(@PathParam ("id") Long id) {
+	@Path("{id:[0-9]+}")
+	public Response event(@PathParam("id") Long id) {
 		return this.event(null, id);
 	}
-	
+
 	@POST
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
 	@Path("exec")
-	public Response exec(@DefaultValue("Log") @QueryParam("action") String action,
-						 					  @QueryParam("name") String name,
-						 @DefaultValue("hello world!") @QueryParam("arg") String arg, 
-						 List<Variable> context) throws ClassNotFoundException  {
+	public Response exec(@DefaultValue("Log") @QueryParam("action") String action, @QueryParam("name") String name, @DefaultValue("hello world!") @QueryParam("arg") String arg, List<Variable> context) throws ClassNotFoundException {
 
 		n3phele.service.model.Context env = new n3phele.service.model.Context();
 		env.putValue("arg", arg);
-		for(Variable v : Helpers.safeIterator(context)) {
+		for (Variable v : Helpers.safeIterator(context)) {
 			env.put(v.getName(), v);
 		}
-		
-	
-		Class<? extends Action> clazz = Class.forName("n3phele.service.actions."+action+"Action").asSubclass(Action.class);
-		if(clazz != null) {
+
+		Class<? extends Action> clazz = Class.forName("n3phele.service.actions." + action + "Action").asSubclass(Action.class);
+		if (clazz != null) {
 			CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), name, env, null, null, true, clazz);
 			ProcessLifecycle.mgr().init(p);
 			return Response.created(p.getUri()).build();
@@ -233,21 +249,18 @@ public class CloudProcessResource {
 			return Response.noContent().build();
 		}
 	}
-	
-	
+
 	@GET
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
-	@Path("exec") 
-	public Response exec(@DefaultValue("Log") @QueryParam("action") String action,
-										      @QueryParam("name") String name,
-						 @DefaultValue("hello world!") @QueryParam("arg") String arg) throws ClassNotFoundException  {
+	@Path("exec")
+	public Response exec(@DefaultValue("Log") @QueryParam("action") String action, @QueryParam("name") String name, @DefaultValue("hello world!") @QueryParam("arg") String arg) throws ClassNotFoundException {
 
 		n3phele.service.model.Context env = new n3phele.service.model.Context();
 		env.putValue("arg", arg);
-	
-		Class<? extends Action> clazz = Class.forName("n3phele.service.actions."+action+"Action").asSubclass(Action.class);
-		if(clazz != null) {
+
+		Class<? extends Action> clazz = Class.forName("n3phele.service.actions." + action + "Action").asSubclass(Action.class);
+		if (clazz != null) {
 			CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), name, env, null, null, true, clazz);
 			ProcessLifecycle.mgr().init(p);
 			return Response.created(p.getUri()).build();
@@ -255,27 +268,26 @@ public class CloudProcessResource {
 			return Response.noContent().build();
 		}
 	}
-	
+
 	@GET
 	@Produces("application/json")
 	@RolesAllowed("admin")
-	@Path("refresh") 
-	public Response refresh( )  {
+	@Path("refresh")
+	public Response refresh() {
 
 		Date begin = new Date();
 		Map<String, Long> result = ProcessLifecycle.mgr().periodicScheduler();
-		log.info("Refresh "+(new Date().getTime()-begin.getTime())+"ms");
+		log.info("Refresh " + (new Date().getTime() - begin.getTime()) + "ms");
 		return Response.ok(result.toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": "), MediaType.APPLICATION_JSON).build();
 	}
-	
 
-	
 	/*
 	 * Data Access
 	 */
-	public static class CloudProcessManager extends CachingAbstractManager<CloudProcess> {		
+	public static class CloudProcessManager extends CachingAbstractManager<CloudProcess> {
 		public CloudProcessManager() {
 		}
+
 		@Override
 		protected URI myPath() {
 			return UriBuilder.fromUri(Resource.get("baseURI", "http://127.0.0.1:8888/resources")).path(CloudProcessResource.class).build();
@@ -285,52 +297,95 @@ public class CloudProcessResource {
 		public GenericModelDao<CloudProcess> itemDaoFactory() {
 			return new ServiceModelDao<CloudProcess>(CloudProcess.class);
 		}
-		public void clear() { super.itemDao.clear(); }
-		public CloudProcess load(Key<CloudProcess> group, Long id, User requestor) throws NotFoundException { return super.get(group, id, requestor); }
+
+		public void clear() {
+			super.itemDao.clear();
+		}
+
+		public CloudProcess load(Key<CloudProcess> group, Long id, User requestor) throws NotFoundException {
+			return super.get(group, id, requestor);
+		}
 
 		/**
 		 * Locate a item from the persistent store based on the item URI.
+		 * 
 		 * @param uri
-		 * @param requestor requesting user
+		 * @param requestor
+		 *            requesting user
 		 * @return the item
-		 * @throws NotFoundException is the object does not exist
+		 * @throws NotFoundException
+		 *             is the object does not exist
 		 */
-		public CloudProcess load(URI uri, User requestor) throws NotFoundException { return super.get(uri, requestor); }
+		public CloudProcess load(URI uri, User requestor) throws NotFoundException {
+			return super.get(uri, requestor);
+		}
+
 		/**
 		 * Locate a item from the persistent store based on the item URI.
+		 * 
 		 * @param uri
-		 * @param requestor requesting user
+		 * @param requestor
+		 *            requesting user
 		 * @return the item
-		 * @throws NotFoundException is the object does not exist
+		 * @throws NotFoundException
+		 *             is the object does not exist
 		 */
-		public CloudProcess load(URI uri) throws NotFoundException { 
+		public CloudProcess load(URI uri) throws NotFoundException {
 
-			log.info("Loading cloudProcess: "+uri);
-			return super.get(uri); }
-		
-		public CloudProcess load(Key<CloudProcess> group, Long id) throws NotFoundException { return super.get(group, id); }
-		
-		public CloudProcess load(Key<CloudProcess> k) throws NotFoundException { return super.itemDao.get(k); }
-		
-		
-		public void update(CloudProcess cloudProcess) { super.update(cloudProcess); }
-		
-		public java.util.Collection<CloudProcess> getNonfinalized() { return super.itemDao.collectionByProperty("finalized", false); }
-		public java.util.Collection<CloudProcess> getChildren(URI parent) { return super.itemDao.collectionByProperty(parent, "parent", parent.toString()); }
-		public java.util.Collection<CloudProcess> getList(List<URI>ids) { return super.itemDao.listByURI(ids) ; }		
+			log.info("Loading cloudProcess: " + uri);
+			return super.get(uri);
+		}
 
-		public void add(CloudProcess process) { super.add(process); }
-		public void delete(CloudProcess process) { super.delete(process); }
-		
-		public Collection<CloudProcess> getCollection2(User owner) { return super.getCollection(owner); }
-		
+		public CloudProcess load(Key<CloudProcess> group, Long id) throws NotFoundException {
+			return super.get(group, id);
+		}
+
+		public CloudProcess load(Key<CloudProcess> k) throws NotFoundException {
+			return super.itemDao.get(k);
+		}
+
+		public void update(CloudProcess cloudProcess) {
+			super.update(cloudProcess);
+		}
+
+		public java.util.Collection<CloudProcess> getNonfinalized() {
+			return super.itemDao.collectionByProperty("finalized", false);
+		}
+
+		public java.util.Collection<CloudProcess> getChildren(URI parent) {
+			return super.itemDao.collectionByProperty(parent, "parent", parent.toString());
+		}
+
+		public java.util.Collection<CloudProcess> getList(List<URI> ids) {
+			return super.itemDao.listByURI(ids);
+		}
+
+		public void add(CloudProcess process) {
+			super.add(process);
+		}
+
+		public void delete(CloudProcess process) {
+			super.delete(process);
+		}
+
+		public Collection<CloudProcess> getCollection2(User owner) {
+			return super.getCollection(owner);
+		}
+
 		/**
-		 * Collection of resources of a particular class in the persistent store. The will be extended
-		 * in the future to return the collection of resources accessible to a particular user.
+		 * Collection of resources of a particular class in the persistent
+		 * store. The will be extended in the future to return the collection of
+		 * resources accessible to a particular user.
+		 * 
 		 * @return the collection
 		 */
-		public Collection<CloudProcess> getCollection(int start, int end, User owner) {
-			return owner.isAdmin()? getCollection(start, end):getCollection(start, end, owner.getUri());
+		public Collection<CloudProcess> getCollection(int start, int end, User owner, boolean count) {
+			return owner.isAdmin()? getCollection(start, end, count):getCollection(start, end, owner.getUri(), count);
+		}
+		
+		
+		public Collection<CloudProcess> getCollection(int start, int end){
+			return getCollection(start,end,false);
 		}
 		
 		/**
@@ -338,13 +393,13 @@ public class CloudProcessResource {
 		 * in the future to return the collection of resources accessible to a particular user.
 		 * @return the collection
 		 */
-		public Collection<CloudProcess> getCollection(int start, int end) {
+		public Collection<CloudProcess> getCollection(int start, int end, boolean count) {
 			log.info("admin query");
 			Collection<CloudProcess> result = null;
 			List<CloudProcess> items;
-			if(end > 0) {
+			if (end > 0) {
 				int n = end - start;
-				if(n <= 0)
+				if (n <= 0)
 					n = 0;
 				items = ofy().load().type(CloudProcess.class).filter("topLevel", true).order("-start").offset(start).limit(n).list();
 			} else {
@@ -353,11 +408,18 @@ public class CloudProcessResource {
 
 			result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, items);
 
-			result.setTotal(ofy().load().type(CloudProcess.class).filter("topLevel", true).count());
-
+			if(count)
+			{
+				result.setTotal(ofy().load().type(CloudProcess.class).filter("topLevel", true).count());
+			}
+			
 			log.info("admin query total (with sort) -is- "+result.getTotal());
 
 			return result;
+		}
+
+		public Collection<CloudProcess> getCollection(int start, int end, URI owner) {
+			return getCollection(start,end,owner,false);			
 		}
 		
 		/**
@@ -365,7 +427,7 @@ public class CloudProcessResource {
 		 * in the future to return the collection of resources accessible to a particular user.
 		 * @return the collection
 		 */
-		public Collection<CloudProcess> getCollection(int start, int end, URI owner) {
+		public Collection<CloudProcess> getCollection(int start, int end, URI owner, boolean count) {
 			log.info("non-admin query");
 			Collection<CloudProcess> result = null;
 			List<CloudProcess> items;
@@ -380,31 +442,27 @@ public class CloudProcessResource {
 
 			result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, items);
 
-			result.setTotal(ofy().load().type(CloudProcess.class).filter("owner", owner.toString()).filter("topLevel", true).count());
+			if(count)
+			{
+				result.setTotal(ofy().load().type(CloudProcess.class).filter("owner", owner.toString()).filter("topLevel", true).count());
+			}
+						
 			return result;
 		}
 
-		/**
-		 * Get completed processes in last month.
-		 * @return the collection
-		 */
-		public Collection<CloudProcess> getCollection(URI owner)
-		{
-			//log.info("non-admin query");
-			Collection<CloudProcess> result	= null;
-			
-			Calendar calendar = Calendar.getInstance();
-			calendar.add(Calendar.MONTH, -1);
-			
-			Query<CloudProcess> q = ofy().load().type(CloudProcess.class).filter("owner", owner.toString()).filter("complete >", calendar.getTime()).filter("haveCost", true); //.filter("costPerHour >", 0.00);
-			
-			List<CloudProcess> items = q.list();
-			
-			result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, items);
-			result.setTotal(items.size());
-			
-			return result;
-		}
+
+//		Ancestor query		
+//		public Collection<CloudProcess> getChildrenWithCostsCollection(Long id) {
+//			Collection<CloudProcess> result	= null;
+//			System.out.println(get(id).getAccount());
+//			List<CloudProcess> items = ofy().load().type(CloudProcess.class).ancestor(get(id)).filter("costPerHour >", 0).list();
+//			
+//			result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, items);
+//			result.setTotal(items.size());
+//			
+//			return result;
+//		}
+		
 	}
 	final public static CloudProcessManager dao = new CloudProcessManager();
 	
