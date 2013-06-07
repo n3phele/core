@@ -121,7 +121,8 @@ public class AssimilateAction extends Action {
 			
 			//IP not found on cloud
 			if(response.getStatus() == 404){
-				throw new Exception("IP not found "+response.getStatus());
+				failed = true;
+				throw new Exception("IP not found "+response.getStatus());				
 			}
 			//IP already exists on factory
 			else if(response.getStatus() == 409){
@@ -141,10 +142,12 @@ public class AssimilateAction extends Action {
 					setCloudProcessPrice(account,process,value, date);
 				}
 				}catch(Exception e) {
+					failed = true;
 					log.log(Level.SEVERE, "VM fetch", e);
 				}
 			}
 		} catch (Exception e) {
+			failed = true;
 			logger.error("vm assimilate FAILED with exception "+e.getMessage());
 			log.log(Level.SEVERE, "vm assimilate FAILED with exception ", e);
 			throw e;
