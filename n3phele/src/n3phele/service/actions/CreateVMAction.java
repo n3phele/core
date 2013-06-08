@@ -473,13 +473,27 @@ public class CreateVMAction extends Action {
 		ArrayList<NameValue> result = new ArrayList<NameValue>();
 		for(TypedParameter param : Helpers.safeIterator(cloud.getInputParameters())) {
 			String name = param.getName();
+			String contextName = name;
 			log.info("Parameter name: "+name);
-			if(this.context.containsKey(name)) {
-				String value = this.context.getValue(name);
+			if(name.contains("_")) {
+				String split[] = name.split("_");
+				String camelCase = split[0];
+				for(int i=1; i < split.length; i++) {
+					if(split[i].length() > 0)
+						camelCase += split[i].substring(0,1).toUpperCase()+split[i].substring(1);
+				}
+				if(!this.context.containsKey(name) && this.context.containsKey(camelCase)) {
+					log.info("Using camelCase form "+camelCase);
+					contextName = camelCase;
+				}
+			}
+
+			if(this.context.containsKey(contextName)) {
+				String value = this.context.getValue(contextName);
 				/*
 				 * FIXME: Temporary. Move to Factory
 				 */
-				if ("userData".equals(name)) {
+				if ("userData".equals(contextName)) {
 					try {
 						if (!Helpers.isBlankOrNull(value)) {
 							String encoded = new String(Base64.encode(value));
@@ -492,8 +506,9 @@ public class CreateVMAction extends Action {
 				log.info("Parameter exists, updating value: "+value);
 				NameValue nv = new NameValue(name, value);
 				result.add(nv);
+			} else {
+				log.info("Parameter doesn't exist");
 			}
-			log.info("Parameter doesn't exist");
 		}
 		return result;
 	}
