@@ -64,6 +64,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
         case ON:
         case CREATEVM:
         case FORLOOP:
+        case ASSIMILATE:
         case DESTROY:
         case LOG:
         case VARIABLEASSIGN:
@@ -105,6 +106,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case ON:
     case CREATEVM:
+    case ASSIMILATE:
     case DESTROY:
     case LOG:
       simpleCommand();
@@ -135,6 +137,9 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
       break;
     case DESTROY:
       destroy();
+      break;
+    case ASSIMILATE:
+      assimilate();
       break;
     default:
       jj_la1[2] = jj_gen;
@@ -481,6 +486,47 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
     }
   }
 
+  final public void assimilate() throws ParseException {
+                     /*@bgen(jjtree) assimilate */
+  SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTASSIMILATE);
+  boolean jjtc000 = true;
+  jjtree.openNodeScope(jjtn000);
+    try {
+      jj_consume_token(ASSIMILATE);
+      label_5:
+      while (true) {
+        option();
+        switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+        case NO_ARG_OPTION:
+        case OPTION:
+          ;
+          break;
+        default:
+          jj_la1[9] = jj_gen;
+          break label_5;
+        }
+      }
+    } catch (Throwable jjte000) {
+          if (jjtc000) {
+            jjtree.clearNodeScope(jjtn000);
+            jjtc000 = false;
+          } else {
+            jjtree.popNode();
+          }
+          if (jjte000 instanceof RuntimeException) {
+            {if (true) throw (RuntimeException)jjte000;}
+          }
+          if (jjte000 instanceof ParseException) {
+            {if (true) throw (ParseException)jjte000;}
+          }
+          {if (true) throw (Error)jjte000;}
+    } finally {
+          if (jjtc000) {
+            jjtree.closeNodeScope(jjtn000, true);
+          }
+    }
+  }
+
   final public void variableAssign() throws ParseException {
                          /*@bgen(jjtree) variableAssign */
                           SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTVARIABLEASSIGN);
@@ -491,6 +537,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case ON:
       case CREATEVM:
+      case ASSIMILATE:
       case DESTROY:
       case LOG:
         simpleCommand();
@@ -501,7 +548,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
         expression();
         break;
       default:
-        jj_la1[9] = jj_gen;
+        jj_la1[10] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -549,7 +596,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
                                                   jjtree.pushNode(getExpressionNode(t.image, t.beginLine, t.beginColumn));
         break;
       default:
-        jj_la1[10] = jj_gen;
+        jj_la1[11] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -574,7 +621,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
       t = jj_consume_token(PASSTHRUMORE);
       break;
     default:
-      jj_la1[11] = jj_gen;
+      jj_la1[12] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -588,7 +635,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
                                       boolean jjtc000 = true;
                                       jjtree.openNodeScope(jjtn000);Token t; String result=null; Token first=null; String prefix = "";
     try {
-      label_5:
+      label_6:
       while (true) {
         t = passThruFragment();
                   if(first == null)
@@ -607,8 +654,8 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
           ;
           break;
         default:
-          jj_la1[12] = jj_gen;
-          break label_5;
+          jj_la1[13] = jj_gen;
+          break label_6;
         }
       }
           jjtree.closeNodeScope(jjtn000, true);
@@ -641,7 +688,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
                   boolean jjtc000 = true;
                   jjtree.openNodeScope(jjtn000);boolean lastWasExp = false;
     try {
-      label_6:
+      label_7:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case VARIABLE:
@@ -656,7 +703,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
             lastWasExp = false;
           break;
         default:
-          jj_la1[13] = jj_gen;
+          jj_la1[14] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
@@ -669,8 +716,8 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
           ;
           break;
         default:
-          jj_la1[14] = jj_gen;
-          break label_6;
+          jj_la1[15] = jj_gen;
+          break label_7;
         }
       }
     } catch (Throwable jjte000) {
@@ -704,22 +751,22 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case FILESPEC:
         fileElement();
-        label_7:
+        label_8:
         while (true) {
           switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
           case COMMA:
             ;
             break;
           default:
-            jj_la1[15] = jj_gen;
-            break label_7;
+            jj_la1[16] = jj_gen;
+            break label_8;
           }
           jj_consume_token(COMMA);
           fileElement();
         }
         break;
       default:
-        jj_la1[16] = jj_gen;
+        jj_la1[17] = jj_gen;
         ;
       }
       jj_consume_token(FILELISTEND);
@@ -758,7 +805,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
         m = jj_consume_token(FILESPEC);
         break;
       default:
-        jj_la1[17] = jj_gen;
+        jj_la1[18] = jj_gen;
         ;
       }
                                                                     jjtree.closeNodeScope(jjtn000, true);
@@ -780,7 +827,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
   public Token jj_nt;
   private int jj_ntk;
   private int jj_gen;
-  final private int[] jj_la1 = new int[18];
+  final private int[] jj_la1 = new int[19];
   static private int[] jj_la1_0;
   static private int[] jj_la1_1;
   static {
@@ -788,10 +835,10 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
       jj_la1_init_1();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x39c0,0x39c0,0x18c0,0x80000000,0x60000,0x60000,0x3200000,0x1200000,0x60000,0x18c0,0x0,0x0,0x0,0x0,0x0,0x20000000,0x4000000,0x80000000,};
+      jj_la1_0 = new int[] {0x79c0,0x79c0,0x38c0,0x0,0xc0000,0xc0000,0x6400000,0x2400000,0xc0000,0xc0000,0x38c0,0x0,0x0,0x0,0x0,0x0,0x40000000,0x8000000,0x0,};
    }
    private static void jj_la1_init_1() {
-      jj_la1_1 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x87,0x1,0x0,0x86,0x86,0x50,0x50,0xd6,0xd6,0x0,0x0,0x0,};
+      jj_la1_1 = new int[] {0x0,0x0,0x0,0x1,0x0,0x0,0x10e,0x2,0x0,0x0,0x10c,0x10c,0xa0,0xa0,0x1ac,0x1ac,0x0,0x0,0x1,};
    }
 
   /** Constructor with InputStream. */
@@ -805,7 +852,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 19; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -820,7 +867,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
     jj_ntk = -1;
     jjtree.reset();
     jj_gen = 0;
-    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 19; i++) jj_la1[i] = -1;
   }
 
   /** Constructor. */
@@ -830,7 +877,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 19; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -841,7 +888,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
     jj_ntk = -1;
     jjtree.reset();
     jj_gen = 0;
-    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 19; i++) jj_la1[i] = -1;
   }
 
   /** Constructor with generated Token Manager. */
@@ -850,7 +897,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 19; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -860,7 +907,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
     jj_ntk = -1;
     jjtree.reset();
     jj_gen = 0;
-    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 19; i++) jj_la1[i] = -1;
   }
 
   private Token jj_consume_token(int kind) throws ParseException {
@@ -911,12 +958,12 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
   /** Generate ParseException. */
   public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[40];
+    boolean[] la1tokens = new boolean[41];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
     }
-    for (int i = 0; i < 18; i++) {
+    for (int i = 0; i < 19; i++) {
       if (jj_la1[i] == jj_gen) {
         for (int j = 0; j < 32; j++) {
           if ((jj_la1_0[i] & (1<<j)) != 0) {
@@ -928,7 +975,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
         }
       }
     }
-    for (int i = 0; i < 40; i++) {
+    for (int i = 0; i < 41; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;
