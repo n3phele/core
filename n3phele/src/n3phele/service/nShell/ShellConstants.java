@@ -27,7 +27,7 @@ public interface ShellConstants {
   /** RegularExpression Id. */
   int ELSE = 10;
   /** RegularExpression Id. */
-  int ASSIMILATE = 11;
+  int ASSIMILATEVM = 11;
   /** RegularExpression Id. */
   int DESTROY = 12;
   /** RegularExpression Id. */
@@ -113,7 +113,7 @@ public interface ShellConstants {
     "\"FOR\"",
     "\"IF\"",
     "\"ELSE\"",
-    "\"ASSIMILATE\"",
+    "\"ASSIMILATEVM\"",
     "\"DESTROY\"",
     "\"LOG\"",
     "<VARIABLEASSIGN>",

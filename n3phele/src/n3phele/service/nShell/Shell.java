@@ -64,7 +64,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
         case ON:
         case CREATEVM:
         case FORLOOP:
-        case ASSIMILATE:
+        case ASSIMILATEVM:
         case DESTROY:
         case LOG:
         case VARIABLEASSIGN:
@@ -106,7 +106,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case ON:
     case CREATEVM:
-    case ASSIMILATE:
+    case ASSIMILATEVM:
     case DESTROY:
     case LOG:
       simpleCommand();
@@ -138,8 +138,8 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
     case DESTROY:
       destroy();
       break;
-    case ASSIMILATE:
-      assimilate();
+    case ASSIMILATEVM:
+      assimilateVM();
       break;
     default:
       jj_la1[2] = jj_gen;
@@ -486,13 +486,13 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
     }
   }
 
-  final public void assimilate() throws ParseException {
-                     /*@bgen(jjtree) assimilate */
-  SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTASSIMILATE);
+  final public void assimilateVM() throws ParseException {
+                       /*@bgen(jjtree) assimilateVM */
+  SelfCompilingNode jjtn000 = (SelfCompilingNode)n3phele.service.nShell.ShellNode.jjtCreate(JJTASSIMILATEVM);
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
     try {
-      jj_consume_token(ASSIMILATE);
+      jj_consume_token(ASSIMILATEVM);
       label_5:
       while (true) {
         option();
@@ -537,7 +537,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case ON:
       case CREATEVM:
-      case ASSIMILATE:
+      case ASSIMILATEVM:
       case DESTROY:
       case LOG:
         simpleCommand();

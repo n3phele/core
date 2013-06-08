@@ -14,7 +14,7 @@ public interface ShellTreeConstants
   public int JJTON = 8;
   public int JJTLOG = 9;
   public int JJTDESTROY = 10;
-  public int JJTASSIMILATE = 11;
+  public int JJTASSIMILATEVM = 11;
   public int JJTVARIABLEASSIGN = 12;
   public int JJTEXPRESSION = 13;
   public int JJTPASSTHRU = 14;
@@ -35,7 +35,7 @@ public interface ShellTreeConstants
     "on",
     "log",
     "destroy",
-    "assimilate",
+    "assimilateVM",
     "variableAssign",
     "expression",
     "passThru",
@@ -44,4 +44,4 @@ public interface ShellTreeConstants
     "fileElement",
   };
 }
-/* JavaCC - OriginalChecksum=3560d4980dd6d09c60cef731d81d0a2a (do not edit this line) */
+/* JavaCC - OriginalChecksum=c335d65c2b7c88ccb4ccb3327501cc3b (do not edit this line) */

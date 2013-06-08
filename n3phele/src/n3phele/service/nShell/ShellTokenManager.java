@@ -105,6 +105,22 @@ private final int jjStopStringLiteralDfa_1(int pos, long active0)
             return 101;
          }
          return -1;
+      case 9:
+         if ((active0 & 0x800L) != 0L)
+         {
+            jjmatchedKind = 37;
+            jjmatchedPos = 9;
+            return 101;
+         }
+         return -1;
+      case 10:
+         if ((active0 & 0x800L) != 0L)
+         {
+            jjmatchedKind = 37;
+            jjmatchedPos = 10;
+            return 101;
+         }
+         return -1;
       default :
          return -1;
    }
@@ -359,13 +375,49 @@ private int jjMoveStringLiteralDfa9_1(long old0, long active0)
    switch(curChar)
    {
       case 69:
-         if ((active0 & 0x800L) != 0L)
-            return jjStartNfaWithStates_1(9, 11, 101);
-         break;
+         return jjMoveStringLiteralDfa10_1(active0, 0x800L);
       default :
          break;
    }
    return jjStartNfa_1(8, active0);
+}
+private int jjMoveStringLiteralDfa10_1(long old0, long active0)
+{
+   if (((active0 &= old0)) == 0L)
+      return jjStartNfa_1(8, old0);
+   try { curChar = input_stream.readChar(); }
+   catch(java.io.IOException e) {
+      jjStopStringLiteralDfa_1(9, active0);
+      return 10;
+   }
+   switch(curChar)
+   {
+      case 86:
+         return jjMoveStringLiteralDfa11_1(active0, 0x800L);
+      default :
+         break;
+   }
+   return jjStartNfa_1(9, active0);
+}
+private int jjMoveStringLiteralDfa11_1(long old0, long active0)
+{
+   if (((active0 &= old0)) == 0L)
+      return jjStartNfa_1(9, old0);
+   try { curChar = input_stream.readChar(); }
+   catch(java.io.IOException e) {
+      jjStopStringLiteralDfa_1(10, active0);
+      return 11;
+   }
+   switch(curChar)
+   {
+      case 77:
+         if ((active0 & 0x800L) != 0L)
+            return jjStartNfaWithStates_1(11, 11, 101);
+         break;
+      default :
+         break;
+   }
+   return jjStartNfa_1(10, active0);
 }
 private int jjStartNfaWithStates_1(int pos, int kind, int state)
 {
@@ -1984,6 +2036,22 @@ private final int jjStopStringLiteralDfa_3(int pos, long active0)
             return 45;
          }
          return -1;
+      case 9:
+         if ((active0 & 0x800L) != 0L)
+         {
+            jjmatchedKind = 39;
+            jjmatchedPos = 9;
+            return 45;
+         }
+         return -1;
+      case 10:
+         if ((active0 & 0x800L) != 0L)
+         {
+            jjmatchedKind = 39;
+            jjmatchedPos = 10;
+            return 45;
+         }
+         return -1;
       default :
          return -1;
    }
@@ -2230,13 +2298,49 @@ private int jjMoveStringLiteralDfa9_3(long old0, long active0)
    switch(curChar)
    {
       case 69:
-         if ((active0 & 0x800L) != 0L)
-            return jjStartNfaWithStates_3(9, 11, 45);
-         break;
+         return jjMoveStringLiteralDfa10_3(active0, 0x800L);
       default :
          break;
    }
    return jjStartNfa_3(8, active0);
+}
+private int jjMoveStringLiteralDfa10_3(long old0, long active0)
+{
+   if (((active0 &= old0)) == 0L)
+      return jjStartNfa_3(8, old0);
+   try { curChar = input_stream.readChar(); }
+   catch(java.io.IOException e) {
+      jjStopStringLiteralDfa_3(9, active0);
+      return 10;
+   }
+   switch(curChar)
+   {
+      case 86:
+         return jjMoveStringLiteralDfa11_3(active0, 0x800L);
+      default :
+         break;
+   }
+   return jjStartNfa_3(9, active0);
+}
+private int jjMoveStringLiteralDfa11_3(long old0, long active0)
+{
+   if (((active0 &= old0)) == 0L)
+      return jjStartNfa_3(9, old0);
+   try { curChar = input_stream.readChar(); }
+   catch(java.io.IOException e) {
+      jjStopStringLiteralDfa_3(10, active0);
+      return 11;
+   }
+   switch(curChar)
+   {
+      case 77:
+         if ((active0 & 0x800L) != 0L)
+            return jjStartNfaWithStates_3(11, 11, 45);
+         break;
+      default :
+         break;
+   }
+   return jjStartNfa_3(10, active0);
 }
 private int jjStartNfaWithStates_3(int pos, int kind, int state)
 {
@@ -2705,7 +2809,7 @@ static final int[] jjnextStates = {
 public static final String[] jjstrLiteralImages = {
 "", null, null, null, null, null, "\117\116", 
 "\103\122\105\101\124\105\126\115", "\106\117\122", "\111\106", "\105\114\123\105", 
-"\101\123\123\111\115\111\114\101\124\105", "\104\105\123\124\122\117\131", "\114\117\107", null, null, null, null, null, 
+"\101\123\123\111\115\111\114\101\124\105\126\115", "\104\105\123\124\122\117\131", "\114\117\107", null, null, null, null, null, 
 null, null, null, null, null, null, null, "\133", null, null, null, "\54", "\135", 
 "\72", null, null, null, null, null, null, null, null, };
 
