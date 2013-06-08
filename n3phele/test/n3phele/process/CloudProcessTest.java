@@ -969,7 +969,7 @@ public class CloudProcessTest  {
 		assertEquals("cancel has been called", 1000, ja.getCount());
 	}
 	
-	/** Demonstrates a running process that gets blocked by an added dependency and cancelled
+	/** Demonstrates a running process that gets blocked by an added dependency and dumped
 	 * @throws InterruptedException
 	 */
 	@Test
@@ -999,12 +999,9 @@ public class CloudProcessTest  {
 		Thread.sleep(1000);
 		CloudResourceTestWrapper.dao.clear();
 		cpr.refresh();
-		ProcessLifecycle.mgr().addDependentOn(tom, jerry);
-		Thread.sleep(1000);
-
-
+		Thread.sleep(2000);
 		CloudResourceTestWrapper.dao.clear();
-		
+		ProcessLifecycle.mgr().addDependentOn(tom, jerry);
 		
 		tom  = CloudResourceTestWrapper.dao.load(tom.getUri());
 		jerry  = CloudResourceTestWrapper.dao.load(jerry.getUri());
@@ -1027,7 +1024,7 @@ public class CloudProcessTest  {
 		assertEquals("dump has been called", 2000, ta.getCount());
 	}
 	
-	/** Demonstrates a running process that gets blocked by an added dependency and cancelled
+	/** Demonstrates a running process that gets blocked by an added dependency and dumped
 	 * @throws InterruptedException
 	 */
 	@Test
