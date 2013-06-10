@@ -23,6 +23,7 @@ import javax.xml.bind.annotation.XmlType;
 
 import n3phele.service.rest.impl.CloudProcessResource;
 
+import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
@@ -30,6 +31,7 @@ import com.googlecode.objectify.annotation.Unindex;
 
 @XmlRootElement(name="Narrative")
 @XmlType(name = "Narrative", propOrder = { "stamp", "state", "processUri", "tag", "text"}) 
+@Cache
 @Entity
 @Unindex
 public class Narrative {

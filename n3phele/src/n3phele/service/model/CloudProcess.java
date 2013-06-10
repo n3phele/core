@@ -44,8 +44,8 @@ import com.googlecode.objectify.condition.IfNotNull;
 @XmlType(name="CloudProcess", propOrder={"description", "state", "running", "waitTimeout", "pendingInit", "pendingCall", "pendingCancel", "pendingDump", "pendingAssertion", 
 		"dependentOn", "dependencyFor", "start", "complete", "finalized", "action", "parent", "topLevel", "narrative","costPerHour","epoch","account"})
 @Unindex
-@com.googlecode.objectify.annotation.Entity
 @Cache
+@com.googlecode.objectify.annotation.Entity
 public class CloudProcess extends Entity {
 	final private static java.util.logging.Logger log = java.util.logging.Logger.getLogger(CloudProcess.class.getName()); 
 	@Id protected Long id;
