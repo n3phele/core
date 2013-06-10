@@ -41,6 +41,13 @@ public class Command extends Entity {
 	}-*/;
 	
 	/**
+	 * @return the processor
+	 */
+	public native final String getProcessor() /*-{
+		return this.processor;
+	}-*/;
+	
+	/**
 	 * @return the ownerName
 	 */
 	public native final String getOwnerName() /*-{

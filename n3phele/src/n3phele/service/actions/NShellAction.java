@@ -328,6 +328,8 @@ public class NShellAction extends Action {
 			return forCommand(s, variableName);
 		case variableAssign:
 			return variableAssignCommand(s);
+		case assimilatevm:
+			return assimilateVMCommand(s, variableName);
 		default:
 			throw new IllegalArgumentException("Unexpected node "+s.kind);
 		}		
@@ -364,6 +366,40 @@ public class NShellAction extends Action {
 		}
 		boolean isAsync = childContext.getBooleanValue("async");
 		return makeChildProcess("CreateVM", childContext, specifiedName, isAsync);
+
+	}
+	
+	/** assimilateVM shell command
+	 * 
+	 * assimilateVM:: < ASSIMILATE > ( option() )+ 
+	 * option:: (
+	 *				(< OPTION > arg() )
+	 *			  |  < NO_ARG_OPTION >
+  	 *			)
+	 * @param assimiateVMFragment assimilate parse tree fragment
+	 * @param specifiedName	name of context variable object will be assigned to
+	 * @return
+	 * @throws UnexpectedTypeException 
+	 * @throws IllegalArgumentException 
+	 * @throws ClassNotFoundException 
+	 * @throws NotFoundException 
+	 */
+	private Variable assimilateVMCommand(ShellFragment assimilateVMFragment, String specifiedName) throws IllegalArgumentException, UnexpectedTypeException, NotFoundException, ClassNotFoundException {
+		Context childContext = new Context();
+		childContext.putAll(this.context);
+		childContext.remove("name");
+		for(int i : assimilateVMFragment.children){
+			ShellFragment option = this.executable.get(i);
+			String optionName = option.value;
+			if(option.children != null && option.children.length != 0) {
+				Variable v = optionParse(option);
+				childContext.put(optionName, v);
+			} else {
+				childContext.putValue(optionName, true);
+			}
+		}
+		boolean isAsync = childContext.getBooleanValue("async");
+		return makeChildProcess("Assimilate", childContext, specifiedName, isAsync);
 
 	}
 
@@ -619,13 +655,15 @@ public class NShellAction extends Action {
 				Map<String,String> inputs = new HashMap<String,String>();
 				for(FileSpecification i : Helpers.safeIterator(cmd.getInputFiles())) {
 					URI source = context.getFileValue(i.getName());
-					if(source == null && !i.isOptional()) {
-						log.warning("Missing file "+i.getName());
-						logger.error("Missing file "+i.getName());
-						if(missing == null)
-							missing = i.getName();
-						else
-							missing = missing+" "+i.getName();
+					if(source == null) {
+						if(!i.isOptional()) {
+							log.warning("Missing file "+i.getName());
+							logger.error("Missing file "+i.getName());
+							if(missing == null)
+								missing = i.getName();
+							else
+								missing = missing+" "+i.getName();
+						}
 					} else {
 						inputs.put(i.getName(), i.getName());
 						FileTracker inputFile = new FileTracker();

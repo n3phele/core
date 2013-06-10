@@ -14,12 +14,13 @@ public interface ShellTreeConstants
   public int JJTON = 8;
   public int JJTLOG = 9;
   public int JJTDESTROY = 10;
-  public int JJTVARIABLEASSIGN = 11;
-  public int JJTEXPRESSION = 12;
-  public int JJTPASSTHRU = 13;
-  public int JJTPIECES = 14;
-  public int JJTFILELIST = 15;
-  public int JJTFILEELEMENT = 16;
+  public int JJTASSIMILATEVM = 11;
+  public int JJTVARIABLEASSIGN = 12;
+  public int JJTEXPRESSION = 13;
+  public int JJTPASSTHRU = 14;
+  public int JJTPIECES = 15;
+  public int JJTFILELIST = 16;
+  public int JJTFILEELEMENT = 17;
 
 
   public String[] jjtNodeName = {
@@ -34,6 +35,7 @@ public interface ShellTreeConstants
     "on",
     "log",
     "destroy",
+    "assimilateVM",
     "variableAssign",
     "expression",
     "passThru",
@@ -42,4 +44,4 @@ public interface ShellTreeConstants
     "fileElement",
   };
 }
-/* JavaCC - OriginalChecksum=dd34f587ff6d886ff726ad184d2df40f (do not edit this line) */
+/* JavaCC - OriginalChecksum=c335d65c2b7c88ccb4ccb3327501cc3b (do not edit this line) */

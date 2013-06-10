@@ -44,7 +44,7 @@ public class VirtualServer extends Entity {
 	@Embed private ArrayList<NameValue> parametersList;
 	private VirtualServerStatus status;
 	private String notification;
-	private String instanceId;
+	@Index private String instanceId;
 	private String spotId;
 	private String accessKey;
 	private String encryptedKey;

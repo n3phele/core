@@ -2,14 +2,14 @@
 # Author: Lucas Pugens
 name	   : destroyService
 description: destroy a service
-version	   : 0.1.1
+version	   : 0.1.2
 preferred  : true
 public	   : true
 icon	   : http://www.n3phele.com/icons/custom
 parameters :
 	int n	= 1 	# how many to create
 	string juju_version = "0.6" # version to download of juju
-	string charm_name = "nyan01" # the name of destroyed service
+	optional string service_name = "nyan01" # a name to service
 	string tenant_id = "" # also called project ID
 input files:
 	environments.yaml # Input file to configure juju
@@ -52,7 +52,9 @@ HPZone1: # HP Cloud
 
 	ON $$my_vmPugens hpcloud get :n3phele-service/id_rsa :n3phele-service/id_rsa.pub
 	
-	ON $$my_vmPugens mkdir ~/.juju/
+	ON $$my_vmPugens if [ ! -d "~/.juju/" ] then
+						mkdir ~/.juju/
+					 fi
 	ON $$my_vmPugens mv environments.yaml ~/.juju/environments.yaml
 	ON $$my_vmPugens mv id_rsa ~/.ssh/id_rsa
 	ON $$my_vmPugens chmod go-rxw ~/.ssh/id_rsa
@@ -63,7 +65,7 @@ HPZone1: # HP Cloud
 	ON $$my_vmPugens sudo add-apt-repository -y ppa:juju/$$juju_version
 	ON $$my_vmPugens sudo apt-get update -y && sudo apt-get install -y -qq juju
 	ON $$my_vmPugens echo -e "Host *\nStrictHostKeyChecking no" >> ~/.ssh/config
-	ON $$my_vmPugens juju destroy-service $$charm_name
+	ON $$my_vmPugens juju destroy-service $$service_name
 	ON $$my_vmPugens rm -f ~/.ssh/config
 	ON $$my_vmPugens juju status > /tmp/jujuStatus.txt
 	ON $$my_vmPugens hpcloud copy /tmp/jujuStatus.txt :n3phele-service/juju_status.txt

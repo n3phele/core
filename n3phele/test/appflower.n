@@ -1,15 +1,15 @@
-# deployCharm.n
+# appflower.n
 # Author: Lucas Pugens
-name	   : deployCharm
-description: deploy a charm
-version	   : 0.4.3
+name	   : deployAppflower
+description: deploy a appflower
+version	   : 0.0.7
 preferred  : true
 public	   : true
 icon	   : http://www.n3phele.com/icons/custom
 parameters :
 	int n	= 1 	# how many to create
 	string juju_version = "0.6" # version to download of juju
-	string charm = "nyancat" # charm to deploy
+	int quanty = 1 # how machines to the service
 	optional string service_name = "flower01" # a name to service
 	string tenant_id = "" # tenant ID also called project ID
 input files:
