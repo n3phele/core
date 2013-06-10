@@ -13,52 +13,46 @@ import com.googlecode.objectify.annotation.Unindex;
 
 
 @XmlRootElement(name="Relationship")
-@XmlType(name="Relationship", propOrder={"id","uriStackMaster","uriStackSubordinate","type","description"})
+@XmlType(name="Relationship", propOrder={"idStackMaster","idStackSubordinate","type","description","name"})
 @Unindex
 @Cache
-@com.googlecode.objectify.annotation.Entity
-//must add on ServiceModelDao.java
-public class Relationship extends Entity implements Serializable{
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+public class Relationship {
 
-
-	@com.googlecode.objectify.annotation.Id private Long id;
-	
-
-	private String uriStackMaster;
-	private String uriStackSubordinate;
+	private long idStackMaster;
+	private long idStackSubordinate;
 	
 	private String type;
 
-	//need to reference both stacks of the relationship...
+	
 	private String description;
+	//may have to remove...
+	private String name;
+
 	public Relationship(){}
 	
-	public Relationship(String uriStackMaster,String uriStackSubordinate,String type,String description,String name, URI owner, boolean isPublic){
-		super(name, null, owner, isPublic);
-		this.uriStackMaster = uriStackMaster;
-		this.uriStackSubordinate = uriStackSubordinate;
+	public Relationship(long idStackMaster,long idStackSubordinate,String type,
+		String description){
+		this.idStackMaster = idStackMaster;
+		this.idStackSubordinate = idStackSubordinate;
 		this.type = type;
 		this.description = description;	
+		this.name = "";
 	}
 
-	public String getUriStackMaster() {
-		return this.uriStackMaster;
+	public long getIdStackMaster() {
+		return this.idStackMaster;
 	}
 
-	public void setUriStackMaster(String uriStackMaster) {
-		this.uriStackMaster = uriStackMaster;
+	public void setUriStackMaster(long idStackMaster) {
+		this.idStackMaster = idStackMaster;
 	}
 
-	public String getUriStackSubordinate() {
-		return this.uriStackSubordinate;
+	public long getidStackSubordinate() {
+		return this.idStackSubordinate;
 	}
 
-	public void setUriStackSubordinate(String uriStackSubordinate) {
-		this.uriStackSubordinate = uriStackSubordinate;
+	public void setUriStackSubordinate(long idStackSubordinate) {
+		this.idStackSubordinate = idStackSubordinate;
 	}
 
 	public String getDescription() {
@@ -76,12 +70,12 @@ public class Relationship extends Entity implements Serializable{
 	public void setType(String type) {
 		this.type = type;
 	}
-	public Long getId() {
-		return this.id;
+	public String getName() {
+		return this.name;
 	}
 
-	public void setId(Long id) {
-		this.id = id;
+	public void setName(String name) {
+		this.name = name;
 	}
 
 }

@@ -19,17 +19,18 @@ import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.annotation.Unindex;
 
 @XmlRootElement(name="Stack")
-@XmlType(name="Stack", propOrder={"id","description","vms","relations"})
+@XmlType(name="Stack", propOrder={"id","description","vms"})
 @Unindex
 @Cache
-@com.googlecode.objectify.annotation.Entity
-public class Stack extends Entity implements Serializable{
+public class Stack{
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 1L;
-	@com.googlecode.objectify.annotation.Id private Long id;
+	private long id;
+	private String name;
+	
 	private String description;
+	
 	//An account bound to a Stack can be referenced like a private field or with the URI owner of the super class Entity 
 	//private String account;
 	
@@ -38,13 +39,14 @@ public class Stack extends Entity implements Serializable{
 	//Stacks contain vms, a class Virtual Machine don't exist, may have to store CloudProcess... also have to check nodes...
 	@Serialize
 	private List<URI> vms = new ArrayList<URI>();
-	@Serialize
-	private List<URI> relations = new ArrayList<URI>();
-	
+//	@Serialize
+//	private List<URI> relations = new ArrayList<URI>();
+//	
 	public Stack () {}
 	
-	public Stack(String description,String name, URI owner, boolean isPublic) {
-		super(name, null, owner, isPublic);
+	public Stack( String name, String description) {
+		this.id = (long)- 1;
+		this.name = name;
 		this.description = description;
 
 	}
@@ -57,12 +59,20 @@ public class Stack extends Entity implements Serializable{
 		this.description = description;
 	}
 
-	public Long getId() {
+	public long getId() {
 		return this.id;
 	}
-
-	public void setId(Long id) {
+	
+	public void setId(long id) {
 		this.id = id;
+	}
+	
+	public String getName() {
+		return this.name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 	
 	public List<URI> getVms() {
@@ -72,22 +82,13 @@ public class Stack extends Entity implements Serializable{
 	public void setVms(List<URI> vms) {
 		this.vms = vms;
 	}
-
-	public List<URI> getRelations() {
-		return this.relations;
-	}
-
-	public void setRelations(List<URI> relations) {
-		this.relations = relations;
-	}
-	public boolean addRelation(URI r){
-		return relations.add(r);
-	}
+	
 	public boolean addVm(URI r){
 		return vms.add(r);
 	}
+	
 	@Override
 	public String toString() {
-		return "Stack [id=" + this.id + ", description=" + this.description + ", vms=" + this.vms + ", relations=" + this.relations + ", name=" + this.name + ", uri=" + this.uri + ", owner=" + this.owner + ", isPublic=" + this.isPublic + "]";
+		return "Stack [id=" + this.id + ", name=" + this.name + ", description=" + this.description + ", vms=" + this.vms + "]";
 	}
 }

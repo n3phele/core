@@ -54,9 +54,7 @@ public class ActionResource {
 	@RolesAllowed("authenticated")
 	public Collection<BaseEntity> list(
 			@DefaultValue("false") @QueryParam("summary") Boolean summary)  {
-
 		log.warning("getAction entered with summary "+summary);
-
 		Collection<BaseEntity> result = dao.getCollection(UserResource.toUser(securityContext)).collection(summary);
 		return result;
 	}
@@ -67,7 +65,6 @@ public class ActionResource {
 	@RolesAllowed("authenticated")
 	@Path("{id}") 
 	public Action get( @PathParam ("id") Long id) throws NotFoundException {
-
 		Action item = dao.load(id, UserResource.toUser(securityContext));
 		return item;
 	}

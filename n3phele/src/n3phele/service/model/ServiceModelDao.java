@@ -22,6 +22,7 @@ import n3phele.service.actions.LogAction;
 import n3phele.service.actions.NShellAction;
 import n3phele.service.actions.OnAction;
 import n3phele.service.actions.ServiceAction;
+import n3phele.service.actions.StackServiceAction;
 import n3phele.service.actions.VMAction;
 import n3phele.service.model.core.GenericModelDao;
 import n3phele.service.model.core.User;
@@ -59,9 +60,9 @@ public class ServiceModelDao<T> extends GenericModelDao<T> {
 		
 		//new classes for Services and Stacks structure
 		
-		ObjectifyService.register(Stack.class);
-		ObjectifyService.register(Service.class);
-		ObjectifyService.register(Relationship.class);
+		//ObjectifyService.register(Stack.class);
+		ObjectifyService.register(StackServiceAction.class);
+		//ObjectifyService.register(Relationship.class);
 	}
 	public ServiceModelDao(Class<T> clazz) {
 		super(clazz);
