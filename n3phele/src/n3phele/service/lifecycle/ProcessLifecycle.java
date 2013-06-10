@@ -93,8 +93,17 @@ public class ProcessLifecycle {
 			counter.put(processState.toString()+active+wait, count);
 			log.info("Process "+process.getUri()+" "+processState+" "+process.getRunning());
 			if(process.getRunning() == null && processState != ActionState.NEWBORN) {
-				if(process.hasPending() || processState == ActionState.RUNABLE)
+				if(process.hasPending()) {
 					schedule(process, false);
+				} else if(processState == ActionState.RUNABLE) {
+					if(process.getWaitTimeout() != null) {
+						if((new Date()).after(process.getWaitTimeout())) {
+							schedule(process,false);
+						}
+					} else {
+						schedule(process,false);
+					}
+				}		
 			} 
 		} 
 		

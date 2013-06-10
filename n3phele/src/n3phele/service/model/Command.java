@@ -33,7 +33,7 @@ import com.googlecode.objectify.annotation.Unindex;
 
 
 @XmlRootElement(name="Command")
-@XmlType(name="Command", propOrder={"shell", "description", "preferred", "version", "icon", "ownerName", "inputFiles", "outputFiles", "executionParameters", "cloudAccounts", "implementations"})
+@XmlType(name="Command", propOrder={"shell", "description", "processor", "preferred", "version", "icon", "ownerName", "inputFiles", "outputFiles", "executionParameters", "cloudAccounts", "implementations"})
 @Unindex
 @Cache
 @com.googlecode.objectify.annotation.Entity
@@ -41,6 +41,7 @@ public class Command extends Entity {
 	@Id private Long id;
 	private String shell;
 	private String description;
+	private String processor;
 	@Index private boolean preferred;
 	private String version;
 	private String icon;
@@ -130,6 +131,22 @@ public class Command extends Entity {
 	 */
 	public void setVersion(String version) {
 		this.version = version;
+	}
+
+	
+	
+	/**
+	 * @return the processor
+	 */
+	public String getProcessor() {
+		return this.processor;
+	}
+
+	/**
+	 * @param processor the processor to set
+	 */
+	public void setProcessor(String processor) {
+		this.processor = processor;
 	}
 
 	/**
@@ -235,18 +252,19 @@ public class Command extends Entity {
 		this.cloudAccounts = cloudAccounts;
 	}
 
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		return String
-				.format("Command [id=%s, shell=%s, description=%s, preferred=%s, version=%s, icon=%s, ownerName=%s, inputFiles=%s, executionParameters=%s, outputFiles=%s, implementations=%s, cloudAccounts=%s]",
-						this.id, this.shell, this.description, this.preferred,
-						this.version, this.icon, this.ownerName,
-						this.inputFiles, this.executionParameters,
-						this.outputFiles, this.implementations,
-						this.cloudAccounts);
+				.format("Command [id=%s, shell=%s, description=%s, processor=%s, preferred=%s, version=%s, icon=%s, ownerName=%s, inputFiles=%s, executionParameters=%s, outputFiles=%s, implementations=%s, cloudAccounts=%s]",
+						this.id, this.shell, this.description, this.processor,
+						this.preferred, this.version, this.icon,
+						this.ownerName, this.inputFiles,
+						this.executionParameters, this.outputFiles,
+						this.implementations, this.cloudAccounts);
 	}
 
 	public Command initCloudAccounts(User user) {

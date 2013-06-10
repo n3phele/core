@@ -120,6 +120,7 @@ TOKEN :
     < NAME: "name" > : simpleValueProcessing
   | < DESCRIPTION: "description" > : descriptionValueProcessing
   | < VERSION: "version" > : simpleValueProcessing
+  | < PROCESSOR: "processor" > : simpleValueProcessing
   | < PREFERRED: "preferred" >
   | < PUBLIC: "public" >
   | < ICON: "icon" >
@@ -281,6 +282,7 @@ Command parse():
 	String name = null;
 	String description = null;
 	String version = "";
+	String processor = "Job";
 	boolean preferred = false;
 	boolean isPublic = false;
 	URI icon = null;
@@ -294,6 +296,7 @@ Command parse():
   	description = description()
   	version = version()
   	preferred = preferred()
+  	[ processor = processor() ]
   	[ isPublic = isPublic() ]
   	[ icon = icon() ]
   	[ parameters = parameters() ]
@@ -308,6 +311,7 @@ Command parse():
 		cd.setDescription(description);
 		cd.setVersion(version);
 		cd.setPreferred(preferred);
+		cd.setProcessor(processor);
 		cd.setPublic(isPublic);
 		cd.setIcon(icon);
 		cd.setExecutionParameters(parameters);
@@ -338,6 +342,14 @@ String description() : { String result = null; Token t; }
 String version() : { Token t; }
 {
 	< VERSION > <COLON> t = <VALUE>
+	{
+	  return t.toString();
+	} 
+}
+
+String processor() : { Token t; }
+{
+	< PROCESSOR > <COLON> t = <VALUE>
 	{
 	  return t.toString();
 	} 

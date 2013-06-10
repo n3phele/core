@@ -400,7 +400,11 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 			if(name==null || name.trim().length()==0) {
 				name = this.commandNameText;
 			}
-			this.presenter.exec("Job", name, data.getShell()+" "+data.getUri()+"#"+getSelectedImplementation(), context);
+			String processor = data.getProcessor();
+			if(processor == null || processor.trim().length()==0) {
+				processor = "Job";
+			}
+			this.presenter.exec(processor, name, data.getShell()+" "+data.getUri()+"#"+getSelectedImplementation(), context);
 		}
 	}
 	

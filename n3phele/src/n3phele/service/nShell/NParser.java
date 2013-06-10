@@ -40,6 +40,7 @@ public class NParser implements NParserConstants {
         String name = null;
         String description = null;
         String version = "";
+        String processor = "Job";
         boolean preferred = false;
         boolean isPublic = false;
         URI icon = null;
@@ -52,11 +53,19 @@ public class NParser implements NParserConstants {
     version = version();
     preferred = preferred();
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+    case PROCESSOR:
+      processor = processor();
+      break;
+    default:
+      jj_la1[0] = jj_gen;
+      ;
+    }
+    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case PUBLIC:
       isPublic = isPublic();
       break;
     default:
-      jj_la1[0] = jj_gen;
+      jj_la1[1] = jj_gen;
       ;
     }
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -64,7 +73,7 @@ public class NParser implements NParserConstants {
       icon = icon();
       break;
     default:
-      jj_la1[1] = jj_gen;
+      jj_la1[2] = jj_gen;
       ;
     }
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -72,7 +81,7 @@ public class NParser implements NParserConstants {
       parameters = parameters();
       break;
     default:
-      jj_la1[2] = jj_gen;
+      jj_la1[3] = jj_gen;
       ;
     }
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -80,7 +89,7 @@ public class NParser implements NParserConstants {
       inputFiles = inputFiles();
       break;
     default:
-      jj_la1[3] = jj_gen;
+      jj_la1[4] = jj_gen;
       ;
     }
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -88,7 +97,7 @@ public class NParser implements NParserConstants {
       outputFiles = outputFiles();
       break;
     default:
-      jj_la1[4] = jj_gen;
+      jj_la1[5] = jj_gen;
       ;
     }
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -96,7 +105,7 @@ public class NParser implements NParserConstants {
       implementations = implementations();
       break;
     default:
-      jj_la1[5] = jj_gen;
+      jj_la1[6] = jj_gen;
       ;
     }
     jj_consume_token(0);
@@ -106,6 +115,7 @@ public class NParser implements NParserConstants {
                 cd.setDescription(description);
                 cd.setVersion(version);
                 cd.setPreferred(preferred);
+                cd.setProcessor(processor);
                 cd.setPublic(isPublic);
                 cd.setIcon(icon);
                 cd.setExecutionParameters(parameters);
@@ -137,7 +147,7 @@ public class NParser implements NParserConstants {
         ;
         break;
       default:
-        jj_la1[6] = jj_gen;
+        jj_la1[7] = jj_gen;
         break label_1;
       }
       t = jj_consume_token(DESCRIPTIONTEXT);
@@ -150,6 +160,15 @@ public class NParser implements NParserConstants {
   final public String version() throws ParseException {
                      Token t;
     jj_consume_token(VERSION);
+    jj_consume_token(COLON);
+    t = jj_consume_token(VALUE);
+          {if (true) return t.toString();}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public String processor() throws ParseException {
+                       Token t;
+    jj_consume_token(PROCESSOR);
     jj_consume_token(COLON);
     t = jj_consume_token(VALUE);
           {if (true) return t.toString();}
@@ -199,7 +218,7 @@ public class NParser implements NParserConstants {
         ;
         break;
       default:
-        jj_la1[7] = jj_gen;
+        jj_la1[8] = jj_gen;
         break label_2;
       }
       t = parameterList();
@@ -217,7 +236,7 @@ public class NParser implements NParserConstants {
                         f.setOptional(true);
       break;
     default:
-      jj_la1[8] = jj_gen;
+      jj_la1[9] = jj_gen;
       ;
     }
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -232,7 +251,7 @@ public class NParser implements NParserConstants {
                                                                                                                                                              f.setDefaultValue(l.image);
         break;
       default:
-        jj_la1[9] = jj_gen;
+        jj_la1[10] = jj_gen;
         ;
       }
       label_3:
@@ -242,7 +261,7 @@ public class NParser implements NParserConstants {
           ;
           break;
         default:
-          jj_la1[10] = jj_gen;
+          jj_la1[11] = jj_gen;
           break label_3;
         }
         c = jj_consume_token(COMMENT);
@@ -264,14 +283,14 @@ public class NParser implements NParserConstants {
           l = jj_consume_token(INTEGER_LITERAL);
           break;
         default:
-          jj_la1[11] = jj_gen;
+          jj_la1[12] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
                                                                                                                                                                                                   f.setDefaultValue(l.image);
         break;
       default:
-        jj_la1[12] = jj_gen;
+        jj_la1[13] = jj_gen;
         ;
       }
       label_4:
@@ -281,7 +300,7 @@ public class NParser implements NParserConstants {
           ;
           break;
         default:
-          jj_la1[13] = jj_gen;
+          jj_la1[14] = jj_gen;
           break label_4;
         }
         c = jj_consume_token(COMMENT);
@@ -299,7 +318,7 @@ public class NParser implements NParserConstants {
                                                                                                                                                                 f.setDefaultValue(l.image);
         break;
       default:
-        jj_la1[14] = jj_gen;
+        jj_la1[15] = jj_gen;
         ;
       }
       label_5:
@@ -309,7 +328,7 @@ public class NParser implements NParserConstants {
           ;
           break;
         default:
-          jj_la1[15] = jj_gen;
+          jj_la1[16] = jj_gen;
           break label_5;
         }
         c = jj_consume_token(COMMENT);
@@ -327,7 +346,7 @@ public class NParser implements NParserConstants {
                                                                                                                                                                 f.setDefaultValue(l.image);
         break;
       default:
-        jj_la1[16] = jj_gen;
+        jj_la1[17] = jj_gen;
         ;
       }
       label_6:
@@ -337,7 +356,7 @@ public class NParser implements NParserConstants {
           ;
           break;
         default:
-          jj_la1[17] = jj_gen;
+          jj_la1[18] = jj_gen;
           break label_6;
         }
         c = jj_consume_token(COMMENT);
@@ -355,7 +374,7 @@ public class NParser implements NParserConstants {
                                                                                                                                                                    f.setDefaultValue(l.image);
         break;
       default:
-        jj_la1[18] = jj_gen;
+        jj_la1[19] = jj_gen;
         ;
       }
       label_7:
@@ -365,7 +384,7 @@ public class NParser implements NParserConstants {
           ;
           break;
         default:
-          jj_la1[19] = jj_gen;
+          jj_la1[20] = jj_gen;
           break label_7;
         }
         c = jj_consume_token(COMMENT);
@@ -373,7 +392,7 @@ public class NParser implements NParserConstants {
       }
       break;
     default:
-      jj_la1[20] = jj_gen;
+      jj_la1[21] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -393,7 +412,7 @@ public class NParser implements NParserConstants {
         ;
         break;
       default:
-        jj_la1[21] = jj_gen;
+        jj_la1[22] = jj_gen;
         break label_8;
       }
       t = inputFile();
@@ -411,7 +430,7 @@ public class NParser implements NParserConstants {
                        f.setOptional(true);
       break;
     default:
-      jj_la1[22] = jj_gen;
+      jj_la1[23] = jj_gen;
       ;
     }
     s = jj_consume_token(FILESPEC);
@@ -425,7 +444,7 @@ public class NParser implements NParserConstants {
         ;
         break;
       default:
-        jj_la1[23] = jj_gen;
+        jj_la1[24] = jj_gen;
         break label_9;
       }
     }
@@ -444,7 +463,7 @@ public class NParser implements NParserConstants {
         ;
         break;
       default:
-        jj_la1[24] = jj_gen;
+        jj_la1[25] = jj_gen;
         break label_10;
       }
       t = outputFile();
@@ -467,7 +486,7 @@ public class NParser implements NParserConstants {
         ;
         break;
       default:
-        jj_la1[25] = jj_gen;
+        jj_la1[26] = jj_gen;
         break label_11;
       }
     }
@@ -487,7 +506,7 @@ public class NParser implements NParserConstants {
         ;
         break;
       default:
-        jj_la1[26] = jj_gen;
+        jj_la1[27] = jj_gen;
         break label_12;
       }
     }
@@ -504,7 +523,7 @@ public class NParser implements NParserConstants {
       t = jj_consume_token(ANNOTATION);
       break;
     default:
-      jj_la1[27] = jj_gen;
+      jj_la1[28] = jj_gen;
       ;
     }
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -512,7 +531,7 @@ public class NParser implements NParserConstants {
       b = jj_consume_token(IMPLEMENTATION);
       break;
     default:
-      jj_la1[28] = jj_gen;
+      jj_la1[29] = jj_gen;
       ;
     }
     jj_consume_token(END);
@@ -534,7 +553,7 @@ public class NParser implements NParserConstants {
   public Token jj_nt;
   private int jj_ntk;
   private int jj_gen;
-  final private int[] jj_la1 = new int[29];
+  final private int[] jj_la1 = new int[30];
   static private int[] jj_la1_0;
   static private int[] jj_la1_1;
   static {
@@ -542,10 +561,10 @@ public class NParser implements NParserConstants {
       jj_la1_init_1();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x800,0x1000,0x8000,0x2000,0x4000,0x0,0x0,0xfc00000,0x400000,0x10000000,0x100000,0x20000000,0x10000000,0x100000,0x10000000,0x100000,0x10000000,0x100000,0x10000000,0x100000,0xf800000,0x400000,0x400000,0x100000,0x0,0x100000,0x0,0x0,0x0,};
+      jj_la1_0 = new int[] {0x400,0x1000,0x2000,0x10000,0x4000,0x8000,0x0,0x0,0x1f800000,0x800000,0x20000000,0x200000,0x40000000,0x20000000,0x200000,0x20000000,0x200000,0x20000000,0x200000,0x20000000,0x200000,0x1f000000,0x800000,0x800000,0x200000,0x0,0x200000,0x0,0x0,0x0,};
    }
    private static void jj_la1_init_1() {
-      jj_la1_1 = new int[] {0x0,0x0,0x0,0x0,0x0,0x200000,0x10000,0x0,0x0,0x0,0x0,0x2,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x200,0x0,0x0,0x200,0x0,0x200000,0x10000000,0x8000000,};
+      jj_la1_1 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x400000,0x20000,0x0,0x0,0x0,0x0,0x4,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x400,0x0,0x0,0x400,0x0,0x400000,0x20000000,0x10000000,};
    }
 
   /** Constructor with InputStream. */
@@ -559,7 +578,7 @@ public class NParser implements NParserConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 29; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 30; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -573,7 +592,7 @@ public class NParser implements NParserConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 29; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 30; i++) jj_la1[i] = -1;
   }
 
   /** Constructor. */
@@ -583,7 +602,7 @@ public class NParser implements NParserConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 29; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 30; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -593,7 +612,7 @@ public class NParser implements NParserConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 29; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 30; i++) jj_la1[i] = -1;
   }
 
   /** Constructor with generated Token Manager. */
@@ -602,7 +621,7 @@ public class NParser implements NParserConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 29; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 30; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -611,7 +630,7 @@ public class NParser implements NParserConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 29; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 30; i++) jj_la1[i] = -1;
   }
 
   private Token jj_consume_token(int kind) throws ParseException {
@@ -662,12 +681,12 @@ public class NParser implements NParserConstants {
   /** Generate ParseException. */
   public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[61];
+    boolean[] la1tokens = new boolean[62];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
     }
-    for (int i = 0; i < 29; i++) {
+    for (int i = 0; i < 30; i++) {
       if (jj_la1[i] == jj_gen) {
         for (int j = 0; j < 32; j++) {
           if ((jj_la1_0[i] & (1<<j)) != 0) {
@@ -679,7 +698,7 @@ public class NParser implements NParserConstants {
         }
       }
     }
-    for (int i = 0; i < 61; i++) {
+    for (int i = 0; i < 62; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;

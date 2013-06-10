@@ -13,6 +13,7 @@ package n3phele.service.nShell;
 *
 */
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -329,6 +330,7 @@ public class ExpressionEngine {
 	     *  | < STRING > list() "," conditionalExpression() "," conditionalExpression() ")" { jjtThis.jjtSetValue("string"); }
 		 *  | < ESCAPE > conditionalExpression() ")" { jjtThis.jjtSetValue("escape"); }
 		 *  | < UNESCAPE > conditionalExpression() ")" { jjtThis.jjtSetValue("unescape"); }
+		 *  | < LIST > conditionalExpression() [ "," conditionalExpression() ]* ")" { jjtThis.jjtSetValue("list"); }
 		 * )
 		 */
 		Object[] stack;
@@ -427,6 +429,9 @@ public class ExpressionEngine {
 			if((stack = oneChild(s))!=null && isClass(stack[0], "String", String.class)) {
 				return StringEscapeUtils.unescapeJavaString((String)stack[0]);
 			}
+		} else if(s.value.equals("list")) {
+			return listOfChildren(s);
+			
 		}
 		throw new IllegalArgumentException(s.value);
 	}
@@ -586,6 +591,14 @@ public class ExpressionEngine {
 			return new Object[] { eval(s.children[0]), eval(s.children[1]), eval(s.children[2]) };
 		}
 		return null;
+	}
+	
+	private List<Object> listOfChildren(ShellFragment s) throws IllegalArgumentException, UnexpectedTypeException {
+		List<Object> result = new ArrayList<Object>(s.children.length);
+		for(int i=0; i < s.children.length; i++) {
+			result.add(eval(s.children[i]));
+		}
+		return result;
 	}
 	
 	private boolean isClass(Object o, String expected, Class<?> clazz ) throws UnexpectedTypeException {

@@ -31,85 +31,87 @@ public interface NParserConstants {
   /** RegularExpression Id. */
   int VERSION = 9;
   /** RegularExpression Id. */
-  int PREFERRED = 10;
+  int PROCESSOR = 10;
   /** RegularExpression Id. */
-  int PUBLIC = 11;
+  int PREFERRED = 11;
   /** RegularExpression Id. */
-  int ICON = 12;
+  int PUBLIC = 12;
   /** RegularExpression Id. */
-  int INPUT = 13;
+  int ICON = 13;
   /** RegularExpression Id. */
-  int OUTPUT = 14;
+  int INPUT = 14;
   /** RegularExpression Id. */
-  int PARAMETERS = 15;
+  int OUTPUT = 15;
   /** RegularExpression Id. */
-  int COMMENT = 20;
+  int PARAMETERS = 16;
   /** RegularExpression Id. */
-  int WHITESPACE = 21;
+  int COMMENT = 21;
   /** RegularExpression Id. */
-  int OPTIONAL = 22;
+  int WHITESPACE = 22;
   /** RegularExpression Id. */
-  int INT = 23;
+  int OPTIONAL = 23;
   /** RegularExpression Id. */
-  int FLOAT = 24;
+  int INT = 24;
   /** RegularExpression Id. */
-  int STRING = 25;
+  int FLOAT = 25;
   /** RegularExpression Id. */
-  int SECRET = 26;
+  int STRING = 26;
   /** RegularExpression Id. */
-  int BOOLEAN = 27;
+  int SECRET = 27;
   /** RegularExpression Id. */
-  int EQUALS = 28;
+  int BOOLEAN = 28;
   /** RegularExpression Id. */
-  int INTEGER_LITERAL = 29;
+  int EQUALS = 29;
   /** RegularExpression Id. */
-  int DECIMAL_LITERAL = 30;
+  int INTEGER_LITERAL = 30;
   /** RegularExpression Id. */
-  int HEX_LITERAL = 31;
+  int DECIMAL_LITERAL = 31;
   /** RegularExpression Id. */
-  int OCTAL_LITERAL = 32;
+  int HEX_LITERAL = 32;
   /** RegularExpression Id. */
-  int FLOATING_POINT_LITERAL = 33;
+  int OCTAL_LITERAL = 33;
   /** RegularExpression Id. */
-  int EXPONENT = 34;
+  int FLOATING_POINT_LITERAL = 34;
   /** RegularExpression Id. */
-  int BOOLEAN_LITERAL = 35;
+  int EXPONENT = 35;
   /** RegularExpression Id. */
-  int STRING_LITERAL = 36;
+  int BOOLEAN_LITERAL = 36;
   /** RegularExpression Id. */
-  int URI_LITERAL = 37;
+  int STRING_LITERAL = 37;
   /** RegularExpression Id. */
-  int VARIABLE_NAME = 38;
+  int URI_LITERAL = 38;
   /** RegularExpression Id. */
-  int NAMESTART = 39;
+  int VARIABLE_NAME = 39;
   /** RegularExpression Id. */
-  int NAMEREST = 40;
+  int NAMESTART = 40;
   /** RegularExpression Id. */
-  int FILESPEC = 41;
+  int NAMEREST = 41;
   /** RegularExpression Id. */
-  int FILESTART = 42;
+  int FILESPEC = 42;
   /** RegularExpression Id. */
-  int FILEREST = 43;
+  int FILESTART = 43;
   /** RegularExpression Id. */
-  int VALUE = 44;
+  int FILEREST = 44;
   /** RegularExpression Id. */
-  int VALUESTART = 45;
+  int VALUE = 45;
   /** RegularExpression Id. */
-  int DESCRIPTIONTEXT = 48;
+  int VALUESTART = 46;
   /** RegularExpression Id. */
-  int BODY_COMMENT = 52;
+  int DESCRIPTIONTEXT = 49;
   /** RegularExpression Id. */
-  int CLOUDNAME = 53;
+  int BODY_COMMENT = 53;
   /** RegularExpression Id. */
-  int CLOUDSTART = 54;
+  int CLOUDNAME = 54;
   /** RegularExpression Id. */
-  int CLOUDMORE = 55;
+  int CLOUDSTART = 55;
   /** RegularExpression Id. */
-  int END = 58;
+  int CLOUDMORE = 56;
   /** RegularExpression Id. */
-  int IMPLEMENTATION = 59;
+  int END = 59;
   /** RegularExpression Id. */
-  int ANNOTATION = 60;
+  int IMPLEMENTATION = 60;
+  /** RegularExpression Id. */
+  int ANNOTATION = 61;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -142,6 +144,7 @@ public interface NParserConstants {
     "\"name\"",
     "\"description\"",
     "\"version\"",
+    "\"processor\"",
     "\"preferred\"",
     "\"public\"",
     "\"icon\"",
@@ -178,17 +181,17 @@ public interface NParserConstants {
     "<FILEREST>",
     "<VALUE>",
     "<VALUESTART>",
-    "<token of kind 46>",
     "<token of kind 47>",
+    "<token of kind 48>",
     "<DESCRIPTIONTEXT>",
-    "<token of kind 49>",
+    "<token of kind 50>",
     "\"\\n\"",
     "\"\\r\"",
     "<BODY_COMMENT>",
     "<CLOUDNAME>",
     "<CLOUDSTART>",
     "<CLOUDMORE>",
-    "<token of kind 56>",
+    "<token of kind 57>",
     "\"\\n\"",
     "\"\\r\\n\"",
     "<IMPLEMENTATION>",

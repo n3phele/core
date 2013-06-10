@@ -476,7 +476,7 @@ public class ExpressionTest {
 	@Test
 	public void testList() throws IllegalArgumentException, ParseException, UnexpectedTypeException {
 		
-		context.putObjectValue("i0", Arrays.asList("larry", "moe", "curly"));
+		context.putObjectValue("i0", eval("$$list(\"larry\", \"moe\", \"curly\")", context));
 		context.putObjectValue("nullList", Arrays.asList());
 		context.putObjectValue("i1", eval( "$$length($$nullList)", context));
 		context.putObjectValue("i2", eval( "$$length($$i0)", context));

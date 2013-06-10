@@ -2,8 +2,11 @@ package n3phele.service.actions;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
@@ -13,19 +16,38 @@ import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.annotation.Unindex;
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.ClientFilter;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
+import com.sun.jersey.core.util.Base64;
 
+import n3phele.service.actions.CreateVMAction.CreateVirtualServerResult;
+import n3phele.service.core.NotFoundException;
+import n3phele.service.lifecycle.ProcessLifecycle;
 import n3phele.service.lifecycle.ProcessLifecycle.WaitForSignalRequest;
+import n3phele.service.model.Account;
 import n3phele.service.model.Action;
+import n3phele.service.model.Cloud;
+import n3phele.service.model.CloudProcess;
 import n3phele.service.model.Command;
 import n3phele.service.model.Context;
 import n3phele.service.model.SignalKind;
+import n3phele.service.model.Variable;
+import n3phele.service.model.VariableType;
+import n3phele.service.model.core.CreateVirtualServerResponse;
+import n3phele.service.model.core.Credential;
+import n3phele.service.model.core.ExecutionFactoryAssimilateRequest;
+import n3phele.service.model.core.ExecutionFactoryCreateRequest;
 import n3phele.service.model.core.Helpers;
+import n3phele.service.model.core.NameValue;
 import n3phele.service.model.core.ParameterType;
 import n3phele.service.model.core.TypedParameter;
 import n3phele.service.model.core.User;
+import n3phele.service.model.core.VirtualServer;
+import n3phele.service.rest.impl.AccountResource;
 import n3phele.service.rest.impl.ActionResource;
+import n3phele.service.rest.impl.CloudResource;
 
 
 @EntitySubclass
@@ -37,7 +59,7 @@ public class AssimilateAction extends Action {
 	final protected static java.util.logging.Logger log = java.util.logging.Logger.getLogger(AssimilateAction.class.getName());
 	@XmlTransient private ActionLogger logger;
 	private boolean failed = false;
-	private String target;
+	private String targetIP;
 	
 	public AssimilateAction() {}
 	
@@ -52,22 +74,112 @@ public class AssimilateAction extends Action {
 		URI accountURI = Helpers.stringToURI(this.context.getValue("account"));
 		if(accountURI == null)
 			throw new IllegalArgumentException("Missing account");
+		Account account = AccountResource.dao.load(accountURI, this.getOwner());
+		Cloud cloud = CloudResource.dao.load(account.getCloud(), this.getOwner());
 		
-		this.target = this.getContext().getValue("target");
+		this.targetIP = this.getContext().getValue("targetIP");
+		mergeCloudDefaultsIntoContext(cloud);
+		retrieveVirtualServer(cloud, account);
 		
 	}
 
-	@Override
-	public boolean call() throws WaitForSignalRequest, Exception {
+	public void retrieveVirtualServer(Cloud cloud, Account account) throws Exception{
 		
 		Client client = ClientFactory.create();
-		ClientFilter factoryAuth = new HTTPBasicAuthFilter(this.context.getValue("factoryUser"), 
-				this.context.getValue("factorySecret"));
+
+		ClientFilter factoryAuth = new HTTPBasicAuthFilter(Credential.unencrypted(cloud.getFactoryCredential()).getAccount(), Credential.unencrypted(cloud.getFactoryCredential()).getSecret());
+		client.addFilter(factoryAuth);
 		client.setReadTimeout(90000);
 		client.setConnectTimeout(5000);
-		client.addFilter(factoryAuth);
+		WebResource resource = client.resource(cloud.getFactory());
 		
+		ExecutionFactoryAssimilateRequest ar = new ExecutionFactoryAssimilateRequest();
+		ar.name = this.name;
+		ar.description = "VM Association for "+this.getName()+" "+this.getUri();
+		ar.location = cloud.getLocation();
+		ar.notification =  UriBuilder.fromUri(this.getProcess()).scheme("http").path("event").build();
+		ar.idempotencyKey = this.getProcess().toString();
 		
+		Credential factoryCredential = Credential.reencrypt(account.getCredential(), Credential.unencrypted(cloud.getFactoryCredential()).getSecret());
+		ar.accessKey = factoryCredential.getAccount(); 
+		ar.encryptedSecret = factoryCredential.getSecret();
+		ar.owner = this.getProcess();
+				
+		for(TypedParameter param : Helpers.safeIterator(cloud.getInputParameters())) {
+			String name = param.getName();
+			if ("locationId".equals(name)) {
+				String value = this.context.getValue(name);
+				if (!Helpers.isBlankOrNull(value)){
+					ar.locationId = value;
+				}
+			}				
+		}
+		ar.ipaddress = targetIP;				
+				
+		try {
+			AssimilateVirtualServerResult response = assimilateVirtualServers(resource, ar);
+			
+			//IP not found on cloud
+			if(response.getStatus() == 404){
+				failed = true;
+				throw new Exception("IP not found "+response.getStatus());				
+			}
+			//IP already exists on factory
+			else if(response.getStatus() == 409){
+				
+				failed = true;
+			}
+			//vm added from the cloud to the factory
+			else if(response.getStatus() == 202){
+				URI[] list = response.getRefs();
+				CloudProcess process = createVMProcess(list[0],cloud.getFactoryCredential());
+				try{
+				VirtualServer vs = fetchVirtualServer(client, list[0]);
+				if(vs!= null){
+					double value = getValueByCDN(cloud, vs.getParameters());
+					Date date = vs.getCreated();
+					
+					setCloudProcessPrice(account,process,value, date);
+				}
+				}catch(Exception e) {
+					failed = true;
+					log.log(Level.SEVERE, "VM fetch", e);
+				}
+			}
+		} catch (Exception e) {
+			failed = true;
+			logger.error("vm assimilate FAILED with exception "+e.getMessage());
+			log.log(Level.SEVERE, "vm assimilate FAILED with exception ", e);
+			throw e;
+		} finally {
+			ClientFactory.give(client);
+		}
+	}
+	
+	private CloudProcess createVMProcess(URI ref, Credential factoryCredential) throws NotFoundException, IllegalArgumentException, ClassNotFoundException{
+		CloudProcess process;
+		String name = this.context.getValue("name");
+		if(Helpers.isBlankOrNull(name)) {
+			name = this.getName();
+		}
+		
+		Context childContext = new Context();
+		childContext.putAll(this.context);
+		childContext.putValue("name", name);
+		
+		childContext.putValue("vmIndex", 0);
+		childContext.putValue("vmFactory", ref);
+		childContext.putSecretValue("factoryUser", Credential.unencrypted(factoryCredential).getAccount());
+		childContext.putSecretValue("factorySecret", Credential.unencrypted(factoryCredential).getSecret());
+		
+		process = processLifecycle().spawn(this.getOwner(), childContext.getValue("name"), 
+				childContext, null, this.getProcess(), "VM");
+		return process;
+		 
+	}
+	
+	@Override
+	public boolean call() throws WaitForSignalRequest, Exception {
 		
 		return false;
 	}
@@ -86,7 +198,7 @@ public class AssimilateAction extends Action {
 
 	@Override
 	public void signal(SignalKind kind, String assertion) {
-		// TODO Auto-generated method stub
+		log.warning("Signal");
 		
 	}
 
@@ -119,17 +231,32 @@ public class AssimilateAction extends Action {
 	}
 	
 	/**
-	 * @return the target
+	 * @return the targetIP
 	 */
-	public URI getTarget() {
-		return Helpers.stringToURI(target);
+	public URI getTargetIP() {
+		return Helpers.stringToURI(targetIP);
 	}
 
 	/**
-	 * @param target the target to set
+	 * @param targetIP the targetIP to set
 	 */
-	public void setTarget(URI target) {
-		this.target = Helpers.URItoString(target);
+	public void setTargetIP(URI targetIP) {
+		this.targetIP = Helpers.URItoString(targetIP);
+	}
+	
+
+	/**
+	 * @return if the action has failed
+	 */
+	public boolean hasFailed() {
+		return failed;
+	}
+
+	/**
+	 * @param failed if the action has failed
+	 */
+	public void setFailed(boolean failed) {
+		this.failed = failed;
 	}
 	
 	/* (non-Javadoc)
@@ -139,7 +266,77 @@ public class AssimilateAction extends Action {
 	public String toString() {
 		return String
 				.format("AssimilateAction [failed=%s, target=%s, toString()=%s]",
-						failed, target,
+						failed, targetIP,
 						super.toString());
+	}
+	
+	private void mergeCloudDefaultsIntoContext(Cloud cloud) {
+		for(TypedParameter p : Helpers.safeIterator(cloud.getInputParameters())) {
+			if(!this.context.containsKey(p.getName())) {
+					if(!Helpers.isBlankOrNull(p.valueOf())) {
+					Variable v = new Variable();
+					v.setName(p.getName());
+					v.setValue(p.valueOf());
+					v.setType(VariableType.valueOf(p.getType().toString()));
+					this.context.put(v.getName(), v);
+					log.info("Inserting "+v);
+				}
+			} else {
+				log.info(p.getName()+" already exists ");
+			}
+		}
+	}
+	
+	private double getValueByCDN(Cloud myCloud, ArrayList<NameValue> values){
+		for(int i = 0; i < values.size(); i++){
+			if(values.get(i).getKey().equals(myCloud.getCostDriverName())){
+				double value = myCloud.getCostMap().get( values.get(i).getValue());
+				return value;			
+			}
+		}
+		return 0;
+	}
+	
+	private void setCloudProcessPrice(Account account, CloudProcess process,double value,Date date){
+		
+		processLifecycle().setCloudProcessPrice(account.getUri().toString(), process,value,date);
+	}
+	
+	
+	protected VirtualServer fetchVirtualServer(Client client, URI uri) {
+		return client.resource(uri).get(VirtualServer.class);
+	}
+	
+	protected AssimilateVirtualServerResult assimilateVirtualServers(WebResource resource, ExecutionFactoryAssimilateRequest assimilateRequest) {
+		return new AssimilateVirtualServerResult(resource.type(MediaType.APPLICATION_JSON_TYPE).post(ClientResponse.class, assimilateRequest));
+
+	}
+	
+	protected ProcessLifecycle processLifecycle() {
+		return ProcessLifecycle.mgr();
+	}
+	
+	protected static class AssimilateVirtualServerResult {
+		private ClientResponse response;
+		protected AssimilateVirtualServerResult() {}
+		public AssimilateVirtualServerResult(ClientResponse response) {
+			this.response = response;
+		}
+		
+		public URI getLocation() {
+			return response.getLocation();
+		}
+		
+		public URI[] getRefs() {
+			return response.getEntity(CreateVirtualServerResponse.class).vmList;
+		}
+		
+		public int getStatus() {
+			return response.getStatus();
+		}
+		
+		public String toString() {
+			return ""+response;
+		}
 	}
 }
