@@ -46,10 +46,10 @@ public class CloudWebServiceTest  {
 	@Before
 	public void setUp() throws Exception {
 		client = Client.create();
-		//client.addFilter(new HTTPBasicAuthFilter("test-user@gmail.com", "testit!"));
-		client.addFilter(new HTTPBasicAuthFilter("root", "n3phelepoa"));
-		//webResource = client.resource(UriBuilder.fromUri("http://127.0.0.1:8888/resources").path(CloudResource.class).build());
-		webResource = client.resource(UriBuilder.fromUri("https://n3phele-dev.appspot.com/resources").path(CloudResource.class).build());
+		client.addFilter(new HTTPBasicAuthFilter("test-user@gmail.com", "testit!"));
+		//client.addFilter(new HTTPBasicAuthFilter("root", "n3phelepoa"));
+		webResource = client.resource(UriBuilder.fromUri("http://127.0.0.1:8888/resources").path(CloudResource.class).build());
+		//webResource = client.resource(UriBuilder.fromUri("https://n3phele-dev.appspot.com/resources").path(CloudResource.class).build());
 	}
 
 	private Client client;

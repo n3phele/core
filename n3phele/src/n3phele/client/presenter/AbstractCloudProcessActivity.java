@@ -59,10 +59,16 @@ public abstract class AbstractCloudProcessActivity extends AbstractActivity {
 	private HandlerRegistration itemUpdateHandlerRegistration;
 	private Timer refreshTimer = null;
 	private int start;
+	private int total;
+	private boolean countAll;
 	private int max;
 	private int pageSize;
 
 	public AbstractCloudProcessActivity(String name, ClientFactory factory, CloudProcessView activityView) {
+		this(name, factory, activityView, false);
+	}
+	
+	public AbstractCloudProcessActivity(String name, ClientFactory factory, CloudProcessView activityView, boolean countAll) {
 		super();
 		this.name = name;
 		this.cacheManager = factory.getCacheManager();
@@ -70,6 +76,8 @@ public abstract class AbstractCloudProcessActivity extends AbstractActivity {
 		this.display = activityView;
 		this.historyMapper = factory.getHistoryMapper();
 		this.collectionUrl = URL.encode(cacheManager.ServiceAddress + "process");
+		this.total = 0;
+		this.countAll = countAll;
 	}
 	
 	
@@ -188,6 +196,9 @@ public abstract class AbstractCloudProcessActivity extends AbstractActivity {
 	}
 
 	protected void updateData(String uri, List<CloudProcessSummary> update, int max) {
+		
+		this.total = max;
+		
 		GWT.log("Max activities is "+max);
 		if(update != null) {
 			CacheManager.EventConstructor constructor = new CacheManager.EventConstructor() {
@@ -230,9 +241,11 @@ public abstract class AbstractCloudProcessActivity extends AbstractActivity {
 
 	public void refresh(int start) {
 	
-		String url = collectionUrl;
-		url += "?summary=true&start="+start+"&end="+(start+pageSize);
+		String url = buildUrlForProcesses(start);		
 		this.start = start;
+		
+		final int total = this.total;
+		
 		// Send request to server and catch any errors.
 		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, url);
 		try {
@@ -245,7 +258,14 @@ public abstract class AbstractCloudProcessActivity extends AbstractActivity {
 					if (200 == response.getStatusCode()) {
 						GWT.log("got cloudProcess");
 						Collection<CloudProcessSummary> c = CloudProcessSummary.asCollection(response.getText());
-						updateData(c.getUri(), c.getElements(), c.getTotal());
+							
+						int collectionSize = total;
+						if(collectionSize == 0)
+						{
+							collectionSize = c.getTotal();
+						}
+						updateData(c.getUri(), c.getElements(), collectionSize);
+						
 					} else {
 						GWT.log("Couldn't retrieve JSON ("
 								+ response.getStatusText() + ")");
@@ -255,6 +275,26 @@ public abstract class AbstractCloudProcessActivity extends AbstractActivity {
 		} catch (RequestException e) {
 			GWT.log("Couldn't retrieve JSON " + e.getMessage());
 		}
+	}
+
+	protected String buildUrlForProcesses(int start) {
+		boolean count = false;
+		
+		//If wants to get the total count of elements then
+		if(countAll)
+		{	//If already don't have a total number or is zero, will ask again
+			if(this.total == 0) count = true;
+		}
+		
+		String url = collectionUrl;
+		url += "?summary=true&start="+start+"&end="+(start+pageSize);
+		
+		//if needs to count all existent, ask for it in the url
+		if(count)
+		{			
+			url += "&count=true";
+		}
+		return url;
 	}
 
 	protected void refresh(String key) {

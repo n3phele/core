@@ -33,6 +33,7 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.MutableDateTime;
 
 import java.text.SimpleDateFormat;
@@ -55,10 +56,13 @@ import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.Credential;
 import n3phele.service.model.core.GenericModelDao;
 import n3phele.service.model.core.User;
+import n3phele.time.MutableTimeFactory;
 
 @Path("/account")
 public class AccountResource {
 	private static Logger log = Logger.getLogger(AccountResource.class.getName());
+	
+	private MutableTimeFactory timeFactory = new MutableTimeFactory();	
 
 	@Context
 	UriInfo uriInfo;
@@ -188,11 +192,10 @@ public class AccountResource {
 			if(index > 0)
 				uri = c.getUri().toString().substring(0, index);
 			String age = calcAge(c);
-			Date now = new Date();
+			Date now = timeFactory.createMutableDateTime().toDate();
 			if (now.before(c.getEpoch())) {
 				costs += 0;
 			} else if (c.getComplete() == null) {
-				Date test = new Date();
 				int hours = (int) (((now.getTime() - c.getEpoch().getTime()) / (1000 * 60 * 60 * 24)) * 24);
 				if (now.getHours() >= c.getEpoch().getHours()) {
 					hours += now.getHours() - c.getEpoch().getHours() + 1;
@@ -223,7 +226,7 @@ public class AccountResource {
 		String result = "";
 		
 		if (item != null) {
-			Date now = new Date();
+			Date now = timeFactory.createMutableDateTime().toDate();
 			if (now.before(item.getEpoch())) {
 				result += 0;
 			} else {
@@ -284,7 +287,7 @@ public class AccountResource {
 
 	@GET
 	@Produces("application/json")
-	// @RolesAllowed("authenticated")
+	@RolesAllowed("authenticated")
 	@Path("/{account}/lastcompleted/{days:[0-9]+}/get")
 	public CostsCollection listCostPerDays(@PathParam("account") String account, @PathParam("days") int days) {
 		
@@ -294,7 +297,7 @@ public class AccountResource {
 
 		List<CloudProcess> list = dao.getAllProcessByDays(account, days).getElements();
 		List<Double> listfinal = new ArrayList<Double>();
-		MutableDateTime date = new MutableDateTime();
+		MutableDateTime date = timeFactory.createMutableDateTime();
 		date.setMillisOfDay(0);
 
 		DateTime cloudProcessEpoch, cloudProcessComplete;
@@ -310,18 +313,17 @@ public class AccountResource {
 				cloudProcess.setEpoch(cloudProcess.getStart());
 			
 			if(cloudProcess.getComplete() == null){
-				MutableDateTime fakecomplete = new MutableDateTime();
+				MutableDateTime fakecomplete = timeFactory.createMutableDateTime();
 				cloudProcess.setComplete(fakecomplete.toDate());
-			}
-				
+			}				
 			
 			cloudProcessEpoch = new DateTime(cloudProcess.getEpoch());
 			cloudProcessComplete = new DateTime(cloudProcess.getComplete());
 
 			
-			MutableDateTime dateStart = new MutableDateTime(cloudProcessEpoch);
+			MutableDateTime dateStart = timeFactory.createMutableDateTime(cloudProcessEpoch);
 			dateStart.setMillisOfDay(0);
-			MutableDateTime dateComplete = new MutableDateTime(cloudProcessComplete);
+			MutableDateTime dateComplete = timeFactory.createMutableDateTime(cloudProcessComplete);
 			dateComplete.setMillisOfDay(0);
 
 			if (dateStart.getMillis() == dateComplete.getMillis()) {
@@ -388,12 +390,12 @@ public class AccountResource {
 
 			}
 		}
-//		int i = 0;
-//		for (Double double1 : listfinal) {
-//			String s = String.format("%.2f", double1);
-//			listfinal.set(i, Double.parseDouble(s));
-//			i++;
-//		}
+		
+		// ?? format double - use ValueOf or Parse?
+		/*for (int i = 0; i < listfinal.size(); i++) {
+			listfinal.set(i, Double.valueOf(String.format("%.3f", listfinal.get(i)).replace(',', '.')));
+		}*/
+		formatDoubleList(listfinal);
 		
 		return new CostsCollection(listfinal);
 	}
@@ -402,35 +404,27 @@ public class AccountResource {
 		List<CloudProcess> list = dao.getAllProcessByDays(account, 1).getElements();
 		List<Double> listfinal = new ArrayList<Double>();
 		MutableDateTime dateStart, dateEnd;
-		DateTime cpStart, cpComplete, now;
-		dateStart = new MutableDateTime();
-		dateEnd = new MutableDateTime();
+		MutableDateTime cpStart, cpComplete, now;
+		dateStart = timeFactory.createMutableDateTime();
+		dateEnd = timeFactory.createMutableDateTime();
 		dateStart.setMinuteOfHour(0);
 		dateStart.setSecondOfMinute(0);
 		dateStart.setMillisOfSecond(0);
 		dateStart.addHours(1);
 		dateEnd = dateStart.copy();
 		dateStart.addDays(-1);
-		now = new DateTime();
-//
-//		System.out.println("Size " + list.size());
-//		System.out.println("dateStart: " + dateStart);
-//		System.out.println("dateEnd: " + dateEnd);
-//		System.out.println("now: " + now + "\n");
-
+		now = timeFactory.createMutableDateTime();
+		
 		for (int i = 0; i < 24; i++) {
 			listfinal.add(0.0);
 		}
 
 		for (CloudProcess cloudProcess : list) {
-			cpStart = new DateTime(cloudProcess.getEpoch());
+			cpStart = timeFactory.createMutableDateTime(cloudProcess.getEpoch());
 			if (cloudProcess.getComplete() != null)
-				cpComplete = new DateTime(cloudProcess.getComplete());
+				cpComplete = timeFactory.createMutableDateTime(cloudProcess.getComplete());
 			else
-				cpComplete = new DateTime(Long.MAX_VALUE);
-
-//			System.out.println("cpStart: " + cpStart);
-//			System.out.println("cpComplete: " + cpComplete + "\n");
+				cpComplete = timeFactory.createMutableDateTime(Long.MAX_VALUE);
 
 			int hourStart = 0;
 			int hourEnd = 0;
@@ -525,14 +519,31 @@ public class AccountResource {
 				listfinal.set(j, listfinal.get(j) + cloudProcess.getCostPerHour());
 			}
 		}
-
-//		Just for tests
-//		for (Double d : listfinal) {
-//			System.out.println(dateStart.getHourOfDay() + " -> " + d);
-//			dateStart.addHours(1);
-//		}
+		
+		formatDoubleList(listfinal);
 
 		return new CostsCollection(listfinal);
+	}
+	
+	@GET
+	@Produces("application/json")
+	@RolesAllowed("authenticated")
+	@Path("/{account}/totalCost24Hour")
+	public CostsCollection totalCost24Hour(@PathParam("account") String account){
+		List<Double> list = listCost24hours(account).getElements();
+		double totalcost = 0.0;
+		for (Double d : list) {
+			totalcost = totalcost + d;
+		}
+		ArrayList<Double> list2 = new ArrayList<Double>();
+		list2.add(totalcost);
+		list2.add(0.0);
+		return new CostsCollection(list2);
+	}
+	protected void formatDoubleList(List<Double> listfinal) {
+		for (int i = 0; i < listfinal.size(); i++) {
+			listfinal.set(i, Double.parseDouble(String.format("%.3f", listfinal.get(i)).replace(',', '.')));
+		}
 	}
 
 
@@ -555,28 +566,7 @@ public class AccountResource {
 		Account item = dao.load(id, UserResource.toUser(securityContext));
 		return item;
 	}
-
-	// @GET
-	// @Path("{id}/init")
-	// @Produces("text/plain")
-	// @RolesAllowed("authenticated")
-	// public Response init(@PathParam ("id") Long id) throws NotFoundException
-	// {
-	// Account item = dao.load(id, UserResource.toUser(securityContext));
-	// Cloud myCloud = CloudResource.dao.load(item.getCloud(),
-	// UserResource.toUser(securityContext));
-	// String result = CloudResource.testAccount(myCloud,
-	// UserResource.toUser(securityContext), item, true);
-	// if(result == null || result.trim().length()==0) {
-	// return
-	// Response.ok("ok",MediaType.TEXT_PLAIN_TYPE).location(item.getUri()).build();
-	// } else {
-	// log.warning("Init "+item.getUri()+" with warnings "+result);
-	// return
-	// Response.ok(result,MediaType.TEXT_PLAIN_TYPE).location(item.getUri()).build();
-	// }
-	// }
-
+	
 	@DELETE
 	@Path("{id}")
 	@RolesAllowed("authenticated")
@@ -746,4 +736,11 @@ public class AccountResource {
 		return cloudProcess.toString();
 	}
 
+	public MutableTimeFactory getTimeFactory() {
+		return this.timeFactory;
+	}
+
+	public void setTimeFactory(MutableTimeFactory timeFactory) {
+		this.timeFactory = timeFactory;
+	}
 }

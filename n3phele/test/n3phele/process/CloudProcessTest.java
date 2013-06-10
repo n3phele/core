@@ -21,7 +21,6 @@ import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
@@ -34,7 +33,6 @@ import n3phele.service.model.Action;
 import n3phele.service.model.ActionState;
 import n3phele.service.model.CloudProcess;
 import n3phele.service.model.Context;
-import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.User;
 import n3phele.service.rest.impl.ActionResource;
 import n3phele.service.rest.impl.CloudProcessResource;
@@ -244,7 +242,7 @@ public class CloudProcessTest  {
 		assertEquals("Count value", 1000, action.getCount());
 		job = CloudResourceTestWrapper.dao.load(job.getUri());
 		jobAction = (JobAction) ActionResource.dao.load(jobAction.getId());
-		assertEquals(ActionState.COMPLETE, job.getState());
+		assertEquals(ActionState.FAILED, job.getState());
 		assertEquals(ActionState.CANCELLED, jobAction.getChildEndState());
 	}
 	
@@ -339,7 +337,7 @@ public class CloudProcessTest  {
 		CloudResourceTestWrapper.dao.clear();
 		job = CloudResourceTestWrapper.dao.load(job.getUri());
 		jobAction = (JobAction) ActionResource.dao.load(jobAction.getId());
-		assertEquals(ActionState.COMPLETE, job.getState());
+		assertEquals(ActionState.FAILED, job.getState());
 		assertEquals(ActionState.FAILED, jobAction.getChildEndState());
 	}
 	
@@ -396,7 +394,7 @@ public class CloudProcessTest  {
 		
 		job = CloudResourceTestWrapper.dao.load(job.getUri());
 		jobAction = (JobAction) ActionResource.dao.load(jobAction.getId());
-		assertEquals(ActionState.COMPLETE, job.getState());
+		assertEquals(ActionState.FAILED, job.getState());
 		assertEquals(ActionState.FAILED, jobAction.getChildEndState());
 	}
 	
@@ -444,6 +442,67 @@ public class CloudProcessTest  {
 		tom  = CloudResourceTestWrapper.dao.load(tom.getUri());
 		jerry  = CloudResourceTestWrapper.dao.load(jerry.getUri());
 		assertEquals(ActionState.COMPLETE, tom.getState());
+		assertEquals(ActionState.RUNABLE, jerry.getState());
+
+	}
+	
+	/** Demonstrates three processes and activation based on dependency completion of the other two
+	 * @throws InterruptedException
+	 */
+	@Test
+	public void threeProcessWithPreestablishedDependency() throws InterruptedException {
+		User root = UserResource.Root;
+		assertNotNull(root);
+		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
+		Context tom_env = new Context();
+		tom_env.putValue("arg", "tom rocks!");
+		
+		final Context jerry_env = new Context();
+		jerry_env.putValue("arg", "jelly rolls");
+		
+		final Context curley_env = new Context();
+		curley_env.putValue("arg", "curley tops");
+	
+		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, true, CountDownAction.class);
+		CloudProcess curley = ProcessLifecycle.mgr().createProcess(UserResource.Root, "curley", curley_env, null, null, true, CountDownAction.class);
+		List<URI> jerryDependency = new ArrayList<URI>();
+		jerryDependency.add(tom.getUri());
+		jerryDependency.add(curley.getUri());
+		CloudProcess jerry = ProcessLifecycle.mgr().createProcess(UserResource.Root, "jerry", jerry_env, jerryDependency, null, true, CountDownAction.class);
+		ProcessLifecycle.mgr().init(tom);
+		ProcessLifecycle.mgr().init(curley);
+		ProcessLifecycle.mgr().init(jerry);
+
+		Thread.sleep(3000);
+		CloudResourceTestWrapper.dao.clear();
+		
+		
+		tom  = CloudResourceTestWrapper.dao.load(tom.getUri());
+		jerry  = CloudResourceTestWrapper.dao.load(jerry.getUri());
+		curley  = CloudResourceTestWrapper.dao.load(curley.getUri());
+		assertEquals(ActionState.RUNABLE, tom.getState());
+		assertEquals(ActionState.RUNABLE, curley.getState());
+		assertEquals(ActionState.INIT, jerry.getState());
+		CloudResourceTestWrapper.dao.clear();
+		CountDownAction tomAction = (CountDownAction) ActionResource.dao.load(tom.getAction());
+		tomAction.setCount(1);
+		ActionResource.dao.update(tomAction);
+		CountDownAction curleyAction = (CountDownAction) ActionResource.dao.load(curley.getAction());
+		curleyAction.setCount(1);
+		ActionResource.dao.update(curleyAction);
+		
+		CloudResourceTestWrapper.dao.clear();
+		Response result = cpr.refresh();
+		assertEquals(200,result.getStatus());
+		assertEquals("{\"RUNABLE\": 2, \"INIT\": 1}", result.getEntity());
+		
+		Thread.sleep(2000);
+		CloudResourceTestWrapper.dao.clear();
+		tom  = CloudResourceTestWrapper.dao.load(tom.getUri());
+		jerry  = CloudResourceTestWrapper.dao.load(jerry.getUri());
+		curley  = CloudResourceTestWrapper.dao.load(curley.getUri());
+		assertEquals(ActionState.COMPLETE, tom.getState());
+		assertEquals(ActionState.COMPLETE, curley.getState());
 		assertEquals(ActionState.RUNABLE, jerry.getState());
 
 	}
@@ -1019,7 +1078,7 @@ public class CloudProcessTest  {
 		assertEquals(ActionState.CANCELLED, tom.getState());
 		assertEquals(ActionState.CANCELLED, jerry.getState());
 		CountDownAction ta = (CountDownAction) ActionResource.dao.load(tom.getAction());
-		assertEquals("cancel has been called", 1000, ta.getCount());
+		assertEquals("dump has been called", 2000, ta.getCount());
 		CountDownAction ja = (CountDownAction) ActionResource.dao.load(jerry.getAction());
 		assertEquals("dump has been called", 2000, ja.getCount());
 	}

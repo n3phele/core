@@ -20,8 +20,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.appengine.api.datastore.Text;
-
 import n3phele.service.model.Command;
 import n3phele.service.model.CommandImplementationDefinition;
 import n3phele.service.model.FileSpecification;
@@ -520,7 +518,7 @@ public class NParser implements NParserConstants {
     jj_consume_token(END);
                 String name = c.image;
                 String annotation = (t == null)? "" : t.image;
-                Text body = (b == null)? null : new Text(b.image);
+                String body = (b == null)? null : b.image;
                 CommandImplementationDefinition cid = new CommandImplementationDefinition(name, annotation, body, c.beginLine+1);
                 cid.setCompiled(new n3phele.service.nShell.Shell(cid.getBody(), cid.getLineNo()).compile());
                 {if (true) return cid;}

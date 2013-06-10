@@ -19,7 +19,7 @@ import n3phele.client.ClientFactory;
 public class ActivityListActivity extends AbstractCloudProcessActivity {
 
 	public ActivityListActivity(String name, ClientFactory factory) {
-		super(name, factory, factory.getDetailedActivityView());
+		super(name, factory, factory.getDetailedActivityView(), true);
 	}
 	
 

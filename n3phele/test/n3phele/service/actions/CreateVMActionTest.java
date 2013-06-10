@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.net.URI;
-import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -12,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 
 import junit.framework.Assert;
-
 import n3phele.service.actions.CreateVMAction.CreateVirtualServerResult;
 import n3phele.service.core.NotFoundException;
 import n3phele.service.core.Resource;
@@ -41,7 +39,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.reflect.Whitebox;
 
@@ -446,8 +443,6 @@ public class CreateVMActionTest {
 		
 		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
 		assertEquals("{\"RUNABLE_Wait\": 1}", refresh);
-		
-		
 		
 		process = CloudProcessResource.dao.load(process.getUri());
 		assertEquals(ActionState.FAILED, process.getState());

@@ -105,7 +105,6 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 	private static DataGridResource resource = null;
 	private List<Double> chartValues;
 	private LineChart chart = null;
-	private HashMap<ActivityData, Activity> activityPerVS = null;
 	private Panel chartPanel = null;
 	final private FlexTable historyTable = new FlexTable();
 	final private FlexTable vsTable = new FlexTable();
@@ -113,6 +112,10 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 	private String costOption = "normal";
 	private String chartTitle = "24 Hours Costs Chart";
 	private Button hours, days, month;
+
+	public List<ActivityData> getVsData() {
+		return this.vsData;
+	}
 
 	public AccountHyperlinkView(String uri) {
 		super(new MenuItem(N3phele.n3pheleResource.accountIcon(), "Account", null), new MenuItem(N3phele.n3pheleResource.accountAddIcon(), "Account Edit", "account:" + uri));
@@ -305,7 +308,6 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 	}
 
 	public void refresh(List<ActivityData> newList, HashMap<ActivityData, Activity> activityPerVS) {
-		this.activityPerVS = activityPerVS;
 		setDisplayList(newList);
 		refreshChart();
 	}
@@ -351,8 +353,11 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 
 				public void onResponseReceived(Request request, Response response) {
 					if (204 == response.getStatusCode()) {
-						if (AccountHyperlinkView.this.presenter != null)
-							AccountHyperlinkView.this.presenter.getVSList();
+						if (AccountHyperlinkView.this.presenter != null){
+							presenter.initTimerDelete();
+						}
+							//presenter.callGetTopLevel();
+							//AccountHyperlinkView.this.presenter.getVSList();
 					} else {
 						Window.alert("Couldn't delete (" + response.getStatusText() + ")");
 					}
@@ -512,10 +517,10 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		options.setTitleFontSize(13.0);
 		double max = maxValue();
 		double min = minValue(maxValue());
-		options.setMax((int) max + 1);
+		options.setMax((int) max + 0.1);
 		options.setMin((int) min);
 		options.setPointSize(2);
-		options.setAxisFontSize(12.5);
+		options.setAxisFontSize(12.0);
 		return options;
 	}
 
@@ -629,7 +634,7 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 	}
 
 	public CloudProcess requestTopLevel(String uri) {
-		presenter.callGetTopLevel(uri);
+		//presenter.callGetTopLevel(uri);
 		return null;
 	}
 

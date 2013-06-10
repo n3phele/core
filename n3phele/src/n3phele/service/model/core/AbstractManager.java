@@ -64,7 +64,6 @@ public abstract class AbstractManager<Item extends Entity> {
 	 * @return the item
 	 */
 	protected Item get(URI uri) throws NotFoundException {
-		log.log(Level.INFO, "Retrieving from Dao: "+uri);
 		return itemDao.get(uri);
 	}
 
