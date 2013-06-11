@@ -31,6 +31,7 @@ import n3phele.service.rest.impl.ActionResource;
 import n3phele.service.rest.impl.NarrativeResource;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Parent;
@@ -43,6 +44,7 @@ import com.googlecode.objectify.condition.IfNotNull;
 @XmlType(name="CloudProcess", propOrder={"description", "state", "running", "waitTimeout", "pendingInit", "pendingCall", "pendingCancel", "pendingDump", "pendingAssertion", 
 		"dependentOn", "dependencyFor", "start", "complete", "finalized", "action", "parent", "topLevel", "narrative","costPerHour","epoch","account"})
 @Unindex
+@Cache
 @com.googlecode.objectify.annotation.Entity
 public class CloudProcess extends Entity {
 	final private static java.util.logging.Logger log = java.util.logging.Logger.getLogger(CloudProcess.class.getName()); 
