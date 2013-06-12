@@ -35,7 +35,7 @@ public interface ShellTreeConstants
     "on",
     "log",
     "destroy",
-    "assimilateVM",
+    "assimilatevm",
     "variableAssign",
     "expression",
     "passThru",
