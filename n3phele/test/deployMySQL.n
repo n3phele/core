@@ -1,0 +1,39 @@
+# deployMySQL.n
+# Author: Alexandre Tavares
+name	   : deployMySQL
+description: deploy MySQL
+version	   : 0.0.2
+preferred  : true
+public	   : true
+icon	   : http://www.n3phele.com/icons/custom
+parameters :
+	int n	= 1 	# how many to create
+	string juju_version = "0.6" # version to download of juju
+	int quanty = 1 # how many machines to the service
+	optional string dataset_size = "80%" # How much data do you want to keep in memory in the DB. This will be used to tune settings in the database server appropriately. Any more specific settings will override these defaults though. This currently sets innodb_buffer_pool_size or key_cache_size depending on the setting in preferred-storage-engine. If query-cache-type is set to 'ON' or 'DEMAND' 20% of this is given to query-cache-size. Suffix this value with 'K','M','G', or 'T' to get the relevant kilo/mega/etc. bytes. If suffixed with %, one will get that percentage of RAM devoted to dataset and (if enabled) query cache.
+	optional string preferred_storage_engine= "InnoDB" # Tune the server for usage of this storage engine. Other possible value is MyISAM. Comma separated will cause settings to split resources evenly among given engines.
+	optional string tuning_level = "safest" # Valid values are 'safest', 'fast', and 'unsafe'. If set to safest, all settings are tuned to have maximum safety at the cost of performance. Fast will turn off most controls, but may lose data on crashes. unsafe will turn off all protections.
+	optional string flavor = "distro" # Possible values are 'distro' or 'percona'
+	optional string service_name = "mysql01" # a name to service
+	
+input files:
+	environments.yaml # Input file to configure juju
+	id_rsa.pub # Input ssh public key to access environment
+	id_rsa.txt # Input ssh private key to access environment
+	optional config.yaml # an optional configuration file to your charm
+HPZone1: # HP Cloud
+	$$my_vmTavares = CREATEVM --name myVM --n $$n
+	
+	ON $$my_vmTavares if [ ! -d "~/.juju/" ] ; then mkdir ~/.juju/ ; fi
+	ON $$my_vmTavares mv id_rsa.txt ~/.ssh/id_rsa
+	ON $$my_vmTavares mv id_rsa.pub ~/.ssh/id_rsa.pub
+	ON $$my_vmTavares mv environments.yaml ~/.juju/environments.yaml
+	ON $$my_vmTavares chmod go-rxw ~/.ssh/id_rsa
+	ON $$my_vmTavares cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+	ON $$my_vmTavares ssh -t -t -v -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@localhost exec ssh-agent ssh-add
+	ON $$my_vmTavares sudo apt-get -y install python-software-properties
+	ON $$my_vmTavares sudo add-apt-repository -y ppa:juju/$$juju_version
+	ON $$my_vmTavares sudo apt-get update -y && sudo apt-get install -y -qq juju
+	ON $$my_vmTavares echo -e "Host *\nStrictHostKeyChecking no" >> ~/.ssh/config
+	ON $$my_vmTavares if [ -e "config.yaml" ] ; then juju deploy --config config.yaml --num-units $$quanty mysql ; else juju deploy --num-units $$quanty mysql $$service_name ; fi
+	ON $$my_vmTavares rm -f ~/.ssh/config

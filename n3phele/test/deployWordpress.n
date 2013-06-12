@@ -1,0 +1,37 @@
+# deployWordpress.n
+# Author: Alexandre Tavares
+name	   : deployWordpress
+description: deploy Wordpress
+version	   : 0.0.2
+preferred  : true
+public	   : true
+icon	   : http://www.n3phele.com/icons/custom
+parameters :
+	int n	= 1 	# how many to create
+	string juju_version = "0.6" # version to download of juju
+	int quanty = 1 # how many machines to the service
+	optional string tuning = "single" # This is the tuning level for the WordPress setup. There are three options: "bare", "single", and "optimized". "bare" will give you a nearly un-altered WordPress setup, as if you'd downloaded and set it up yourself. "single" will provide you with everything you need to run a singlular unit of WordPress.	optional string wp_content = "" # This is a full repository path to where the WordPress wp-contents can be found. At this time Git, BZR, SVN, and HG are supported. An example of what a wp-content repository should look like can be found at http://github.com/jujutools/wordpress-site.
+	optional string debug = "no" # Setting this option to "yes" will expose /_debug on all instances over HTTP. In the _debug folder are two scripts, info.php and apc.php. info.php will display the phpinfo information for that server while the apc.php will provide APC cache stats (as well as additional administrative options for APC).
+	optional string engine = "nginx" # Currently two web server engines are supported: nginx and apache. For the majority of deployments nginx will be the prefered choice. See the Readme for more details
+	optional string service_name = "wordpress01" # a name to service
+input files:
+	environments.yaml # Input file to configure juju
+	id_rsa.pub # Input ssh public key to access environment
+	id_rsa.txt # Input ssh private key to access environment
+	optional config.yaml # an optional configuration file to your charm
+HPZone1: # HP Cloud
+	$$my_vmTavares = CREATEVM --name myVM --n $$n
+	
+	ON $$my_vmTavares if [ ! -d "~/.juju/" ] ; then mkdir ~/.juju/ ; fi
+	ON $$my_vmTavares mv id_rsa.txt ~/.ssh/id_rsa
+	ON $$my_vmTavares mv id_rsa.pub ~/.ssh/id_rsa.pub
+	ON $$my_vmTavares mv environments.yaml ~/.juju/environments.yaml
+	ON $$my_vmTavares chmod go-rxw ~/.ssh/id_rsa
+	ON $$my_vmTavares cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+	ON $$my_vmTavares ssh -t -t -v -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@localhost exec ssh-agent ssh-add
+	ON $$my_vmTavares sudo apt-get -y install python-software-properties
+	ON $$my_vmTavares sudo add-apt-repository -y ppa:juju/$$juju_version
+	ON $$my_vmTavares sudo apt-get update -y && sudo apt-get install -y -qq juju
+	ON $$my_vmTavares echo -e "Host *\nStrictHostKeyChecking no" >> ~/.ssh/config
+	ON $$my_vmTavares if [ -e "config.yaml" ] ; then juju deploy --config config.yaml --num-units $$quanty wordpress ; else juju deploy --num-units $$quanty wordpress $$service_name ; fi
+	ON $$my_vmTavares rm -f ~/.ssh/config
