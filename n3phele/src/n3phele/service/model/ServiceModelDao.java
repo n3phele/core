@@ -12,6 +12,7 @@ package n3phele.service.model;
  *  specific language governing permissions and limitations under the License.
  */
 
+import n3phele.service.actions.AssimilateAction;
 import n3phele.service.actions.CountDownAction;
 import n3phele.service.actions.CreateVMAction;
 import n3phele.service.actions.DestroyAction;
@@ -55,6 +56,7 @@ public class ServiceModelDao<T> extends GenericModelDao<T> {
 		ObjectifyService.register(OnAction.class);
 		ObjectifyService.register(ServiceAction.class);
 		ObjectifyService.register(VMAction.class);
+		ObjectifyService.register(AssimilateAction.class);
 	}
 	public ServiceModelDao(Class<T> clazz) {
 		super(clazz);
