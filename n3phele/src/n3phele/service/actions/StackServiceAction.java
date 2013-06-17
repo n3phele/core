@@ -8,6 +8,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
+import n3phele.service.core.NotFoundException;
 import n3phele.service.model.Action;
 import n3phele.service.model.Context;
 import n3phele.service.model.Relationship;
@@ -25,36 +26,45 @@ import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.annotation.Unindex;
 @EntitySubclass
 @XmlRootElement(name="StackServiceAction")
-@XmlType(name="StackServiceAction", propOrder={"idStack","description","stacks","relationships"})
+@XmlType(name="StackServiceAction", propOrder={"serviceDescription","stacks","relationships"})
 @Unindex
 @Cache
 public class StackServiceAction extends ServiceAction {
-	private String description;
+	//generates the id of stacks
+	private long stackNumber;
+	private String serviceDescription;
 	
 	@Embed private List<Stack> stacks = new ArrayList<Stack>();
 	@Embed private List<Relationship> relationships = new ArrayList<Relationship>();
-	private long idStack;
+	
+	
 	
 
-	public StackServiceAction(){}
+	public StackServiceAction(){
+		stackNumber = 0;
+	}
 	
 	public StackServiceAction(String description,String name, User owner,Context context){
 		super(owner, name, context);
-		this.description = description;
-		idStack = 0;
+		this.serviceDescription = description;
+		stackNumber = 0;
 	}
 
 
 	/*
 	 * Automatic Generated Methods
 	 */
+	@Override
 	public String getDescription() {
+		return "StackService "+this.getName();
+	}
+	public String getServiceDescription() {
 		
-		return this.description;
+		return this.serviceDescription;
 	}
 
-	public void setDescription(String description) {
-		this.description = description;
+	public void setServiceDescription(String description) {
+		this.serviceDescription = description;
 	}
 
 	public List<Stack> getStacks() {
@@ -65,8 +75,8 @@ public class StackServiceAction extends ServiceAction {
 	}
 	
 	public boolean addStack(Stack stack){
-		stack.setId(idStack);
-		idStack++;
+		stack.setId(stackNumber);
+		stackNumber++;
 		return stacks.add(stack);
 	}
 	public List<Relationship> getRelationships() {
@@ -79,10 +89,37 @@ public class StackServiceAction extends ServiceAction {
 	public boolean addRelationhip(Relationship relation){
 		return relationships.add(relation);
 	}
-
+	
+	@Override
+	public void cancel() {
+		log.info("Cancelling "+stacks.size()+" stacks");
+		for(Stack stack: stacks){
+			for(URI uri: stack.getVms()){
+				try {
+					processLifecycle().cancel(uri);
+				} catch (NotFoundException e) {
+					log.severe("Not found: "+e.getMessage());
+				}
+			}
+		}
+	}
+	
+	@Override
+	public void dump() {
+		log.info("Dumping "+stacks.size()+" stacks");
+		for(Stack stack: stacks){
+			for(URI uri: stack.getVms()){
+				try {
+					processLifecycle().dump(uri);
+				} catch (NotFoundException e) {
+					log.severe("Not found: "+e.getMessage());
+				}
+			}
+		}
+	}
 	@Override
 	public String toString() {
-		return "StackServiceAction [description=" + this.description + ", stacks=" + this.stacks + ", relationships=" + this.relationships + ", idStack=" + this.idStack + ", context=" + this.context + ", name=" + this.name + ", uri=" + this.uri + ", owner=" + this.owner + ", isPublic="
+		return "StackServiceAction [description=" + this.serviceDescription + ", stacks=" + this.stacks + ", relationships=" + this.relationships + ", idStack=" + this.stackNumber + ", context=" + this.context + ", name=" + this.name + ", uri=" + this.uri + ", owner=" + this.owner + ", isPublic="
 				+ this.isPublic + "]";
 	}
 }

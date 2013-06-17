@@ -13,7 +13,7 @@ import com.googlecode.objectify.annotation.Unindex;
 
 
 @XmlRootElement(name="Relationship")
-@XmlType(name="Relationship", propOrder={"idStackMaster","idStackSubordinate","type","description","name"})
+@XmlType(name="Relationship", propOrder={"type","description","name"})
 @Unindex
 @Cache
 public class Relationship {

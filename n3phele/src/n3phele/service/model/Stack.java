@@ -19,7 +19,7 @@ import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.annotation.Unindex;
 
 @XmlRootElement(name="Stack")
-@XmlType(name="Stack", propOrder={"id","description","vms"})
+@XmlType(name="Stack", propOrder={"name","id", "description" ,"commandUri","vms"})
 @Unindex
 @Cache
 public class Stack{
@@ -30,24 +30,22 @@ public class Stack{
 	private String name;
 	
 	private String description;
+	private String commandUri;
 	
-	//An account bound to a Stack can be referenced like a private field or with the URI owner of the super class Entity 
-	//private String account;
-	
-	// nodecount?
-	
-	//Stacks contain vms, a class Virtual Machine don't exist, may have to store CloudProcess... also have to check nodes...
+
 	@Serialize
 	private List<URI> vms = new ArrayList<URI>();
-//	@Serialize
-//	private List<URI> relations = new ArrayList<URI>();
-//	
-	public Stack () {}
+
+	public Stack () {
+		this.commandUri = "";
+		this.id = (long)- 1;
+	}
 	
 	public Stack( String name, String description) {
 		this.id = (long)- 1;
 		this.name = name;
 		this.description = description;
+		this.commandUri = "";
 
 	}
 
@@ -87,8 +85,17 @@ public class Stack{
 		return vms.add(r);
 	}
 	
+	public String getCommandUri() {
+		return this.commandUri;
+	}
+
+	public void setCommandUri(String commandUri) {
+		this.commandUri = commandUri;
+	}
+
 	@Override
 	public String toString() {
 		return "Stack [id=" + this.id + ", name=" + this.name + ", description=" + this.description + ", vms=" + this.vms + "]";
 	}
+
 }
