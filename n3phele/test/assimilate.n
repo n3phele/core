@@ -1,0 +1,12 @@
+# assimilate.n
+# Author: Cristina Scheibler
+name	   : assimilate
+description: assimilates an IP address to a VM on n3phele
+version	   : 0.1
+preferred  : true
+public	   : true
+icon	   : http://www.n3phele.com/icons/custom
+parameters :
+	optional int n	= 1 	# how many to create
+HPZone1: # HP Cloud
+	$$vm = ASSIMILATEVM --targetIP 15.185.98.240

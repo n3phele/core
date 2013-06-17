@@ -30,14 +30,11 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.ClientFilter;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
-import com.sun.jersey.core.util.Base64;
 
-import n3phele.service.actions.CreateVMAction.CreateVirtualServerResult;
 import n3phele.service.core.NotFoundException;
 import n3phele.service.lifecycle.ProcessLifecycle;
 import n3phele.service.lifecycle.ProcessLifecycle.WaitForSignalRequest;
 import n3phele.service.model.Account;
-import n3phele.service.model.Action;
 import n3phele.service.model.Cloud;
 import n3phele.service.model.CloudProcess;
 import n3phele.service.model.Command;
@@ -48,12 +45,10 @@ import n3phele.service.model.VariableType;
 import n3phele.service.model.core.CreateVirtualServerResponse;
 import n3phele.service.model.core.Credential;
 import n3phele.service.model.core.ExecutionFactoryAssimilateRequest;
-import n3phele.service.model.core.ExecutionFactoryCreateRequest;
 import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.NameValue;
 import n3phele.service.model.core.ParameterType;
 import n3phele.service.model.core.TypedParameter;
-import n3phele.service.model.core.User;
 import n3phele.service.model.core.VirtualServer;
 import n3phele.service.rest.impl.AccountResource;
 import n3phele.service.rest.impl.ActionResource;
@@ -62,13 +57,14 @@ import n3phele.service.rest.impl.CloudResource;
 
 @EntitySubclass
 @XmlRootElement(name = "AssimilateAction")
-@XmlType(name = "AssimilateAction", propOrder = { "failed", "target" })
+@XmlType(name = "AssimilateAction", propOrder = { "failed", "targetIP", "complete" })
 @Unindex
 @Cache
 public class AssimilateAction extends VMAction {
 	final protected static java.util.logging.Logger log = java.util.logging.Logger.getLogger(AssimilateAction.class.getName());
 	@XmlTransient private ActionLogger logger;
 	private boolean failed = false;
+	private boolean complete = false;
 	private String targetIP;
 		
 	@Override
@@ -126,21 +122,26 @@ public class AssimilateAction extends VMAction {
 				
 		try {
 			AssimilateVirtualServerResult response = assimilateVirtualServers(resource, ar);
-			log.info(response.toString());
-			logger.info(response.toString());
+			
 			//IP not found on cloud
 			if(response.getStatus() == 404){
-				
+				log.info("IP not found on factory");
+				logger.info("IP not found on factory");
 				failed = true;
+				complete = true;
 				throw new Exception("IP not found "+response.getStatus());				
 			}
 			//IP already exists on factory
 			else if(response.getStatus() == 409){
-				
+				log.info("Conflict: Server already exists on factory database");
+				logger.info("Conflict: Server already exists on factory database");
+				complete = true;
 				failed = true;
 			}
 			//vm added from the cloud to the factory
 			else if(response.getStatus() == 201 || response.getStatus() == 202){
+				log.info("IP found on factory");
+				logger.info("IP found on factory");
 				URI[] list = response.getRefs();
 				CloudProcess process = createVMProcess(list[0],cloud.getFactoryCredential());
 				try{
@@ -150,10 +151,14 @@ public class AssimilateAction extends VMAction {
 					Date date = vs.getCreated();
 					
 					setCloudProcessPrice(account,process,value, date);
+					log.info("Process created and set");
+					logger.info("Process created and set");
 				}
+				complete = true;
 				}catch(Exception e) {
 					failed = true;
 					log.log(Level.SEVERE, "VM fetch", e);
+					logger.info("Error: could not retrieve virtual machine");					
 				}
 			}
 		} catch (Exception e) {
@@ -191,8 +196,7 @@ public class AssimilateAction extends VMAction {
 	@Override
 	public boolean call() throws WaitForSignalRequest, Exception {
 		
-		
-		return false;
+		return complete;
 	}
 
 	@Override
