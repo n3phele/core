@@ -18,7 +18,6 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.event.shared.SimpleEventBus;
 import com.google.gwt.place.shared.PlaceController;
 
-import n3phele.client.presenter.AccountHyperlinkActivity;
 import n3phele.client.resource.N3pheleResource;
 import n3phele.client.view.AccountHyperlinkView;
 import n3phele.client.view.AccountListView;
@@ -76,6 +75,7 @@ public class ClientFactory {
 	/**
 	 * @return the placeController
 	 */
+	@SuppressWarnings("deprecation")
 	public PlaceController getPlaceController() {
 		if(placeController == null) placeController = new PlaceController(getEventBus());
 		return placeController;

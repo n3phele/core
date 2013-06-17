@@ -2,50 +2,18 @@ package n3phele.process;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.net.URI;
-import java.sql.Date;
-import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import junit.framework.Assert;
 
-//import n3phele.client.model.CostsCollection;
-import n3phele.service.actions.CreateVMAction;
-import n3phele.service.core.NotFoundException;
-import n3phele.service.core.Resource;
-import n3phele.service.lifecycle.ProcessLifecycle;
-import n3phele.service.model.Account;
-import n3phele.service.model.Action;
-import n3phele.service.model.ActionState;
-import n3phele.service.model.Cloud;
 import n3phele.service.model.CloudProcess;
-import n3phele.service.model.Context;
 import n3phele.service.model.CostsCollection;
-import n3phele.service.model.SignalKind;
-import n3phele.service.model.VariableType;
 import n3phele.service.model.core.Collection;
-import n3phele.service.model.core.Credential;
-import n3phele.service.model.core.ExecutionFactoryCreateRequest;
-import n3phele.service.model.core.NameValue;
-import n3phele.service.model.core.User;
-import n3phele.service.model.core.VirtualServer;
-import n3phele.service.model.core.VirtualServerStatus;
 import n3phele.service.rest.impl.AccountResource;
-import n3phele.service.rest.impl.ActionResource;
-import n3phele.service.rest.impl.CloudProcessResource;
-import n3phele.service.rest.impl.CloudResource;
-import n3phele.service.rest.impl.UserResource;
 import n3phele.service.rest.impl.AccountResource.AccountManager;
-import n3phele.service.rest.impl.CloudProcessResource.CloudProcessManager;
 import n3phele.time.MutableTimeFactory;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeUtils;
 import org.joda.time.DateTimeZone;
 import org.joda.time.MutableDateTime;
 import org.junit.After;
@@ -53,18 +21,11 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.Matchers;
 import org.powermock.api.mockito.PowerMockito;
-import org.powermock.reflect.Whitebox;
 
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
-import com.googlecode.objectify.Key;
-import com.googlecode.objectify.ObjectifyService;
-import com.googlecode.objectify.annotation.EntitySubclass;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.WebResource;
 
 public class AccountResourceTest {
 	private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig().setApplyAllHighRepJobPolicy(), new LocalTaskQueueTestConfig().setDisableAutoTaskExecution(false).setCallbackClass(LocalTaskQueueTestConfig.DeferredTaskCallback.class));

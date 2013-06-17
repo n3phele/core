@@ -55,6 +55,7 @@ public class BasePanel extends FlexTable implements AcceptsOneWidget {
 	private Image displayingIcon = null;
 	private boolean displayingN3phele = false;
 
+	@SuppressWarnings("deprecation")
 	public BasePanel(n3phele.client.ClientFactory clientFactory) {
 		this.clientFactory = clientFactory;
 		this.basePanelName = new HTML();
@@ -92,6 +93,7 @@ public class BasePanel extends FlexTable implements AcceptsOneWidget {
 		
 	}
 	
+	@SuppressWarnings("deprecation")
 	public void setLeftHandIcon(Image icon) {
 		if(icon == null) {
 			if(displayingN3phele)

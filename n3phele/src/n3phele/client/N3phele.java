@@ -144,6 +144,7 @@ public class N3phele implements EntryPoint {
 		}, clientFactory.getEventBus());
 	}
 
+	@SuppressWarnings("deprecation")
 	public static void initHistory() {
 		if (historyMapper == null)
 			historyMapper = GWT.create(AppPlaceHistoryMapper.class);

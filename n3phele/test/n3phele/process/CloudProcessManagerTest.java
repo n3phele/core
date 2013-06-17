@@ -9,7 +9,6 @@ import junit.framework.Assert;
 
 import n3phele.service.model.CloudProcess;
 import n3phele.service.model.core.Collection;
-import n3phele.service.rest.impl.CloudProcessResource;
 import n3phele.service.rest.impl.CloudProcessResource.CloudProcessManager;
 
 import org.junit.After;

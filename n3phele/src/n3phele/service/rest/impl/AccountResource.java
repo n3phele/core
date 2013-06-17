@@ -33,7 +33,6 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.joda.time.MutableDateTime;
 
 import java.text.SimpleDateFormat;
@@ -177,6 +176,7 @@ public class AccountResource {
 		return new CloudProcessCollection(result);
 	}
 	
+	@SuppressWarnings("deprecation")
 	@GET
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
@@ -213,7 +213,6 @@ public class AccountResource {
 				cTop = CloudProcessResource.dao.load(new URI(uri));
 	
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
@@ -222,6 +221,7 @@ public class AccountResource {
 		return new ActivityDataCollection(list);
 	}
 	
+	@SuppressWarnings("deprecation")
 	private String calcAge(CloudProcess item){
 		String result = "";
 		

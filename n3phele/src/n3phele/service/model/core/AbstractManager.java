@@ -240,6 +240,7 @@ public abstract class AbstractManager<Item extends Entity> {
 	/** Update a particular object in the persistent data store
 	 * @param item the item to update
 	 */
+	@SuppressWarnings("unused")
 	protected void update(Item item)throws NotFoundException {
 		if(item != null) {
 			Key<Item>key = itemDao.put(item);

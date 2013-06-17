@@ -363,6 +363,7 @@ public class UserResource {
 			super.update(user);
 		}
 		
+		@SuppressWarnings("deprecation")
 		public User get(String userName) {
 			return super.get(userName);
 		}

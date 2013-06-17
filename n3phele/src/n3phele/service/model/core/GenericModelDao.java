@@ -25,8 +25,6 @@ import java.util.logging.Logger;
 import n3phele.service.core.NotFoundException;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.ObjectifyService;
 
 public class GenericModelDao<T> {
 final static Logger log = Logger.getLogger(GenericModelDao.class.getName());

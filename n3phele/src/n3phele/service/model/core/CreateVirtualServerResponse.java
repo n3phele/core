@@ -19,7 +19,6 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-import n3phele.service.actions.CreateVMAction;
 
 @XmlRootElement(name="CreateVirtualServerResponse")
 @XmlType(name="CreateVirtualServerResponse", propOrder={"vmList"})

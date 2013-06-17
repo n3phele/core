@@ -48,6 +48,7 @@ public class StorageSwiftTest {
 	String accessId;
 	String accessKey;
 	
+	@SuppressWarnings("unused")
 	@Test
 	public void testBadCredential() {
 		Credential credential = new Credential(accessId, accessKey).encrypt();

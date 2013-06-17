@@ -47,7 +47,6 @@ import com.googlecode.objectify.condition.IfNotNull;
 @Cache
 @com.googlecode.objectify.annotation.Entity
 public class CloudProcess extends Entity {
-	final private static java.util.logging.Logger log = java.util.logging.Logger.getLogger(CloudProcess.class.getName()); 
 	@Id protected Long id;
 	protected ActionState state = ActionState.NEWBORN;
 	protected Date running = null;

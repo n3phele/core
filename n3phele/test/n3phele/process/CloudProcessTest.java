@@ -600,6 +600,7 @@ public class CloudProcessTest  {
 	/** Demonstrates two processes and activation based on dependency completion
 	 * @throws InterruptedException
 	 */
+	@SuppressWarnings("unused")
 	@Test
 	public void twoProcessWithDependencyAddedAfterDependentCancelled() throws InterruptedException {
 		User root = UserResource.Root;
@@ -772,7 +773,6 @@ public class CloudProcessTest  {
 		jerry_env.putValue("arg", "jelly rolls");
 	
 		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, true, CountDownAction.class);
-		List<URI> jerryDependency = new ArrayList<URI>();
 		ProcessLifecycle.mgr().init(tom);
 		Thread.sleep(2000);
 		CloudResourceTestWrapper.dao.clear();
@@ -781,7 +781,7 @@ public class CloudProcessTest  {
 		CloudResourceTestWrapper.dao.clear();
 		tom  = CloudResourceTestWrapper.dao.load(tom.getUri());
 		assertEquals(ActionState.RUNABLE, tom.getState());
-		//
+		
 		CloudProcess jerry = ProcessLifecycle.mgr().createProcess(UserResource.Root, "jerry", jerry_env, null, null, true, CountDownAction.class);
 		CloudResourceTestWrapper.dao.clear();
 		cpr.refresh();
@@ -815,7 +815,6 @@ public class CloudProcessTest  {
 		jerry_env.putValue("arg", "jelly rolls");
 	
 		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, true, CountDownAction.class);
-		List<URI> jerryDependency = new ArrayList<URI>();
 		ProcessLifecycle.mgr().init(tom);
 		Thread.sleep(2000);
 		CloudResourceTestWrapper.dao.clear();
@@ -870,7 +869,6 @@ public class CloudProcessTest  {
 		jerry_env.putValue("arg", "jelly rolls");
 	
 		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, true, CountDownAction.class);
-		List<URI> jerryDependency = new ArrayList<URI>();
 		ProcessLifecycle.mgr().init(tom);
 		Thread.sleep(2000);
 		CloudResourceTestWrapper.dao.clear();
@@ -924,7 +922,6 @@ public class CloudProcessTest  {
 		jerry_env.putValue("arg", "jelly rolls");
 	
 		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, true, CountDownAction.class);
-		List<URI> jerryDependency = new ArrayList<URI>();
 		ProcessLifecycle.mgr().init(tom);
 		Thread.sleep(2000);
 		CloudResourceTestWrapper.dao.clear();
@@ -984,7 +981,6 @@ public class CloudProcessTest  {
 		jerry_env.putValue("arg", "jelly rolls");
 	
 		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, true, CountDownAction.class);
-		List<URI> jerryDependency = new ArrayList<URI>();
 		ProcessLifecycle.mgr().init(tom);
 		Thread.sleep(2000);
 		CloudResourceTestWrapper.dao.clear();
@@ -1039,7 +1035,6 @@ public class CloudProcessTest  {
 		jerry_env.putValue("arg", "jelly rolls");
 	
 		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, true, CountDownAction.class);
-		List<URI> jerryDependency = new ArrayList<URI>();
 		ProcessLifecycle.mgr().init(tom);
 		Thread.sleep(2000);
 		CloudResourceTestWrapper.dao.clear();

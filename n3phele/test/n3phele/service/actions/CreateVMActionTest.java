@@ -612,7 +612,6 @@ public class CreateVMActionTest {
 				try {
 					Thread.sleep((long) (Math.random()*200));
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				VirtualServer result = virtualServer.get(uri);
@@ -644,7 +643,6 @@ public class CreateVMActionTest {
 				try {
 					Thread.sleep((long) (Math.random()*200));
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				return clientResponseResult;

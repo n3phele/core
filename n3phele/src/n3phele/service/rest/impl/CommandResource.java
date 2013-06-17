@@ -406,6 +406,7 @@ public class CommandResource {
 			return result;
 		}
 		
+		@SuppressWarnings("deprecation")
 		public java.util.Collection<Command> getList(String name) { return super.getList(name); }
 		
 		/**

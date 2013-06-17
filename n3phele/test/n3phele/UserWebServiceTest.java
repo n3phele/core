@@ -43,7 +43,6 @@ public class UserWebServiceTest  {
 
 	private Client client;
 	private WebResource webResource;
-	private URI testUser;
 
 	@Test
 	public void addTestUserTest() {
