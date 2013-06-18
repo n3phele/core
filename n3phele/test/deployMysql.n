@@ -1,0 +1,68 @@
+# deployMysql.n
+# Author: Alexandre Tavares
+name	   : deployMysql
+description: MySQL is a fast, stable and true multi-user, multi-threaded SQL database
+version	   : 1.0.0
+preferred  : true
+public	   : true
+icon	   : http://www.n3phele.com/icons/custom
+parameters :
+	int n = 1 # How many to create
+	string juju_version = "0.6" # Version to download of juju
+	string quanty = "1" # How many machines to the service
+	string service_name = "mysql01" # A name to the service
+	optional string preferred_storage_engine = "InnoDB" # Tune the server for usage of this storage engine. Other possible value is MyISAM. Comma separated will cause settings to split resources evenly among given engines.
+	optional string tuning_level = "safest" # Valid values are 'safest', 'fast', and 'unsafe'. If set to safest, all settings are tuned to have maximum safety at the cost of performance. Fast will turn off most controls, but may lose data on crashes. unsafe will turn off all protections.
+	optional string flavor = "distro" # Possible values are 'distro' or 'percona'
+	optional string query_cache_type = "OFF" # Query cache is usually a good idea, but can hurt concurrency. Valid values are "OFF", "ON", or "DEMAND". http://dev.mysql.com/doc/refman/5.1/en/server-system-variables.html#sysvar_query_cache_type
+	optional string query_cache_size = "-1" # Override the computed version from dataset-size. Still works if query-cache-type is "OFF" since sessions can override the cache type setting on their own.
+	optional string max_connections = "-1" # Maximum connections to allow. -1 means use the server's compiled in default.
+	optional string binlog_format = "MIXED" # If binlogging is enabled, this is the format that will be used. Ignored when tuning-level == fast.
+	optional string vip_iface = "eth0" # "Network Interface where to place the Virtual IP"
+	optional string vip_cidr = "24" # "Netmask that will be used for the Virtual IP"
+	optional string ha_bindiface = "eth0" # |Default network interface on which HA cluster will bind to communicationwith the other members of the HA Cluster.
+	optional string ha_mcastport = "5411" # |Default multicast port number that will be used to communicate betweenHA Cluster nodes.
+	optional string block_size = "5" # |Default block storage size to create when setting up MySQL block storage.This value should be specified in GB (e.g. 100 not 100GB).
+	optional string rbd_name = "mysql1" # |The name that will be used to create the Ceph's RBD image with. If theimage name exists in Ceph, it will be re-used and the data will beoverwritten.
+input files:
+	environments.yaml # Input file to configure juju
+	id_rsa.pub # Input ssh public key to access environment
+	id_rsa.txt # Input ssh private key to access environment
+	optional config.yaml # an optional configuration file to your charm
+HPZone1: # HP Cloud
+	$$vmTavares = CREATEVM --name vmTavares --n $$n
+	ON $$vmTavares if [ -d ~/.juju ]
+		then rm -rf ~/.juju
+		fi
+	ON $$vmTavares mkdir ~/.juju
+	ON $$vmTavares mv id_rsa.txt ~/.ssh/id_rsa
+	ON $$vmTavares mv id_rsa.pub ~/.ssh/id_rsa.pub
+	ON $$vmTavares mv environments.yaml ~/.juju/environments.yaml
+	ON $$vmTavares chmod go-rxw ~/.ssh/id_rsa
+	ON $$vmTavares cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+	ON $$vmTavares ssh -t -t -v -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@localhost exec ssh-agent ssh-add
+	ON $$vmTavares sudo apt-get -y install python-software-properties
+	ON $$vmTavares sudo add-apt-repository -y ppa:juju/$$juju_version
+	ON $$vmTavares sudo apt-get update -y && sudo apt-get install -y -qq juju
+	ON $$vmTavares echo -e "Host *\nStrictHostKeyChecking no" >> ~/.ssh/config
+	ON $$vmTavares if [ ! -e config.yaml ]
+		then echo -n $$service_name >> config.yaml
+		echo : >> config.yaml
+		echo '  'options: >> config.yaml
+		echo '        'preferred-storage-engine: $$preferred_storage_engine >> config.yaml
+		echo '        'tuning-level: $$tuning_level >> config.yaml
+		echo '        'flavor: $$flavor >> config.yaml
+		echo '        'query-cache-type: $$query_cache_type >> config.yaml
+		echo '        'query-cache-size: $$query_cache_size >> config.yaml
+		echo '        'max-connections: $$max_connections >> config.yaml
+		echo '        'binlog-format: $$binlog_format >> config.yaml
+		echo '        'vip_iface: $$vip_iface >> config.yaml
+		echo '        'vip_cidr: $$vip_cidr >> config.yaml
+		echo '        'ha-bindiface: $$ha_bindiface >> config.yaml
+		echo '        'ha-mcastport: $$ha_mcastport >> config.yaml
+		echo '        'block-size: $$block_size >> config.yaml
+		echo '        'rbd-name: $$rbd_name >> config.yaml
+		fi
+	ON $$vmTavares juju deploy --config config.yaml --num-units $$quanty mysql $$service_name
+	ON $$vmTavares rm config.yaml
+	ON $$vmTavares rm -f ~/.ssh/config

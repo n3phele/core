@@ -1,0 +1,50 @@
+# deployWordpress.n
+# Author: Alexandre Tavares
+name	   : deployWordpress
+description: WordPress is a full featured web blogging tool, this charm deploys it.
+version	   : 1.0.0
+preferred  : true
+public	   : true
+icon	   : http://www.n3phele.com/icons/custom
+parameters :
+	int n = 1 # How many to create
+	string juju_version = "0.6" # Version to download of juju
+	string quanty = "1" # How many machines to the service
+	string service_name = "wordpress01" # A name to the service
+	optional string tuning = "single" # |This is the tuning level for the WordPress setup. There are three options: "bare", "single", and "optimized". "bare" will give you a nearly un-altered WordPress setup, as if you'd downloaded and set it up yourself. "single" will provide you with everything you need to run a singlular unit of WordPress. This doesn't take in to consideration that you'll be scaling at all. However, it will allow you to use WordPress free of any troubles and pesky limitations that typically happen during "optimized". While you _can_ scale out with this setting I encourage you read the README "optimized" will give you a hardened WordPress setup. Some of the features in the Admin panel will be locked down and theme edits/plugins can only be updated through he charm. This is the recommended setup for those who are in serious need of constant scaling.
+	optional string wp_content = "" # |This is a full repository path to where the WordPress wp-contents can be found. At this time Git, BZR, SVN, and HG are supported. An example of what a wp-content repository should look like can be found at http://github.com/jujutools/wordpress-site.
+	optional string debug = "no" # |Setting this option to "yes" will expose /_debug on all instances over HTTP. In the _debug folder are two scripts, info.php and apc.php. info.php will display the phpinfo information for that server while the apc.php will provide APC cache stats (as well as additional administrative options for APC).
+	optional string engine = "nginx" # "Currently two web server engines are supported: nginx and apache. For the majority of deployments nginx will be the prefered choice. See the Readme for more details"
+input files:
+	environments.yaml # Input file to configure juju
+	id_rsa.pub # Input ssh public key to access environment
+	id_rsa.txt # Input ssh private key to access environment
+	optional config.yaml # an optional configuration file to your charm
+HPZone1: # HP Cloud
+	$$vmTavares = CREATEVM --name vmTavares --n $$n
+	ON $$vmTavares if [ -d ~/.juju ]
+		then rm -rf ~/.juju
+		fi
+	ON $$vmTavares mkdir ~/.juju
+	ON $$vmTavares mv id_rsa.txt ~/.ssh/id_rsa
+	ON $$vmTavares mv id_rsa.pub ~/.ssh/id_rsa.pub
+	ON $$vmTavares mv environments.yaml ~/.juju/environments.yaml
+	ON $$vmTavares chmod go-rxw ~/.ssh/id_rsa
+	ON $$vmTavares cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+	ON $$vmTavares ssh -t -t -v -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@localhost exec ssh-agent ssh-add
+	ON $$vmTavares sudo apt-get -y install python-software-properties
+	ON $$vmTavares sudo add-apt-repository -y ppa:juju/$$juju_version
+	ON $$vmTavares sudo apt-get update -y && sudo apt-get install -y -qq juju
+	ON $$vmTavares echo -e "Host *\nStrictHostKeyChecking no" >> ~/.ssh/config
+	ON $$vmTavares if [ ! -e config.yaml ]
+		then echo -n $$service_name >> config.yaml
+		echo : >> config.yaml
+		echo '  'options: >> config.yaml
+		echo '        'tuning: $$tuning >> config.yaml
+		echo '        'wp-content: $$wp_content >> config.yaml
+		echo '        'debug: $$debug >> config.yaml
+		echo '        'engine: $$engine >> config.yaml
+		fi
+	ON $$vmTavares juju deploy --config config.yaml --num-units $$quanty wordpress $$service_name
+	ON $$vmTavares rm config.yaml
+	ON $$vmTavares rm -f ~/.ssh/config
