@@ -77,8 +77,8 @@ public class ActionResource {
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
 	@Path("/stackServiceActions") 
-	public List<StackServiceAction> getStackServices( @PathParam ("id") Long id) throws NotFoundException {
-		List<StackServiceAction> item = dao.getStackServiceAction();
+	public Collection<StackServiceAction> getStackServices( @PathParam ("id") Long id) throws NotFoundException {
+		Collection<StackServiceAction> item = dao.getStackServiceAction();
 		return item;
 	}
 	
@@ -163,9 +163,11 @@ public class ActionResource {
 		public void add(Action action) { super.add(action); }
 		
 		public void delete(Action action) { super.delete(action); }
-		public List<StackServiceAction> getStackServiceAction(){
+		
+		public Collection<StackServiceAction> getStackServiceAction(){
 			List<StackServiceAction> list = ofy().load().type(StackServiceAction.class).list();
-			return list;
+			Collection<StackServiceAction> col = new Collection(itemDao.clazz.getSimpleName(),super.path,list);
+			return col;
 		}
 	
 		public void updateAll(List<Action> set) { super.itemDao().putAll(set); }

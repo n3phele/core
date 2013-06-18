@@ -2,11 +2,15 @@ package n3phele.service.actions;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+
+import java.util.List;
+
 import junit.framework.Assert;
 
 import n3phele.service.model.Context;
 import n3phele.service.model.Relationship;
 import n3phele.service.model.Stack;
+import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.User;
 import n3phele.service.rest.impl.ActionResource;
 import n3phele.service.rest.impl.UserResource;
@@ -109,5 +113,22 @@ public class StackServiceActionTest {
 		Assert.assertEquals(1, updated.getRelationships().get(0).getidStackSubordinate());
 		Assert.assertEquals("dataBase", updated.getRelationships().get(0).getType());
 		Assert.assertEquals("a wordPress and a db", updated.getRelationships().get(0).getDescription());
+	}
+	@Test
+	public void listStackServiceActions(){
+		User root = UserResource.Root;
+		assertNotNull(root);
+		Context c = new Context();
+		StackServiceAction sAction = new StackServiceAction("adding Test", "stackServiceAction", root,c);
+		StackServiceAction sAction2 = new StackServiceAction("adding Test2", "stackServiceAction2", root,c);
+		JobAction nAction = new JobAction(root, "job", c);	
+		ActionResource.dao.add(sAction);
+		ActionResource.dao.add(sAction2);
+		ActionResource.dao.add(nAction);
+		Collection<StackServiceAction> list = ActionResource.dao.getStackServiceAction();
+		Assert.assertEquals(2, list.getElements().size());
+		System.out.println(list);
+		Assert.assertEquals(sAction.getName(), list.getElements().get(0).getName());
+		Assert.assertEquals(sAction2.getName(), list.getElements().get(1).getName());
 	}
 }
