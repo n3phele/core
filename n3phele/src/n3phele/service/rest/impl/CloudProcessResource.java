@@ -248,38 +248,21 @@ public class CloudProcessResource {
 		System.out.println("context: " + env);
 		Class<? extends Action> clazz = Class.forName("n3phele.service.actions." + action + "Action").asSubclass(Action.class);
 		if (clazz != null) {
-			// CREATING JUJU BOOTSTRAP
-			// env = new n3phele.service.model.Context();
-			// env.putValue("arg",
-			// "http://127.0.0.1:8888/resources/command/413");
-			// env.putValue("n", 1);
-			// env.putValue("juju_version", "0.6");
-			// env.putValue("n", 1);
-			// env.putValue("account",
-			// "http://127.0.0.1:8888/resources/account/168");
-			// env.put("environments.yaml",
-			// Helpers.safeIterator((List<Variable>)
-			// n3phele.client.model.Variable.newInstance("environments.yaml",
-			// "File", "Test:///environments.yaml")).get(0));
 
-			//
 			CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), name, env, null, null, true, clazz);
 			ProcessLifecycle.mgr().init(p);
 			return Response.created(p.getUri()).build();
 		} else {
 			return Response.noContent().build();
 		}
+		
 	}
 
-	// Not sure if it is in this resource
 	@POST
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
 	@Path("addStack/{id:[0-9]+}")
-	public Response addStack(@PathParam("id") long id, @QueryParam("name") String name, @QueryParam("description") String description, @QueryParam("command") String command, List<Variable> context) throws ClassNotFoundException {
-		System.out.println("TRETAAA");
-		
-		
+	public Response addStack(@PathParam("id") long id, @QueryParam("name") String name, @QueryParam("description") String description, @QueryParam("command") String command, List<Variable> context) throws ClassNotFoundException {	
 		StackServiceAction sAction = (StackServiceAction) ActionResource.dao.load(id);
 		if (CloudProcessResource.dao.load(URI.create(sAction.getProcess().toString())).getState() != ActionState.RUNABLE)
 			return Response.serverError().build();
@@ -290,40 +273,24 @@ public class CloudProcessResource {
 		for (Variable v : Helpers.safeIterator(context)) {
 			env.put(v.getName(), v);
 		}
-		// CREATING JUJU BOOTSTRAP
-//		env = new n3phele.service.model.Context();
-//		env.putValue("arg", command);
-//		env.putValue("n", 1);
-//		env.putValue("juju_version", "0.6");
-//		env.putValue("n", 1);
-//		env.putValue("account", "http://127.0.0.1:8888/resources/account/168");
-//		Variable v = new Variable("environments.yaml", "Test:///environments.yaml");
-//		Variable v2 = new Variable("id_rsa.txt", "Test:///id_rsa.txt");
-//		Variable v3 = new Variable("id_rsa.pub", "Test:///id_rsa.pub");
-//		v.setType(VariableType.File);
-//		v2.setType(VariableType.File);
-//		v3.setType(VariableType.File);
-//		env.put("environments.yaml", v);
-//		env.put("id_rsa.txt", v2);
-//		env.put("id_rsa.pub", v3);
-		//
+
 		if(env.getValue("service_name") != null)
 			name = env.getValue("service_name");		
 		Stack stack = new Stack(name, description);
 		stack.setCommandUri(command);
 		
 		Class<? extends Action> clazz = NShellAction.class;
-		CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), name, env, null, null, true, clazz);
+		CloudProcess parent = dao.load(sAction.getProcess());
+		System.out.println("PARENT: "+parent.getUri());
+		CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), name, env, null, parent, true, clazz);
 		ProcessLifecycle.mgr().init(p);
 		stack.addVm(p.getUri());
 		sAction.addStack(stack);
 		ActionResource.dao.update(sAction);
 		return Response.created(p.getUri()).build();
 
-		// return Response.ok(sAction).build();
 	}
 
-	// this method should be deleted...
 	
 	@POST
 	@Produces("application/json")
@@ -350,7 +317,9 @@ public class CloudProcessResource {
 		env.putValue("charm_name", id1.getName());
 		//
 		Class<? extends Action> clazz = NShellAction.class;
-		CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), "Expose "+id1.getName(), env, null, null, true, clazz);
+		CloudProcess parent = dao.load(sAction.getProcess());
+		System.out.println("PARENT: "+parent.getUri());
+		CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), "Expose "+id1.getName(), env, null, parent, true, clazz);
 		ProcessLifecycle.mgr().init(p);
 		return Response.created(p.getUri()).build();
 	}
@@ -387,8 +356,11 @@ public class CloudProcessResource {
 		env.putValue("charm_name02", id2.getName());
 		Relationship relation = new Relationship(idStack1, idStack2, null, null);
 		Class<? extends Action> clazz = NShellAction.class;
-		CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), "Relation: "+id + "_" + idStack1 + "_" + idStack2, env, null, null, true, clazz);
+		CloudProcess parent = dao.load(sAction.getProcess());
+		System.out.println("PARENT: "+parent.getUri());
+		CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), "Relation: "+id + "_" + idStack1 + "_" + idStack2, env, null, parent, true, clazz);
 		ProcessLifecycle.mgr().init(p);
+		relation.setName(id1.getName()+"_"+id2.getName());
 		sAction.addRelationhip(relation);
 		ActionResource.dao.update(sAction);
 		return Response.created(p.getUri()).build();

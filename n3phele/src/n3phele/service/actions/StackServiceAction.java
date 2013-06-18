@@ -10,12 +10,16 @@ import javax.xml.bind.annotation.XmlType;
 
 import n3phele.service.core.NotFoundException;
 import n3phele.service.model.Action;
+import n3phele.service.model.CloudProcess;
 import n3phele.service.model.Context;
 import n3phele.service.model.Relationship;
+import n3phele.service.model.SignalKind;
 import n3phele.service.model.Stack;
 import n3phele.service.model.core.Credential;
 import n3phele.service.model.core.Entity;
 import n3phele.service.model.core.User;
+import n3phele.service.rest.impl.ActionResource;
+import n3phele.service.rest.impl.CloudProcessResource;
 
 import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.annotation.Cache;
@@ -24,7 +28,7 @@ import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.annotation.Unindex;
-@EntitySubclass
+@EntitySubclass(index=true)
 @XmlRootElement(name="StackServiceAction")
 @XmlType(name="StackServiceAction", propOrder={"serviceDescription","stacks","relationships"})
 @Unindex
@@ -34,6 +38,7 @@ public class StackServiceAction extends ServiceAction {
 	private long stackNumber;
 	private String serviceDescription;
 	
+	private List<String> adopted = new ArrayList<String>();
 	@Embed private List<Stack> stacks = new ArrayList<Stack>();
 	@Embed private List<Relationship> relationships = new ArrayList<Relationship>();
 	
@@ -122,4 +127,62 @@ public class StackServiceAction extends ServiceAction {
 		return "StackServiceAction [description=" + this.serviceDescription + ", stacks=" + this.stacks + ", relationships=" + this.relationships + ", idStack=" + this.stackNumber + ", context=" + this.context + ", name=" + this.name + ", uri=" + this.uri + ", owner=" + this.owner + ", isPublic="
 				+ this.isPublic + "]";
 	}
+	@Override
+	public void signal(SignalKind kind, String assertion) throws NotFoundException {
+		boolean isStacked = false;
+		Stack stacked = null;
+		for(Stack s: stacks){
+			if(s.getVms().get(0).toString().equals(assertion)){
+				isStacked = true;
+				stacked = s;
+				break;
+			}
+		}
+		
+		boolean isAdopted = this.adopted.contains(assertion);
+		System.out.println("!BOOLEANS: "  + isStacked + " _ "+ isAdopted);
+		log.info("Signal "+kind+":"+assertion);
+		switch(kind) {
+		case Adoption:
+			URI processURI = URI.create(assertion);
+			try {
+				CloudProcess child = CloudProcessResource.dao.load(processURI);
+				log.info("Adopting child "+child.getName()+" "+child.getClass().getSimpleName());
+				this.adopted.add(assertion);
+			} catch (Exception e) {
+				log.info("Assertion is not a cloudProcess");
+			}
+			break;
+		case Cancel:
+			if(isStacked){
+				stacks.remove(stacked);
+			}
+			if(isAdopted){
+				adopted.remove(assertion);
+			}
+			break;
+		case Event:
+			log.warning("Ignoring event "+assertion);
+			System.out.println("!EVENT "  + assertion);
+			return;
+		case Failed:
+			System.out.println("!FAILED " + assertion);
+			if(isStacked){
+				stacks.remove(stacked);
+			}
+			if(isAdopted){
+				adopted.remove(assertion);
+			}
+			break;
+		case Ok:
+			System.out.println("!OK " + assertion);
+			log.info(assertion+" ok");
+			break;
+		default:
+			return;		
+		}
+		ActionResource.dao.update(this);
+	}
+
+
 }

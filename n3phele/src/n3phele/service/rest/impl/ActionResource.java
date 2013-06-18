@@ -11,6 +11,8 @@ package n3phele.service.rest.impl;
  *  specific language governing permissions and limitations under the License.
  */
 
+import static com.googlecode.objectify.ObjectifyService.ofy;
+
 import java.net.URI;
 import java.util.List;
 import java.util.logging.Logger;
@@ -27,6 +29,9 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import com.google.appengine.api.datastore.Key;
+
+import n3phele.service.actions.StackServiceAction;
 import n3phele.service.core.NotFoundException;
 import n3phele.service.core.Resource;
 import n3phele.service.model.Action;
@@ -66,6 +71,16 @@ public class ActionResource {
 	@Path("{id}") 
 	public Action get( @PathParam ("id") Long id) throws NotFoundException {
 		Action item = dao.load(id, UserResource.toUser(securityContext));
+		return item;
+	}
+	@GET
+	@Produces("application/json")
+	@RolesAllowed("authenticated")
+	@Path("/stackServiceActions") 
+	public List<StackServiceAction> getStackServices( @PathParam ("id") Long id) throws NotFoundException {
+	
+		List<StackServiceAction> item = dao.getStackServiceAction();
+		System.out.println(item.toString());
 		return item;
 	}
 	
@@ -150,7 +165,10 @@ public class ActionResource {
 		public void add(Action action) { super.add(action); }
 		
 		public void delete(Action action) { super.delete(action); }
-	
+		public List<StackServiceAction> getStackServiceAction(){
+			List<StackServiceAction> list = ofy().load().type(StackServiceAction.class).list();
+			return list;
+		}
 	
 		public void updateAll(List<Action> set) { super.itemDao().putAll(set); }
 		
