@@ -244,8 +244,6 @@ public class CloudProcessResource {
 		for (Variable v : Helpers.safeIterator(context)) {
 			env.put(v.getName(), v);
 		}
-		System.out.println("context: " + context);
-		System.out.println("context: " + env);
 		Class<? extends Action> clazz = Class.forName("n3phele.service.actions." + action + "Action").asSubclass(Action.class);
 		if (clazz != null) {
 
@@ -281,7 +279,6 @@ public class CloudProcessResource {
 		
 		Class<? extends Action> clazz = NShellAction.class;
 		CloudProcess parent = dao.load(sAction.getProcess());
-		System.out.println("PARENT: "+parent.getUri());
 		CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), name, env, null, parent, true, clazz);
 		ProcessLifecycle.mgr().init(p);
 		stack.addVm(p.getUri());
@@ -318,7 +315,6 @@ public class CloudProcessResource {
 		//
 		Class<? extends Action> clazz = NShellAction.class;
 		CloudProcess parent = dao.load(sAction.getProcess());
-		System.out.println("PARENT: "+parent.getUri());
 		CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), "Expose "+id1.getName(), env, null, parent, true, clazz);
 		ProcessLifecycle.mgr().init(p);
 		return Response.created(p.getUri()).build();
@@ -357,7 +353,6 @@ public class CloudProcessResource {
 		Relationship relation = new Relationship(idStack1, idStack2, null, null);
 		Class<? extends Action> clazz = NShellAction.class;
 		CloudProcess parent = dao.load(sAction.getProcess());
-		System.out.println("PARENT: "+parent.getUri());
 		CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), "Relation: "+id + "_" + idStack1 + "_" + idStack2, env, null, parent, true, clazz);
 		ProcessLifecycle.mgr().init(p);
 		relation.setName(id1.getName()+"_"+id2.getName());
@@ -373,7 +368,6 @@ public class CloudProcessResource {
 	public Response exec(@DefaultValue("Log") @QueryParam("action") String action, @QueryParam("name") String name, @DefaultValue("hello world!") @QueryParam("arg") String arg) throws ClassNotFoundException {
 		n3phele.service.model.Context env = new n3phele.service.model.Context();
 		env.putValue("arg", arg);
-		System.out.println("context: " + env);
 		Class<? extends Action> clazz = Class.forName("n3phele.service.actions." + action + "Action").asSubclass(Action.class);
 		if (clazz != null) {
 			env = new n3phele.service.model.Context();
@@ -566,23 +560,6 @@ public class CloudProcessResource {
 
 			return result;
 		}
-
-		// Ancestor query
-		// public Collection<CloudProcess> getChildrenWithCostsCollection(Long
-		// id) {
-		// Collection<CloudProcess> result = null;
-		// System.out.println(get(id).getAccount());
-		// List<CloudProcess> items =
-		// ofy().load().type(CloudProcess.class).ancestor(get(id)).filter("costPerHour >",
-		// 0).list();
-		//
-		// result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(),
-		// super.path, items);
-		// result.setTotal(items.size());
-		//
-		// return result;
-		// }
-
 	}
 
 	final public static CloudProcessManager dao = new CloudProcessManager();

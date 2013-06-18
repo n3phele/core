@@ -181,7 +181,7 @@ public class StackServiceAction extends ServiceAction {
 			if(isStacked){
 				stacks.remove(stacked);
 			}
-			if(isAdopted){
+			else if(isAdopted){
 				adopted.remove(assertion);
 			}
 			break;
