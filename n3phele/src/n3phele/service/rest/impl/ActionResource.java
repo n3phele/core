@@ -78,9 +78,7 @@ public class ActionResource {
 	@RolesAllowed("authenticated")
 	@Path("/stackServiceActions") 
 	public List<StackServiceAction> getStackServices( @PathParam ("id") Long id) throws NotFoundException {
-	
 		List<StackServiceAction> item = dao.getStackServiceAction();
-		System.out.println(item.toString());
 		return item;
 	}
 	

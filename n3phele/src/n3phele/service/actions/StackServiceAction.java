@@ -154,7 +154,6 @@ public class StackServiceAction extends ServiceAction {
 		}
 		
 		boolean isAdopted = this.adopted.contains(assertion);
-		System.out.println("!BOOLEANS: "  + isStacked + " _ "+ isAdopted);
 		log.info("Signal "+kind+":"+assertion);
 		switch(kind) {
 		case Adoption:
@@ -177,10 +176,8 @@ public class StackServiceAction extends ServiceAction {
 			break;
 		case Event:
 			log.warning("Ignoring event "+assertion);
-			System.out.println("!EVENT "  + assertion);
 			return;
 		case Failed:
-			System.out.println("!FAILED " + assertion);
 			if(isStacked){
 				stacks.remove(stacked);
 			}
@@ -189,7 +186,6 @@ public class StackServiceAction extends ServiceAction {
 			}
 			break;
 		case Ok:
-			System.out.println("!OK " + assertion);
 			log.info(assertion+" ok");
 			break;
 		default:
