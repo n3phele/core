@@ -107,6 +107,13 @@ public class StackServiceAction extends ServiceAction {
 				}
 			}
 		}
+		for(String vm : adopted) {
+			try {
+				processLifecycle().cancel(URI.create(vm));
+			} catch (NotFoundException e) {
+				log.severe("Not found: "+e.getMessage());
+			}
+		}
 	}
 	
 	@Override
@@ -119,6 +126,13 @@ public class StackServiceAction extends ServiceAction {
 				} catch (NotFoundException e) {
 					log.severe("Not found: "+e.getMessage());
 				}
+			}
+		}
+		for(String vm : adopted) {
+			try {
+				processLifecycle().cancel(URI.create(vm));
+			} catch (NotFoundException e) {
+				log.severe("Not found: "+e.getMessage());
 			}
 		}
 	}
@@ -157,7 +171,7 @@ public class StackServiceAction extends ServiceAction {
 			if(isStacked){
 				stacks.remove(stacked);
 			}
-			if(isAdopted){
+			else if(isAdopted){
 				adopted.remove(assertion);
 			}
 			break;
