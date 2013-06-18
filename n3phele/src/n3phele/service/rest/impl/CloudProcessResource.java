@@ -369,7 +369,7 @@ public class CloudProcessResource {
 		env.putValue("arg", arg);
 		Class<? extends Action> clazz = Class.forName("n3phele.service.actions." + action + "Action").asSubclass(Action.class);
 		if (clazz != null) {
-			env = new n3phele.service.model.Context();
+			//env = new n3phele.service.model.Context();
 			CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), name, env, null, null, true, clazz);
 			ProcessLifecycle.mgr().init(p);
 			return Response.created(p.getUri()).build();
