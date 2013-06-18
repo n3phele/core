@@ -23,6 +23,7 @@ import n3phele.service.actions.LogAction;
 import n3phele.service.actions.NShellAction;
 import n3phele.service.actions.OnAction;
 import n3phele.service.actions.ServiceAction;
+import n3phele.service.actions.StackServiceAction;
 import n3phele.service.actions.VMAction;
 import n3phele.service.model.core.GenericModelDao;
 import n3phele.service.model.core.User;
@@ -57,7 +58,7 @@ public class ServiceModelDao<T> extends GenericModelDao<T> {
 		ObjectifyService.register(ServiceAction.class);
 		ObjectifyService.register(VMAction.class);
 		ObjectifyService.register(AssimilateAction.class);
-	}
+		ObjectifyService.register(StackServiceAction.class);	}
 	public ServiceModelDao(Class<T> clazz) {
 		super(clazz);
 	}

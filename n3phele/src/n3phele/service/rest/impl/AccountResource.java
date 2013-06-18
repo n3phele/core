@@ -698,7 +698,6 @@ public class AccountResource {
 		}
 
 		public Collection<CloudProcess> getRunningProcess(String account) {
-
 			List<CloudProcess> costs = ofy().load().type(CloudProcess.class).filter("account", super.path + "/" + account).filter("complete", null).list();
 			Collection<CloudProcess> result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, costs);
 			result.setTotal(costs.size());

@@ -55,7 +55,7 @@ import com.googlecode.objectify.annotation.Unindex;
 @Unindex
 @Cache
 public class ServiceAction extends Action {
-	final private static java.util.logging.Logger log = java.util.logging.Logger.getLogger(ServiceAction.class.getName()); 
+	final protected static java.util.logging.Logger log = java.util.logging.Logger.getLogger(ServiceAction.class.getName()); 
 	
 	private String actionName;	
 	private String childProcess;
@@ -106,10 +106,10 @@ public class ServiceAction extends Action {
 		String[] argv;
 		if(Helpers.isBlankOrNull(arg)) {
 			argv = new String[0];
+			
 		} else {
 			argv =	arg.split("[\\s]+");	// FIXME - find a better regex for shell split
 		}
-		
 		Context childEnv = new Context();
 		childEnv.putAll(this.getContext());
 		childEnv.remove("name");
@@ -129,6 +129,7 @@ public class ServiceAction extends Action {
 		}
 		childEnv.putValue("arg", newArg.toString());
 		CloudProcess child = processLifecycle().spawn(this.getOwner(), childName, childEnv, null, this.getProcess(), this.actionName);
+		if(child == null) return;
 		processLifecycle().init(child);
 		log.info("Created child "+child.getName()+" "+child.getUri()+" Action "+child.getAction());
 		this.childProcess = child.getUri().toString();
