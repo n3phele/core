@@ -11,6 +11,8 @@ package n3phele.service.rest.impl;
  *  specific language governing permissions and limitations under the License.
  */
 
+import static com.googlecode.objectify.ObjectifyService.ofy;
+
 import java.net.URI;
 import java.util.List;
 import java.util.logging.Logger;
@@ -27,6 +29,9 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import com.google.appengine.api.datastore.Key;
+
+import n3phele.service.actions.StackServiceAction;
 import n3phele.service.core.NotFoundException;
 import n3phele.service.core.Resource;
 import n3phele.service.model.Action;
@@ -54,9 +59,7 @@ public class ActionResource {
 	@RolesAllowed("authenticated")
 	public Collection<BaseEntity> list(
 			@DefaultValue("false") @QueryParam("summary") Boolean summary)  {
-
 		log.warning("getAction entered with summary "+summary);
-
 		Collection<BaseEntity> result = dao.getCollection(UserResource.toUser(securityContext)).collection(summary);
 		return result;
 	}
@@ -67,8 +70,15 @@ public class ActionResource {
 	@RolesAllowed("authenticated")
 	@Path("{id}") 
 	public Action get( @PathParam ("id") Long id) throws NotFoundException {
-
 		Action item = dao.load(id, UserResource.toUser(securityContext));
+		return item;
+	}
+	@GET
+	@Produces("application/json")
+	@RolesAllowed("authenticated")
+	@Path("/stackServiceActions") 
+	public Collection<StackServiceAction> getStackServices( @PathParam ("id") Long id) throws NotFoundException {
+		Collection<StackServiceAction> item = dao.getStackServiceAction();
 		return item;
 	}
 	
@@ -153,7 +163,12 @@ public class ActionResource {
 		public void add(Action action) { super.add(action); }
 		
 		public void delete(Action action) { super.delete(action); }
-	
+		
+		public Collection<StackServiceAction> getStackServiceAction(){
+			List<StackServiceAction> list = ofy().load().type(StackServiceAction.class).list();
+			Collection<StackServiceAction> col = new Collection(itemDao.clazz.getSimpleName(),super.path,list);
+			return col;
+		}
 	
 		public void updateAll(List<Action> set) { super.itemDao().putAll(set); }
 		
