@@ -20,6 +20,8 @@ import java.util.Map;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import com.google.appengine.api.datastore.Text;
+
 
 
 @XmlRootElement(name="TypedParameter")
@@ -27,7 +29,7 @@ import javax.xml.bind.annotation.XmlType;
 public class TypedParameter implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private String name;
-	private String description;
+	private Text description;
 	private ParameterType type;
 	private String value;
 	private String defaultValue;
@@ -173,13 +175,13 @@ public class TypedParameter implements Serializable {
 	 * @return the description
 	 */
 	public String getDescription() {
-		return (description==null)?null:description;
+		return description.getValue();
 	}
 	/**
 	 * @param description the description to set
 	 */
 	public void setDescription(String description) {
-		this.description = (description==null)?null:description;
+		this.description = new Text(description);
 	}
 	/**
 	 * @return the type
