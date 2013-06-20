@@ -87,17 +87,6 @@ public class CloudProcessResource {
 		return new CloudProcessCollection(result);
 	}
 
-	// Ancestor query
-	// @GET
-	// @Produces("application/json")
-	// @RolesAllowed("authenticated")
-	// @Path("{id:[0-9]+}/childrencosts")
-	// public CloudProcessCollection listChildrenWithCosts(@PathParam("id") Long
-	// id){
-	// Collection<CloudProcess> result = dao.getChildrenWithCostsCollection(id);
-	// return new CloudProcessCollection(result);
-	// }
-
 	@GET
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
@@ -195,6 +184,11 @@ public class CloudProcessResource {
 	public Response killProcess(@PathParam("id") Long id) throws NotFoundException {
 
 		return killProcess(null, id);
+	}
+	
+	public void newMethod()
+	{
+	
 	}
 
 	/*
