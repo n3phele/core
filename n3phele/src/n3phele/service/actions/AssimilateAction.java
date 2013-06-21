@@ -143,7 +143,9 @@ public class AssimilateAction extends VMAction {
 				log.info("IP found on factory");
 				logger.info("IP found on factory");
 				URI[] list = response.getRefs();
-				CloudProcess process = createVMProcess(list[0],cloud.getFactoryCredential());
+				CloudProcess process = createVMProcess(list[0],cloud.getFactoryCredential());				
+				log.info("Process ID: "+process.getId());
+				logger.info("Process ID: "+process.getId());
 				try{
 				VirtualServer vs = fetchVirtualServer(client, list[0]);
 				if(vs!= null){
