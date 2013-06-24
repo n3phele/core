@@ -150,9 +150,9 @@ public class AssimilateAction extends VMAction {
 				logger.info("IP found on factory");
 				URI[] list = response.getRefs();	
 				this.context.putValue("vmFactory", list[0].toString());
-				CloudProcess parent = CloudProcessResource.dao.load(this.getProcess());				
-				log.info("Process ID: "+parent.getId());
-				logger.info("Process ID: "+parent.getId());				
+				CloudProcess actionProcess = CloudProcessResource.dao.load(this.getProcess());				
+				log.info("Process ID: "+actionProcess.getId());
+				logger.info("Process ID: "+actionProcess.getId());				
 				try{
 				VirtualServer vs = fetchVirtualServer(client, list[0]);
 				
@@ -160,7 +160,7 @@ public class AssimilateAction extends VMAction {
 					double value = getValueByCDN(cloud, vs.getParameters());
 					Date date = vs.getCreated();
 					
-					setCloudProcessPrice(account,parent,value, date);
+					setCloudProcessPrice(account,actionProcess,value, date);
 					log.info("Process created and set");
 					logger.info("Process created and set");
 				}
