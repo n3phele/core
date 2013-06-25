@@ -59,7 +59,6 @@ public class TypedParameter extends JavaScriptObject {
 }-*/;
 	
 	
-	
 	/**
 	 * @return the defaultValue
 	 */
@@ -67,5 +66,18 @@ public class TypedParameter extends JavaScriptObject {
 		return this.defaultValue;
 	}-*/;
 	
+	/**
+	 * @return if the parameter is optional
+	 */
+	public final boolean isOptional(){
+		if(optional().equalsIgnoreCase("true"))
+			return true;
+		return false;
+	}
+	
+	
+	public native final String optional() /*-{
+		return this.optional;
+	}-*/;
 	
 }
