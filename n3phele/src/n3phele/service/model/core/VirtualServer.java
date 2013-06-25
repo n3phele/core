@@ -42,7 +42,7 @@ public class VirtualServer extends Entity {
 	private String description;
 	private String location;
 	@Embed private ArrayList<NameValue> parametersList;
-	private VirtualServerStatus status;
+	@Index private VirtualServerStatus status;
 	private String notification;
 	@Index private String instanceId;
 	private String spotId;
