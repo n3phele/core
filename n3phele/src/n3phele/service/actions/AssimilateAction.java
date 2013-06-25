@@ -176,7 +176,6 @@ public class AssimilateAction extends VMAction {
 			log.log(Level.SEVERE, "vm assimilate FAILED with exception ", e);
 			throw e;
 		} finally {
-			killVM();
 			ClientFactory.give(client);
 		}
 	}
