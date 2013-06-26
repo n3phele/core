@@ -815,6 +815,7 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 	}
 	
 	public boolean checkParameterValue(TypedParameter p) {
+		if(p.isOptional()) return true;
 		if(this.parameterTextInputCell == null) return false;
 		String name = p.getName();
 		String value;
