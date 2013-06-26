@@ -16,7 +16,7 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({CloudProcessTest.class, ExpressionTest.class, ParserTest.class, CreateVMActionTest.class, NShellActionTest.class, CloudProcessManagerTest.class, 
-	AccountResourceTest.class, CloudProcessWorkloadsTest.class, TimeFactoryTest.class })
+	AccountResourceTest.class, CloudProcessWorkloadsTest.class, TimeFactoryTest.class ,CreateStackServiceActionTest.class})
 public class AllUnitTests {
 
 }
