@@ -1,32 +1,33 @@
 package n3phele.service.actions;
 
+import java.io.FileNotFoundException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
 import n3phele.service.core.NotFoundException;
+import n3phele.service.core.ResourceFile;
+import n3phele.service.core.ResourceFileFactory;
 import n3phele.service.model.Action;
 import n3phele.service.model.CloudProcess;
 import n3phele.service.model.Context;
 import n3phele.service.model.Relationship;
 import n3phele.service.model.SignalKind;
 import n3phele.service.model.Stack;
-import n3phele.service.model.core.Credential;
-import n3phele.service.model.core.Entity;
 import n3phele.service.model.core.User;
 import n3phele.service.rest.impl.ActionResource;
 import n3phele.service.rest.impl.CloudProcessResource;
 
-import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.EntitySubclass;
-import com.googlecode.objectify.annotation.Index;
-import com.googlecode.objectify.annotation.Serialize;
+import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Unindex;
 @EntitySubclass(index=true)
 @XmlRootElement(name="StackServiceAction")
@@ -41,12 +42,13 @@ public class StackServiceAction extends ServiceAction {
 	private List<String> adopted = new ArrayList<String>();
 	@Embed private List<Stack> stacks = new ArrayList<Stack>();
 	@Embed private List<Relationship> relationships = new ArrayList<Relationship>();
-	
-	
-	
-
-	public StackServiceAction(){
+	@Ignore private ResourceFileFactory resourceFileFactory;
+			
+	public StackServiceAction()
+	{
+		super();
 		stackNumber = 0;
+		this.resourceFileFactory = new ResourceFileFactory();
 	}
 	
 	public StackServiceAction(String description,String name, User owner,Context context){
@@ -54,7 +56,53 @@ public class StackServiceAction extends ServiceAction {
 		this.serviceDescription = description;
 		stackNumber = 0;
 	}
-
+	
+	@Override
+	public Action create(URI owner, String name, Context context) {
+		super.create(owner, name, context);
+		this.serviceDescription = "";
+		registerServiceCommandsToContext();
+		return this;
+	}
+	
+	public void setResourceFileFactory(ResourceFileFactory factory)
+	{
+		this.resourceFileFactory = factory;
+	}
+	
+	public void registerServiceCommandsToContext()
+	{		
+		List<String> commands = new ArrayList<String>();
+		try {	
+			ResourceFile fileConfiguration = this.resourceFileFactory.create("n3phele.resource.service_commands");
+		    String commandsString = fileConfiguration.get("charms", "");
+			JSONArray jsonArray = new JSONArray(commandsString);
+			for(int i=0; i<jsonArray.length(); i++)
+			{
+				commands.add(jsonArray.getString(i));
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		this.context.putValue("deploy_commands", commands);
+	}
+	
+	public List<String> getAcceptedCommands()
+	{
+		List<String> commands = this.context.getListValue("deploy_commands");
+		if(commands == null) commands = new ArrayList<String>();
+		return commands;		
+	}
+	
+	public void addNewCommand(String newCommandUri)
+	{
+		List<String> oldCommands = this.context.getListValue("deploy_commands");
+		List<String> commands = new ArrayList<String>(oldCommands);		
+		commands.add(newCommandUri);
+		this.context.putValue("deploy_commands", commands);
+	}
 
 	/*
 	 * Automatic Generated Methods
