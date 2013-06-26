@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 import n3phele.service.core.NotFoundException;
@@ -15,18 +14,13 @@ import n3phele.service.model.Context;
 import n3phele.service.model.Relationship;
 import n3phele.service.model.SignalKind;
 import n3phele.service.model.Stack;
-import n3phele.service.model.core.Credential;
-import n3phele.service.model.core.Entity;
 import n3phele.service.model.core.User;
 import n3phele.service.rest.impl.ActionResource;
 import n3phele.service.rest.impl.CloudProcessResource;
 
-import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.EntitySubclass;
-import com.googlecode.objectify.annotation.Index;
-import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.annotation.Unindex;
 @EntitySubclass(index=true)
 @XmlRootElement(name="StackServiceAction")
@@ -41,11 +35,10 @@ public class StackServiceAction extends ServiceAction {
 	private List<String> adopted = new ArrayList<String>();
 	@Embed private List<Stack> stacks = new ArrayList<Stack>();
 	@Embed private List<Relationship> relationships = new ArrayList<Relationship>();
-	
-	
-	
-
-	public StackServiceAction(){
+		
+	public StackServiceAction()
+	{
+		super();
 		stackNumber = 0;
 	}
 	
@@ -54,7 +47,38 @@ public class StackServiceAction extends ServiceAction {
 		this.serviceDescription = description;
 		stackNumber = 0;
 	}
-
+	
+	@Override
+	public Action create(URI owner, String name, Context context) {
+		super.create(owner, name, context);
+		this.serviceDescription = "";
+		registerServiceCommandsToContext();
+		return this;
+	}
+	
+	public void registerServiceCommandsToContext()
+	{		
+		List<String> commands = new ArrayList<String>();
+		//Hard coded for test
+		commands.add("https://n3phele-dev.appspot.com/resources/command/978017");
+		commands.add("https://n3phele-dev.appspot.com/resources/command/1073002");
+		this.context.putValue("deply_commands", commands);
+	}
+	
+	public List<String> getAcceptedCommands()
+	{
+		List<String> commands = this.context.getListValue("deply_commands");
+		if(commands == null) commands = new ArrayList<String>();
+		return commands;		
+	}
+	
+	public void addNewCommand(String newCommandUri)
+	{
+		List<String> oldCommands = this.context.getListValue("deply_commands");
+		List<String> commands = new ArrayList<String>(oldCommands);		
+		commands.add(newCommandUri);
+		this.context.putValue("deply_commands", commands);
+	}
 
 	/*
 	 * Automatic Generated Methods

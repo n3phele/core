@@ -3,6 +3,8 @@ package n3phele.service.actions;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 import junit.framework.Assert;
@@ -130,5 +132,39 @@ public class StackServiceActionTest {
 		System.out.println(list);
 		Assert.assertEquals(sAction.getName(), list.getElements().get(0).getName());
 		Assert.assertEquals(sAction2.getName(), list.getElements().get(1).getName());
+	}
+	
+	@Test
+	public void newServiceStackActionShouldPointToValidServiceCommandsTest() throws URISyntaxException{
+		
+		URI owner = new URI("http://localhost/users/1");
+		StackServiceAction serviceAction = (StackServiceAction) new StackServiceAction().create(owner, null, new Context());
+		
+		int commandsSize = serviceAction.getAcceptedCommands().size();
+		
+		Assert.assertNotSame(0, commandsSize);		
+	}
+	
+	@Test
+	public void addOneCommandToContextOfServiceActionTest() throws URISyntaxException{		
+		StackServiceAction serviceAction = new StackServiceAction();
+				
+		String commandUri = "http://localhost/commands/1";
+		serviceAction.addNewCommand(commandUri);
+	
+		Assert.assertTrue(serviceAction.getAcceptedCommands().contains("http://localhost/commands/1"));
+	}
+	
+	@Test
+	public void addTwoCommandsToContextOfServiceActionTest() throws URISyntaxException{		
+		StackServiceAction serviceAction = new StackServiceAction();
+				
+		String commandUri1 = "http://localhost/commands/1";
+		String commandUri2 = "http://localhost/commands/2";
+		serviceAction.addNewCommand(commandUri1);
+		serviceAction.addNewCommand(commandUri2);
+	
+		Assert.assertTrue(serviceAction.getAcceptedCommands().contains("http://localhost/commands/1"));
+		Assert.assertTrue(serviceAction.getAcceptedCommands().contains("http://localhost/commands/2"));
 	}
 }
