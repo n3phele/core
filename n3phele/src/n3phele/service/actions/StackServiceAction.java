@@ -156,40 +156,40 @@ public class StackServiceAction extends ServiceAction {
 		boolean isAdopted = this.adopted.contains(assertion);
 		log.info("Signal "+kind+":"+assertion);
 		switch(kind) {
-		case Adoption:
-			URI processURI = URI.create(assertion);
-			try {
-				CloudProcess child = CloudProcessResource.dao.load(processURI);
-				log.info("Adopting child "+child.getName()+" "+child.getClass().getSimpleName());
-				this.adopted.add(assertion);
-			} catch (Exception e) {
-				log.info("Assertion is not a cloudProcess");
-			}
-			break;
-		case Cancel:
-			if(isStacked){
-				stacks.remove(stacked);
-			}
-			else if(isAdopted){
-				adopted.remove(assertion);
-			}
-			break;
-		case Event:
-			log.warning("Ignoring event "+assertion);
-			return;
-		case Failed:
-			if(isStacked){
-				stacks.remove(stacked);
-			}
-			else if(isAdopted){
-				adopted.remove(assertion);
-			}
-			break;
-		case Ok:
-			log.info(assertion+" ok");
-			break;
-		default:
-			return;		
+			case Adoption:
+				URI processURI = URI.create(assertion);
+				try {
+					CloudProcess child = CloudProcessResource.dao.load(processURI);
+					log.info("Adopting child "+child.getName()+" "+child.getClass().getSimpleName());
+					this.adopted.add(assertion);
+				} catch (Exception e) {
+					log.info("Assertion is not a cloudProcess");
+				}
+				break;
+			case Cancel:
+				if(isStacked){
+					stacks.remove(stacked);
+				}
+				else if(isAdopted){
+					adopted.remove(assertion);
+				}
+				break;
+			case Event:
+				log.warning("Ignoring event "+assertion);
+				return;
+			case Failed:
+				if(isStacked){
+					stacks.remove(stacked);
+				}
+				else if(isAdopted){
+					adopted.remove(assertion);
+				}
+				break;
+			case Ok:
+				log.info(assertion+" ok");
+				break;
+			default:
+				return;		
 		}
 		ActionResource.dao.update(this);
 	}
