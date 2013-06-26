@@ -253,6 +253,7 @@ public class CloudProcessResource {
 			CloudProcess processParent = CloudProcessResource.dao.load(parentURI);
 			URI actionURI = processParent.getAction();
 			Action parentAction =  ActionResource.dao.load(actionURI);
+			if(processParent.getState() != ActionState.RUNABLE) return Response.serverError().build();
 			if(parentAction instanceof StackServiceAction){
 				StackServiceAction serviceAction = (StackServiceAction)parentAction;			
 				if(env.getValue("service_name") != null)
