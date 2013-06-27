@@ -1,5 +1,6 @@
 package n3phele.service.actions;
 
+import java.io.FileNotFoundException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,7 +8,12 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
 import n3phele.service.core.NotFoundException;
+import n3phele.service.core.ResourceFile;
+import n3phele.service.core.ResourceFileFactory;
 import n3phele.service.model.Action;
 import n3phele.service.model.CloudProcess;
 import n3phele.service.model.Context;
@@ -35,11 +41,13 @@ public class StackServiceAction extends ServiceAction {
 	private List<String> adopted = new ArrayList<String>();
 	@Embed private List<Stack> stacks = new ArrayList<Stack>();
 	@Embed private List<Relationship> relationships = new ArrayList<Relationship>();
-		
+	private ResourceFileFactory resourceFileFactory;
+			
 	public StackServiceAction()
 	{
 		super();
 		stackNumber = 0;
+		this.resourceFileFactory = new ResourceFileFactory();
 	}
 	
 	public StackServiceAction(String description,String name, User owner,Context context){
@@ -56,28 +64,43 @@ public class StackServiceAction extends ServiceAction {
 		return this;
 	}
 	
+	public void setResourceFileFactory(ResourceFileFactory factory)
+	{
+		this.resourceFileFactory = factory;
+	}
+	
 	public void registerServiceCommandsToContext()
 	{		
 		List<String> commands = new ArrayList<String>();
-		//Hard coded for test
-		commands.add("https://n3phele-dev.appspot.com/resources/command/978017");
-		commands.add("https://n3phele-dev.appspot.com/resources/command/1073002");
-		this.context.putValue("deply_commands", commands);
+		try {	
+			ResourceFile fileConfiguration = this.resourceFileFactory.create("n3phele.resource.service_commands");
+		    String commandsString = fileConfiguration.get("charms", "");
+			JSONArray jsonArray = new JSONArray(commandsString);
+			for(int i=0; i<jsonArray.length(); i++)
+			{
+				commands.add(jsonArray.getString(i));
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		this.context.putValue("deploy_commands", commands);
 	}
 	
 	public List<String> getAcceptedCommands()
 	{
-		List<String> commands = this.context.getListValue("deply_commands");
+		List<String> commands = this.context.getListValue("deploy_commands");
 		if(commands == null) commands = new ArrayList<String>();
 		return commands;		
 	}
 	
 	public void addNewCommand(String newCommandUri)
 	{
-		List<String> oldCommands = this.context.getListValue("deply_commands");
+		List<String> oldCommands = this.context.getListValue("deploy_commands");
 		List<String> commands = new ArrayList<String>(oldCommands);		
 		commands.add(newCommandUri);
-		this.context.putValue("deply_commands", commands);
+		this.context.putValue("deploy_commands", commands);
 	}
 
 	/*
