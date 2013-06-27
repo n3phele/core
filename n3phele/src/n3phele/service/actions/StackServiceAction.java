@@ -27,6 +27,7 @@ import n3phele.service.rest.impl.CloudProcessResource;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.EntitySubclass;
+import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Unindex;
 @EntitySubclass(index=true)
 @XmlRootElement(name="StackServiceAction")
@@ -41,7 +42,7 @@ public class StackServiceAction extends ServiceAction {
 	private List<String> adopted = new ArrayList<String>();
 	@Embed private List<Stack> stacks = new ArrayList<Stack>();
 	@Embed private List<Relationship> relationships = new ArrayList<Relationship>();
-	private ResourceFileFactory resourceFileFactory;
+	@Ignore private ResourceFileFactory resourceFileFactory;
 			
 	public StackServiceAction()
 	{
