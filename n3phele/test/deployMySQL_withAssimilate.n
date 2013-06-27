@@ -1,0 +1,59 @@
+# deployMySQL.n
+# Author: Alexandre Tavares
+name	   : deployMySQL
+description: deploy MySQL
+version	   : 0.2.0
+preferred  : true
+public	   : true
+icon	   : http://www.n3phele.com/icons/custom
+parameters :
+	int n	= 1 	# how many to create
+	string juju_version = "0.6" # version to download of juju
+	int quanty = 1 
+	optional string dataset_size = "80%" 
+	optional string preferred_storage_engine= "InnoDB" 
+	optional string tuning_level = "safest" 
+	optional string flavor = "distro" 
+	optional string service_name = "mysql01" 
+	
+input files:
+	environments.yaml # Input file to configure juju
+	id_rsa.pub # Input ssh public key to access environment
+	id_rsa.txt # Input ssh private key to access environment
+	optional config.yaml # an optional configuration file to your charm
+HPZone1: # HP Cloud
+	$$my_vm = CREATEVM --name myVM --n $$n
+	
+	ON $$my_vm if [ -d ~/.juju ]
+		then rm -rf ~/.juju
+		fi
+	ON $$my_vm mkdir ~/.juju
+	ON $$my_vm mv id_rsa.txt ~/.ssh/id_rsa
+	ON $$my_vm mv id_rsa.pub ~/.ssh/id_rsa.pub
+	ON $$my_vm mv environments.yaml ~/.juju/environments.yaml
+	ON $$my_vm chmod go-rxw ~/.ssh/id_rsa
+	ON $$my_vm cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+	ON $$my_vm ssh -t -t -v -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@localhost exec ssh-agent ssh-add
+	ON $$my_vm sudo apt-get -y install python-software-properties
+	ON $$my_vm sudo add-apt-repository -y ppa:juju/$$juju_version
+	ON $$my_vm sudo apt-get update -y && sudo apt-get install -y -qq juju
+	ON $$my_vm echo -e "Host *\nStrictHostKeyChecking no" >> ~/.ssh/config
+	ON $$my_vm if [ -e "config.yaml" ] ; then juju deploy --config config.yaml --num-units $$quanty mysql ; else juju deploy --num-units $$quanty mysql $$service_name ; fi
+	ON $$my_vm rm -f ~/.ssh/config
+	$$on = ON $$my_vm 
+		STAT="none"
+		RUN_STATUS="running"
+		while [ "$STAT" != "$RUN_STATUS" ];
+		do sleep 20;
+		juju status $$service_name > tmp.txt;
+		STAT=$(sed -n -e '0,/agent-state: /s///p' tmp.txt);
+		STAT=$(echo $STAT | tr -d ' ')
+		done
+		IPS=$(grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' tmp.txt)
+		IPA=(${IPS//:/ })
+		IP=$(echo ${IPA[0]})
+		IP=$(echo $IP | tr -d ' ')
+		echo $IP
+	$$vm = ASSIMILATEVM --targetIP $$on.stdout
+
+
