@@ -64,13 +64,13 @@ import n3phele.service.rest.impl.CloudResource;
 
 @EntitySubclass
 @XmlRootElement(name = "AssimilateAction")
-@XmlType(name = "AssimilateAction", propOrder = { "failed", "targetIP", "epoch" })
+@XmlType(name = "AssimilateAction", propOrder = { "targetIP" })
 @Unindex
 @Cache
 public class AssimilateAction extends VMAction {
 	final protected static java.util.logging.Logger log = java.util.logging.Logger.getLogger(AssimilateAction.class.getName());
 	@XmlTransient private ActionLogger logger;
-	private boolean failed = false;
+	private Boolean failed = false;
 	private String targetIP;
 	private long epoch;
 		
@@ -223,7 +223,8 @@ public class AssimilateAction extends VMAction {
 					
 				}
 				epoch = 0;
-				ProcessLifecycle.mgr().signalParent(this.getProcess(), SignalKind.Event, this.getProcess().toString());
+				CloudProcess p = CloudProcessResource.dao.load(this.getProcess());
+				ProcessLifecycle.mgr().signalParent(p.getParent(), SignalKind.Event, this.getProcess().toString());
 				throw new ProcessLifecycle.WaitForSignalRequest();
 					
 			} catch (UniformInterfaceException e) {
@@ -351,15 +352,15 @@ public class AssimilateAction extends VMAction {
 	/**
 	 * @return the targetIP
 	 */
-	public URI getTargetIP() {
-		return Helpers.stringToURI(targetIP);
+	public String getTargetIP() {
+		return targetIP;
 	}
 
 	/**
 	 * @param targetIP the targetIP to set
 	 */
-	public void setTargetIP(URI targetIP) {
-		this.targetIP = Helpers.URItoString(targetIP);
+	public void setTargetIP(String targetIP) {
+		this.targetIP = targetIP;
 	}
 	
 
