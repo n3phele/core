@@ -55,5 +55,6 @@ HPZone1: # HP Cloud
 		IP=$(echo $IP | tr -d ' ')
 		echo $IP
 	$$vm = ASSIMILATEVM --targetIP $$on.stdout
+	DESTROY $$my_vm
 
 

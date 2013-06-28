@@ -191,21 +191,21 @@ public class NShellAction extends Action {
 		if(myChildren != 0) {
 			throw new ProcessLifecycle.WaitForSignalRequest();
 		}
-		for(String s: adopted){
-			try {
-				URI uriAdopted = new URI(s);
-				CloudProcess p = CloudProcessResource.dao.load(uriAdopted);
-				Action action = ActionResource.dao.load(p.getAction());
-				
-				if(action instanceof VMAction){
-					processLifecycle().cancel(p);
-				}
-			} catch (URISyntaxException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-		}
+//		for(String s: adopted){
+//			try {
+//				URI uriAdopted = new URI(s);
+//				CloudProcess p = CloudProcessResource.dao.load(uriAdopted);
+//				Action action = ActionResource.dao.load(p.getAction());
+//				
+//				if(action instanceof VMAction){
+//					processLifecycle().cancel(p);
+//				}
+//			} catch (URISyntaxException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//			
+//		}
 		return true;
 	}
 	
