@@ -1,0 +1,42 @@
+# deleteJujuService.n
+# Author: Alexandre Leites
+name	   : deleteJujuService
+description: Delete Juju Service
+version	   : 0.1.8
+preferred  : true
+public	   : true
+icon	   : http://www.n3phele.com/icons/custom
+parameters :
+	string service_name = "mysql" # name of service to delete
+	string juju_version = "0.6" # version to download of juju
+	
+input files:
+	environments.yaml # Input file to configure juju
+	id_rsa.pub # Input ssh public key to access environment
+	id_rsa.txt # Input ssh private key to access environment
+	optional config.yaml # an optional configuration file to your charm
+HPZone1: # HP Cloud
+	$$my_vm = CREATEVM --name vmAL --n 1
+	
+	ON $$my_vm if [ -d ~/.juju ]
+		then rm -rf ~/.juju
+		fi
+	ON $$my_vm mkdir ~/.juju
+	ON $$my_vm mv id_rsa.txt ~/.ssh/id_rsa
+	ON $$my_vm mv id_rsa.pub ~/.ssh/id_rsa.pub
+	ON $$my_vm mv environments.yaml ~/.juju/environments.yaml
+	ON $$my_vm chmod go-rxw ~/.ssh/id_rsa
+	ON $$my_vm cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+	ON $$my_vm ssh -t -t -v -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@localhost exec ssh-agent ssh-add
+	ON $$my_vm sudo apt-get -y install python-software-properties
+	ON $$my_vm sudo add-apt-repository -y ppa:juju/$$juju_version
+	ON $$my_vm sudo apt-get update -y && sudo apt-get install -y -qq juju
+	ON $$my_vm echo -e "Host *\nStrictHostKeyChecking no" >> ~/.ssh/config
+	$$on = ON $$my_vm
+		juju status $$service_name > tmp1.txt;
+		IDS=$(grep -o -e 'machine: [0-9]\{1,3\}' tmp1.txt | grep -o '[0-9]\{1,3\}' | tr '\n' ' ' | sed -e 's/^ *//g' -e 's/ *$//g')
+		juju destroy-service $$service_name > tmp2.txt;
+		for i in $IDS
+		do
+			juju terminate-machine $i
+		done
