@@ -94,6 +94,11 @@ public class StackServiceAction extends ServiceAction {
 	public boolean addRelationhip(Relationship relation){
 		return relationships.add(relation);
 	}
+	public long getNextStackNumber(){
+		long id = stackNumber;
+		stackNumber++;
+		return id;
+	}
 	
 	@Override
 	public void cancel() {
@@ -161,8 +166,15 @@ public class StackServiceAction extends ServiceAction {
 				URI processURI = URI.create(assertion);
 				try {
 					CloudProcess child = CloudProcessResource.dao.load(processURI);
+					Action action = ActionResource.dao.load(child.getAction());
 					log.info("Adopting child "+child.getName()+" "+child.getClass().getSimpleName());
 					this.adopted.add(assertion);
+					if(action instanceof AssimilateAction)return;
+					for(Stack s : stacks){
+						if(s.getId() == action.getContext().getLongValue("stackId")){
+							s.addVm(child.getUri());
+						}
+					}
 				} catch (Exception e) {
 					log.info("Assertion is not a cloudProcess");
 				}
@@ -176,16 +188,16 @@ public class StackServiceAction extends ServiceAction {
 				}
 				break;
 			case Event:
-				URI processURI2 = URI.create(assertion);
-				CloudProcess p = CloudProcessResource.dao.load(processURI2);
-				for(Stack s: this.getStacks()){
-					if(s.getDeployProcess() == null) continue;
-					if(s.getDeployProcess().equals(p.getParent().toString())){
-						s.addVm(p.getUri());
-					}
-				}
-				log.warning("Ignoring event "+assertion);
-				break;
+//				URI processURI2 = URI.create(assertion);
+//				CloudProcess p = CloudProcessResource.dao.load(processURI2);
+//				for(Stack s: this.getStacks()){
+//					if(s.getDeployProcess() == null) continue;
+//					if(s.getDeployProcess().equals(p.getParent().toString())){
+//						s.addVm(p.getUri());
+//					}
+//				}
+//				log.warning("Ignoring event "+assertion);
+//				break;
 			case Failed:
 				if(isStacked){
 					stacks.remove(stacked);

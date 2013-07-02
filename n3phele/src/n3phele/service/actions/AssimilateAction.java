@@ -224,7 +224,11 @@ public class AssimilateAction extends VMAction {
 				}
 				epoch = 0;
 				CloudProcess p = CloudProcessResource.dao.load(this.getProcess());
-				ProcessLifecycle.mgr().signalParent(p.getParent(), SignalKind.Event, this.getProcess().toString());
+				ProcessLifecycle.mgr().signalParent(p.getParent(), SignalKind.Ok, this.getProcess().toString());
+				log.info("Process URI: "+this.getProcess());
+				logger.info("Process URI: "+this.getProcess());	
+				log.info("Parent URI: "+p.getParent());
+				logger.info("Parent URI: "+p.getParent());	
 				throw new ProcessLifecycle.WaitForSignalRequest();
 					
 			} catch (UniformInterfaceException e) {
