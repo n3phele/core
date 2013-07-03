@@ -64,13 +64,13 @@ import n3phele.service.rest.impl.CloudResource;
 
 @EntitySubclass
 @XmlRootElement(name = "AssimilateAction")
-@XmlType(name = "AssimilateAction", propOrder = { "targetIP" })
+@XmlType(name = "AssimilateAction", propOrder = { "failed", "targetIP", "epoch" })
 @Unindex
 @Cache
 public class AssimilateAction extends VMAction {
 	final protected static java.util.logging.Logger log = java.util.logging.Logger.getLogger(AssimilateAction.class.getName());
 	@XmlTransient private ActionLogger logger;
-	private Boolean failed = false;
+	private boolean failed = false;
 	private String targetIP;
 	private long epoch;
 		
@@ -198,39 +198,37 @@ public class AssimilateAction extends VMAction {
 			
 			
 			try {
-				if(!this.context.containsKey("publicIpAddress")) {	
-					//if(!this.context.containsKey("publicIpAddress")&&(this.context.getValue("vmFactory")!=null)) {	
-					
-					VirtualServer vs = fetchVirtualServer(client, new URI(this.context.getValue("vmFactory")));						
-					log.info("VMAction: Server status is "+vs.getStatus());
-					URI notification = UriBuilder.fromUri(this.getProcess()).scheme("http").path("event").build();
-					if(!notification.equals(vs.getNotification())) {
-						// FIXME: Update factory to accept notification put .. resource.put(notification);
-					}
-					if(vs.getStatus().equals(VirtualServerStatus.running) && vs.getOutputParameters() != null) {
-						for(NameValue p : vs.getOutputParameters()) {
-							if(p.getKey().equals("publicIpAddress")) {
-								this.context.putValue("publicIpAddress", p.getValue());
-								log.info("VMAction: publicURI is "+p.getValue());
-							} else {
-								this.context.putValue(p.getKey(), p.getValue());
-							}
+
+				if(this.context.getValue("vmFactory")==null)retrieveVirtualServer(cloud, account);
+				if(this.context.getValue("vmFactory")!=null){
+				if(!this.context.containsKey("publicIpAddress")) {						
+						VirtualServer vs = fetchVirtualServer(client, new URI(this.context.getValue("vmFactory")));						
+						log.info("VMAction: Server status is "+vs.getStatus());
+						URI notification = UriBuilder.fromUri(this.getProcess()).scheme("http").path("event").build();
+						if(!notification.equals(vs.getNotification())) {
+							// FIXME: Update factory to accept notification put .. resource.put(notification);
 						}
-					} else if(vs.getStatus().equals(VirtualServerStatus.terminated)) {
-						logger.error("Client "+this.context.getValue("vmFactory")+" unexpected death.");
-						log.severe("Client "+this.context.getValue("vmFactory")+" unexpected death.");
-						throw new UnprocessableEntityException("Client "+this.context.getValue("vmFactory")+" unexpected death.");
-					} 
-					
-				}
+						if(vs.getStatus().equals(VirtualServerStatus.running) && vs.getOutputParameters() != null) {
+							for(NameValue p : vs.getOutputParameters()) {
+								if(p.getKey().equals("publicIpAddress")) {
+									this.context.putValue("publicIpAddress", p.getValue());
+									log.info("VMAction: publicURI is "+p.getValue());
+								} else {
+									this.context.putValue(p.getKey(), p.getValue());
+								}
+							}
+						} else if(vs.getStatus().equals(VirtualServerStatus.terminated)) {
+							logger.error("Client "+this.context.getValue("vmFactory")+" unexpected death.");
+							log.severe("Client "+this.context.getValue("vmFactory")+" unexpected death.");
+							throw new UnprocessableEntityException("Client "+this.context.getValue("vmFactory")+" unexpected death.");
+						} 
+					}
+				
 				epoch = 0;
-				CloudProcess p = CloudProcessResource.dao.load(this.getProcess());
-				ProcessLifecycle.mgr().signalParent(p.getParent(), SignalKind.Ok, this.getProcess().toString());
-				log.info("Process URI: "+this.getProcess());
-				logger.info("Process URI: "+this.getProcess());	
-				log.info("Parent URI: "+p.getParent());
-				logger.info("Parent URI: "+p.getParent());	
+				CloudProcess actionProcess = CloudProcessResource.dao.load(this.getProcess());	
+				ProcessLifecycle.mgr().signalParent(this.getProcess(), SignalKind.Ok, this.getProcess().toString());
 				throw new ProcessLifecycle.WaitForSignalRequest();
+				}
 					
 			} catch (UniformInterfaceException e) {
 				ClientResponse response = e.getResponse();
@@ -357,15 +355,15 @@ public class AssimilateAction extends VMAction {
 	/**
 	 * @return the targetIP
 	 */
-	public String getTargetIP() {
-		return targetIP;
+	public URI getTargetIP() {
+		return Helpers.stringToURI(targetIP);
 	}
 
 	/**
 	 * @param targetIP the targetIP to set
 	 */
-	public void setTargetIP(String targetIP) {
-		this.targetIP = targetIP;
+	public void setTargetIP(URI targetIP) {
+		this.targetIP = Helpers.URItoString(targetIP);
 	}
 	
 
