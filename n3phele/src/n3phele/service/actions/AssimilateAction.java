@@ -198,33 +198,37 @@ public class AssimilateAction extends VMAction {
 			
 			
 			try {
-				if(!this.context.containsKey("publicIpAddress")) {	
-					
-					VirtualServer vs = fetchVirtualServer(client, new URI(this.context.getValue("vmFactory")));						
-					log.info("VMAction: Server status is "+vs.getStatus());
-					URI notification = UriBuilder.fromUri(this.getProcess()).scheme("http").path("event").build();
-					if(!notification.equals(vs.getNotification())) {
-						// FIXME: Update factory to accept notification put .. resource.put(notification);
-					}
-					if(vs.getStatus().equals(VirtualServerStatus.running) && vs.getOutputParameters() != null) {
-						for(NameValue p : vs.getOutputParameters()) {
-							if(p.getKey().equals("publicIpAddress")) {
-								this.context.putValue("publicIpAddress", p.getValue());
-								log.info("VMAction: publicURI is "+p.getValue());
-							} else {
-								this.context.putValue(p.getKey(), p.getValue());
-							}
+
+				if(this.context.getValue("vmFactory")==null)retrieveVirtualServer(cloud, account);
+				if(this.context.getValue("vmFactory")!=null){
+				if(!this.context.containsKey("publicIpAddress")) {						
+						VirtualServer vs = fetchVirtualServer(client, new URI(this.context.getValue("vmFactory")));						
+						log.info("VMAction: Server status is "+vs.getStatus());
+						URI notification = UriBuilder.fromUri(this.getProcess()).scheme("http").path("event").build();
+						if(!notification.equals(vs.getNotification())) {
+							// FIXME: Update factory to accept notification put .. resource.put(notification);
 						}
-					} else if(vs.getStatus().equals(VirtualServerStatus.terminated)) {
-						logger.error("Client "+this.context.getValue("vmFactory")+" unexpected death.");
-						log.severe("Client "+this.context.getValue("vmFactory")+" unexpected death.");
-						throw new UnprocessableEntityException("Client "+this.context.getValue("vmFactory")+" unexpected death.");
-					} 
-					
-				}
+						if(vs.getStatus().equals(VirtualServerStatus.running) && vs.getOutputParameters() != null) {
+							for(NameValue p : vs.getOutputParameters()) {
+								if(p.getKey().equals("publicIpAddress")) {
+									this.context.putValue("publicIpAddress", p.getValue());
+									log.info("VMAction: publicURI is "+p.getValue());
+								} else {
+									this.context.putValue(p.getKey(), p.getValue());
+								}
+							}
+						} else if(vs.getStatus().equals(VirtualServerStatus.terminated)) {
+							logger.error("Client "+this.context.getValue("vmFactory")+" unexpected death.");
+							log.severe("Client "+this.context.getValue("vmFactory")+" unexpected death.");
+							throw new UnprocessableEntityException("Client "+this.context.getValue("vmFactory")+" unexpected death.");
+						} 
+					}
+				
 				epoch = 0;
-				ProcessLifecycle.mgr().signalParent(this.getProcess(), SignalKind.Event, this.getProcess().toString());
+				CloudProcess actionProcess = CloudProcessResource.dao.load(this.getProcess());	
+				ProcessLifecycle.mgr().signalParent(this.getProcess(), SignalKind.Ok, this.getProcess().toString());
 				throw new ProcessLifecycle.WaitForSignalRequest();
+				}
 					
 			} catch (UniformInterfaceException e) {
 				ClientResponse response = e.getResponse();
