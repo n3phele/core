@@ -16,6 +16,7 @@ import static com.googlecode.objectify.ObjectifyService.ofy;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +24,6 @@ import java.util.Map;
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
-import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -38,7 +38,6 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
-import n3phele.service.actions.JobAction;
 import n3phele.service.actions.NShellAction;
 import n3phele.service.actions.StackServiceAction;
 import n3phele.service.core.NotFoundException;
@@ -54,11 +53,11 @@ import n3phele.service.model.ServiceModelDao;
 import n3phele.service.model.SignalKind;
 import n3phele.service.model.Stack;
 import n3phele.service.model.Variable;
-import n3phele.service.model.VariableType;
 import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.GenericModelDao;
 import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.User;
+import n3phele.service.rest.impl.ActionResource.ActionManager;
 
 import com.googlecode.objectify.Key;
 
@@ -394,6 +393,15 @@ public class CloudProcessResource {
 		log.info("Refresh " + (new Date().getTime() - begin.getTime()) + "ms");
 		return Response.ok(result.toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": "), MediaType.APPLICATION_JSON).build();
 	}
+	
+	@GET
+	@Produces("application/json")
+	@RolesAllowed("authenticated")
+	@Path("/activeServiceActions")
+	public CloudProcessCollection getStackServiceActionProcessesRunning() throws NotFoundException {
+		Collection<CloudProcess> result = dao.getServiceStackCollectionNonFinalized();
+		return new CloudProcessCollection(result);
+	}
 
 	/*
 	 * Data Access
@@ -563,6 +571,34 @@ public class CloudProcessResource {
 			}
 
 			return result;
+		}
+
+		public Collection<CloudProcess> getServiceStackCollectionNonFinalized() {
+			ActionManager actionManager = new ActionManager();		
+			//Retrieve all stack service actions
+			Collection<StackServiceAction> stackServiceActions = actionManager.getStackServiceAction();
+
+			List<CloudProcess> elements;
+			if(stackServiceActions.getElements().size() > 0)
+			{
+				List<String> uris = new ArrayList<String>(stackServiceActions.getElements().size());
+				for(StackServiceAction action: stackServiceActions.getElements())
+				{
+					uris.add(action.getUri().toString());
+				}
+
+				java.util.Collection<CloudProcess> collection = ofy().load().type(CloudProcess.class).filter("action in", uris).filter("finalized", false).list();
+
+				elements = new ArrayList<CloudProcess>(collection);	
+			}
+			else
+			{
+				elements = new ArrayList<CloudProcess>(0);
+			}
+			
+			Collection<CloudProcess> processes = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, elements);
+			
+			return processes;
 		}
 	}
 
