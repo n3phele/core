@@ -14,6 +14,7 @@ package n3phele.service.rest.impl;
 
 import static com.googlecode.objectify.ObjectifyService.ofy;
 
+import java.io.FileNotFoundException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Date;
@@ -43,6 +44,8 @@ import n3phele.service.actions.NShellAction;
 import n3phele.service.actions.StackServiceAction;
 import n3phele.service.core.NotFoundException;
 import n3phele.service.core.Resource;
+import n3phele.service.core.ResourceFile;
+import n3phele.service.core.ResourceFileFactory;
 import n3phele.service.lifecycle.ProcessLifecycle;
 import n3phele.service.model.Action;
 import n3phele.service.model.ActionState;
@@ -65,6 +68,7 @@ import com.googlecode.objectify.Key;
 @Path("/process")
 public class CloudProcessResource {
 	final private static java.util.logging.Logger log = java.util.logging.Logger.getLogger(CloudProcessResource.class.getName());
+	final private static ResourceFileFactory resourceFileFactory = new ResourceFileFactory();
 
 	public CloudProcessResource() {
 	}
@@ -363,6 +367,68 @@ public class CloudProcessResource {
 		sAction.addRelationhip(relation);
 		ActionResource.dao.update(sAction);
 		return Response.created(p.getUri()).build();
+	}
+	
+	@POST
+	@Produces("application/json")
+	@RolesAllowed("authenticated")
+	@Path("deleteStackService")
+	public Response deleteStackService(@QueryParam("id") long id, List<Variable> context)
+	{
+		StackServiceAction sAction = (StackServiceAction) ActionResource.dao.load(id);
+		if(sAction == null)
+			return Response.status(Response.Status.NOT_FOUND).build();
+		
+		n3phele.service.model.Context env = new n3phele.service.model.Context();
+		env.putValue("arg", getJujuDeleteCommandURI());
+		for (Variable v : Helpers.safeIterator(context)) {
+			env.put(v.getName(), v);
+		}
+		
+		boolean deleted = deleteServiceStackFromAction(sAction, env.getValue("service_name"));
+		if(!deleted)
+			return Response.notModified().build();
+		
+		Class<? extends Action> clazz = NShellAction.class;
+		CloudProcess parent = dao.load(sAction.getProcess());
+		CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), "DeleteService: "+ id, env, null, parent, true, clazz);
+		ProcessLifecycle.mgr().init(p);
+		
+		return Response.ok().build();
+	}
+	
+	public boolean deleteServiceStackFromAction(StackServiceAction sAction, String serviceName)
+	{
+		List<Stack> stackList = sAction.getStacks();
+		
+		for(Stack stack : stackList)
+		{
+			if( stack.getName().equalsIgnoreCase(serviceName) )
+			{
+				stackList.remove(stack);
+				ActionResource.dao.update(sAction);
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	public String getJujuDeleteCommandURI()
+	{
+		try
+		{
+			ResourceFile fileConfig = CloudProcessResource.resourceFileFactory.create("n3phele.resource.service_commands");
+			String deleteCommandURI = fileConfig.get("deleteJujuCommand", "");
+			URI.create(deleteCommandURI); // Just to throw error if URI is invalid.
+			return deleteCommandURI;
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+		return null;
 	}
 
 	@GET
