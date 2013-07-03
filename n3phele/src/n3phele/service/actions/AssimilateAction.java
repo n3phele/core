@@ -199,6 +199,7 @@ public class AssimilateAction extends VMAction {
 			
 			try {
 				if(!this.context.containsKey("publicIpAddress")) {	
+					//if(!this.context.containsKey("publicIpAddress")&&(this.context.getValue("vmFactory")!=null)) {	
 					
 					VirtualServer vs = fetchVirtualServer(client, new URI(this.context.getValue("vmFactory")));						
 					log.info("VMAction: Server status is "+vs.getStatus());
