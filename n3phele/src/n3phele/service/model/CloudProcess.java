@@ -61,7 +61,7 @@ public class CloudProcess extends Entity {
 	@Index protected Date start = null;
 	@Index protected Date complete = null;
 	@Index protected boolean finalized = false;
-	protected String action = null;
+	@Index protected String action = null;
 	@Index protected String parent = null;
 	@Parent Key<CloudProcess> root;
 	@Index(IfTrue.class) boolean topLevel = false;
