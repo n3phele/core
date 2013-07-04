@@ -195,16 +195,7 @@ public class StackServiceAction extends ServiceAction {
 			}
 			break;
 		case Event:
-			// URI processURI2 = URI.create(assertion);
-			// CloudProcess p = CloudProcessResource.dao.load(processURI2);
-			// for(Stack s: this.getStacks()){
-			// if(s.getDeployProcess() == null) continue;
-			// if(s.getDeployProcess().equals(p.getParent().toString())){
-			// s.addVm(p.getUri());
-			// }
-			// }
-			// log.warning("Ignoring event "+assertion);
-			// break;
+			break;
 		case Failed:
 			if (isStacked) {
 				stacks.remove(stacked);
