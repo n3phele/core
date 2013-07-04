@@ -14,8 +14,10 @@ package n3phele.service.rest.impl;
 
 import static com.googlecode.objectify.ObjectifyService.ofy;
 
+import java.io.FileNotFoundException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +25,6 @@ import java.util.Map;
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
-import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -38,11 +39,12 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
-import n3phele.service.actions.JobAction;
 import n3phele.service.actions.NShellAction;
 import n3phele.service.actions.StackServiceAction;
 import n3phele.service.core.NotFoundException;
 import n3phele.service.core.Resource;
+import n3phele.service.core.ResourceFile;
+import n3phele.service.core.ResourceFileFactory;
 import n3phele.service.lifecycle.ProcessLifecycle;
 import n3phele.service.model.Action;
 import n3phele.service.model.ActionState;
@@ -54,17 +56,18 @@ import n3phele.service.model.ServiceModelDao;
 import n3phele.service.model.SignalKind;
 import n3phele.service.model.Stack;
 import n3phele.service.model.Variable;
-import n3phele.service.model.VariableType;
 import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.GenericModelDao;
 import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.User;
+import n3phele.service.rest.impl.ActionResource.ActionManager;
 
 import com.googlecode.objectify.Key;
 
 @Path("/process")
 public class CloudProcessResource {
 	final private static java.util.logging.Logger log = java.util.logging.Logger.getLogger(CloudProcessResource.class.getName());
+	final private static ResourceFileFactory resourceFileFactory = new ResourceFileFactory();
 
 	public CloudProcessResource() {
 	}
@@ -366,6 +369,68 @@ public class CloudProcessResource {
 		ActionResource.dao.update(sAction);
 		return Response.created(p.getUri()).build();
 	}
+	
+	@POST
+	@Produces("application/json")
+	@RolesAllowed("authenticated")
+	@Path("deleteStackService")
+	public Response deleteStackService(@QueryParam("id") long id, List<Variable> context)
+	{
+		StackServiceAction sAction = (StackServiceAction) ActionResource.dao.load(id);
+		if(sAction == null)
+			return Response.status(Response.Status.NOT_FOUND).build();
+		
+		n3phele.service.model.Context env = new n3phele.service.model.Context();
+		env.putValue("arg", getJujuDeleteCommandURI());
+		for (Variable v : Helpers.safeIterator(context)) {
+			env.put(v.getName(), v);
+		}
+		
+		boolean deleted = deleteServiceStackFromAction(sAction, env.getValue("service_name"));
+		if(!deleted)
+			return Response.notModified().build();
+		
+		Class<? extends Action> clazz = NShellAction.class;
+		CloudProcess parent = dao.load(sAction.getProcess());
+		CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), "DeleteService: "+ id, env, null, parent, true, clazz);
+		ProcessLifecycle.mgr().init(p);
+		
+		return Response.ok().build();
+	}
+	
+	public boolean deleteServiceStackFromAction(StackServiceAction sAction, String serviceName)
+	{
+		List<Stack> stackList = sAction.getStacks();
+		
+		for(Stack stack : stackList)
+		{
+			if( stack.getName().equalsIgnoreCase(serviceName) )
+			{
+				stackList.remove(stack);
+				ActionResource.dao.update(sAction);
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	public String getJujuDeleteCommandURI()
+	{
+		try
+		{
+			ResourceFile fileConfig = CloudProcessResource.resourceFileFactory.create("n3phele.resource.service_commands");
+			String deleteCommandURI = fileConfig.get("deleteJujuCommand", "");
+			URI.create(deleteCommandURI); // Just to throw error if URI is invalid.
+			return deleteCommandURI;
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
 
 	@GET
 	@Produces("application/json")
@@ -395,6 +460,15 @@ public class CloudProcessResource {
 		Map<String, Long> result = ProcessLifecycle.mgr().periodicScheduler();
 		log.info("Refresh " + (new Date().getTime() - begin.getTime()) + "ms");
 		return Response.ok(result.toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": "), MediaType.APPLICATION_JSON).build();
+	}
+	
+	@GET
+	@Produces("application/json")
+	@RolesAllowed("authenticated")
+	@Path("/activeServiceActions")
+	public CloudProcessCollection getStackServiceActionProcessesRunning() throws NotFoundException {
+		Collection<CloudProcess> result = dao.getServiceStackCollectionNonFinalized();
+		return new CloudProcessCollection(result);
 	}
 
 	/*
@@ -565,6 +639,34 @@ public class CloudProcessResource {
 			}
 
 			return result;
+		}
+
+		public Collection<CloudProcess> getServiceStackCollectionNonFinalized() {
+			ActionManager actionManager = new ActionManager();		
+			//Retrieve all stack service actions
+			Collection<StackServiceAction> stackServiceActions = actionManager.getStackServiceAction();
+
+			List<CloudProcess> elements;
+			if(stackServiceActions.getElements().size() > 0)
+			{
+				List<String> uris = new ArrayList<String>(stackServiceActions.getElements().size());
+				for(StackServiceAction action: stackServiceActions.getElements())
+				{
+					uris.add(action.getUri().toString());
+				}
+
+				java.util.Collection<CloudProcess> collection = ofy().load().type(CloudProcess.class).filter("action in", uris).filter("finalized", false).list();
+
+				elements = new ArrayList<CloudProcess>(collection);	
+			}
+			else
+			{
+				elements = new ArrayList<CloudProcess>(0);
+			}
+			
+			Collection<CloudProcess> processes = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, elements);
+			
+			return processes;
 		}
 	}
 

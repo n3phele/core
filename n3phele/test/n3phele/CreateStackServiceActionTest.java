@@ -34,6 +34,7 @@ import n3phele.service.model.Action;
 import n3phele.service.model.ActionState;
 import n3phele.service.model.CloudProcess;
 import n3phele.service.model.Context;
+import n3phele.service.model.Stack;
 import n3phele.service.model.Variable;
 import n3phele.service.model.core.User;
 import n3phele.service.rest.impl.ActionResource;
@@ -96,6 +97,21 @@ public class CreateStackServiceActionTest  {
 		assertEquals("Stack not added", sAction.getStacks().get(0).getName(), "deployTest" );
 		assertEquals("List size different than expected", sAction.getStacks().size(), 1 );
 	}
+	
+	@Test
+	public void testDeleteStackService() {
+		User root = UserResource.Root;
+		assertNotNull(root);
+		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
+		
+		StackServiceAction sAction = new StackServiceAction("TestAction", "testAction", root, new Context());
+		sAction.addStack(new Stack("serviceOne","Description"));
+		sAction.addStack(new Stack("serviceTwo","Description"));
+		
+		assertEquals(true, cpr.deleteServiceStackFromAction(sAction, "serviceOne"));
+		assertEquals("http://127.0.0.1:8888/resources/command/7770#HPZone1", cpr.getJujuDeleteCommandURI());
+	}
+	
 	public static class CloudResourceTestWrapper extends CloudProcessResource {
 		public void addSecurityContext(User user) {
 			final User u;

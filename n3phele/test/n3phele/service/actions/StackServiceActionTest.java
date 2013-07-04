@@ -1,12 +1,15 @@
 package n3phele.service.actions;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import java.util.List;
+import java.io.FileNotFoundException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import junit.framework.Assert;
 
+import n3phele.service.core.ResourceFile;
+import n3phele.service.core.ResourceFileFactory;
 import n3phele.service.model.Context;
 import n3phele.service.model.Relationship;
 import n3phele.service.model.Stack;
@@ -14,7 +17,7 @@ import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.User;
 import n3phele.service.rest.impl.ActionResource;
 import n3phele.service.rest.impl.UserResource;
-
+import static org.mockito.Mockito.*;
 
 import org.junit.After;
 import org.junit.Before;
@@ -24,7 +27,6 @@ import org.junit.Test;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
-
 
 public class StackServiceActionTest {
 	private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig().setApplyAllHighRepJobPolicy(), new LocalTaskQueueTestConfig().setDisableAutoTaskExecution(false).setCallbackClass(LocalTaskQueueTestConfig.DeferredTaskCallback.class));
@@ -114,6 +116,7 @@ public class StackServiceActionTest {
 		Assert.assertEquals("dataBase", updated.getRelationships().get(0).getType());
 		Assert.assertEquals("a wordPress and a db", updated.getRelationships().get(0).getDescription());
 	}
+	
 	@Test
 	public void listStackServiceActions(){
 		User root = UserResource.Root;
@@ -130,5 +133,62 @@ public class StackServiceActionTest {
 		System.out.println(list);
 		Assert.assertEquals(sAction.getName(), list.getElements().get(0).getName());
 		Assert.assertEquals(sAction2.getName(), list.getElements().get(1).getName());
+	}
+	
+	@Test
+	public void newServiceStackActionShouldPointToValidServiceCommandsTest() throws URISyntaxException{
+		
+		URI owner = new URI("http://localhost/users/1");
+		StackServiceAction serviceAction = (StackServiceAction) new StackServiceAction().create(owner, null, new Context());
+		
+		int commandsSize = serviceAction.getAcceptedCommands().size();
+		
+		Assert.assertNotSame(0, commandsSize);		
+	}
+	
+	@Test
+	public void addOneCommandToContextOfServiceActionTest() throws URISyntaxException{		
+		StackServiceAction serviceAction = new StackServiceAction();
+				
+		String commandUri = "http://localhost/commands/1";
+		serviceAction.addNewCommand(commandUri);
+	
+		Assert.assertTrue(serviceAction.getAcceptedCommands().contains("http://localhost/commands/1"));
+	}
+	
+	@Test
+	public void addTwoCommandsToContextOfServiceActionTest() throws URISyntaxException{		
+		StackServiceAction serviceAction = new StackServiceAction();
+				
+		String commandUri1 = "http://localhost/commands/1";
+		String commandUri2 = "http://localhost/commands/2";
+		serviceAction.addNewCommand(commandUri1);
+		serviceAction.addNewCommand(commandUri2);
+	
+		Assert.assertTrue(serviceAction.getAcceptedCommands().contains("http://localhost/commands/1"));
+		Assert.assertTrue(serviceAction.getAcceptedCommands().contains("http://localhost/commands/2"));
+	}
+	
+	@Test
+	public void fillCommandsListToServiceContextTest() throws URISyntaxException, FileNotFoundException{		
+		StackServiceAction serviceAction = new StackServiceAction();
+		
+		final ResourceFile resourceMock = mock(ResourceFile.class);
+		when(resourceMock.get(eq("charms"), anyString())).thenReturn("[\"http://localhost/commands/1\",\"http://localhost/commands/122\"]\"");			
+		
+		ResourceFileFactory factoryFake = new ResourceFileFactory(){
+			@Override
+			public ResourceFile create(String filePath)
+			{
+				return resourceMock;
+			}
+		};
+		serviceAction.setResourceFileFactory(factoryFake);
+				
+		serviceAction.registerServiceCommandsToContext();
+		
+		Assert.assertEquals(2, serviceAction.getAcceptedCommands().size());
+		Assert.assertEquals("http://localhost/commands/1", serviceAction.getAcceptedCommands().get(0));
+		Assert.assertEquals("http://localhost/commands/122", serviceAction.getAcceptedCommands().get(1));		
 	}
 }
