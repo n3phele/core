@@ -109,7 +109,7 @@ public class CreateStackServiceActionTest  {
 		sAction.addStack(new Stack("serviceTwo","Description"));
 		
 		assertEquals(true, cpr.deleteServiceStackFromAction(sAction, "serviceOne"));
-		assertEquals("http://127.0.0.1:8888/resources/command/7770#HPZone1", cpr.getJujuDeleteCommandURI());
+		assertEquals("https://n3phele-dev.appspot.com/resources/command/1249002#HPZone1", cpr.getJujuDeleteCommandURI());
 	}
 	
 	public static class CloudResourceTestWrapper extends CloudProcessResource {
