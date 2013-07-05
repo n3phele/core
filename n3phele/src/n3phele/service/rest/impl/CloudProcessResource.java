@@ -465,7 +465,8 @@ public class CloudProcessResource {
 	@RolesAllowed("authenticated")
 	@Path("/activeServiceActions")
 	public CloudProcessCollection getStackServiceActionProcessesRunning() throws NotFoundException {
-		Collection<CloudProcess> result = dao.getServiceStackCollectionNonFinalized();
+		User currentUser = UserResource.toUser(securityContext);
+		Collection<CloudProcess> result = dao.getServiceStackCollectionNonFinalized(currentUser.getUri().toString());
 		return new CloudProcessCollection(result);
 	}
 
@@ -639,7 +640,7 @@ public class CloudProcessResource {
 			return result;
 		}
 
-		public Collection<CloudProcess> getServiceStackCollectionNonFinalized() {
+		public Collection<CloudProcess> getServiceStackCollectionNonFinalized(String owner) {
 			ActionManager actionManager = new ActionManager();		
 			//Retrieve all stack service actions
 			Collection<StackServiceAction> stackServiceActions = actionManager.getStackServiceAction();
@@ -653,7 +654,7 @@ public class CloudProcessResource {
 					uris.add(action.getUri().toString());
 				}
 
-				java.util.Collection<CloudProcess> collection = ofy().load().type(CloudProcess.class).filter("action in", uris).filter("finalized", false).list();
+				java.util.Collection<CloudProcess> collection = ofy().load().type(CloudProcess.class).filter("owner", owner).filter("action in", uris).filter("finalized", false).list();
 
 				elements = new ArrayList<CloudProcess>(collection);	
 			}

@@ -57,6 +57,38 @@ public class DatabaseTestUtils {
 		
 		return processes;
 	}
+	
+	public List<CloudProcess> populateDatabaseWithRandomProcessAndTheseActionsTwoAccounts(CloudProcessManager manager, ActionManager actionManager, List<Action> actions) 
+			throws URISyntaxException {
+		
+		List<CloudProcess> processes = new ArrayList<CloudProcess>();
+		
+		for(int i=1; i <= actions.size(); i++)
+		{
+			CloudProcess process = buildValidCloudProcess("http://127.0.0.1/account/1");
+			process.setTopLevel(true);
+			process.setAction(actions.get(i-1).getUri());
+			manager.add(process);
+			actions.get(i-1).setProcess(process.getUri());
+			actionManager.update(actions.get(i-1));
+			
+			processes.add(process);
+		}
+		
+		for(int i=1; i <= actions.size(); i++)
+		{
+			CloudProcess process = buildValidCloudProcess("http://127.0.0.1/account/2");
+			process.setTopLevel(true);
+			process.setAction(actions.get(i-1).getUri());
+			manager.add(process);
+			actions.get(i-1).setProcess(process.getUri());
+			actionManager.update(actions.get(i-1));
+			
+			processes.add(process);
+		}
+		
+		return processes;
+	}
 
 	public CloudProcess buildValidCloudProcess(String ownerUri)
 			throws URISyntaxException {
