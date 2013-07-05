@@ -19,7 +19,7 @@ import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.annotation.Unindex;
 
 @XmlRootElement(name="Stack")
-@XmlType(name="Stack", propOrder={"name","id", "description" ,"commandUri","vms"})
+@XmlType(name="Stack", propOrder={"name","id", "description" ,"commandUri","vms","deployProcess"})
 @Unindex
 @Cache
 public class Stack{
@@ -31,6 +31,9 @@ public class Stack{
 	
 	private String description;
 	private String commandUri;
+	private String deployProcess;
+	
+
 	
 
 	@Serialize
@@ -97,5 +100,12 @@ public class Stack{
 	public String toString() {
 		return "Stack [id=" + this.id + ", name=" + this.name + ", description=" + this.description + ", vms=" + this.vms + "]";
 	}
+	
+	public String getDeployProcess() {
+		return this.deployProcess;
+	}
 
+	public void setDeployProcess(String deployProcess) {
+		this.deployProcess = deployProcess;
+	}
 }

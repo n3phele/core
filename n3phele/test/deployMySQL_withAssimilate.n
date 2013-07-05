@@ -2,7 +2,7 @@
 # Author: Alexandre Tavares
 name	   : deployMySQL
 description: deploy MySQL
-version	   : 0.2.0
+version	   : 1.2.0
 preferred  : true
 public	   : true
 icon	   : http://www.n3phele.com/icons/custom
@@ -55,5 +55,6 @@ HPZone1: # HP Cloud
 		IP=$(echo $IP | tr -d ' ')
 		echo $IP
 	$$vm = ASSIMILATEVM --targetIP $$on.stdout
+	DESTROY $$my_vm
 
 

@@ -277,9 +277,11 @@ public class CloudProcessResource {
 				
 				Stack stack = new Stack(name, description);
 				stack.setCommandUri(command);		
+				stack.setId(serviceAction.getNextStackNumber());
+				env.putValue("stackId", stack.getId());
 				CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), name, env, null, processParent, true, clazz);
 				ProcessLifecycle.mgr().init(p);
-				stack.addVm(p.getUri());
+				stack.setDeployProcess(p.getUri().toString());
 				serviceAction.addStack(stack);
 				ActionResource.dao.update(serviceAction);
 				return Response.created(p.getUri()).build();

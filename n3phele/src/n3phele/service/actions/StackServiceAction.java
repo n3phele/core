@@ -29,17 +29,19 @@ import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Unindex;
-@EntitySubclass(index=true)
-@XmlRootElement(name="StackServiceAction")
-@XmlType(name="StackServiceAction", propOrder={"serviceDescription","stacks","relationships"})
+
+@EntitySubclass(index = true)
+@XmlRootElement(name = "StackServiceAction")
+@XmlType(name = "StackServiceAction", propOrder = { "serviceDescription", "stacks", "relationships" })
 @Unindex
 @Cache
 public class StackServiceAction extends ServiceAction {
-	//generates the id of stacks
+	// generates the id of stacks
 	private long stackNumber;
 	private String serviceDescription;
-	
+
 	private List<String> adopted = new ArrayList<String>();
+
 	@Embed private List<Stack> stacks = new ArrayList<Stack>();
 	@Embed private List<Relationship> relationships = new ArrayList<Relationship>();
 	@Ignore private ResourceFileFactory resourceFileFactory;
@@ -50,8 +52,8 @@ public class StackServiceAction extends ServiceAction {
 		stackNumber = 0;
 		this.resourceFileFactory = new ResourceFileFactory();
 	}
-	
-	public StackServiceAction(String description,String name, User owner,Context context){
+
+	public StackServiceAction(String description, String name, User owner, Context context) {
 		super(owner, name, context);
 		this.serviceDescription = description;
 		stackNumber = 0;
@@ -109,10 +111,11 @@ public class StackServiceAction extends ServiceAction {
 	 */
 	@Override
 	public String getDescription() {
-		return "StackService "+this.getName();
+		return "StackService " + this.getName();
 	}
+
 	public String getServiceDescription() {
-		
+
 		return this.serviceDescription;
 	}
 
@@ -123,15 +126,17 @@ public class StackServiceAction extends ServiceAction {
 	public List<Stack> getStacks() {
 		return this.stacks;
 	}
+
 	public void setStacks(List<Stack> stacks) {
 		this.stacks = stacks;
 	}
-	
-	public boolean addStack(Stack stack){
-		stack.setId(stackNumber);
-		stackNumber++;
+
+	public boolean addStack(Stack stack) {
+		if(stack.getId() == -1)
+		stack.setId(this.getNextStackNumber());
 		return stacks.add(stack);
 	}
+
 	public List<Relationship> getRelationships() {
 		return this.relationships;
 	}
@@ -139,108 +144,123 @@ public class StackServiceAction extends ServiceAction {
 	public void setRelationships(List<Relationship> relationships) {
 		this.relationships = relationships;
 	}
-	public boolean addRelationhip(Relationship relation){
+
+	public boolean addRelationhip(Relationship relation) {
 		return relationships.add(relation);
 	}
-	
+
+	public long getNextStackNumber() {
+		long id = stackNumber;
+		stackNumber++;
+		return id;
+	}
+
 	@Override
 	public void cancel() {
-		log.info("Cancelling "+stacks.size()+" stacks");
-		for(Stack stack: stacks){
-			for(URI uri: stack.getVms()){
+		log.info("Cancelling " + stacks.size() + " stacks");
+		for (Stack stack : stacks) {
+			for (URI uri : stack.getVms()) {
 				try {
 					processLifecycle().cancel(uri);
 				} catch (NotFoundException e) {
-					log.severe("Not found: "+e.getMessage());
+					log.severe("Not found: " + e.getMessage());
 				}
 			}
 		}
-		for(String vm : adopted) {
+		for (String vm : adopted) {
 			try {
 				processLifecycle().cancel(URI.create(vm));
 			} catch (NotFoundException e) {
-				log.severe("Not found: "+e.getMessage());
+				log.severe("Not found: " + e.getMessage());
 			}
 		}
 	}
-	
+
 	@Override
 	public void dump() {
-		log.info("Dumping "+stacks.size()+" stacks");
-		for(Stack stack: stacks){
-			for(URI uri: stack.getVms()){
+		log.info("Dumping " + stacks.size() + " stacks");
+		for (Stack stack : stacks) {
+			for (URI uri : stack.getVms()) {
 				try {
 					processLifecycle().dump(uri);
 				} catch (NotFoundException e) {
-					log.severe("Not found: "+e.getMessage());
+					log.severe("Not found: " + e.getMessage());
 				}
 			}
 		}
-		for(String vm : adopted) {
+		for (String vm : adopted) {
 			try {
 				processLifecycle().cancel(URI.create(vm));
 			} catch (NotFoundException e) {
-				log.severe("Not found: "+e.getMessage());
+				log.severe("Not found: " + e.getMessage());
 			}
 		}
 	}
+
 	@Override
 	public String toString() {
 		return "StackServiceAction [description=" + this.serviceDescription + ", stacks=" + this.stacks + ", relationships=" + this.relationships + ", idStack=" + this.stackNumber + ", context=" + this.context + ", name=" + this.name + ", uri=" + this.uri + ", owner=" + this.owner + ", isPublic="
 				+ this.isPublic + "]";
 	}
+
 	@Override
 	public void signal(SignalKind kind, String assertion) throws NotFoundException {
 		boolean isStacked = false;
 		Stack stacked = null;
-		for(Stack s: stacks){
-			if(s.getVms().get(0).toString().equals(assertion)){
+		for (Stack s : stacks) {
+			if (s.getDeployProcess() == null)
+				continue;
+			if (s.getDeployProcess().equals(assertion)) {
 				isStacked = true;
 				stacked = s;
 				break;
 			}
 		}
-		
+
 		boolean isAdopted = this.adopted.contains(assertion);
-		log.info("Signal "+kind+":"+assertion);
-		switch(kind) {
-			case Adoption:
-				URI processURI = URI.create(assertion);
-				try {
-					CloudProcess child = CloudProcessResource.dao.load(processURI);
-					log.info("Adopting child "+child.getName()+" "+child.getClass().getSimpleName());
-					this.adopted.add(assertion);
-				} catch (Exception e) {
-					log.info("Assertion is not a cloudProcess");
+		log.info("Signal " + kind + ":" + assertion);
+		switch (kind) {
+		case Adoption:
+			URI processURI = URI.create(assertion);
+			try {
+				CloudProcess child = CloudProcessResource.dao.load(processURI);
+				Action action = ActionResource.dao.load(child.getAction());
+				log.info("Adopting child " + child.getName() + " " + child.getClass().getSimpleName());
+				this.adopted.add(assertion);
+				if (action instanceof AssimilateAction) {
+					for (Stack s : stacks) {
+						if (s.getId() == action.getContext().getLongValue("stackId")) {
+							s.addVm(child.getUri());
+						}
+					}
 				}
-				break;
-			case Cancel:
-				if(isStacked){
-					stacks.remove(stacked);
-				}
-				else if(isAdopted){
-					adopted.remove(assertion);
-				}
-				break;
-			case Event:
-				log.warning("Ignoring event "+assertion);
-				return;
-			case Failed:
-				if(isStacked){
-					stacks.remove(stacked);
-				}
-				else if(isAdopted){
-					adopted.remove(assertion);
-				}
-				break;
-			case Ok:
-				log.info(assertion+" ok");
-				break;
-			default:
-				return;		
+			} catch (Exception e) {
+				log.info("Assertion is not a cloudProcess");
+			}
+			break;
+		case Cancel:
+			if (isStacked) {
+				stacks.remove(stacked);
+			} else if (isAdopted) {
+				adopted.remove(assertion);
+			}
+			break;
+		case Event:
+			break;
+		case Failed:
+			if (isStacked) {
+				stacks.remove(stacked);
+			} else if (isAdopted) {
+				adopted.remove(assertion);
+			}
+			break;
+		case Ok:
+			log.info(assertion + " ok");
+			break;
+		default:
+			return;
 		}
 		ActionResource.dao.update(this);
 	}
-
 
 }
