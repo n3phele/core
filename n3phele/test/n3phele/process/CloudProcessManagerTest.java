@@ -149,7 +149,7 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 		}		
 		populateDatabaseWithRandomProcessAndTheseActions(processManager, actionManager, actions);
 		
-		Collection<CloudProcess> collection = processManager.getServiceStackCollectionNonFinalized();
+		Collection<CloudProcess> collection = processManager.getServiceStackCollectionNonFinalized(owner);
 
 		Collection<StackServiceAction> stackServiceActionsCollection = actionManager.getStackServiceAction();
 		List<StackServiceAction> stackServiceActions = stackServiceActionsCollection.getElements();
@@ -177,7 +177,7 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 		
 		populateDatabaseWithRandomProcessAndTheseActions(processManager, actionManager, actions);
 		
-		Collection<CloudProcess> collection = processManager.getServiceStackCollectionNonFinalized();
+		Collection<CloudProcess> collection = processManager.getServiceStackCollectionNonFinalized(owner);
 
 		Collection<StackServiceAction> stackServiceActionsCollection = actionManager.getStackServiceAction();
 		List<StackServiceAction> stackServiceActions = stackServiceActionsCollection.getElements();
@@ -189,9 +189,32 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 	}
 	
 	@Test
+	public void RetrieveFiveProcessesThatAreServiceStackActionsAndAreStillRunningWithNoOtherProcessTestSameAccount() throws URISyntaxException {
+		CloudProcessManager processManager = new CloudProcessManager();
+
+		String owner = "http://127.0.0.1/account/1";
+		
+		int processCount = 5;
+		//Add processes with stack service actions
+		ActionManager actionManager = new ActionManager();
+		List<Action> actions = createValidServiceStackActions(processCount);
+		for(Action action: actions)
+		{
+			actionManager.add(action);
+		}
+		
+		populateDatabaseWithRandomProcessAndTheseActionsTwoAccounts(processManager, actionManager, actions);
+		
+		Collection<CloudProcess> collection = processManager.getServiceStackCollectionNonFinalized(owner);
+		
+		List<CloudProcess> serviceActionsProcesses = collection.getElements();
+		Assert.assertEquals(processCount + " elements should be found", processCount, serviceActionsProcesses.size());
+	}
+	
+	@Test
 	public void RetrieveTwoProcessesThatAreServiceStackActionsAndAreStillRunningWithOtherTwoNotRunningTest() throws URISyntaxException {
 		CloudProcessManager processManager = new CloudProcessManager();
-		
+		String owner = "http://127.0.0.1/account/1";
 		int processCount = 4;
 		//Add processes with stack service actions
 		ActionManager actionManager = new ActionManager();
@@ -207,7 +230,7 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 		processManager.update(processes.get(0));
 		processManager.update(processes.get(1));
 		
-		Collection<CloudProcess> collection = processManager.getServiceStackCollectionNonFinalized();
+		Collection<CloudProcess> collection = processManager.getServiceStackCollectionNonFinalized(owner);
 		
 		Assert.assertEquals(2, collection.getElements().size());		
 	}
@@ -215,7 +238,7 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 	@Test
 	public void RetrieveEmptyListOfProcessesThatAreServiceStackActionsAndAreStillRunningTest() throws URISyntaxException {
 		CloudProcessManager processManager = new CloudProcessManager();
-		
+		String owner = "http://127.0.0.1/account/1";
 		int processCount = 5;
 
 		ActionManager actionManager = new ActionManager();
@@ -227,7 +250,7 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 		}		
 		populateDatabaseWithRandomProcessAndTheseActions(processManager, actionManager, actions);
 		
-		Collection<CloudProcess> collection = processManager.getServiceStackCollectionNonFinalized();
+		Collection<CloudProcess> collection = processManager.getServiceStackCollectionNonFinalized(owner);
 
 		Collection<StackServiceAction> stackServiceActionsCollection = actionManager.getStackServiceAction();
 		List<StackServiceAction> stackServiceActions = stackServiceActionsCollection.getElements();
