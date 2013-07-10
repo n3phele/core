@@ -302,29 +302,28 @@ public class CloudProcessResource {
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
 	@Path("stackExpose/{id:[0-9]+}")
-	public Response stackExpose(@PathParam("id") long id, @QueryParam("idStack") long idStack, @QueryParam("command") String command,List<Variable> context) throws ClassNotFoundException {
+	public Response stackExpose(@PathParam("id") long id,List<Variable> context) throws ClassNotFoundException {
 		StackServiceAction sAction = (StackServiceAction) ActionResource.dao.load(id);
 		if (CloudProcessResource.dao.load(URI.create(sAction.getProcess().toString())).getState() != ActionState.RUNABLE)
 			return Response.serverError().build();
-
-		Stack id1 = null;
-		for (Stack s : sAction.getStacks()) {
-			if (s.getId() == idStack) {
-				id1 = s;
-				break;
-			}
-		}
 		n3phele.service.model.Context env = new n3phele.service.model.Context();
 
-		env.putValue("arg", command);
+		env.putValue("arg",getJujuExposeStackCommandURI() );
 		for (Variable v : Helpers.safeIterator(context)) {
 			env.put(v.getName(), v);
 		}
-		env.putValue("charm_name", id1.getName());
-		//
+		Stack stack = null;
+		for (Stack s : sAction.getStacks()) {
+			if (s.getName().equalsIgnoreCase(env.getValue("charm_name"))) {
+				stack = s;
+				break;
+			}
+		}
+		if(stack == null)
+			return Response.status(Response.Status.NOT_FOUND).build();
 		Class<? extends Action> clazz = NShellAction.class;
 		CloudProcess parent = dao.load(sAction.getProcess());
-		CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), "Expose "+id1.getName(), env, null, parent, true, clazz);
+		CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), "Expose "+stack.getName(), env, null, parent, true, clazz);
 		ProcessLifecycle.mgr().init(p);
 		return Response.created(p.getUri()).build();
 	}
@@ -335,36 +334,35 @@ public class CloudProcessResource {
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
 	@Path("addRelationStacks/{id:[0-9]+}")
-	public Response addRelationStacks(@PathParam("id") long id, @QueryParam("idStack1") long idStack1, @QueryParam("idStack2") long idStack2, @QueryParam("command") String command,List<Variable> context) throws ClassNotFoundException {
+	public Response addRelationStacks(@PathParam("id") long id,List<Variable> context) throws ClassNotFoundException {
 
 		StackServiceAction sAction = (StackServiceAction) ActionResource.dao.load(id);
 		if (CloudProcessResource.dao.load(URI.create(sAction.getProcess().toString())).getState() != ActionState.RUNABLE)
 			return Response.serverError().build();
-		Stack id1 = null;
-		Stack id2 = null;
-
-		for (Stack s : sAction.getStacks()) {
-			if (s.getId() == idStack1) {
-				id1 = s;
-			}
-			if (s.getId() == idStack2) {
-				id2 = s;
-			}
-		}
-		n3phele.service.model.Context env = new n3phele.service.model.Context();
-
-		env.putValue("arg", command);
+		
+		n3phele.service.model.Context env = new n3phele.service.model.Context();		
 		for (Variable v : Helpers.safeIterator(context)) {
 			env.put(v.getName(), v);
 		}
-		env.putValue("charm_name01", id1.getName());
-		env.putValue("charm_name02", id2.getName());
-		Relationship relation = new Relationship(idStack1, idStack2, null, null);
+		Stack stack1 = null;
+		Stack stack2 = null;
+		env.putValue("arg", getJujuAddRelationCommandURI());
+		for (Stack s : sAction.getStacks()) {
+			if (s.getName().equalsIgnoreCase(env.getValue("charm_name01"))) {
+				stack1 = s;
+			}
+			if (s.getName().equalsIgnoreCase(env.getValue("charm_name02"))) {
+				stack2 = s;
+			}
+		}
+		if(stack1 == null || stack2 == null)
+			return Response.status(Response.Status.NOT_FOUND).build();
+		Relationship relation = new Relationship(stack1.getId(), stack2.getId(), null, null);
 		Class<? extends Action> clazz = NShellAction.class;
 		CloudProcess parent = dao.load(sAction.getProcess());
-		CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), "Relation: "+id + "_" + idStack1 + "_" + idStack2, env, null, parent, true, clazz);
+		CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), "Relation: "+ stack1.getName() + "_" + stack2.getName(), env, null, parent, true, clazz);
 		ProcessLifecycle.mgr().init(p);
-		relation.setName(id1.getName()+"_"+id2.getName());
+		relation.setName(stack1.getName()+"_"+stack2.getName());
 		sAction.addRelationhip(relation);
 		ActionResource.dao.update(sAction);
 		return Response.created(p.getUri()).build();
@@ -431,7 +429,38 @@ public class CloudProcessResource {
 		
 		return null;
 	}
-
+	public String getJujuAddRelationCommandURI()
+	{
+		try
+		{
+			ResourceFile fileConfig = CloudProcessResource.resourceFileFactory.create("n3phele.resource.service_commands");
+			String relationCommandURI = fileConfig.get("addRelationshipCommand", "");
+			URI.create(relationCommandURI); // Just to throw error if URI is invalid.
+			return relationCommandURI;
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	public String getJujuExposeStackCommandURI()
+	{
+		try
+		{
+			ResourceFile fileConfig = CloudProcessResource.resourceFileFactory.create("n3phele.resource.service_commands");
+			String exposeCommandURI = fileConfig.get("stackExpose", "");
+			URI.create(exposeCommandURI); // Just to throw error if URI is invalid.
+			return exposeCommandURI;
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
 	@GET
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
