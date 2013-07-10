@@ -312,18 +312,18 @@ public class CloudProcessResource {
 		for (Variable v : Helpers.safeIterator(context)) {
 			env.put(v.getName(), v);
 		}
-		Stack id1 = null;
+		Stack stack = null;
 		for (Stack s : sAction.getStacks()) {
 			if (s.getName().equalsIgnoreCase(env.getValue("charm_name"))) {
-				id1 = s;
+				stack = s;
 				break;
 			}
 		}
-		if(id1 == null)
+		if(stack == null)
 			return Response.status(Response.Status.NOT_FOUND).build();
 		Class<? extends Action> clazz = NShellAction.class;
 		CloudProcess parent = dao.load(sAction.getProcess());
-		CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), "Expose "+id1.getName(), env, null, parent, true, clazz);
+		CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), "Expose "+stack.getName(), env, null, parent, true, clazz);
 		ProcessLifecycle.mgr().init(p);
 		return Response.created(p.getUri()).build();
 	}
@@ -344,25 +344,25 @@ public class CloudProcessResource {
 		for (Variable v : Helpers.safeIterator(context)) {
 			env.put(v.getName(), v);
 		}
-		Stack id1 = null;
-		Stack id2 = null;
+		Stack stack1 = null;
+		Stack stack2 = null;
 		env.putValue("arg", getJujuAddRelationCommandURI());
 		for (Stack s : sAction.getStacks()) {
 			if (s.getName().equalsIgnoreCase(env.getValue("charm_name01"))) {
-				id1 = s;
+				stack1 = s;
 			}
 			if (s.getName().equalsIgnoreCase(env.getValue("charm_name02"))) {
-				id2 = s;
+				stack2 = s;
 			}
 		}
-		if(id1 == null || id2 == null)
+		if(stack1 == null || stack2 == null)
 			return Response.status(Response.Status.NOT_FOUND).build();
-		Relationship relation = new Relationship(id1.getId(), id2.getId(), null, null);
+		Relationship relation = new Relationship(stack1.getId(), stack2.getId(), null, null);
 		Class<? extends Action> clazz = NShellAction.class;
 		CloudProcess parent = dao.load(sAction.getProcess());
-		CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), "Relation: "+ id1.getName() + "_" + id2.getName(), env, null, parent, true, clazz);
+		CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), "Relation: "+ stack1.getName() + "_" + stack2.getName(), env, null, parent, true, clazz);
 		ProcessLifecycle.mgr().init(p);
-		relation.setName(id1.getName()+"_"+id2.getName());
+		relation.setName(stack1.getName()+"_"+stack2.getName());
 		sAction.addRelationhip(relation);
 		ActionResource.dao.update(sAction);
 		return Response.created(p.getUri()).build();
