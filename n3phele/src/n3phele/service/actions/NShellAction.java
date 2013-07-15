@@ -330,6 +330,8 @@ public class NShellAction extends Action {
 			return variableAssignCommand(s);
 		case assimilatevm:
 			return assimilateVMCommand(s, variableName);
+		case export:
+			return exportCommand(s);
 		default:
 			throw new IllegalArgumentException("Unexpected node "+s.kind);
 		}		
@@ -906,6 +908,31 @@ public class NShellAction extends Action {
 		} else {
 			return this.execute(varAssign.children[0], variableName);
 		}
+	}
+	
+	/** export shell command
+	 * 
+	 * < EXPORT > < VARIABLE >
+	 * 
+	 * @param export
+	 * @return
+	 * @throws NotFoundException
+	 * @throws UnprocessableEntityException 
+	 */
+	private Variable exportCommand(ShellFragment export) throws NotFoundException {
+
+		String variableName = export.value.substring(2); // strip leading $$
+		Variable v = this.context.get(variableName);
+		if(v == null) {
+			log.warning(variableName+" not found");
+			logger.warning(variableName+" not found");
+			throw new NotFoundException(variableName);
+		}
+		
+		URI root = processLifecycle().getProcessRoot(this.getProcess());
+		processLifecycle().insertIntoContext(root, v);
+		
+		return v;
 	}
 	
 	

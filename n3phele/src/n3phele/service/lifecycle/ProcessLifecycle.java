@@ -24,10 +24,13 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import n3phele.service.core.NotFoundException;
+import n3phele.service.core.UnprocessableEntityException;
 import n3phele.service.model.Action;
 import n3phele.service.model.ActionState;
 import n3phele.service.model.CloudProcess;
+import n3phele.service.model.Context;
 import n3phele.service.model.SignalKind;
+import n3phele.service.model.Variable;
 import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.User;
 import n3phele.service.rest.impl.ActionResource;
@@ -1149,6 +1152,73 @@ public class ProcessLifecycle {
 				}
 				log.info("<<<<<<<<signalParent "+childProcessURI);
 			}});
+	}
+	
+	
+	public URI getProcessRoot(final URI uri) {
+		String s = uri.getPath();
+		int lastSlash = s.lastIndexOf("/");
+		String identity = s.substring(lastSlash+1);
+		int split = identity.indexOf('_');
+		if(split == -1) {
+			return uri;
+		} else {
+			return URI.create(s.substring(0,lastSlash+1+split));
+		}
+	}
+	
+	/** Safely inserts a variable into another process context. Processing busy waits for target
+	 * process to be not on the run queue, and then inserts the variable into the process context.
+	 * Because the insertion using a busy wait, the process being updated cannot be the process
+	 * making the insertion call. Similarly, two processes trying to insert into each others context are
+	 * likely to deadlock.
+	 * @param processURI URI of process to be updated.
+	 * @param variable variable to inserted into the process
+	 * @return true on insertion success, false if process is finalized or ill-formed.
+	 * @throws UnprocessableEntityException if the busy wait for the process exceeds the timeout period
+	 */
+	public boolean insertIntoContext(final URI processURI, final Variable variable) throws UnprocessableEntityException {
+		for(int i = 0; i < 1000; i++) {
+			Boolean wait = CloudProcessResource.dao.transact(new Work<Boolean>() {
+	
+				@Override
+				public Boolean run() {
+					log.info(">>>>>>>>>>InsertIntoContext "+processURI);
+					boolean result = false;
+					CloudProcess process = CloudProcessResource.dao.load(processURI);
+					if(process.isFinalized()) {
+						log.warning("Process "+processURI+" is finalized and cannot be updated "+process);
+						return null; 
+					}
+					if(process.getRunning() == null) {
+						Action task = null;
+						try {
+							task = ActionResource.dao.load(process.getAction());
+						} catch (Exception e) {
+							log.log(Level.SEVERE, "Failed to access task "+process.getAction()+" "+process, e);
+							return null;
+						}
+						Context context = task.getContext();
+						context.put(variable.getName(), variable);
+						ActionResource.dao.update(task);
+						return false;
+					}
+					return true;
+				}});
+			if(wait == null)
+				return false;
+			if(wait) {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					// Ignore
+				}
+			} else {
+				return true;
+			}
+		}
+		log.severe("Failed to update context in process "+processURI);
+		throw new UnprocessableEntityException("Failed to update context in process "+processURI);
 	}
 	
 	/*

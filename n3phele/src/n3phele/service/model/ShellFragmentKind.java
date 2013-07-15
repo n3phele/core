@@ -25,6 +25,7 @@ public enum ShellFragmentKind {
     log,
     destroy,
     assimilatevm,
+    export,
     variableAssign,
     expression,
     passThru,
