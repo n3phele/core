@@ -128,8 +128,9 @@ public class ServiceAction extends Action {
 			newArg.append(argv[i]);
 		}
 		childEnv.putValue("arg", newArg.toString());
+		if(this.actionName == null)
+			return;
 		CloudProcess child = processLifecycle().spawn(this.getOwner(), childName, childEnv, null, this.getProcess(), this.actionName);
-		if(child == null) return;
 		processLifecycle().init(child);
 		log.info("Created child "+child.getName()+" "+child.getUri()+" Action "+child.getAction());
 		this.childProcess = child.getUri().toString();
