@@ -921,7 +921,6 @@ public class ProcessLifecycle {
 			throw e;
 		}
 		
-		//canonicalClassName is null
 		CloudProcess process = this.createProcess(user, 
 				name, context, dependency, parent, false,
 				Class.forName(canonicalClassName).asSubclass(Action.class));
