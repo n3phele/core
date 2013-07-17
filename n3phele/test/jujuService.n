@@ -2,7 +2,7 @@
 # Author: Nigel Cook
 name       : jujuService
 description: create a new service for juju deployment
-version    : 0.1
+version    : 0.2
 preferred  : true
 processor  : StackService
 public     : true
