@@ -669,7 +669,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants, ShellConstants
                           }
                     }
                   }
-                  result = result == null ? prefix+t.image : result+" "+t.image;
+                  result = result == null ? prefix+t.image : result+(t.specialToken != null?t.specialToken.image:"")+t.image;
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case PASSTHRU:
         case PASSTHRUMORE:

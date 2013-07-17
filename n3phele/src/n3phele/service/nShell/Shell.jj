@@ -354,7 +354,7 @@ public class Shell/*@bgen(jjtree)*/implements ShellTreeConstants/*@egen*/{/*@bg
                                       jjtree.openNodeScope(jjtn000);
 /*@egen*/ Token t; String result=null; Token first=null; String prefix = ""; }{/*@bgen(jjtree) passThru */
         try {
-/*@egen*/	( LOOKAHEAD(1) t = passThruFragment()		{		  if(first == null)		  {		  	first = t;		  	if(lastWasExp)	{ 		  	  if(first.specialToken != null) {		  	  	prefix = first.specialToken.image;		  	  }		    }  		  }		  result = result == null ? prefix+t.image : result+" "+t.image;		}	)+/*@bgen(jjtree)*/
+/*@egen*/	( LOOKAHEAD(1) t = passThruFragment()		{		  if(first == null)		  {		  	first = t;		  	if(lastWasExp)	{ 		  	  if(first.specialToken != null) {		  	  	prefix = first.specialToken.image;		  	  }		    }  		  }		  result = result == null ? prefix+t.image : result+(t.specialToken != null?t.specialToken.image:"")+t.image;		}	)+/*@bgen(jjtree)*/
         {
           jjtree.closeNodeScope(jjtn000, true);
           jjtc000 = false;
