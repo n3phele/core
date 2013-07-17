@@ -12,7 +12,6 @@ package n3phele.service.actions;
 */
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
@@ -23,19 +22,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
-import com.googlecode.objectify.annotation.Cache;
-import com.googlecode.objectify.annotation.EntitySubclass;
-import com.googlecode.objectify.annotation.Unindex;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.filter.ClientFilter;
-import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
-
-import n3phele.service.core.NotFoundException;
-import n3phele.service.core.Resource;
 import n3phele.service.core.UnprocessableEntityException;
 import n3phele.service.lifecycle.ProcessLifecycle;
 import n3phele.service.lifecycle.ProcessLifecycle.WaitForSignalRequest;
@@ -43,7 +29,6 @@ import n3phele.service.model.Account;
 import n3phele.service.model.Cloud;
 import n3phele.service.model.CloudProcess;
 import n3phele.service.model.Command;
-import n3phele.service.model.Context;
 import n3phele.service.model.SignalKind;
 import n3phele.service.model.Variable;
 import n3phele.service.model.VariableType;
@@ -60,6 +45,17 @@ import n3phele.service.rest.impl.AccountResource;
 import n3phele.service.rest.impl.ActionResource;
 import n3phele.service.rest.impl.CloudProcessResource;
 import n3phele.service.rest.impl.CloudResource;
+
+import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.EntitySubclass;
+import com.googlecode.objectify.annotation.Unindex;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientHandlerException;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.UniformInterfaceException;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.filter.ClientFilter;
+import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 
 
 @EntitySubclass
@@ -381,6 +377,22 @@ public class AssimilateAction extends VMAction {
 		this.failed = failed;
 	}
 	
+	
+	
+	/**
+	 * @return the epoch
+	 */
+	public long getEpoch() {
+		return this.epoch;
+	}
+
+	/**
+	 * @param epoch the epoch to set
+	 */
+	public void setEpoch(long epoch) {
+		this.epoch = epoch;
+	}
+
 	public void killVM() {
 		
 		URI accountURI = Helpers.stringToURI(this.context.getValue("account"));
