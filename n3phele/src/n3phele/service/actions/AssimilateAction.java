@@ -60,7 +60,7 @@ import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 
 @EntitySubclass
 @XmlRootElement(name = "AssimilateAction")
-@XmlType(name = "AssimilateAction", propOrder = { "failed", "targetIP", "epoch" })
+@XmlType(name = "AssimilateAction", propOrder = {  "targetIP" })
 @Unindex
 @Cache
 public class AssimilateAction extends VMAction {
@@ -351,15 +351,15 @@ public class AssimilateAction extends VMAction {
 	/**
 	 * @return the targetIP
 	 */
-	public URI getTargetIP() {
-		return Helpers.stringToURI(targetIP);
+	public String getTargetIP() {
+		return targetIP;
 	}
 
 	/**
 	 * @param targetIP the targetIP to set
 	 */
-	public void setTargetIP(URI targetIP) {
-		this.targetIP = Helpers.URItoString(targetIP);
+	public void setTargetIP(String targetIP) {
+		this.targetIP = targetIP;
 	}
 	
 
