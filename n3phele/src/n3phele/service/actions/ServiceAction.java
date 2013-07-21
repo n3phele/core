@@ -25,6 +25,7 @@ import n3phele.service.model.CloudProcess;
 import n3phele.service.model.Command;
 import n3phele.service.model.Context;
 import n3phele.service.model.SignalKind;
+import n3phele.service.model.Variable;
 import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.ParameterType;
 import n3phele.service.model.core.TypedParameter;
@@ -87,7 +88,7 @@ public class ServiceAction extends Action {
 			command = childAction.getPrototype();
 			List<TypedParameter> myParameters = command.getExecutionParameters();
 
-			myParameters.add(new TypedParameter("name", "job name", ParameterType.String, "", ""));
+			myParameters.add(new TypedParameter("name", "service name", ParameterType.String, "", ""));
 			myParameters.add(new TypedParameter("arg", "command line", ParameterType.String, "", ""));
 			for(TypedParameter param : command.getExecutionParameters()) {
 				param.setDefaultValue(this.context.getValue(param.getName()));
@@ -101,6 +102,13 @@ public class ServiceAction extends Action {
 	
 	@Override
 	public void init() throws Exception {
+		
+		// Initialize serviceName into context
+		
+		Variable serviceName = new Variable("serviceName", this.context.getValue("name").replace(' ','_'));
+		this.getContext().put(serviceName.getName(), serviceName);
+		
+		// process the arguments
 
 		String arg = this.getContext().getValue("arg");
 		String[] argv;
@@ -119,6 +127,9 @@ public class ServiceAction extends Action {
 			childEnv.putValue("action", this.actionName);
 		}
 		
+		if(Helpers.isBlankOrNull(this.actionName))
+			return;
+		
 		String childName = this.getName()+"."+this.actionName;
 
 		StringBuilder newArg = new StringBuilder();
@@ -128,8 +139,7 @@ public class ServiceAction extends Action {
 			newArg.append(argv[i]);
 		}
 		childEnv.putValue("arg", newArg.toString());
-		if(this.actionName == null)
-			return;
+
 		CloudProcess child = processLifecycle().spawn(this.getOwner(), childName, childEnv, null, this.getProcess(), this.actionName);
 		processLifecycle().init(child);
 		log.info("Created child "+child.getName()+" "+child.getUri()+" Action "+child.getAction());

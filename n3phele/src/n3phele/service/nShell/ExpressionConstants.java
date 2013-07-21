@@ -29,31 +29,33 @@ public interface ExpressionConstants {
   /** RegularExpression Id. */
   int LIST = 13;
   /** RegularExpression Id. */
-  int TRUE = 14;
+  int KEY = 14;
   /** RegularExpression Id. */
-  int FALSE = 15;
+  int TRUE = 15;
   /** RegularExpression Id. */
-  int INTEGER_LITERAL = 16;
+  int FALSE = 16;
   /** RegularExpression Id. */
-  int DECIMAL_LITERAL = 17;
+  int INTEGER_LITERAL = 17;
   /** RegularExpression Id. */
-  int HEX_LITERAL = 18;
+  int DECIMAL_LITERAL = 18;
   /** RegularExpression Id. */
-  int OCTAL_LITERAL = 19;
+  int HEX_LITERAL = 19;
   /** RegularExpression Id. */
-  int FLOATING_POINT_LITERAL = 20;
+  int OCTAL_LITERAL = 20;
   /** RegularExpression Id. */
-  int EXPONENT = 21;
+  int FLOATING_POINT_LITERAL = 21;
   /** RegularExpression Id. */
-  int STRING_LITERAL = 22;
+  int EXPONENT = 22;
   /** RegularExpression Id. */
-  int IDENTIFIER = 23;
+  int STRING_LITERAL = 23;
   /** RegularExpression Id. */
-  int VARSTART = 24;
+  int IDENTIFIER = 24;
   /** RegularExpression Id. */
-  int VARREST = 25;
+  int VARSTART = 25;
   /** RegularExpression Id. */
-  int WHITESPACE = 26;
+  int VARREST = 26;
+  /** RegularExpression Id. */
+  int WHITESPACE = 27;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -74,6 +76,7 @@ public interface ExpressionConstants {
     "\"$$unescape(\"",
     "\"$$string(\"",
     "\"$$list(\"",
+    "\"$$key(\"",
     "\"true\"",
     "\"false\"",
     "<INTEGER_LITERAL>",

@@ -14,31 +14,37 @@ package n3phele.service.nShell;
 */
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import n3phele.service.core.NotFoundException;
+import n3phele.service.model.Account;
 import n3phele.service.model.Action;
 import n3phele.service.model.Context;
 import n3phele.service.model.ShellFragment;
 import n3phele.service.model.Variable;
 import n3phele.service.model.VariableType;
+import n3phele.service.model.core.Credential;
 import n3phele.service.n.helpers.StringEscapeUtils;
+import n3phele.service.rest.impl.AccountResource;
 import n3phele.service.rest.impl.ActionResource;
 
 public class ExpressionEngine {
 	private List<ShellFragment> executable;
 	private Context context;
+	private URI user;
 	
 	
 	/**
 	 * @param executable
 	 * @param context
 	 */
-	public ExpressionEngine(List<ShellFragment> executable, Context context) {
+	public ExpressionEngine(List<ShellFragment> executable, Context context, URI user) {
 		this.executable = executable;
 		this.context = context;
+		this.user = user;
 	}
 
 	public Object run() throws IllegalArgumentException, UnexpectedTypeException {
@@ -331,6 +337,7 @@ public class ExpressionEngine {
 		 *  | < ESCAPE > conditionalExpression() ")" { jjtThis.jjtSetValue("escape"); }
 		 *  | < UNESCAPE > conditionalExpression() ")" { jjtThis.jjtSetValue("unescape"); }
 		 *  | < LIST > conditionalExpression() [ "," conditionalExpression() ]* ")" { jjtThis.jjtSetValue("list"); }
+		 *  | < KEY > conditionalExpression() ")" { jjtThis.jjtSetValue("key"); }
 		 * )
 		 */
 		Object[] stack;
@@ -430,6 +437,14 @@ public class ExpressionEngine {
 				return StringEscapeUtils.unescapeJavaString((String)stack[0]);
 			}
 		} else if(s.value.equals("list")) {
+			return listOfChildren(s);
+			
+		} else if(s.value.equals("key")) {
+			if((stack = oneChild(s))!=null && isClass(stack[0], "URI", URI.class)) {
+				URI accountUri = (URI) stack[0];
+				Credential credential = getAccountCredential(accountUri).decrypt();
+				return Arrays.asList(credential.getAccount(), credential.getSecret());
+			}
 			return listOfChildren(s);
 			
 		}
@@ -551,7 +566,7 @@ public class ExpressionEngine {
 	}
 	
 	private Object constantString(ShellFragment s) {
-		return s.value;
+		return StringEscapeUtils.unescapeJavaString(s.value);
 	}
 	
 	private Object constantBoolean(ShellFragment s) {
@@ -608,7 +623,13 @@ public class ExpressionEngine {
 	}
 	
 	private Variable lookup(String name) throws NotFoundException {
-		return lookupFromContext(name, name, this.context);
+		if("ownerId".equals(name)) {
+			String owner = user.toString();
+			owner = owner.substring(owner.lastIndexOf('/')+1);
+			Variable ownerId = new Variable("ownerId", owner);
+			return ownerId;
+		} else
+			return lookupFromContext(name, name, this.context);
 	}
 	
 	private Variable lookupFromContext(final String canonicalName, String field, Context myContext) throws NotFoundException {
@@ -634,5 +655,10 @@ public class ExpressionEngine {
 	protected Context getContext(URI uri) throws NotFoundException {
 		Action action = ActionResource.dao.load(uri);
 		return action.getContext();
+	}
+	
+	protected Credential getAccountCredential(URI accountURI) throws NotFoundException {
+		Account account = AccountResource.dao.load(accountURI, this.user);
+		return account.getCredential();
 	}
 }

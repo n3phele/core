@@ -13,6 +13,7 @@ import n3phele.service.model.Command;
 import n3phele.service.model.Context;
 import n3phele.service.model.ShellFragment;
 import n3phele.service.model.SignalKind;
+import n3phele.service.model.core.Credential;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -549,7 +550,7 @@ public class ExpressionTest {
 
 		public TestExpressionEngine(List<ShellFragment> executable,
 				Context context) {
-			super(executable, context);
+			super(executable, context, URI.create("http://user/1234"));
 		}
 		
 		/* (non-Javadoc)
@@ -561,6 +562,13 @@ public class ExpressionTest {
 			} else if(uri.equals(URI.create("http://foo/contextA"))) {
 				return contextA;
 			}
+			throw new NotFoundException();
+		}
+		
+		protected Credential getAccountCredential(URI accountURI) throws NotFoundException {
+			if(accountURI.equals(URI.create("http://account/4321"))) {
+				return new Credential("account", "secret").encrypt();
+			}  
 			throw new NotFoundException();
 		}
 		

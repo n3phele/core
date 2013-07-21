@@ -428,7 +428,7 @@ public class NShellAction extends Action {
 		childContext.remove("name");
 		
 		ShellFragment expression = this.executable.get(onFragment.children[0]);
-		ExpressionEngine ee = new ExpressionEngine(this.executable, this.context);
+		ExpressionEngine ee = new ExpressionEngine(this.executable, this.context, this.getOwner());
 		URI uri = URI.create(ee.expression(expression).toString());
 		Action action = ActionResource.dao.load(uri);
 		if(action instanceof CreateVMAction) {
@@ -781,7 +781,7 @@ public class NShellAction extends Action {
 				result = new Variable(optionName, fileList);
 				break;
 			case expression:
-				result = new Variable(optionName, new ExpressionEngine(this.executable, this.context).expression(arg));
+				result = new Variable(optionName, new ExpressionEngine(this.executable, this.context, this.getOwner()).expression(arg));
 				break;
 			default:
 				throw new IllegalArgumentException("Found "+arg.kind);
@@ -793,7 +793,7 @@ public class NShellAction extends Action {
 	
 	private String assemblePieces(ShellFragment pieces) throws IllegalArgumentException, UnexpectedTypeException, NotFoundException {
 		StringBuffer result = new StringBuffer();
-		ExpressionEngine ee = new ExpressionEngine(this.executable, this.context);
+		ExpressionEngine ee = new ExpressionEngine(this.executable, this.context, this.getOwner());
 		boolean first = true;
 		for(int i : pieces.children) {
 			ShellFragment piece = this.executable.get(i);
@@ -841,7 +841,7 @@ public class NShellAction extends Action {
 			throw new IllegalArgumentException("For command has "+children+" children");
 		
 		ShellFragment expression = this.executable.get(shellFragment.children[1]);
-		ExpressionEngine ee = new ExpressionEngine(this.executable, this.context);
+		ExpressionEngine ee = new ExpressionEngine(this.executable, this.context, this.getOwner());
 		Object countObject = ee.expression(expression);
 		int count;
 		if(countObject instanceof Long) {
@@ -1484,7 +1484,7 @@ public class NShellAction extends Action {
 	}
 
 	protected ExpressionEngine expressionEngineFactory(int index) {
-		return new ExpressionEngine(this.executable.subList(0, index+1), this.context);
+		return new ExpressionEngine(this.executable.subList(0, index+1), this.context, this.getOwner());
 	}
 	
 	protected ProcessLifecycle processLifecycle() {
