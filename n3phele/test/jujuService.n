@@ -60,6 +60,7 @@ HPZone1: # HP Cloud
                 $$bootstrap = ASSIMILATEVM --targetIP $$bootstrapIP.stdout
                 EXPORT $$bootstrap
 #
+#
 # Replicate the environment on the bootstrap machine so that juju CLI can run there
 #
 #                ON $$vmTavares
