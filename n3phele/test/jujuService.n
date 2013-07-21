@@ -11,10 +11,10 @@ parameters :
             
 HPZone1: # HP Cloud
                 $$vmTavares = CREATEVM --name vmTavares
-                $$controlBucket = ${"n3phele-"+$$serviceName+$$ownerId}
+                $$controlBucket = $${"n3phele-"+$$serviceName+$$ownerId}
                 $$credential = $$key($$vmTavares.account)
-                $$tenant = $$regex($$credential[0], "([^:]+):([^:]+)", 1)
-                $$key = $$regex($$credential[0], "([^:]+):([^:]+)", 2)
+                $$tenant = $$regex($$credential[0],"([^:]+):([^:]+)",1)
+                $$key = $$regex($$credential[0],"([^:]+):([^:]+)",2)
                 $$secret = $$credential[1]
                 ON $$vmTavares 
                                 sudo add-apt-repository -y ppa:juju/devel
@@ -22,6 +22,7 @@ HPZone1: # HP Cloud
                                 if [ -d ~/.juju ]
                                 then rm -rf ~/.juju
                                 fi
+                                mkdir ~/.juju
                                 echo "default: $${$$serviceName}" >> ~/.juju/environments.yaml
                                 echo "environments:" >> ~/.juju/environments.yaml
 								echo "  $${$$serviceName}:" >> ~/.juju/environments.yaml
@@ -32,7 +33,7 @@ HPZone1: # HP Cloud
 								echo "    admin-secret: secretword" >> ~/.juju/environments.yaml
 								echo "    public-bucket-url: https://region-a.geo-1.objects.hpcloudsvc.com/v1/60502529753910" >> ~/.juju/environments.yaml
 								echo "    region: az-1.region-a.geo-1" >> ~/.juju/environments.yaml
-								echo "    tenant-name: $${tenant}" >> ~/.juju/environments.yaml
+								echo "    tenant-name: $${$$tenant}" >> ~/.juju/environments.yaml
 								echo "    auth-url: https://region-a.geo-1.identity.hpcloudsvc.com:35357/v2.0/" >> ~/.juju/environments.yaml
 								echo "    auth-mode: keypair" >> ~/.juju/environments.yaml
 								echo "    access-key: $${$$key}" >> ~/.juju/environments.yaml

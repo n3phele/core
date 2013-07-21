@@ -60,15 +60,14 @@ import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 
 @EntitySubclass
 @XmlRootElement(name = "AssimilateAction")
-@XmlType(name = "AssimilateAction", propOrder = { "failed", "targetIP", "epoch" })
+@XmlType(name = "AssimilateAction", propOrder = { "failed", "targetIP" })
 @Unindex
 @Cache
 public class AssimilateAction extends VMAction {
 	final protected static java.util.logging.Logger log = java.util.logging.Logger.getLogger(AssimilateAction.class.getName());
 	@XmlTransient private ActionLogger logger;
 	private boolean failed = false;
-	private String targetIP;
-	private long epoch;
+	private String targetIP;;
 		
 	@Override
 	public void init() throws Exception {
@@ -351,15 +350,15 @@ public class AssimilateAction extends VMAction {
 	/**
 	 * @return the targetIP
 	 */
-	public URI getTargetIP() {
-		return Helpers.stringToURI(targetIP);
+	public String getTargetIP() {
+		return this.targetIP;
 	}
 
 	/**
 	 * @param targetIP the targetIP to set
 	 */
-	public void setTargetIP(URI targetIP) {
-		this.targetIP = Helpers.URItoString(targetIP);
+	public void setTargetIP(String targetIP) {
+		this.targetIP = targetIP;
 	}
 	
 
@@ -378,19 +377,18 @@ public class AssimilateAction extends VMAction {
 	}
 	
 	
+	/**
+	 * @return the failed
+	 */
+	public boolean isFailed() {
+		return this.failed;
+	}
 	
 	/**
-	 * @return the epoch
+	 * @return the failed
 	 */
-	public long getEpoch() {
-		return this.epoch;
-	}
-
-	/**
-	 * @param epoch the epoch to set
-	 */
-	public void setEpoch(long epoch) {
-		this.epoch = epoch;
+	public boolean getFailed() {
+		return this.failed;
 	}
 
 	public void killVM() {

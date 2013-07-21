@@ -72,6 +72,7 @@ public class VMAction extends Action {
 	@OnSave void saveFileMap() { 
 		this.fileTableList.clear(); if(this.fileTable.size() != 0) this.fileTableList.addAll(fileTable.values()); 
 	}
+	protected long epoch;
 	
 	/* (non-Javadoc)
 	 * @see n3phele.service.model.Action#getDescription()
@@ -108,11 +109,6 @@ public class VMAction extends Action {
 		return command;
 	}
 	
-	
-	
-	
-	
-	private long epoch;
 	@Override
 	public void init() throws Exception {
 		logger = new ActionLogger(this);
