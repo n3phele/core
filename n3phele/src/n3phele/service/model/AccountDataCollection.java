@@ -1,8 +1,3 @@
-/**
- * @author Nigel Cook
- *
- * (C) Copyright 2010-2011. All rights reserved.
- */
 package n3phele.service.model;
 
 import java.util.List;
