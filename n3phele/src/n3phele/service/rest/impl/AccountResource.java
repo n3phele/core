@@ -42,6 +42,8 @@ import n3phele.service.core.NotFoundException;
 import n3phele.service.core.Resource;
 import n3phele.service.model.Account;
 import n3phele.service.model.AccountCollection;
+import n3phele.service.model.AccountData;
+import n3phele.service.model.AccountDataCollection;
 import n3phele.service.model.Action;
 import n3phele.service.model.ActivityData;
 import n3phele.service.model.ActivityDataCollection;
@@ -75,24 +77,43 @@ public class AccountResource {
 
 		log.warning("list Accounts entered with summary " + summary);
 
-		Collection<Account> result = dao.getAccountList(UserResource.toUser(securityContext), summary);
+		Collection<Account> result = dao.getAccountList(getUser(), summary);
 
 		return new AccountCollection(result, 0, -1);
 	}
 
+	@GET
+	@Produces("application/json")
+	@RolesAllowed("authenticated")
+	@Path("/accountData")
+	public AccountDataCollection listAccountOnlyData(@DefaultValue("false") @QueryParam("summary") Boolean summary) {
+		Collection<Account> result = dao.getAccountList(getUser(), summary);
+		List<Account> list = result.getElements();
+		List<AccountData> data = new ArrayList<AccountData>();
+		for (Account account : list) {
+			List<ActivityData> dados = listRunningCloudProcessWithCostsActivityData(""+account.getId()).getElements();
+			data.add(new AccountData(account.getName(),"US$" +totalCost24Hour(""+account.getId()).getElements().get(0), "" + dados.size(), account.getCloudName(),account.getUri().toString()));
+		}
+		return new AccountDataCollection(data);
+	}
+
+	public User getUser() {
+		return UserResource.toUser(securityContext);
+	}
+	
 	@POST
 	@Produces("text/plain")
 	@RolesAllowed("authenticated")
 	public Response add(@FormParam("name") String name, @FormParam("description") String description, @FormParam("cloud") URI cloud, @FormParam("accountId") String accountId, @FormParam("secret") String secret) {
 
-		Cloud myCloud = CloudResource.dao.load(cloud, UserResource.toUser(securityContext));
+		Cloud myCloud = CloudResource.dao.load(cloud, getUser());
 		if (name == null || name.trim().length() == 0) {
 			throw new IllegalArgumentException("bad name");
 		}
-		Account account = new Account(name, description, cloud, myCloud.getName(), new Credential(accountId, secret).encrypt(), UserResource.toUser(securityContext).getUri(), false);
+		Account account = new Account(name, description, cloud, myCloud.getName(), new Credential(accountId, secret).encrypt(), getUser().getUri(), false);
 
 		dao.add(account);
-		String result = CloudResource.testAccount(myCloud, UserResource.toUser(securityContext), account, true);
+		String result = CloudResource.testAccount(myCloud, getUser(), account, true);
 		if (result == null || result.trim().length() == 0) {
 			log.warning("Created " + account.getUri());
 			return Response.created(account.getUri()).build();
@@ -108,8 +129,8 @@ public class AccountResource {
 	@RolesAllowed("authenticated")
 	public Account update(@PathParam("id") Long id, @FormParam("name") String name, @FormParam("description") String description, @FormParam("cloud") URI cloud, @FormParam("accountId") String accountId, @FormParam("secret") String secret) {
 
-		Cloud myCloud = CloudResource.dao.load(cloud, UserResource.toUser(securityContext));
-		Account item = dao.load(id, UserResource.toUser(securityContext));
+		Cloud myCloud = CloudResource.dao.load(cloud, getUser());
+		Account item = dao.load(id, getUser());
 		if (name == null || name.trim().length() == 0) {
 			throw new IllegalArgumentException("bad name");
 		}
@@ -124,7 +145,7 @@ public class AccountResource {
 		if (credential != null)
 			item.setCredential(credential);
 		dao.update(item);
-		String result = CloudResource.testAccount(myCloud, UserResource.toUser(securityContext), item, true);
+		String result = CloudResource.testAccount(myCloud, getUser(), item, true);
 
 		log.warning("Updated " + item.getUri() + ((credential != null) ? " including credential " + result : ""));
 		return item;
@@ -181,7 +202,7 @@ public class AccountResource {
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
 	@Path("/{account}/runningprocess/get")
-	public ActivityDataCollection listRunningCloudProcessWithCostsActivityData(@PathParam("account") String account, @PathParam("days") int days) {
+	public ActivityDataCollection listRunningCloudProcessWithCostsActivityData(@PathParam("account") String account) {
 		Collection<CloudProcess> result = dao.getRunningProcess(account);
 		List<ActivityData> list = new ArrayList<ActivityData>();
 		for (CloudProcess c : result.getElements()) {
@@ -536,14 +557,16 @@ public class AccountResource {
 			totalcost = totalcost + d;
 		}
 		ArrayList<Double> list2 = new ArrayList<Double>();
-		list2.add(totalcost);
+		list2.add(Double.parseDouble(String.format("%.3f", totalcost).replace(',', '.')));
 		list2.add(0.0);
+		
 		return new CostsCollection(list2);
 	}
 	protected void formatDoubleList(List<Double> listfinal) {
 		for (int i = 0; i < listfinal.size(); i++) {
 			listfinal.set(i, Double.parseDouble(String.format("%.3f", listfinal.get(i)).replace(',', '.')));
 		}
+		
 	}
 
 
@@ -553,7 +576,7 @@ public class AccountResource {
 	@RolesAllowed("authenticated")
 	public Account get(@PathParam("id") Long id) throws NotFoundException {
 
-		Account item = dao.load(id, UserResource.toUser(securityContext));
+		Account item = dao.load(id, getUser());
 		return item;
 	}
 
@@ -563,7 +586,7 @@ public class AccountResource {
 	@RolesAllowed("authenticated")
 	public Account get(@QueryParam("id") String id) throws NotFoundException {
 
-		Account item = dao.load(id, UserResource.toUser(securityContext));
+		Account item = dao.load(id, getUser());
 		return item;
 	}
 	
@@ -571,7 +594,7 @@ public class AccountResource {
 	@Path("{id}")
 	@RolesAllowed("authenticated")
 	public void delete(@PathParam("id") Long id) throws NotFoundException {
-		Account item = dao.load(id, UserResource.toUser(securityContext));
+		Account item = dao.load(id, getUser());
 		dao.delete(item);
 	}
 
