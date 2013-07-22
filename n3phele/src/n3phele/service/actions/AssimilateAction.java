@@ -436,6 +436,50 @@ public class AssimilateAction extends VMAction {
 						super.toString());
 	}
 	
+	
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + (this.failed ? 1231 : 1237);
+		result = prime * result
+				+ ((this.logger == null) ? 0 : this.logger.hashCode());
+		result = prime * result
+				+ ((this.targetIP == null) ? 0 : this.targetIP.hashCode());
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		AssimilateAction other = (AssimilateAction) obj;
+		if (this.failed != other.failed)
+			return false;
+		if (this.logger == null) {
+			if (other.logger != null)
+				return false;
+		} else if (!this.logger.equals(other.logger))
+			return false;
+		if (this.targetIP == null) {
+			if (other.targetIP != null)
+				return false;
+		} else if (!this.targetIP.equals(other.targetIP))
+			return false;
+		return true;
+	}
+
 	private void mergeCloudDefaultsIntoContext(Cloud cloud) {
 		for(TypedParameter p : Helpers.safeIterator(cloud.getInputParameters())) {
 			if(!this.context.containsKey(p.getName())) {
