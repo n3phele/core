@@ -262,6 +262,7 @@ public class CloudProcessResource {
 				for (Variable v : Helpers.safeIterator(context)) {
 					env.put(v.getName(), v);
 				}
+				env.putValue("arg", arg);
 				if(env.getValue("service_name") != null)
 					name = env.getValue("service_name");		
 				String description = env.getValue("description");
