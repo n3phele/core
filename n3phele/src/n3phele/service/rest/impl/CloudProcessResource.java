@@ -246,9 +246,7 @@ public class CloudProcessResource {
 		
 		n3phele.service.model.Context env = new n3phele.service.model.Context();
 		env.putValue("arg", arg);
-		for (Variable v : Helpers.safeIterator(context)) {
-			env.put(v.getName(), v);
-		}		
+			
 		Class<? extends Action> clazz = Class.forName("n3phele.service.actions." + action + "Action").asSubclass(Action.class);
 		//check parent here
 		if(parent != null && parent.trim().length() > 0){
@@ -258,7 +256,13 @@ public class CloudProcessResource {
 			Action parentAction =  ActionResource.dao.load(actionURI);
 			if(processParent.getState() != ActionState.RUNABLE) return Response.serverError().build();
 			if(parentAction instanceof StackServiceAction){
-				StackServiceAction serviceAction = (StackServiceAction)parentAction;			
+				StackServiceAction serviceAction = (StackServiceAction)parentAction;						
+				env.putAll(serviceAction.getContext());
+				env.remove("name");
+				for (Variable v : Helpers.safeIterator(context)) {
+					env.put(v.getName(), v);
+				}
+				env.putValue("arg", arg);
 				if(env.getValue("service_name") != null)
 					name = env.getValue("service_name");		
 				String description = env.getValue("description");
@@ -278,6 +282,7 @@ public class CloudProcessResource {
 				Stack stack = new Stack(name, description);
 				stack.setCommandUri(command);		
 				stack.setId(serviceAction.getNextStackNumber());
+			
 				env.putValue("stackId", stack.getId());
 				CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), name, env, null, processParent, true, clazz);
 				ProcessLifecycle.mgr().init(p);
@@ -287,7 +292,9 @@ public class CloudProcessResource {
 				return Response.created(p.getUri()).build();
 			}
 		}
-	
+		for (Variable v : Helpers.safeIterator(context)) {
+			env.put(v.getName(), v);
+		}
 		if (clazz != null) {
 			CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), name, env, null, null, true, clazz);
 			ProcessLifecycle.mgr().init(p);
