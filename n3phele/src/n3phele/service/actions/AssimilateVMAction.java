@@ -12,7 +12,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
-import n3phele.service.actions.AssimilateAction.AssimilateVirtualServerResult;
 import n3phele.service.core.UnprocessableEntityException;
 import n3phele.service.lifecycle.ProcessLifecycle;
 import n3phele.service.lifecycle.ProcessLifecycle.WaitForSignalRequest;
@@ -20,10 +19,7 @@ import n3phele.service.model.Account;
 import n3phele.service.model.Cloud;
 import n3phele.service.model.CloudProcess;
 import n3phele.service.model.Command;
-import n3phele.service.model.Context;
 import n3phele.service.model.SignalKind;
-import n3phele.service.model.Variable;
-import n3phele.service.model.VariableType;
 import n3phele.service.model.core.CreateVirtualServerResponse;
 import n3phele.service.model.core.Credential;
 import n3phele.service.model.core.ExecutionFactoryAssimilateRequest;
@@ -76,19 +72,14 @@ public class AssimilateVMAction extends VMAction{
 	@Override
 	public void init() throws Exception {
 		logger = new ActionLogger(this);
-		log.info(">>>Initiating assimilate<<<");
-		logger.info(">>>Initiating assimilate<<<");
-		URI accountURI = Helpers.stringToURI(this.context.getValue("account"));
-		if(accountURI == null)
-			throw new IllegalArgumentException("Missing account");
-		Account account = AccountResource.dao.load(accountURI, this.getOwner());
-		Cloud cloud = CloudResource.dao.load(account.getCloud(), this.getOwner());
+		this.epoch = new Date().getTime();
+		log.info(">>>Initiating assimilateVM<<<");
+		logger.info(">>>Initiating assimilateVM<<<");	
+		
+		log.info("Process URI: "+this.getProcess());
+		logger.info("Process URI: "+this.getProcess());	
 		
 		this.targetIP = this.getContext().getValue("targetIP");
-		log.info("Target IP: "+this.targetIP);
-		logger.info("Target IP: "+this.targetIP);
-		mergeCloudDefaultsIntoContext(cloud);
-		retrieveVirtualServer(cloud, account);
 		
 	}
 
@@ -147,32 +138,7 @@ public class AssimilateVMAction extends VMAction{
 				log.info("IP found on factory");
 				logger.info("IP found on factory");
 				URI[] list = response.getRefs();	
-				this.context.putValue("vmFactory", list[0].toString());
-				
-				
-				Context childContext = new Context();
-				childContext.putAll(this.context);
-				childContext.putValue("name", name);				
-				
-				
-				CloudProcess children = CloudProcessResource.dao.load(this.getProcess());	
-				
-				try{
-				VirtualServer vs = fetchVirtualServer(client, list[0]);
-				
-				if(vs!= null){
-					double value = getValueByCDN(cloud, vs.getParameters());
-					Date date = vs.getCreated();
-					
-					setCloudProcessPrice(account,actionProcess,value, date);
-					log.info("Process created and set");
-					logger.info("Process created and set");
-				}
-				}catch(Exception e) {
-					failed = true;
-					log.log(Level.SEVERE, "VM fetch", e);
-					logger.info("Error: could not retrieve virtual machine");					
-				}
+				this.context.putValue("vmFactory", list[0].toString());		
 			}
 		} catch (Exception e) {
 			failed = true;
@@ -187,6 +153,8 @@ public class AssimilateVMAction extends VMAction{
 	
 	@Override
 	public boolean call() throws WaitForSignalRequest, Exception {
+		log.info("AssimilateVM call: epoch =  "+this.epoch);
+		log.info("AssimilateVM call: epoch =  "+this.epoch);
 		if(epoch != 0) {
 							
 			URI accountURI = Helpers.stringToURI(this.context.getValue("account"));
@@ -229,7 +197,6 @@ public class AssimilateVMAction extends VMAction{
 					}
 				
 				epoch = 0;
-				CloudProcess actionProcess = CloudProcessResource.dao.load(this.getProcess());	
 				ProcessLifecycle.mgr().signalParent(this.getProcess(), SignalKind.Ok, this.getProcess().toString());
 				throw new ProcessLifecycle.WaitForSignalRequest();
 				}
@@ -384,21 +351,7 @@ public class AssimilateVMAction extends VMAction{
 	public void setFailed(boolean failed) {
 		this.failed = failed;
 	}
-	
-	
-	/**
-	 * @return the failed
-	 */
-	public boolean isFailed() {
-		return this.failed;
-	}
-	
-	/**
-	 * @return the failed
-	 */
-	public boolean getFailed() {
-		return this.failed;
-	}
+		
 
 	public void killVM() {
 		
@@ -413,7 +366,7 @@ public class AssimilateVMAction extends VMAction{
 		client.setReadTimeout(90000);
 		client.setConnectTimeout(5000);		
 		try {			
-			int status = terminate(client, this.context.getValue("vmFactory"), false, false, true);
+			int status = terminate(client, this.context.getValue("vmFactory"), true, false, false);
 			log.info("Delete status is "+status);
 			//IP not found on cloud
 			if(status == 404){
@@ -440,7 +393,7 @@ public class AssimilateVMAction extends VMAction{
 	@Override
 	public String toString() {
 		return String
-				.format("AssimilateAction [failed=%s, target=%s, toString()=%s]",
+				.format("AssimilateVMAction [failed=%s, targetIP=%s, toString()=%s]",
 						failed, targetIP,
 						super.toString());
 	}
@@ -473,7 +426,7 @@ public class AssimilateVMAction extends VMAction{
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		AssimilateAction other = (AssimilateAction) obj;
+		AssimilateVMAction other = (AssimilateVMAction) obj;
 		if (this.failed != other.failed)
 			return false;
 		if (this.logger == null) {
@@ -489,38 +442,6 @@ public class AssimilateVMAction extends VMAction{
 		return true;
 	}
 
-	private void mergeCloudDefaultsIntoContext(Cloud cloud) {
-		for(TypedParameter p : Helpers.safeIterator(cloud.getInputParameters())) {
-			if(!this.context.containsKey(p.getName())) {
-					if(!Helpers.isBlankOrNull(p.valueOf())) {
-					Variable v = new Variable();
-					v.setName(p.getName());
-					v.setValue(p.valueOf());
-					v.setType(VariableType.valueOf(p.getType().toString()));
-					this.context.put(v.getName(), v);
-					log.info("Inserting "+v);
-				}
-			} else {
-				log.info(p.getName()+" already exists ");
-			}
-		}
-	}
-	
-	private double getValueByCDN(Cloud myCloud, ArrayList<NameValue> values){
-		for(int i = 0; i < values.size(); i++){
-			if(values.get(i).getKey().equals(myCloud.getCostDriverName())){
-				double value = myCloud.getCostMap().get( values.get(i).getValue());
-				return value;			
-			}
-		}
-		return 0;
-	}
-	
-	private void setCloudProcessPrice(Account account, CloudProcess process,double value,Date date){
-		
-		processLifecycle().setCloudProcessPrice(account.getUri().toString(), process,value,date);
-	}
-	
 	
 	protected VirtualServer fetchVirtualServer(Client client, URI uri) {
 		return client.resource(uri).get(VirtualServer.class);

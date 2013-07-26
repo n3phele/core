@@ -227,6 +227,7 @@ public class AssimilateAction extends Action {
 	@Override
 	public void signal(SignalKind kind, String assertion) {
 		log.info("Assimilate gets Signal "+kind+":"+assertion);
+		logger.info("Assimilate gets Signal "+kind+":"+assertion);
 		boolean isChild = this.inProgress.contains(assertion);
 		switch(kind) {
 		case Adoption:
