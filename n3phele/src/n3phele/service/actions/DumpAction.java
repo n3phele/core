@@ -212,5 +212,4 @@ public class DumpAction extends LogAction {
 			return false;
 		return true;
 	}
-
 }
