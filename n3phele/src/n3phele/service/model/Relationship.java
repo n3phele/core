@@ -1,12 +1,7 @@
 package n3phele.service.model;
 
-import java.io.Serializable;
-import java.net.URI;
-
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
-
-import n3phele.service.model.core.Entity;
 
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Unindex;

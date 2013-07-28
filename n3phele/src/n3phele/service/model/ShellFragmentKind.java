@@ -22,6 +22,7 @@ public enum ShellFragmentKind {
     option,
     literalArg,
     on,
+    onexit,
     log,
     destroy,
     assimilatevm,

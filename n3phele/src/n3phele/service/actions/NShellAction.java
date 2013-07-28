@@ -322,6 +322,8 @@ public class NShellAction extends Action {
 			return destroyCommand(s);
 		case on:
 			return onCommand(s, variableName);
+		case onexit:
+			return onExitCommand(s, variableName);
 		case log:
 			return logCommand(s, variableName);
 		case forCommand:
@@ -367,7 +369,7 @@ public class NShellAction extends Action {
 			}
 		}
 		boolean isAsync = childContext.getBooleanValue("async");
-		return makeChildProcess("CreateVM", childContext, specifiedName, isAsync);
+		return makeChildProcess("CreateVM", childContext, specifiedName, isAsync, null);
 
 	}
 	
@@ -401,7 +403,7 @@ public class NShellAction extends Action {
 			}
 		}
 		boolean isAsync = childContext.getBooleanValue("async");
-		return makeChildProcess("Assimilate", childContext, specifiedName, isAsync);
+		return makeChildProcess("Assimilate", childContext, specifiedName, isAsync, null);
 
 	}
 
@@ -422,12 +424,50 @@ public class NShellAction extends Action {
 	 * @throws NotFoundException
 	 * @throws ClassNotFoundException
 	 */
+	
 	private Variable onCommand(ShellFragment onFragment, String specifiedName) throws IllegalArgumentException, UnexpectedTypeException, NotFoundException, ClassNotFoundException {
+		return onCommandProcessing(false, onFragment, specifiedName);
+	}
+	
+	
+	/** ONEXIT shell command
+	 * 
+	 * ONEXIT:: < ONEXIT > expression() ( option() )*  pieces()
+	 * PIECES:: ( expression | passThru )+
+	 * option:: (
+	 *				(< OPTION > arg() )
+	 *			  |  < NO_ARG_OPTION >
+  	 *			)
+	 * 
+	 * @param onFragment	
+	 * @param specifiedName 
+	 * @return
+	 * @throws IllegalArgumentException
+	 * @throws UnexpectedTypeException
+	 * @throws NotFoundException
+	 * @throws ClassNotFoundException
+	 */
+	private Variable onExitCommand(ShellFragment onFragment, String specifiedName) throws IllegalArgumentException, UnexpectedTypeException, NotFoundException, ClassNotFoundException {
+		return onCommandProcessing(true, onFragment, specifiedName);
+	}
+
+	/** ON and ONEXIT command processing
+	 * @param isOnExit true if performing OnExit command processing
+	 * @param onOrOnExitFragment shell command fragment for On or OnExit command
+	 * @param specifiedName specified command name or null if none
+	 * @return
+	 * @throws IllegalArgumentException
+	 * @throws UnexpectedTypeException
+	 * @throws NotFoundException
+	 * @throws ClassNotFoundException
+	 */
+	private Variable onCommandProcessing(boolean isOnExit, ShellFragment onOrOnExitFragment, String specifiedName) throws IllegalArgumentException, UnexpectedTypeException, NotFoundException, ClassNotFoundException {
+		List<CloudProcess> needsInit = new ArrayList<CloudProcess>();
 		Context childContext = new Context();
 		childContext.putAll(this.context);
 		childContext.remove("name");
 		
-		ShellFragment expression = this.executable.get(onFragment.children[0]);
+		ShellFragment expression = this.executable.get(onOrOnExitFragment.children[0]);
 		ExpressionEngine ee = new ExpressionEngine(this.executable, this.context, this.getOwner());
 		URI uri = URI.create(ee.expression(expression).toString());
 		Action action = ActionResource.dao.load(uri);
@@ -440,9 +480,9 @@ public class NShellAction extends Action {
 
 		VMAction target =  (VMAction) action;
 		
-		ShellFragment pieces = this.executable.get(onFragment.children[onFragment.children.length-1]);
-		for(int i=1; i < onFragment.children.length-1; i++){
-			ShellFragment option = this.executable.get(onFragment.children[i]);
+		ShellFragment pieces = this.executable.get(onOrOnExitFragment.children[onOrOnExitFragment.children.length-1]);
+		for(int i=1; i < onOrOnExitFragment.children.length-1; i++){
+			ShellFragment option = this.executable.get(onOrOnExitFragment.children[i]);
 			String optionName = option.value;
 			if(option.children != null && option.children.length != 0) {
 				Variable v = optionParse(option);
@@ -540,10 +580,8 @@ public class NShellAction extends Action {
 				abort(p);
 			}
 		}
-		for(CloudProcess p : inputXferProcess.values()) {
-			processLifecycle().init(p);
-		}
 		
+		needsInit.addAll(inputXferProcess.values());	
 		
 		/*
 		 * Create the On command with execution dependencies of the file copy processes
@@ -557,7 +595,20 @@ public class NShellAction extends Action {
 		childContext.putValue("command", assemblePieces(pieces));
 		childContext.putObjectValue("target", target.getUri());
 		
-		Variable on = makeChildProcess("On", childContext, specifiedName, isAsync, dependentOn);
+		Variable on;
+		if(isOnExit) {
+			CloudProcess child = forkOnExitChildProcess(childContext, specifiedName, dependentOn);	
+			needsInit.add(child);
+			on = this.context.get(child.getName());
+			
+		} else {
+			CloudProcess child = forkChildProcess("On", childContext, specifiedName, dependentOn);
+			if(!isAsync)
+				this.setWatchFor(child.getUri());	
+			needsInit.add(child);
+			on = this.context.get(child.getName());
+		}
+		
 		OnAction onAction = (OnAction) ActionResource.dao.load(URI.create(on.value()));
 		
 		
@@ -587,9 +638,19 @@ public class NShellAction extends Action {
 				fileCopyContext.putValue("source", URI.create("file:///"+outputXfer.getLocalName()));
 				fileCopyContext.putValue("fileTableId", outputXfer.getName());
 				CloudProcess fileCopy = forkChildProcess("FileTransfer", fileCopyContext, generateUniqueName("FileTransfer"), Arrays.asList(outputXfer.getProcess()));
-				processLifecycle().init(fileCopy);
+				needsInit.add(fileCopy);
 			}
 		}
+		
+		//
+		// Init processes
+		//
+		if(!isOnExit)
+			for(CloudProcess p : needsInit) {
+				processLifecycle().init(p);
+			}
+		else
+			processLifecycle().addOnExitProcesses(this.getProcess(), needsInit); 
 		
 		return on;
 		
@@ -961,7 +1022,7 @@ public class NShellAction extends Action {
 		// Dont childContext.remove("name"); -- use the parents name
 		childContext.putValue("arg", arg);
 		
-		return makeChildProcess("Log", childContext, specifiedName, false);
+		return makeChildProcess("Log", childContext, specifiedName, false, null);
 	}
 	
 	
@@ -1145,10 +1206,6 @@ public class NShellAction extends Action {
 		throw new NotFoundException(uri.toString());
 	}
 	
-	private Variable makeChildProcess(String processType, Context childContext, String variableName, boolean isAsync) throws NotFoundException, IllegalArgumentException, ClassNotFoundException {
-		return makeChildProcess(processType, childContext, variableName, isAsync, null);
-	}
-	
 	private Variable makeChildProcess(String processType, Context childContext, String variableName, boolean isAsync, Set<URI> dependency) throws NotFoundException, IllegalArgumentException, ClassNotFoundException {
 		
 		CloudProcess child = forkChildProcess(processType, childContext, variableName, dependency);
@@ -1160,6 +1217,12 @@ public class NShellAction extends Action {
 	
 	
 	private CloudProcess forkChildProcess(String processType, Context childContext, String variableName, List<URI> dependency) throws NotFoundException, IllegalArgumentException, ClassNotFoundException {
+		CloudProcess child = forkChildProcessNoTracking(processType, childContext, variableName, dependency);
+		this.active.add(child.getUri().toString());
+		return child;
+	}
+	
+	private CloudProcess forkChildProcessNoTracking(String processType, Context childContext, String variableName, List<URI> dependency) throws NotFoundException, IllegalArgumentException, ClassNotFoundException {
 		
 		String optionName = childContext.getValue("name");
 		if(Helpers.isBlankOrNull(variableName)) {
@@ -1170,10 +1233,8 @@ public class NShellAction extends Action {
 		}
 		CloudProcess child = processLifecycle().spawn(this.getOwner(), variableName, childContext, dependency, this.getProcess(), processType);	
 		this.context.putActionValue(variableName, child.getAction());
-		this.active.add(child.getUri().toString());
 		trackCreation(processType);
 		return child;
-		
 	}
 	
 	private CloudProcess forkChildProcess(String processType, Context childContext, String variableName, Collection<URI> dependency) throws NotFoundException, IllegalArgumentException, ClassNotFoundException {
@@ -1185,6 +1246,15 @@ public class NShellAction extends Action {
 		
 		return forkChildProcess(processType, childContext, variableName, dependsOn);
 		
+	}
+	
+	private CloudProcess forkOnExitChildProcess(Context childContext, String variableName, Collection<URI> dependency) throws NotFoundException, IllegalArgumentException, ClassNotFoundException {
+		List<URI>dependsOn = null;
+		if(dependency != null) {
+			dependsOn = new ArrayList<URI>();
+			dependsOn.addAll(dependency);
+		}
+		return forkChildProcessNoTracking("OnExit", childContext, variableName, dependsOn);
 	}
 	
 	private void abort(CloudProcess p) {

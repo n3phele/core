@@ -13,7 +13,6 @@ package n3phele.service.model;
  */
 
 import java.net.URI;
-import java.text.DateFormat;
 import java.util.Date;
 
 import javax.xml.bind.annotation.XmlElement;
@@ -43,7 +42,6 @@ public class Narrative {
 	@Index protected Date stamp;
 	protected NarrativeLevel state = NarrativeLevel.undefined;
 	protected String text;
-	private final static DateFormat formatter = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM);
 
 	
 	public Narrative() {

@@ -1,20 +1,13 @@
 package n3phele.service.model;
-import java.io.Serializable;
+
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
-import n3phele.service.model.core.Credential;
-import n3phele.service.model.core.Entity;
-
-import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.annotation.Cache;
-import com.googlecode.objectify.annotation.Embed;
-import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.annotation.Unindex;
 

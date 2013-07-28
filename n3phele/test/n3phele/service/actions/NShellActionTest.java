@@ -84,7 +84,11 @@ public class NShellActionTest {
 	}
 	
 	 @After     
-	 public void tearDown() {         helper.tearDown();     } 
+	 public void tearDown() {   try {
+		Thread.sleep(1000L);
+	} catch (InterruptedException e) {
+
+	}  helper.tearDown();     } 
 
 	
 
@@ -870,25 +874,6 @@ public class NShellActionTest {
 		
 		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
 		Assert.assertEquals("command runs", "{\"RUNABLE\": 1, \"RUNABLE_Wait\": 2, \"INIT\": 1}", refresh);
-//		Thread.sleep(500);
-//		CloudProcessResource.dao.clear();
-//		
-//		on_0Process = CloudProcessResource.dao.load(on_0.getProcess());
-//		fileTransfer_0Process = CloudProcessResource.dao.load(fileTransfer_0Process.getUri());
-//		fileTransfer_1Process = CloudProcessResource.dao.load(fileTransfer_1Process.getUri());
-//		vmProcess = CloudProcessResource.dao.load(vmProcess.getUri());
-//		createVMProcess = CloudProcessResource.dao.load(createVMProcess.getUri());
-//		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
-//		Assert.assertEquals("Command line polls", ActionState.RUNABLE, on_0Process.getState());
-//		Assert.assertEquals(ActionState.COMPLETE, fileTransfer_0Process.getState());
-//		Assert.assertEquals(ActionState.INIT, fileTransfer_1Process.getState());
-//		Assert.assertEquals(ActionState.RUNABLE, vmProcess.getState());
-//		Assert.assertEquals(ActionState.COMPLETE, createVMProcess.getState());
-//		Assert.assertEquals(ActionState.RUNABLE, shellProcess.getState());	
-//
-//		
-//		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
-//		Assert.assertEquals("command line polling", "{\"RUNABLE\": 1, \"RUNABLE_Wait\": 2, \"INIT\": 1}", refresh);
 		
 		Thread.sleep(500);
 		CloudProcessResource.dao.clear();
@@ -908,24 +893,6 @@ public class NShellActionTest {
 		
 		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
 		Assert.assertEquals("output filecopy running", "{\"RUNABLE\": 1, \"RUNABLE_Wait\": 2}", refresh);
-
-//		Thread.sleep(500);
-//		CloudProcessResource.dao.clear();
-//		on_0Process = CloudProcessResource.dao.load(on_0.getProcess());
-//		fileTransfer_0Process = CloudProcessResource.dao.load(fileTransfer_0Process.getUri());
-//		fileTransfer_1Process = CloudProcessResource.dao.load(fileTransfer_1Process.getUri());
-//		vmProcess = CloudProcessResource.dao.load(vmProcess.getUri());
-//		createVMProcess = CloudProcessResource.dao.load(createVMProcess.getUri());
-//		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
-//		Assert.assertEquals(ActionState.COMPLETE, on_0Process.getState());
-//		Assert.assertEquals(ActionState.COMPLETE, fileTransfer_0Process.getState());
-//		Assert.assertEquals("output file copy running", ActionState.RUNABLE, fileTransfer_1Process.getState());
-//		Assert.assertEquals(ActionState.RUNABLE, vmProcess.getState());
-//		Assert.assertEquals(ActionState.COMPLETE, createVMProcess.getState());
-//		Assert.assertEquals(ActionState.RUNABLE, shellProcess.getState());
-//		
-//		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
-//		Assert.assertEquals("output filecopy running", "{\"RUNABLE\": 1, \"RUNABLE_Wait\": 2}", refresh);
 
 		Thread.sleep(500);
 		CloudProcessResource.dao.clear();

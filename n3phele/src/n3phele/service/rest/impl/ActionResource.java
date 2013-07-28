@@ -29,8 +29,6 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
-import com.google.appengine.api.datastore.Key;
-
 import n3phele.service.actions.StackServiceAction;
 import n3phele.service.core.NotFoundException;
 import n3phele.service.core.Resource;
@@ -166,7 +164,7 @@ public class ActionResource {
 		
 		public Collection<StackServiceAction> getStackServiceAction(){
 			List<StackServiceAction> list = ofy().load().type(StackServiceAction.class).list();
-			Collection<StackServiceAction> col = new Collection(itemDao.clazz.getSimpleName(),super.path,list);
+			Collection<StackServiceAction> col = new Collection<StackServiceAction>(itemDao.clazz.getSimpleName(),super.path,list);
 			return col;
 		}
 	

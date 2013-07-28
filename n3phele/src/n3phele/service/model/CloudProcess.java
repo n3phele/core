@@ -36,19 +36,20 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.annotation.Unindex;
-import com.googlecode.objectify.condition.IfTrue;
-import com.googlecode.objectify.condition.IfNotZero;
 import com.googlecode.objectify.condition.IfNotNull;
+import com.googlecode.objectify.condition.IfNotZero;
+import com.googlecode.objectify.condition.IfTrue;
 
 @XmlRootElement(name="CloudProcess")
 @XmlType(name="CloudProcess", propOrder={"description", "state", "running", "waitTimeout", "pendingInit", "pendingCall", "pendingCancel", "pendingDump", "pendingAssertion", 
-		"dependentOn", "dependencyFor", "start", "complete", "finalized", "action", "parent", "topLevel", "narrative","costPerHour","epoch","account"})
+		"dependentOn", "dependencyFor", "start", "complete", "finalized", "action", "parent", "pendingOnExit", "topLevel", "narrative","costPerHour","epoch","account"})
 @Unindex
 @Cache
 @com.googlecode.objectify.annotation.Entity
 public class CloudProcess extends Entity {
 	@Id protected Long id;
 	protected ActionState state = ActionState.NEWBORN;
+
 	protected Date running = null;
 	protected Date waitTimeout = null;
 	protected boolean pendingInit = false;
@@ -65,14 +66,12 @@ public class CloudProcess extends Entity {
 	@Index protected String parent = null;
 	@Parent Key<CloudProcess> root;
 	@Index(IfTrue.class) boolean topLevel = false;
+	protected ArrayList<String> pendingOnExit = new ArrayList<String>();
 
 
 	@Index(IfNotZero.class)protected double costPerHour = 0;
 	@Index(IfNotNull.class)protected Date epoch = null;
 	@Index(IfNotNull.class)protected String account = null;
-
-
-	
 	
 	public CloudProcess() {}
 	/** Describes a cloud process. 
@@ -441,18 +440,67 @@ public class CloudProcess extends Entity {
 	public void setTopLevel(boolean topLevel) {
 		this.topLevel = topLevel;
 	}
+	
+	/**
+	 * @return the pendingOnExit
+	 */
+	public List<URI> getPendingOnExit() {
+		ArrayList<URI> result = new ArrayList<URI>();
+		if(this.pendingOnExit != null) {
+			for(String s : this.pendingOnExit){
+				result.add(URI.create(s));
+			}
+		}
+		return result;
+	}
+	/**
+	 * @param pendingOnExit the pendingOnExit to set
+	 */
+	public void setPendingOnExit(List<URI> pendingOnExit) {
+		if(this.pendingOnExit != null) {
+			this.pendingOnExit.clear();
+		} else {
+			this.pendingOnExit = new ArrayList<String>();
+		}
+		if(pendingOnExit != null) {
+			for(URI u : pendingOnExit) {
+				this.pendingOnExit.add(u.toString());
+			}
+		}
+	}
+	
+	public void addPendingOnExit(List<CloudProcess> additions) {
+		if(this.pendingOnExit == null) {
+			this.pendingOnExit = new ArrayList<String>();
+		}
+		if(additions != null) {
+			for(CloudProcess p : additions) {
+				this.pendingOnExit.add(p.getUri().toString());
+			}
+		}
+	}
+	
+	/**
+	 * @return true if the process has pending OnExit processes
+	 */
+	public boolean hasPendingOnExit() {
+		return this.pendingOnExit != null && !this.pendingOnExit.isEmpty();
+	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		return String
-				.format("CloudProcess [id=%s, state=%s, running=%s, waitTimeout=%s, pendingInit=%s, pendingCall=%s, pendingCancel=%s, pendingDump=%s, pendingAssertion=%s, dependentOn=%s, dependencyFor=%s, start=%s, complete=%s, finalized=%s, action=%s, parent=%s, root=%s, topLevel=%s, costPerHour=%s]",
-						id, state, running, waitTimeout, pendingInit,
-						pendingCall, pendingCancel, pendingDump,
-						pendingAssertion, dependentOn, dependencyFor, start,
-						complete, finalized, action,
-						parent, root, topLevel, costPerHour);
+				.format("CloudProcess [id=%s, state=%s, running=%s, waitTimeout=%s, pendingInit=%s, pendingCall=%s, pendingCancel=%s, pendingDump=%s, pendingAssertion=%s, dependentOn=%s, dependencyFor=%s, start=%s, complete=%s, finalized=%s, action=%s, parent=%s, root=%s, topLevel=%s, pendingOnExit=%s, costPerHour=%s, epoch=%s, account=%s]",
+						this.id, this.state, this.running, this.waitTimeout,
+						this.pendingInit, this.pendingCall, this.pendingCancel,
+						this.pendingDump, this.pendingAssertion,
+						this.dependentOn, this.dependencyFor, this.start,
+						this.complete, this.finalized, this.action,
+						this.parent, this.root, this.topLevel,
+						this.pendingOnExit, this.costPerHour, this.epoch,
+						this.account);
 	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
@@ -461,30 +509,52 @@ public class CloudProcess extends Entity {
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + ((action == null) ? 0 : action.hashCode());
 		result = prime * result
-				+ ((complete == null) ? 0 : complete.hashCode());
+				+ ((this.account == null) ? 0 : this.account.hashCode());
 		result = prime * result
-				+ ((dependencyFor == null) ? 0 : dependencyFor.hashCode());
+				+ ((this.action == null) ? 0 : this.action.hashCode());
 		result = prime * result
-				+ ((dependentOn == null) ? 0 : dependentOn.hashCode());
-		result = prime * result + (finalized ? 1231 : 1237);
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + ((parent == null) ? 0 : parent.hashCode());
+				+ ((this.complete == null) ? 0 : this.complete.hashCode());
+		long temp;
+		temp = Double.doubleToLongBits(this.costPerHour);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
 		result = prime
 				* result
-				+ ((pendingAssertion == null) ? 0 : pendingAssertion.hashCode());
-		result = prime * result + (pendingCall ? 1231 : 1237);
-		result = prime * result + (pendingCancel ? 1231 : 1237);
-		result = prime * result + (pendingDump ? 1231 : 1237);
-		result = prime * result + (pendingInit ? 1231 : 1237);
-		result = prime * result + ((root == null) ? 0 : root.hashCode());
-		result = prime * result + ((running == null) ? 0 : running.hashCode());
-		result = prime * result + ((start == null) ? 0 : start.hashCode());
-		result = prime * result + ((state == null) ? 0 : state.hashCode());
-		result = prime * result + (topLevel ? 1231 : 1237);
+				+ ((this.dependencyFor == null) ? 0 : this.dependencyFor
+						.hashCode());
+		result = prime
+				* result
+				+ ((this.dependentOn == null) ? 0 : this.dependentOn.hashCode());
 		result = prime * result
-				+ ((waitTimeout == null) ? 0 : waitTimeout.hashCode());
+				+ ((this.epoch == null) ? 0 : this.epoch.hashCode());
+		result = prime * result + (this.finalized ? 1231 : 1237);
+		result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
+		result = prime * result
+				+ ((this.parent == null) ? 0 : this.parent.hashCode());
+		result = prime
+				* result
+				+ ((this.pendingAssertion == null) ? 0 : this.pendingAssertion
+						.hashCode());
+		result = prime * result + (this.pendingCall ? 1231 : 1237);
+		result = prime * result + (this.pendingCancel ? 1231 : 1237);
+		result = prime * result + (this.pendingDump ? 1231 : 1237);
+		result = prime * result + (this.pendingInit ? 1231 : 1237);
+		result = prime
+				* result
+				+ ((this.pendingOnExit == null) ? 0 : this.pendingOnExit
+						.hashCode());
+		result = prime * result
+				+ ((this.root == null) ? 0 : this.root.hashCode());
+		result = prime * result
+				+ ((this.running == null) ? 0 : this.running.hashCode());
+		result = prime * result
+				+ ((this.start == null) ? 0 : this.start.hashCode());
+		result = prime * result
+				+ ((this.state == null) ? 0 : this.state.hashCode());
+		result = prime * result + (this.topLevel ? 1231 : 1237);
+		result = prime
+				* result
+				+ ((this.waitTimeout == null) ? 0 : this.waitTimeout.hashCode());
 		return result;
 	}
 	/* (non-Javadoc)
@@ -499,78 +569,94 @@ public class CloudProcess extends Entity {
 		if (getClass() != obj.getClass())
 			return false;
 		CloudProcess other = (CloudProcess) obj;
-		if (action == null) {
+		if (this.account == null) {
+			if (other.account != null)
+				return false;
+		} else if (!this.account.equals(other.account))
+			return false;
+		if (this.action == null) {
 			if (other.action != null)
 				return false;
-		} else if (!action.equals(other.action))
+		} else if (!this.action.equals(other.action))
 			return false;
-		if (complete == null) {
+		if (this.complete == null) {
 			if (other.complete != null)
 				return false;
-		} else if (!complete.equals(other.complete))
+		} else if (!this.complete.equals(other.complete))
 			return false;
-		if (dependencyFor == null) {
+		if (Double.doubleToLongBits(this.costPerHour) != Double
+				.doubleToLongBits(other.costPerHour))
+			return false;
+		if (this.dependencyFor == null) {
 			if (other.dependencyFor != null)
 				return false;
-		} else if (!dependencyFor.equals(other.dependencyFor))
+		} else if (!this.dependencyFor.equals(other.dependencyFor))
 			return false;
-		if (dependentOn == null) {
+		if (this.dependentOn == null) {
 			if (other.dependentOn != null)
 				return false;
-		} else if (!dependentOn.equals(other.dependentOn))
+		} else if (!this.dependentOn.equals(other.dependentOn))
 			return false;
-		if (finalized != other.finalized)
+		if (this.epoch == null) {
+			if (other.epoch != null)
+				return false;
+		} else if (!this.epoch.equals(other.epoch))
 			return false;
-		if (id == null) {
+		if (this.finalized != other.finalized)
+			return false;
+		if (this.id == null) {
 			if (other.id != null)
 				return false;
-		} else if (!id.equals(other.id))
+		} else if (!this.id.equals(other.id))
 			return false;
-		if (parent == null) {
+		if (this.parent == null) {
 			if (other.parent != null)
 				return false;
-		} else if (!parent.equals(other.parent))
+		} else if (!this.parent.equals(other.parent))
 			return false;
-		if (pendingAssertion == null) {
+		if (this.pendingAssertion == null) {
 			if (other.pendingAssertion != null)
 				return false;
-		} else if (!pendingAssertion.equals(other.pendingAssertion))
+		} else if (!this.pendingAssertion.equals(other.pendingAssertion))
 			return false;
-		if (pendingCall != other.pendingCall)
+		if (this.pendingCall != other.pendingCall)
 			return false;
-		if (pendingCancel != other.pendingCancel)
+		if (this.pendingCancel != other.pendingCancel)
 			return false;
-		if (pendingDump != other.pendingDump)
+		if (this.pendingDump != other.pendingDump)
 			return false;
-		if (pendingInit != other.pendingInit)
+		if (this.pendingInit != other.pendingInit)
 			return false;
-		if (root == null) {
+		if (this.pendingOnExit == null) {
+			if (other.pendingOnExit != null)
+				return false;
+		} else if (!this.pendingOnExit.equals(other.pendingOnExit))
+			return false;
+		if (this.root == null) {
 			if (other.root != null)
 				return false;
-		} else if (!root.equals(other.root))
+		} else if (!this.root.equals(other.root))
 			return false;
-		if (running == null) {
+		if (this.running == null) {
 			if (other.running != null)
 				return false;
-		} else if (!running.equals(other.running))
+		} else if (!this.running.equals(other.running))
 			return false;
-		if (start == null) {
+		if (this.start == null) {
 			if (other.start != null)
 				return false;
-		} else if (!start.equals(other.start))
+		} else if (!this.start.equals(other.start))
 			return false;
-		if (state != other.state)
+		if (this.state != other.state)
 			return false;
-		if (topLevel != other.topLevel)
+		if (this.topLevel != other.topLevel)
 			return false;
-		if (waitTimeout == null) {
+		if (this.waitTimeout == null) {
 			if (other.waitTimeout != null)
 				return false;
-		} else if (!waitTimeout.equals(other.waitTimeout))
+		} else if (!this.waitTimeout.equals(other.waitTimeout))
 			return false;
 		return true;
 	}
-
-	
 
 }

@@ -14,7 +14,6 @@ package n3phele.service.rest.impl;
 
 import static com.googlecode.objectify.ObjectifyService.ofy;
 
-import java.io.FileNotFoundException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;

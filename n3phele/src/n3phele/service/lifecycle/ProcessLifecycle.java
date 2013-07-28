@@ -371,6 +371,7 @@ public class ProcessLifecycle {
 		final Long processId = process.getId();
 		final URI processUri = process.getUri();
 		log.info("Complete "+process.getName()+":"+processUri);
+		doOnExitProcessing(process, true);
 		giveChildrenToGrandparent(process);
 		final List<String> parentAndDependents = CloudProcessResource.dao.transact(new Work<List<String>>() {
 			@Override
@@ -560,6 +561,7 @@ public class ProcessLifecycle {
 		final Long processId = process.getId();
 		final URI processUri = process.getUri();
 		log.info("Failed "+process.getName()+":"+processUri);
+		doOnExitProcessing(process, false);
 		dumpAllChildren(process);
 		final List<String> parentAndDependents = CloudProcessResource.dao.transact(new Work<List<String>>() {
 			@Override
@@ -610,6 +612,7 @@ public class ProcessLifecycle {
 		final Long processId = process.getId();
 		final URI processUri = process.getUri();
 		log.info("Dumped "+process.getName()+":"+processUri);
+		doOnExitProcessing(process, false);
 		dumpAllChildren(process);
 		final List<String> parentAndDependents = CloudProcessResource.dao.transact(new Work<List<String>>() {
 			@Override
@@ -716,7 +719,6 @@ public class ProcessLifecycle {
 		
 	}
 	
-	
 	private void giveChildrenToGrandparent(final CloudProcess process) {
 		URI uri = process.getParent();
 		CloudProcess grandParent=null;
@@ -724,24 +726,30 @@ public class ProcessLifecycle {
 			grandParent = CloudProcessResource.dao.load(uri);
 			if(!grandParent.isFinalized()) break;
 			uri = grandParent.getParent();
+			grandParent=null;
 		}
-		final URI grandParentURI = uri;
-		/*
-		 * 
-		 */
+		giveChildrenToProcess(process, grandParent);
+
+		if(grandParent != null)
+			schedule(grandParent, false);
+		
+	}
+	
+	private void giveChildrenToProcess(final CloudProcess process, CloudProcess otherProcess) {
+		final URI otherProcessURI = otherProcess == null? null : otherProcess.getUri();
 		boolean moreToDo = true;
 		while(moreToDo) {
 			moreToDo = CloudProcessResource.dao.transact(new Work<Boolean>(){
 			@Override
 			public Boolean run() {
-				log.info(">>>>>>>>>giveChildToGrandparent "+grandParentURI);
+				log.info(">>>>>>>>>giveChildToOtherProcess "+otherProcessURI);
 				boolean goAgain = false;
-				CloudProcess grandParent = null;
-				if(grandParentURI != null) {
-					grandParent = CloudProcessResource.dao.load(grandParentURI);
-					if(grandParent.isFinalized()) {
-						log.warning("Grandparent "+grandParent.getUri()+" is finalized");
-						throw new IllegalArgumentException("Grandparent "+grandParent.getUri()+" is finalized");
+				CloudProcess other = null;
+				if(otherProcessURI != null) {
+					other = CloudProcessResource.dao.load(otherProcessURI);
+					if(other.isFinalized()) {
+						log.warning("Process "+other.getUri()+" is finalized");
+						throw new IllegalArgumentException("Process "+other.getUri()+" is finalized");
 					}
 				}
 				List<CloudProcess> children = getNonfinalizedChildren(process);
@@ -752,12 +760,12 @@ public class ProcessLifecycle {
 						goAgain = true;
 						break;
 					}
-					if(grandParent != null) {
-						childProcess.setParent(grandParentURI);
+					if(other != null) {
+						childProcess.setParent(otherProcessURI);
 						CloudProcessResource.dao.update(childProcess);
 						final String typedAssertion = SignalKind.Adoption+":"+childProcess.getUri().toString();
-						if(!grandParent.getPendingAssertion().contains(typedAssertion)) {
-							grandParent.getPendingAssertion().add(typedAssertion);
+						if(!other.getPendingAssertion().contains(typedAssertion)) {
+							other.getPendingAssertion().add(typedAssertion);
 							parentUpdate = true;
 						}
 					} else {
@@ -767,18 +775,15 @@ public class ProcessLifecycle {
 					}
 				}
 				if(parentUpdate) {
-					CloudProcessResource.dao.update(grandParent);
+					CloudProcessResource.dao.update(other);
 				}
-				log.info("<<<<<<<<giveChildToGrandparent "+grandParentURI);
+				log.info("<<<<<<<<giveChildToOtherProcess "+otherProcessURI);
 				return goAgain;
 			}});
 		}
-		if(grandParentURI != null)
-			schedule(grandParent, false);
 		
 	}
-	
-	
+		
 	/** Set process to the wait state
 	 * 
 	 * @param process
@@ -858,7 +863,8 @@ public class ProcessLifecycle {
 	private void toCancelled(CloudProcess process) {
 		final Long processId = process.getId();
 		final URI processUri = process.getUri();
-		log.info("Dumped "+process.getName()+":"+processUri);
+		log.info("Cancelled "+process.getName()+":"+processUri);
+		doOnExitProcessing(process, false);
 		giveChildrenToGrandparent(process);
 		final List<String> parentAndDependents = CloudProcessResource.dao.transact(new Work<List<String>>() {
 			@Override
@@ -1216,6 +1222,63 @@ public class ProcessLifecycle {
 		}
 		log.severe("Failed to update context in process "+processURI);
 		throw new UnprocessableEntityException("Failed to update context in process "+processURI);
+	}
+	
+	public void addOnExitProcesses(URI initiatorURI, final List<CloudProcess> processes) {
+		CloudProcess initiator = CloudProcessResource.dao.load(initiatorURI);
+		final CloudProcess root;
+		if(initiator.getRoot() == null)
+			root = initiator;
+		else
+			root = CloudProcessResource.dao.load(initiator.getRoot());
+		
+		log.info("Add "+processes.size()+" onExit processes to "+root);
+		CloudProcessResource.dao.transact(new VoidWork() {
+			@Override
+			public void vrun() {
+				log.info(">>>>>>>>>addOnExitProcesses "+root.getUri());
+				CloudProcess target = CloudProcessResource.dao.load(root.getRoot(), root.getId());
+				target.addPendingOnExit(processes);
+				log.info("<<<<<<<<addOnExitProcesses "+root.getUri());
+			}});
+	}
+	
+	private void doOnExitProcessing(CloudProcess process, boolean dumpChildren) {
+		if(process.hasPendingOnExit()) {
+			List<URI> onExit = process.getPendingOnExit();
+			
+			Action action = null;
+			try {
+				action = ActionResource.dao.load(process.getAction());
+			} catch (Exception e) {
+				log.log(Level.SEVERE, "Failed to access action "+process.getAction()+" "+process, e);
+				return;
+			}
+			Context context = action.getContext();
+			Variable arg = new Variable("arg", "Cleanup processing of "+process.getName()+" complete");
+			context.put(arg.getName(), arg);
+			
+			CloudProcess onExitProcessor;
+			try {
+				onExitProcessor = spawn(process.getOwner(), "Cleanup of "+process.getName(), action.getContext(), onExit, process.getParent(), dumpChildren?"Dump" : "Log");
+			} catch (NotFoundException e) {
+				log.log(Level.SEVERE, "Failed to spawn OnExit processing ", e);
+				return;
+			} catch (IllegalArgumentException e) {
+				log.log(Level.SEVERE, "Failed to spawn OnExit processing ", e);
+				return;
+			} catch (ClassNotFoundException e) {
+				log.log(Level.SEVERE, "Failed to spawn OnExit processing ", e);
+				return;
+			}
+			giveChildrenToProcess(process, onExitProcessor);
+ 
+			for(CloudProcess exitProcess : CloudProcessResource.dao.getList(onExit)) {
+				init(exitProcess);
+			}
+			init(onExitProcessor);
+			
+		}
 	}
 	
 	/*

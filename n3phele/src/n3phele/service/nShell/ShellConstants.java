@@ -23,71 +23,73 @@ public interface ShellConstants {
   /** RegularExpression Id. */
   int FORLOOP = 8;
   /** RegularExpression Id. */
-  int IF = 9;
+  int ONEXIT = 9;
   /** RegularExpression Id. */
-  int ELSE = 10;
+  int IF = 10;
   /** RegularExpression Id. */
-  int EXPORT = 11;
+  int ELSE = 11;
   /** RegularExpression Id. */
-  int ASSIMILATEVM = 12;
+  int EXPORT = 12;
   /** RegularExpression Id. */
-  int DESTROY = 13;
+  int ASSIMILATEVM = 13;
   /** RegularExpression Id. */
-  int LOG = 14;
+  int DESTROY = 14;
   /** RegularExpression Id. */
-  int VARIABLEASSIGN = 15;
+  int LOG = 15;
   /** RegularExpression Id. */
-  int VARSTART = 16;
+  int VARIABLEASSIGN = 16;
   /** RegularExpression Id. */
-  int VARREST = 17;
+  int VARSTART = 17;
   /** RegularExpression Id. */
-  int WHITESPACE = 18;
+  int VARREST = 18;
   /** RegularExpression Id. */
-  int NO_ARG_OPTION = 19;
+  int WHITESPACE = 19;
   /** RegularExpression Id. */
-  int OPTION = 20;
+  int NO_ARG_OPTION = 20;
   /** RegularExpression Id. */
-  int OPTIONSTART = 21;
+  int OPTION = 21;
   /** RegularExpression Id. */
-  int OPTIONREST = 22;
+  int OPTIONSTART = 22;
   /** RegularExpression Id. */
-  int NON_SPACE_ARG = 23;
+  int OPTIONREST = 23;
   /** RegularExpression Id. */
-  int ARGSTART = 24;
+  int NON_SPACE_ARG = 24;
   /** RegularExpression Id. */
-  int ARGREST = 25;
+  int ARGSTART = 25;
   /** RegularExpression Id. */
-  int LITERAL_STRING = 26;
+  int ARGREST = 26;
   /** RegularExpression Id. */
-  int FILELIST = 27;
+  int LITERAL_STRING = 27;
   /** RegularExpression Id. */
-  int FILESPEC = 28;
+  int FILELIST = 28;
   /** RegularExpression Id. */
-  int FILESTART = 29;
+  int FILESPEC = 29;
   /** RegularExpression Id. */
-  int FILEREST = 30;
+  int FILESTART = 30;
   /** RegularExpression Id. */
-  int COMMA = 31;
+  int FILEREST = 31;
   /** RegularExpression Id. */
-  int FILELISTEND = 32;
+  int COMMA = 32;
   /** RegularExpression Id. */
-  int COLON = 33;
+  int FILELISTEND = 33;
   /** RegularExpression Id. */
-  int LITERALBLOCK = 34;
+  int COLON = 34;
   /** RegularExpression Id. */
-  int VARIABLE = 35;
+  int LITERALBLOCK = 35;
   /** RegularExpression Id. */
-  int EXPRESSION = 36;
+  int VARIABLE = 36;
   /** RegularExpression Id. */
-  int STRING_LITERAL = 37;
+  int EXPRESSION = 37;
   /** RegularExpression Id. */
-  int PASSTHRU = 38;
+  int STRING_LITERAL = 38;
   /** RegularExpression Id. */
-  int PASSTHRUSET = 39;
+  int PASSTHRU = 39;
   /** RegularExpression Id. */
-  int PASSTHRUMORE = 40;
+  int PASSTHRUSET = 40;
   /** RegularExpression Id. */
-  int WRAPPEDEXPRESSION = 41;
+  int PASSTHRUMORE = 41;
+  /** RegularExpression Id. */
+  int WRAPPEDEXPRESSION = 42;
 
   /** Lexical state. */
   int fileListProcessing = 0;
@@ -113,6 +115,7 @@ public interface ShellConstants {
     "\"ON\"",
     "\"CREATEVM\"",
     "\"FOR\"",
+    "\"ONEXIT\"",
     "\"IF\"",
     "\"ELSE\"",
     "\"EXPORT\"",

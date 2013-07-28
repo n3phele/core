@@ -38,14 +38,12 @@ import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.annotation.Unindex;
 
 
-/** Manages execution of a job or finite task.
+/** Manages execution of a service.
  * 
  * Manages the lifecycle of a single child and exits when child completes. 
  * System Ensures that any VM resources created by a child passed to parent on child exit or terminated if no parent.
- * JobAction will dump children handed to it
  * 
  * Supplies context to the child
- * Optionally notifies owner on termination
  * 
  * @author Nigel Cook
  *
