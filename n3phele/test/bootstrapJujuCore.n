@@ -1,0 +1,98 @@
+# bootstrapJuju.n
+# Author: Alexandre Tavares
+name       :  bootstrapJujuCore
+description: Bootstraps Juju
+version    : 0.8.8
+preferred  : true
+processor  : StackService
+public     : true
+icon       : http://www.n3phele.com/icons/custom
+
+HPZone1: # HP Cloud
+	$$vmTavares = CREATEVM --name vmTavares --imageRef 142792 --n 1
+	$$controlBucket = $${"n3phele-"+$$serviceName+$$ownerId}
+	$$credential = $$key($$vmTavares.account)
+	$$tenant = $$regex($$credential[0],"([^:]+):([^:]+)",1)
+	$$key = $$regex($$credential[0],"([^:]+):([^:]+)",2)
+	$$secret = $$credential[1]
+	ON $$vmTavares sudo add-apt-repository -y ppa:juju/devel
+	ON $$vmTavares sudo apt-get update -y && sudo apt-get install -y juju-core
+	#ON $$vmTavares
+	#	wget http://ppa.launchpad.net/juju/devel/ubuntu/pool/main/j/juju-core/juju-core_1.11.2-3~1414~raring1_amd64.deb
+	#	sudo dpkg -i juju-core_1.11.2-3~1414~raring1_amd64.deb
+		
+	ON $$vmTavares
+		sudo apt-get install -y python-pip
+		sudo pip install shyaml
+
+	ON $$vmTavares 
+		juju generate-config -w
+		echo "default: $${$$serviceName}" 																>  ~/.juju/environments.yaml
+		echo "environments:" 																			>> ~/.juju/environments.yaml
+		echo "  $${$$serviceName}:" 																	>> ~/.juju/environments.yaml
+		echo "    type: openstack" 																		>> ~/.juju/environments.yaml
+		echo "    default-series: precise" 																>> ~/.juju/environments.yaml
+		echo "    use-floating-ip: false"																>> ~/.juju/environments.yaml
+		echo "    control-bucket: $${$$controlBucket}" 													>> ~/.juju/environments.yaml
+		echo "    admin-secret: secretword" 															>> ~/.juju/environments.yaml
+		echo "    public-bucket-url: https://region-a.geo-1.objects.hpcloudsvc.com/v1/60502529753910" 	>> ~/.juju/environments.yaml
+		echo "    region: az-1.region-a.geo-1" 															>> ~/.juju/environments.yaml
+		echo "    tenant-name: $${$$tenant}" 															>> ~/.juju/environments.yaml
+		echo "    auth-url: https://region-a.geo-1.identity.hpcloudsvc.com:35357/v2.0/" 				>> ~/.juju/environments.yaml
+		echo "    auth-mode: keypair" 																	>> ~/.juju/environments.yaml
+		echo "    access-key: $${$$key}" 																>> ~/.juju/environments.yaml
+		echo "    secret-key: $${$$secret}" 															>> ~/.juju/environments.yaml
+		ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -N ""
+	
+	ON $$vmTavares
+		juju bootstrap
+		sleep 30
+
+	$$bootstrapIP = ON $$vmTavares
+						STAT="none"
+						RUN_STATUS="started"
+						while [ "$STAT" != "$RUN_STATUS" ]
+						do sleep 20
+						juju status > tmp.txt
+						STAT=$(sed -n -e '0,/agent-state: /s///p' tmp.txt)
+						STAT=$(echo $STAT | tr -d ' ')
+						done
+						IPS=$(grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' tmp.txt)
+						IPA=(${IPS//:/ })
+						IP=$(echo ${IPA[0]})
+						IP=$(echo $IP | tr -d ' ')
+						echo $IP
+	
+	ON $$vmTavares
+		sudo apt-get install -y unzip
+		wget https://region-a.geo-1.objects.hpcloudsvc.com/v1/AUTH_dc700102-734c-4a97-afc8-50530e87a171/n3phele-agent/precise.zip
+		unzip precise.zip -d charms
+		juju deploy --repository=charms local:agent --to 0
+		
+	$$exposeAgent = ON $$vmTavares
+						STAT="none"
+						RUN_STATUS="started"
+						while [ "$STAT" != "$RUN_STATUS" ]
+						do sleep 20
+						juju status | shyaml get-value services.agent > tmp.txt
+						STAT=$(sed -n -e '0,/agent-state: /s///p' tmp.txt)
+						STAT=$(echo $STAT | tr -d ' ')
+						done
+						juju expose agent
+						echo "Agent exposed"
+	
+	$$bootstrap = ASSIMILATEVM --targetIP $$bootstrapIP.stdout
+	EXPORT $$bootstrap
+	ON $$vmTavares
+		juju ssh 0 <<EOF
+			#wget http://ppa.launchpad.net/juju/devel/ubuntu/pool/main/j/juju-core/juju-core_1.11.2-3~1414~raring1_amd64.deb
+			#sudo dpkg -i juju-core_1.11.2-3~1414~raring1_amd64.deb
+			sudo add-apt-repository -y ppa:juju/devel
+			sudo apt-get update -y && sudo apt-get install -y juju-core
+			mkdir ~/.juju
+			sudo chmod 777 .juju/
+			ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -N ""
+			exit
+		EOF
+		
+	ON $$vmTavares juju scp ~/.juju/* 0:~/.juju
