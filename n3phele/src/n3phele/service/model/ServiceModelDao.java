@@ -13,6 +13,7 @@ package n3phele.service.model;
  */
 
 import n3phele.service.actions.AssimilateAction;
+import n3phele.service.actions.AssimilateVMAction;
 import n3phele.service.actions.CountDownAction;
 import n3phele.service.actions.CreateVMAction;
 import n3phele.service.actions.DestroyAction;
@@ -58,6 +59,7 @@ public class ServiceModelDao<T> extends GenericModelDao<T> {
 		ObjectifyService.register(ServiceAction.class);
 		ObjectifyService.register(VMAction.class);
 		ObjectifyService.register(AssimilateAction.class);
+		ObjectifyService.register(AssimilateVMAction.class);
 		ObjectifyService.register(StackServiceAction.class);	}
 	public ServiceModelDao(Class<T> clazz) {
 		super(clazz);
