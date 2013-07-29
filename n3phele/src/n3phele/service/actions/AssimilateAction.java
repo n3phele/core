@@ -49,19 +49,15 @@ import n3phele.service.model.core.NameValue;
 import n3phele.service.model.core.ParameterType;
 import n3phele.service.model.core.TypedParameter;
 import n3phele.service.model.core.VirtualServer;
-import n3phele.service.model.core.VirtualServerStatus;
 import n3phele.service.rest.impl.AccountResource;
 import n3phele.service.rest.impl.ActionResource;
-import n3phele.service.rest.impl.CloudProcessResource;
 import n3phele.service.rest.impl.CloudResource;
 
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.annotation.Unindex;
 import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.ClientFilter;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
@@ -201,8 +197,7 @@ public class AssimilateAction extends Action {
 	@Override
 	public boolean call() throws WaitForSignalRequest, Exception {
 		int myChildren = this.inProgress.size();
-		log.info("waiting for children "+myChildren);
-		if(myChildren != 0) {
+		if(myChildren != 0) {			
 			throw new ProcessLifecycle.WaitForSignalRequest();
 		}
 		if(failed) {
@@ -249,6 +244,7 @@ public class AssimilateAction extends Action {
 		case Event:
 			if(isChild) {
 				this.inProgress.remove(assertion);
+				ActionResource.dao.update(this);
 			} else if(assertion.equals("killVM")) {
 				killVM();
 			} else {
@@ -291,6 +287,7 @@ public class AssimilateAction extends Action {
 			log.info((isChild?"Child ":"Unknown ")+assertion+" failed");
 			if(isChild) {
 				this.inProgress.remove(assertion);
+				ActionResource.dao.update(this);
 				this.killVM();
 				failed = true;
 			}
@@ -299,6 +296,7 @@ public class AssimilateAction extends Action {
 			log.info((isChild?"Child ":"Unknown ")+assertion+" ok");
 			if(isChild) {
 				this.inProgress.remove(assertion);
+				ActionResource.dao.update(this);
 			}
 			break;
 		default:
