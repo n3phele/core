@@ -59,8 +59,8 @@ import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 @Unindex
 @Cache
 public class OnAction extends Action {
-	final private static java.util.logging.Logger log = java.util.logging.Logger.getLogger(OnAction.class.getName()); 
-	@XmlTransient private ActionLogger logger;
+	private static java.util.logging.Logger log = java.util.logging.Logger.getLogger(OnAction.class.getName()); 
+	@XmlTransient protected ActionLogger logger;
 	
 	private String target;
 	@XmlTransient

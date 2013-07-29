@@ -550,7 +550,12 @@ public class NShellAction extends Action {
 			fileCopyContext.putValue("source", newEntry.getRepo());
 			fileCopyContext.putValue("destination", URI.create("file:///"+newEntry.getLocalName()));
 			fileCopyContext.putValue("fileTableId", newEntry.getName());
-			CloudProcess fileCopy = forkChildProcess("FileTransfer", fileCopyContext, generateUniqueName("FileTransfer"), null);
+			CloudProcess fileCopy;
+			if(isOnExit) {
+				fileCopy = forkOnExitChildProcess("FileTransfer", fileCopyContext, generateUniqueName("FileTransfer"), null);
+			} else {
+				fileCopy = forkChildProcess("FileTransfer", fileCopyContext, generateUniqueName("FileTransfer"), null);
+			}
 			newEntry.setProcess(fileCopy.getUri());
 			inputXferProcess.put(newEntry.getName(), fileCopy);
 		}
@@ -597,7 +602,7 @@ public class NShellAction extends Action {
 		
 		Variable on;
 		if(isOnExit) {
-			CloudProcess child = forkOnExitChildProcess(childContext, specifiedName, dependentOn);	
+			CloudProcess child = forkOnExitChildProcess("OnExit", childContext, specifiedName, dependentOn);	
 			needsInit.add(child);
 			on = this.context.get(child.getName());
 			
@@ -637,7 +642,12 @@ public class NShellAction extends Action {
 				fileCopyContext.putValue("destination", outputXfer.getRepo());
 				fileCopyContext.putValue("source", URI.create("file:///"+outputXfer.getLocalName()));
 				fileCopyContext.putValue("fileTableId", outputXfer.getName());
-				CloudProcess fileCopy = forkChildProcess("FileTransfer", fileCopyContext, generateUniqueName("FileTransfer"), Arrays.asList(outputXfer.getProcess()));
+				CloudProcess fileCopy;
+				if(isOnExit) {
+					fileCopy = forkOnExitChildProcess("FileTransfer", fileCopyContext, generateUniqueName("FileTransfer"), Arrays.asList(outputXfer.getProcess()));					
+				} else {
+					fileCopy = forkChildProcess("FileTransfer", fileCopyContext, generateUniqueName("FileTransfer"), Arrays.asList(outputXfer.getProcess()));
+				}
 				needsInit.add(fileCopy);
 			}
 		}
@@ -1217,12 +1227,12 @@ public class NShellAction extends Action {
 	
 	
 	private CloudProcess forkChildProcess(String processType, Context childContext, String variableName, List<URI> dependency) throws NotFoundException, IllegalArgumentException, ClassNotFoundException {
-		CloudProcess child = forkChildProcessNoTracking(processType, childContext, variableName, dependency);
+		CloudProcess child = forkChildProcessNoTracking(processType, childContext, variableName, dependency, this.getProcess());
 		this.active.add(child.getUri().toString());
 		return child;
 	}
 	
-	private CloudProcess forkChildProcessNoTracking(String processType, Context childContext, String variableName, List<URI> dependency) throws NotFoundException, IllegalArgumentException, ClassNotFoundException {
+	private CloudProcess forkChildProcessNoTracking(String processType, Context childContext, String variableName, List<URI> dependency, URI parent) throws NotFoundException, IllegalArgumentException, ClassNotFoundException {
 		
 		String optionName = childContext.getValue("name");
 		if(Helpers.isBlankOrNull(variableName)) {
@@ -1231,7 +1241,7 @@ public class NShellAction extends Action {
 				variableName = generateUniqueName(processType);
 			}
 		}
-		CloudProcess child = processLifecycle().spawn(this.getOwner(), variableName, childContext, dependency, this.getProcess(), processType);	
+		CloudProcess child = processLifecycle().spawn(this.getOwner(), variableName, childContext, dependency, parent, processType);	
 		this.context.putActionValue(variableName, child.getAction());
 		trackCreation(processType);
 		return child;
@@ -1248,13 +1258,14 @@ public class NShellAction extends Action {
 		
 	}
 	
-	private CloudProcess forkOnExitChildProcess(Context childContext, String variableName, Collection<URI> dependency) throws NotFoundException, IllegalArgumentException, ClassNotFoundException {
+	private CloudProcess forkOnExitChildProcess(String processType, Context childContext, String variableName, Collection<URI> dependency) throws NotFoundException, IllegalArgumentException, ClassNotFoundException {
 		List<URI>dependsOn = null;
 		if(dependency != null) {
 			dependsOn = new ArrayList<URI>();
 			dependsOn.addAll(dependency);
 		}
-		return forkChildProcessNoTracking("OnExit", childContext, variableName, dependsOn);
+
+		return forkChildProcessNoTracking(processType, childContext, variableName, dependsOn, processLifecycle().getProcessRoot(this.getProcess()));
 	}
 	
 	private void abort(CloudProcess p) {

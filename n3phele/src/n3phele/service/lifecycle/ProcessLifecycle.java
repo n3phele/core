@@ -97,7 +97,8 @@ public class ProcessLifecycle {
 			log.info("Process "+process.getUri()+" "+processState+" "+process.getRunning());
 			if(process.getRunning() == null && processState != ActionState.NEWBORN) {
 				if(process.hasPending()) {
-					schedule(process, false);
+					if(!process.isZombie() || process.getDependentOn().isEmpty())
+						schedule(process, false);
 				} else if(processState == ActionState.RUNABLE) {
 					if(process.getWaitTimeout() != null) {
 						if((new Date()).after(process.getWaitTimeout())) {
@@ -129,7 +130,7 @@ public class ProcessLifecycle {
 				boolean result = false;
 				boolean dirty = forceWrite;
 				CloudProcess process = CloudProcessResource.dao.load(processRoot, processId);
-				if(process.getRunning() == null && !process.isFinalized()) {
+				if(process.getRunning() == null && !process.isFinalized() && !(process.isZombie() && !process.getDependentOn().isEmpty())) {
 					if(process.getWaitTimeout() != null) {
 						Date now = new Date();
 						if(process.hasPendingAssertions() || now.after(process.getWaitTimeout())) {
@@ -227,7 +228,16 @@ public class ProcessLifecycle {
 					return new NextStep(DoNext.nothing);
 				}
 				
-				if(process.isPendingCancel() || process.isPendingDump()) {
+				if(process.isZombie()) {
+					if(process.getDependentOn().size() == 0) {
+						log.info("<<<<<<<<Dispatch "+processId);
+						return new NextStep(DoNext.zombie);
+					} else {
+						log.severe("Zombie run with dependencies "+process);
+						log.info("<<<<<<<<Dispatch "+processId);
+						return new NextStep(DoNext.nothing);
+					}
+				} else if(process.isPendingCancel() || process.isPendingDump()) {
 					boolean wasInit = process.getState().equals(ActionState.INIT);
 					process.setState(ActionState.CANCELLED);
 			       CloudProcessResource.dao.update(process);
@@ -261,6 +271,8 @@ public class ProcessLifecycle {
 						CloudProcessResource.dao.update(process);
 						log.info("<<<<<<<<Dispatch "+processId);
 						return new NextStep(DoNext.call);	
+				} else if(process.isZombie()) {
+					
 				}
 				log.info("<<<<<<<<Dispatch "+processId);
 		        return new NextStep(DoNext.nothing);
@@ -278,6 +290,17 @@ public class ProcessLifecycle {
 		
 		boolean error = false;
 		switch(dispatchCode.todo){
+		case zombie:
+				if(process.getState() == ActionState.ONEXIT) {
+					toComplete(process);
+				} else if(process.getState() == ActionState.CLEANUP) {
+					toFailed(process);
+				} else if(process.getState() == ActionState.CANCELLING) {
+					toCancelled(process);
+				} else { // if(process.getState() == ActionState.DUMPING) {
+					toDumped(process);
+				}
+				break;
 		case assertion:
 				for(String assertion : dispatchCode.assertion) {
 					try {
@@ -300,7 +323,8 @@ public class ProcessLifecycle {
 			}
 			writeOnChange(task);
 			if(error) {
-				toFailed(process);
+				if(!toZombie(process.getUri(), ActionState.CLEANUP)) 
+					toFailed(process);
 			} else {
 				return endOfTimeSlice(process);
 			}
@@ -317,10 +341,12 @@ public class ProcessLifecycle {
 			}
 			writeOnChange(task);
 			if(error) {
-				toFailed(process);
+				if(!toZombie(process.getUri(), ActionState.CLEANUP))
+					toFailed(process);
 				break;
 			} else if(complete) {
-				toComplete(process);
+				if(!toZombie(process.getUri(),  ActionState.ONEXIT))
+					toComplete(process);
 			} else {
 				return endOfTimeSlice(process);
 			}
@@ -333,7 +359,8 @@ public class ProcessLifecycle {
 			}
 			writeOnChange(task);
 		case initCancel:
-			toCancelled(process);
+			if(!toZombie(process.getUri(),  ActionState.CANCELLING))
+				toCancelled(process);
 			break;
 		case dump:
 			try {
@@ -343,7 +370,8 @@ public class ProcessLifecycle {
 			}
 			writeOnChange(task);
 		case initDump:
-			toDumped(process);
+			if(!toZombie(process.getUri(),  ActionState.DUMPING))
+				toDumped(process);
 			break;
 		case nothing:
 		default:
@@ -371,7 +399,6 @@ public class ProcessLifecycle {
 		final Long processId = process.getId();
 		final URI processUri = process.getUri();
 		log.info("Complete "+process.getName()+":"+processUri);
-		doOnExitProcessing(process, true);
 		giveChildrenToGrandparent(process);
 		final List<String> parentAndDependents = CloudProcessResource.dao.transact(new Work<List<String>>() {
 			@Override
@@ -431,7 +458,10 @@ public class ProcessLifecycle {
 						if(dprocess.getState() == ActionState.INIT) {
 								dprocess.setPendingInit(true);
 						} 
-						dprocess.setState(ActionState.RUNABLE);
+						if(!dprocess.isZombie())
+							dprocess.setState(ActionState.RUNABLE);
+						else
+							log.info("Zombie ready for final processing "+dprocess);
 						schedule(dprocess, true);
 					} else {
 						CloudProcessResource.dao.update(dprocess);
@@ -561,7 +591,6 @@ public class ProcessLifecycle {
 		final Long processId = process.getId();
 		final URI processUri = process.getUri();
 		log.info("Failed "+process.getName()+":"+processUri);
-		doOnExitProcessing(process, false);
 		dumpAllChildren(process);
 		final List<String> parentAndDependents = CloudProcessResource.dao.transact(new Work<List<String>>() {
 			@Override
@@ -612,7 +641,6 @@ public class ProcessLifecycle {
 		final Long processId = process.getId();
 		final URI processUri = process.getUri();
 		log.info("Dumped "+process.getName()+":"+processUri);
-		doOnExitProcessing(process, false);
 		dumpAllChildren(process);
 		final List<String> parentAndDependents = CloudProcessResource.dao.transact(new Work<List<String>>() {
 			@Override
@@ -864,7 +892,6 @@ public class ProcessLifecycle {
 		final Long processId = process.getId();
 		final URI processUri = process.getUri();
 		log.info("Cancelled "+process.getName()+":"+processUri);
-		doOnExitProcessing(process, false);
 		giveChildrenToGrandparent(process);
 		final List<String> parentAndDependents = CloudProcessResource.dao.transact(new Work<List<String>>() {
 			@Override
@@ -903,7 +930,62 @@ public class ProcessLifecycle {
 		}
 	}
 	
-	
+	private boolean toZombie(final URI processUri, final ActionState newZombieState) {
+		CloudProcess process = CloudProcessResource.dao.load(processUri);
+		if(process.hasPendingOnExit()) {
+			log.info("toZombie "+newZombieState+ " for "+process);
+			Action action = null;
+			try {
+				action = ActionResource.dao.load(process.getAction());
+			} catch (Exception e) {
+				log.log(Level.SEVERE, "Failed to access action "+process.getAction()+" "+process, e);
+				return false;
+			}
+			Context context = action.getContext();
+			Variable arg = new Variable("arg", "Cleanup processing of "+process.getName()+" complete");
+			context.put(arg.getName(), arg);
+			final List<URI> onExit = process.getPendingOnExit();
+			final CloudProcess onExitProcessor;
+			try {
+				onExitProcessor = spawn(process.getOwner(), "Cleanup of "+process.getName(), action.getContext(), onExit, process.getUri(), "Log");
+				log.info("Spawn cleanup "+onExitProcessor);
+			} catch (NotFoundException e) {
+				log.log(Level.SEVERE, "Failed to spawn OnExit processing ", e);
+				return false;
+			} catch (IllegalArgumentException e) {
+				log.log(Level.SEVERE, "Failed to spawn OnExit processing ", e);
+				return false;
+			} catch (ClassNotFoundException e) {
+				log.log(Level.SEVERE, "Failed to spawn OnExit processing ", e);
+				return false;
+			}
+			CloudProcessResource.dao.transact(new VoidWork() {
+				@Override
+				public void vrun() {
+					log.info(">>>>>>>>>toZombie "+processUri);
+					CloudProcess targetProcess = CloudProcessResource.dao.load(processUri);
+					logExecutionTime(targetProcess);
+					targetProcess.setState(newZombieState);				
+					targetProcess.setRunning(null);
+					addDependentOn(targetProcess, onExitProcessor); // does update
+					log.info("<<<<<<<<toZombie "+processUri);
+			}});
+ 
+			init(onExitProcessor);
+			
+			for(URI uri : onExit) {
+				CloudProcess exitProcess = CloudProcessResource.dao.load(uri);
+				init(exitProcess);
+			}
+			
+// FIXME: getList doesnt handle Ids of form parent_id
+//			for(CloudProcess exitProcess : CloudProcessResource.dao.getList(onExit)) {
+//				init(exitProcess);
+//			}
+			return true;
+		}
+		return false;
+	}
 	
 	public CloudProcess spawn(URI owner, String name, n3phele.service.model.Context context, 
 								     List<URI> dependency, URI parentURI, String className) throws IllegalArgumentException, NotFoundException, ClassNotFoundException {
@@ -1187,7 +1269,6 @@ public class ProcessLifecycle {
 				@Override
 				public Boolean run() {
 					log.info(">>>>>>>>>>InsertIntoContext "+processURI);
-					boolean result = false;
 					CloudProcess process = CloudProcessResource.dao.load(processURI);
 					if(process.isFinalized()) {
 						log.warning("Process "+processURI+" is finalized and cannot be updated "+process);
@@ -1239,46 +1320,10 @@ public class ProcessLifecycle {
 				log.info(">>>>>>>>>addOnExitProcesses "+root.getUri());
 				CloudProcess target = CloudProcessResource.dao.load(root.getRoot(), root.getId());
 				target.addPendingOnExit(processes);
+				CloudProcessResource.dao.update(target);
+				log.info("Process with OnExit added "+target);
 				log.info("<<<<<<<<addOnExitProcesses "+root.getUri());
 			}});
-	}
-	
-	private void doOnExitProcessing(CloudProcess process, boolean dumpChildren) {
-		if(process.hasPendingOnExit()) {
-			List<URI> onExit = process.getPendingOnExit();
-			
-			Action action = null;
-			try {
-				action = ActionResource.dao.load(process.getAction());
-			} catch (Exception e) {
-				log.log(Level.SEVERE, "Failed to access action "+process.getAction()+" "+process, e);
-				return;
-			}
-			Context context = action.getContext();
-			Variable arg = new Variable("arg", "Cleanup processing of "+process.getName()+" complete");
-			context.put(arg.getName(), arg);
-			
-			CloudProcess onExitProcessor;
-			try {
-				onExitProcessor = spawn(process.getOwner(), "Cleanup of "+process.getName(), action.getContext(), onExit, process.getParent(), dumpChildren?"Dump" : "Log");
-			} catch (NotFoundException e) {
-				log.log(Level.SEVERE, "Failed to spawn OnExit processing ", e);
-				return;
-			} catch (IllegalArgumentException e) {
-				log.log(Level.SEVERE, "Failed to spawn OnExit processing ", e);
-				return;
-			} catch (ClassNotFoundException e) {
-				log.log(Level.SEVERE, "Failed to spawn OnExit processing ", e);
-				return;
-			}
-			giveChildrenToProcess(process, onExitProcessor);
- 
-			for(CloudProcess exitProcess : CloudProcessResource.dao.getList(onExit)) {
-				init(exitProcess);
-			}
-			init(onExitProcessor);
-			
-		}
 	}
 	
 	/*
@@ -1293,7 +1338,7 @@ public class ProcessLifecycle {
 		assertion,
 		call,
 		initCancel,
-		initDump
+		initDump, zombie
 	}
 	
 	private static class NextStep {

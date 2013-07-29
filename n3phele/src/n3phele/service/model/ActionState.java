@@ -43,7 +43,15 @@ public enum ActionState {
 	CANCELLED, /*
 	  		    * Task has been cancelled. Dump of state optionally taken. Next State: Task isFinalized is true
 	  		    */ 
-	FAILED	   /*
+	FAILED,	   /*
 	  		    * Task processing exception. Next State: Task isFinalized is true
 	  		    */
+	ONEXIT,	   /*
+				* Wait for ONEXIT dependencies to complete. Next State: COMPLETE
+				*/
+	CLEANUP,	/*
+				* Wait for ONEXIT dependencies to complete. Next State: FAILED
+				*/
+	CANCELLING,	/* Wait for ONEXIT dependencies to complete. Next State: CANCELLED */
+	DUMPING		/* Wait for ONEXIT dependencies to complete. Next State: CANCELLED */
 }
