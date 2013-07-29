@@ -153,8 +153,6 @@ public class AssimilateVMAction extends VMAction{
 	
 	@Override
 	public boolean call() throws WaitForSignalRequest, Exception {
-		log.info("AssimilateVM call: epoch =  "+this.epoch);
-		log.info("AssimilateVM call: epoch =  "+this.epoch);
 		if(epoch != 0) {
 							
 			URI accountURI = Helpers.stringToURI(this.context.getValue("account"));
@@ -197,7 +195,7 @@ public class AssimilateVMAction extends VMAction{
 					}
 				
 				epoch = 0;
-				ProcessLifecycle.mgr().signalParent(this.getProcess(), SignalKind.Ok, this.getProcess().toString());
+				ProcessLifecycle.mgr().signalParent(this.getProcess(), SignalKind.Event, this.getProcess().toString());
 				throw new ProcessLifecycle.WaitForSignalRequest();
 				}
 					
@@ -219,9 +217,9 @@ public class AssimilateVMAction extends VMAction{
 			}
 			return false; // keep waiting
 		} else {
-			/*
-			 * On going monitoring of the VM
-			 */
+			
+			// * On going monitoring of the VM
+			 
 				
 			URI accountURI = Helpers.stringToURI(this.context.getValue("account"));
 			if(accountURI == null)
@@ -260,13 +258,13 @@ public class AssimilateVMAction extends VMAction{
 			
 			log.info("VM "+this.context.getValue("vmFactory")+" "+(vs==null?"disappeared":vs.getName()+":"+vs.getStatus()));
 			if(vs != null && vs.getStatus().equals(VirtualServerStatus.running) && vs.getOutputParameters() != null) {
-				/*
-				 * All is well
-				 */
+				
+				// * All is well
+				 
 			} else if(vs == null || vs.getStatus().equals(VirtualServerStatus.terminated)) {
-				/*
-				 * The VM has died
-				 */
+				
+				 //* The VM has died
+				 
 				logger.error(this.context.getValue("vmFactory")+" unexpected death.");
 				log.severe("Client "+this.context.getValue("vmFactory")+" unexpected death.");
 				throw new UnprocessableEntityException("Client "+this.context.getValue("vmFactory")+" unexpected death.");
@@ -274,6 +272,7 @@ public class AssimilateVMAction extends VMAction{
 					
 			throw new ProcessLifecycle.WaitForSignalRequest();
 		}	
+		
 	}
 	@Override
 	public void cancel() {
