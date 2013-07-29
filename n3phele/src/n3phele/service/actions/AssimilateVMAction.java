@@ -17,7 +17,6 @@ import n3phele.service.lifecycle.ProcessLifecycle;
 import n3phele.service.lifecycle.ProcessLifecycle.WaitForSignalRequest;
 import n3phele.service.model.Account;
 import n3phele.service.model.Cloud;
-import n3phele.service.model.CloudProcess;
 import n3phele.service.model.Command;
 import n3phele.service.model.SignalKind;
 import n3phele.service.model.core.CreateVirtualServerResponse;
@@ -31,7 +30,6 @@ import n3phele.service.model.core.VirtualServer;
 import n3phele.service.model.core.VirtualServerStatus;
 import n3phele.service.rest.impl.AccountResource;
 import n3phele.service.rest.impl.ActionResource;
-import n3phele.service.rest.impl.CloudProcessResource;
 import n3phele.service.rest.impl.CloudResource;
 
 import com.googlecode.objectify.annotation.Cache;

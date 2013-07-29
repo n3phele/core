@@ -694,23 +694,6 @@ public class NShellActionTest {
 		
 		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
 		Assert.assertEquals("command runs", "{\"RUNABLE\": 1, \"RUNABLE_Wait\": 2}", refresh);
-//		Thread.sleep(500);
-//		CloudProcessResource.dao.clear();
-//		
-//		on_0Process = CloudProcessResource.dao.load(on_0.getProcess());
-//		fileTransfer_0Process = CloudProcessResource.dao.load(fileTransfer_0Process.getUri());
-//		vmProcess = CloudProcessResource.dao.load(vmProcess.getUri());
-//		createVMProcess = CloudProcessResource.dao.load(createVMProcess.getUri());
-//		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
-//		Assert.assertEquals("Command line polls", ActionState.RUNABLE, on_0Process.getState());
-//		Assert.assertEquals(ActionState.COMPLETE, fileTransfer_0Process.getState());
-//		Assert.assertEquals(ActionState.RUNABLE, vmProcess.getState());
-//		Assert.assertEquals(ActionState.COMPLETE, createVMProcess.getState());
-//		Assert.assertEquals(ActionState.RUNABLE, shellProcess.getState());	
-//
-//		
-//		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
-//		Assert.assertEquals("command line polling", "{\"RUNABLE\": 1, \"RUNABLE_Wait\": 2}", refresh);
 		
 		Thread.sleep(1000);
 		CloudProcessResource.dao.clear();
@@ -936,6 +919,101 @@ public class NShellActionTest {
 		Assert.assertEquals(URI.create("http://192.168.1.0:8887/task/15"), OnActionWrapper.getTaskTarget);	
 	}
 	
+	/** Invokes an onExit command that has no file dependencies
+	 * @throws InterruptedException
+	 * @throws ClassNotFoundException
+	 * @throws FileNotFoundException
+	 * @throws ParseException
+	 */
+	@Test
+	public void onExitCommandNoFilesTest() throws InterruptedException, ClassNotFoundException, FileNotFoundException, ParseException {
+		User root = getRoot();
+		ObjectifyService.register(NShellActionTestHarness.class);
+		ObjectifyService.register(OnActionWrapper.class);
+		assertNotNull(root);
+		 URI cloud = createTestCloud();
+		 URI account = createTestAccount(cloud);
+		 CreateVMActionWrapper.initalState = VirtualServerStatus.pending;
+		 VMActionWrapper.processState = VirtualServerStatus.running;
+		 CreateVMActionWrapper.clientResponseResult = new CreateVirtualServerTestResult("https://myFactory/VM/1234", 201, "https://myFactory/VM/1234");
+		
+		NParser n = new NParser(new FileInputStream("./test/onExitCommandNoFilesTest.n"));
+		Command cd = n.parse();
+		cd.setUri(URI.create("http://n3phele.com/test"));
+		Assert.assertEquals("onExitCommandNoFiles", cd.getName());
+		Assert.assertEquals("run a command with an ONEXIT statement needing no files", cd.getDescription());
+		Assert.assertTrue(cd.isPublic());
+		Assert.assertTrue(cd.isPreferred());
+		Assert.assertEquals("1.1", cd.getVersion());
+		Assert.assertEquals(URI.create("http://www.n3phele.com/icons/custom"), cd.getIcon());
+		testCommandDefinition = cd;
+		
+		/*
+		 * Setup agents replies
+		 */
+		OnExitActionWrapper.commandRequestReply = URI.create("http://123.123.123.1/task/15");
+		
+		Context context = new Context();
+		
+		context.putValue("arg", "http://n3phele.com/test#EC2");
+		context.putValue("account", account);
+		
+		CloudProcess shellProcess = ProcessLifecycleWrapper.mgr().createProcess(root, "shell", context, null, null, true, NShellActionTestHarness.class);
+		ProcessLifecycleWrapper.mgr().init(shellProcess);
+		Thread.sleep(2000);
+		CloudProcessResource.dao.clear();
+		
+
+		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
+		NShellAction shell = (NShellAction) ActionResource.dao.load(shellProcess.getAction());
+		URI vmURI = (URI) shell.getContext().getObjectValue("my_vm") ;
+		Action vmAction = ActionResource.dao.load(vmURI);
+		Assert.assertEquals("my_vm", vmAction.getContext().getValue("name"));
+		
+		CloudProcessResource.dao.clear();
+		String refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
+//		Assert.assertEquals("{\"RUNABLE\": 1, \"RUNABLE_Wait\": 1, \"ONEXIT\": 1, \"INIT\": 1}", refresh);
+		List<Narrative> logs = new ArrayList<Narrative>();
+		logs.addAll(NarrativeResource.dao.getNarratives(shellProcess.getUri()));
+		for(Narrative log : logs) {
+			System.out.println(log.toString());
+		}
+		assertEquals(3, logs.size());
+		assertEquals("command executes before ONEXIT\n", logs.get(2).getText());
+		
+		OnAction onExit_0 = (OnExitAction) ActionResource.dao.load(shell.getContext().getURIValue("OnExit_0"));
+		Assert.assertEquals("echo hello world!\n", onExit_0.getContext().getValue("command"));
+		Assert.assertEquals(OnExitActionWrapper.commandRequestReply, onExit_0.getInstance());
+		Assert.assertEquals("echo hello world!\n", OnExitActionWrapper.request.getCmd());
+		Assert.assertEquals(UriBuilder.fromUri(onExit_0.getProcess()).scheme("http").path("event").build(), OnExitActionWrapper.request.getNotification());
+		Assert.assertEquals(null, OnExitActionWrapper.request.getStdin());
+		
+		
+		Thread.sleep(1000);
+		CloudProcessResource.dao.clear();
+		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
+//		Assert.assertEquals("{\"RUNABLE_Wait\": 1, \"ONEXIT_Running\": 1}", refresh);
+		
+		
+		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
+		shell = (NShellAction) ActionResource.dao.load(shellProcess.getAction());
+		CloudProcess createVMProcess = CloudProcessResource.dao.load(vmAction.getProcess());
+		vmAction = ActionResource.dao.load(vmURI);
+		URI vm  = vmAction.getContext().getURIValue("cloudVM");
+		Action action = ActionResource.dao.load(vm);
+		CloudProcess vmProcess = CloudProcessResource.dao.load(action.getProcess());
+		CloudProcess onProcess = CloudProcessResource.dao.load(onExit_0.getProcess());
+		logs = new ArrayList<Narrative>();
+		logs.addAll(NarrativeResource.dao.getNarratives(shellProcess.getUri()));
+		for(Narrative log : logs) {
+			System.out.println(log.toString());
+		}
+		Assert.assertEquals(ActionState.COMPLETE, shellProcess.getState());
+		Assert.assertEquals(ActionState.COMPLETE, createVMProcess.getState());
+		Assert.assertEquals(ActionState.CANCELLED, vmProcess.getState());
+		Assert.assertEquals(ActionState.COMPLETE, onProcess.getState());
+	}
+	
 	
 	/** Invokes a log command in a for loop
 	 * @throws InterruptedException
@@ -1053,7 +1131,6 @@ public class NShellActionTest {
 	 public static class LogActionWrapper extends LogAction {
 		 
 	 }
-	 
 	 
 	 @EntitySubclass
 	 public static class CreateVMActionWrapper extends CreateVMAction {
@@ -1202,6 +1279,54 @@ public class NShellActionTest {
 			}
 	 }
 	 
+	 @EntitySubclass
+	 public static class OnExitActionWrapper extends OnExitAction {
+		 static List<Task> reply;
+		 static CommandRequest request;
+		 static URI commandRequestReply;
+		 static URI sendRequestTarget;
+		 static URI getTaskTarget;
+		 int i = 0;
+		 @Override
+		 protected Task getTask(Client client, String target) {
+			 getTaskTarget = URI.create(target);
+			 if(i < reply.size())
+				 i++;
+			 return reply.get(i-1);
+		}
+		@Override
+		protected URI sendRequest(Client client, URI target, CommandRequest form) {
+				sendRequestTarget = target;
+				request = form;
+				Task reply0 = new Task();
+				reply0.setId("1");
+				reply0.setUri(commandRequestReply);
+				reply0.setStarted(new Date());
+				reply0.setStdin(form.getStdin());
+				reply0.setStdout("stdout");
+				reply0.setStderr("stderr");
+				reply0.setNotification(form.getNotification());
+				
+				Task reply1 = new Task();
+				reply1.setId("1");
+				reply1.setUri(commandRequestReply);
+				reply1.setStarted(reply0.getStarted());
+				reply1.setStdin(form.getStdin());
+				reply1.setStdout("stdout");
+				reply1.setStderr("stderr");
+				reply1.setNotification(form.getNotification());
+				reply1.setFinished(new Date());
+				
+				reply = Arrays.asList(reply0, reply1);
+				
+				
+				return commandRequestReply;
+			}
+		 
+	 }
+	 
+	 
+
 	 
 	 @EntitySubclass
 	 public static class FileTransferActionWrapper extends FileTransferAction {

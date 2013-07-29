@@ -486,6 +486,14 @@ public class CloudProcess extends Entity {
 	public boolean hasPendingOnExit() {
 		return this.pendingOnExit != null && !this.pendingOnExit.isEmpty();
 	}
+	
+	/**
+	 * @return true is process is in zombie state
+	 */
+	public boolean isZombie() {
+		return this.state.ordinal() >= ActionState.ONEXIT.ordinal();
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
