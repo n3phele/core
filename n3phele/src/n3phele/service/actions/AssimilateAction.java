@@ -244,7 +244,6 @@ public class AssimilateAction extends Action {
 		case Event:
 			if(isChild) {
 				this.inProgress.remove(assertion);
-				ActionResource.dao.update(this);
 			} else if(assertion.equals("killVM")) {
 				killVM();
 			} else {
@@ -287,7 +286,6 @@ public class AssimilateAction extends Action {
 			log.info((isChild?"Child ":"Unknown ")+assertion+" failed");
 			if(isChild) {
 				this.inProgress.remove(assertion);
-				ActionResource.dao.update(this);
 				this.killVM();
 				failed = true;
 			}
@@ -296,7 +294,6 @@ public class AssimilateAction extends Action {
 			log.info((isChild?"Child ":"Unknown ")+assertion+" ok");
 			if(isChild) {
 				this.inProgress.remove(assertion);
-				ActionResource.dao.update(this);
 			}
 			break;
 		default:
@@ -478,6 +475,11 @@ public class AssimilateAction extends Action {
 			return false;
 		AssimilateAction other = (AssimilateAction) obj;
 		if (this.failed != other.failed)
+			return false;
+		if (inProgress == null) {
+			if (other.inProgress != null)
+				return false;
+		} else if (!inProgress.equals(other.inProgress))
 			return false;
 		if (this.logger == null) {
 			if (other.logger != null)
