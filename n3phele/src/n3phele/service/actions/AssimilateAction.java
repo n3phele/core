@@ -65,7 +65,7 @@ import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 
 @EntitySubclass
 @XmlRootElement(name = "AssimilateAction")
-@XmlType(name = "AssimilateAction", propOrder = { "inProgress","failed", "targetIP" })
+@XmlType(name = "AssimilateAction", propOrder = { "targetIP","inProgress"})
 @Unindex
 @Cache
 public class AssimilateAction extends Action {
@@ -152,6 +152,10 @@ public class AssimilateAction extends Action {
 				logger.info("IP found on factory");
 				URI[] list = response.getRefs();	
 				this.context.putValue("vmFactory", list[0].toString());
+				this.context.putValue("agentURI", new URI("http://" + this.getTargetIP().trim() + ":8887/task"));
+				this.context.putValue("agentUser", "test");
+				this.context.putValue("agentSecret","password");
+				
 				
 				Context childContext = new Context();
 				childContext.putAll(this.context);
