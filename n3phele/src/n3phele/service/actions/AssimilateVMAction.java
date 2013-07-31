@@ -57,7 +57,7 @@ import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 
 @EntitySubclass
 @XmlRootElement(name = "AssimilateVMAction")
-@XmlType(name = "AssimilateVMAction", propOrder = { "failed" })
+@XmlType(name = "AssimilateVMAction", propOrder = { "targetIP" })
 @Unindex
 @Cache
 public class AssimilateVMAction extends VMAction{

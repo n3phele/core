@@ -359,7 +359,7 @@ public class CreateVMAction extends Action {
 						log.log(Level.SEVERE, "VM fetch", e);
 					}
 					ArrayList<CloudProcess> listProcesses = createVMProcesses(refs, forceAgentRestart, myCloud.getFactoryCredential(), agentCredential);
-					double value = -1;
+					double value = 0;
 					if(vs!= null)
 					value = getValueByCDN(myCloud, vs.getParameters());
 					Date date = null;
