@@ -377,6 +377,10 @@ public class AssimilateAction extends Action {
 	public void setInProgress(ArrayList<String> inProgress) {
 		this.inProgress = inProgress;
 	}
+	
+	public HashMap<String, String> getChildMap(){
+		return this.childMap;
+	}
 
 	public void killVM() {
 		
