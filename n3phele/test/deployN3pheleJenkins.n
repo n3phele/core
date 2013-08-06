@@ -49,6 +49,7 @@ HPZone1: # HP Cloud
 		juju status | shyaml get-value services.$${$$service_name}-agent > machine.txt;
 		machine=$(grep machine: machine.txt | cut -d: -f2 | tr -d "'" | tr -d ' ')
 		juju deploy --config config.yaml --to $machine jenkins $$service_name
+		rm config.yaml
 	
 	$$exposeJenkins = ON $$bootstrap
 					STAT="none";
