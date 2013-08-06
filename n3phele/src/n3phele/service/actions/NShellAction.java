@@ -477,6 +477,14 @@ public class NShellAction extends Action {
 			uri = URI.create(list.get(0));
 			action = ActionResource.dao.load(uri);
 		}
+		
+		if(action instanceof AssimilateAction) {
+			AssimilateAction head = (AssimilateAction) action;
+			Entry<String, String> e = head.getChildMap().entrySet().iterator().next();
+			URI process =   Helpers.stringToURI(e.getValue());
+			CloudProcess cp = CloudProcessResource.dao.load(process);
+			action = ActionResource.dao.load(cp.getAction());
+		}		
 
 		VMAction target =  (VMAction) action;
 		
