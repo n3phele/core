@@ -678,31 +678,12 @@ public class CloudProcessResource {
 		}
 
 		public Collection<CloudProcess> getServiceStackCollectionNonFinalized(String owner) {
-			ActionManager actionManager = new ActionManager();		
-			//Retrieve all stack service actions
-			Collection<StackServiceAction> stackServiceActions = actionManager.getStackServiceAction();
-
-			List<CloudProcess> elements;
-			if(stackServiceActions.getElements().size() > 0)
-			{
-				List<String> uris = new ArrayList<String>(stackServiceActions.getElements().size());
-				for(StackServiceAction action: stackServiceActions.getElements())
-				{
-					uris.add(action.getUri().toString());
-				}
-
-				java.util.Collection<CloudProcess> collection = ofy().load().type(CloudProcess.class).filter("owner", owner).filter("action in", uris).filter("finalized", false).list();
-
-				elements = new ArrayList<CloudProcess>(collection);	
-			}
-			else
-			{
-				elements = new ArrayList<CloudProcess>(0);
-			}
 			
-			Collection<CloudProcess> processes = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, elements);
+			List<CloudProcess> items = ofy().load().type(CloudProcess.class).filter("owner", owner).filter("isService", true).filter("finalized", false).list();
+
+			Collection<CloudProcess> result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, items);
 			
-			return processes;
+			return result;
 		}
 	}
 

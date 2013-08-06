@@ -188,7 +188,7 @@ public class CloudProcessWorkloadsTest  {
 		// tom is valid
 		for(int i=0; i < load; i++)
 		{
-			CloudProcess nTom   = new CloudProcess(UserResource.Root.getUri(), "tom-" + i, null, true, task);
+			CloudProcess nTom   = new CloudProcess(UserResource.Root.getUri(), "tom-" + i, null, true, task, false);
 			nTom.setCostPerHour((float)1.5);
 			nTom.setComplete(Calendar.getInstance().getTime());
 			nTom.setAccount(manager.path + "/"+"conta");
@@ -199,7 +199,7 @@ public class CloudProcessWorkloadsTest  {
 		//spike is invalid because it doesn't have cost nor account
 		for(int i=0; i < load; i++)
 		{
-			CloudProcess nSpike   = new CloudProcess(UserResource.Root.getUri(), "spike-" + i, null, true, task);
+			CloudProcess nSpike   = new CloudProcess(UserResource.Root.getUri(), "spike-" + i, null, true, task, false);
 			nSpike.setCostPerHour((float)0.0);
 			nSpike.setComplete(Calendar.getInstance().getTime());
 			CloudResourceTestWrapper.dao.add(nSpike);
@@ -212,7 +212,7 @@ public class CloudProcessWorkloadsTest  {
 		//jerry is invalid because of the date
 		for(int i=0; i < load; i++)
 		{
-			CloudProcess nJerry   = new CloudProcess(UserResource.Root.getUri(), "jerry-" + i, null, true, task);
+			CloudProcess nJerry   = new CloudProcess(UserResource.Root.getUri(), "jerry-" + i, null, true, task, false);
 			nJerry.setCostPerHour((float)1.5);
 			nJerry.setComplete(calendar.getTime());
 			nJerry.setAccount(manager.path + "/"+"conta");
