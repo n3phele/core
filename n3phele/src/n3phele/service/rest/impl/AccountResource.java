@@ -747,7 +747,7 @@ public class AccountResource {
 
 		Action task = new CountDownAction();
 		task.setUri(new URI("http://www.google.com.br"));
-		CloudProcess cloudProcess = new CloudProcess(UserResource.Root.getUri(), name, null, true, task);
+		CloudProcess cloudProcess = new CloudProcess(UserResource.Root.getUri(), name, null, true, task, false);
 		cloudProcess.setCostPerHour(cost);
 		cloudProcess.setAccount(account);
 		DateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
