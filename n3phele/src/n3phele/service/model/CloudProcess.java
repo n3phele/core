@@ -72,6 +72,7 @@ public class CloudProcess extends Entity {
 	@Index(IfNotZero.class)protected double costPerHour = 0;
 	@Index(IfNotNull.class)protected Date epoch = null;
 	@Index(IfNotNull.class)protected String account = null;
+	@Index(IfTrue.class) boolean isService = false;
 	
 	public CloudProcess() {}
 	/** Describes a cloud process. 
@@ -79,7 +80,7 @@ public class CloudProcess extends Entity {
 	 * @param parent Parent to be notified on process state changes
 	 * @param taskId Reference to the action managed by the process
 	 */
-	public CloudProcess(URI owner, String name, CloudProcess parent, boolean topLevel, Action task)  {
+	public CloudProcess(URI owner, String name, CloudProcess parent, boolean topLevel, Action task, boolean isService)  {
 		super(name, null, owner, false);
 		this.action = task.getUri().toString();
 		this.topLevel = topLevel;
@@ -94,6 +95,7 @@ public class CloudProcess extends Entity {
 			this.parent = null;
 			this.root = null;
 		}
+		this.isService = isService;
 	}
 	
 	/*

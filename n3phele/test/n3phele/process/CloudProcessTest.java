@@ -115,7 +115,7 @@ public class CloudProcessTest  {
 		task.setUri(new URI("http://www.google.com.br"));
 		
 		// tom
-		CloudProcess tom   = new CloudProcess(UserResource.Root.getUri(), "tom", null, true, task);
+		CloudProcess tom   = new CloudProcess(UserResource.Root.getUri(), "tom", null, true, task, false);
 		tom.setCostPerHour((float)1.5);
 		tom.setAccount("conta");
 		tom.setComplete(Calendar.getInstance().getTime());
@@ -126,7 +126,7 @@ public class CloudProcessTest  {
 		Calendar calendar = Calendar.getInstance();
 		calendar.add(Calendar.MONTH, -2);
 		
-		CloudProcess jerry = new CloudProcess(UserResource.Root.getUri(), "jerry", null, true, task);
+		CloudProcess jerry = new CloudProcess(UserResource.Root.getUri(), "jerry", null, true, task, false);
 		jerry.setCostPerHour((float)1.5);
 		jerry.setAccount("conta");
 		jerry.setComplete(calendar.getTime());
