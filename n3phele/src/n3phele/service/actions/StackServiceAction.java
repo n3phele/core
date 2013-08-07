@@ -227,7 +227,7 @@ public class StackServiceAction extends ServiceAction {
 				Action action = ActionResource.dao.load(child.getAction());
 				log.info("Adopting child " + child.getName() + " " + child.getClass().getSimpleName());
 				this.adopted.add(assertion);
-				if (action instanceof AssimilateAction) {
+				if (action instanceof AssimilateVMAction) {
 					for (Stack s : stacks) {
 						if (s.getId() == action.getContext().getLongValue("stackId")) {
 							s.addVm(child.getUri());

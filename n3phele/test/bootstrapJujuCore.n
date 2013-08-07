@@ -1,8 +1,8 @@
 # bootstrapJuju.n
 # Author: Alexandre Tavares
-name       :  bootstrapJujuCore
+name       : bootstrapJujuCore
 description: Bootstraps Juju
-version    : 0.8.8
+version    : 1.6
 preferred  : true
 processor  : StackService
 public     : true
@@ -15,13 +15,10 @@ HPZone1: # HP Cloud
 	$$tenant = $$regex($$credential[0],"([^:]+):([^:]+)",1)
 	$$key = $$regex($$credential[0],"([^:]+):([^:]+)",2)
 	$$secret = $$credential[1]
-	ON $$vmTavares sudo add-apt-repository -y ppa:juju/devel
-	ON $$vmTavares sudo apt-get update -y && sudo apt-get install -y juju-core
-	#ON $$vmTavares
-	#	wget http://ppa.launchpad.net/juju/devel/ubuntu/pool/main/j/juju-core/juju-core_1.11.2-3~1414~raring1_amd64.deb
-	#	sudo dpkg -i juju-core_1.11.2-3~1414~raring1_amd64.deb
-		
-	ON $$vmTavares
+	
+	ON $$vmTavares 
+		sudo add-apt-repository -y ppa:juju/devel
+		sudo apt-get update -y && sudo apt-get install -y juju-core
 		sudo apt-get install -y python-pip
 		sudo pip install shyaml
 
@@ -42,9 +39,12 @@ HPZone1: # HP Cloud
 		echo "    auth-mode: keypair" 																	>> ~/.juju/environments.yaml
 		echo "    access-key: $${$$key}" 																>> ~/.juju/environments.yaml
 		echo "    secret-key: $${$$secret}" 															>> ~/.juju/environments.yaml
+		echo "    default-image-id: \"142792\"" 														>> ~/.juju/environments.yaml
 		ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -N ""
 	
 	ON $$vmTavares
+		juju destroy-environment
+		sleep 30
 		juju bootstrap
 		sleep 30
 
@@ -63,36 +63,42 @@ HPZone1: # HP Cloud
 						IP=$(echo $IP | tr -d ' ')
 						echo $IP
 	
-	ON $$vmTavares
-		sudo apt-get install -y unzip
-		wget https://region-a.geo-1.objects.hpcloudsvc.com/v1/AUTH_dc700102-734c-4a97-afc8-50530e87a171/n3phele-agent/precise.zip
-		unzip precise.zip -d charms
-		juju deploy --repository=charms local:agent --to 0
+	$$installAgent = ON $$vmTavares
+						sudo apt-get install -y unzip
+						wget https://region-a.geo-1.objects.hpcloudsvc.com/v1/AUTH_dc700102-734c-4a97-afc8-50530e87a171/n3phele-agent/precise.zip
+						unzip precise.zip -d charms
+						juju deploy --repository=charms local:agent --to 0 bootstrap-agent
 		
 	$$exposeAgent = ON $$vmTavares
 						STAT="none"
 						RUN_STATUS="started"
 						while [ "$STAT" != "$RUN_STATUS" ]
 						do sleep 20
-						juju status | shyaml get-value services.agent > tmp.txt
+						juju status | shyaml get-value services.bootstrap-agent > tmp.txt
 						STAT=$(sed -n -e '0,/agent-state: /s///p' tmp.txt)
 						STAT=$(echo $STAT | tr -d ' ')
 						done
-						juju expose agent
+						juju expose bootstrap-agent
 						echo "Agent exposed"
 	
 	$$bootstrap = ASSIMILATEVM --targetIP $$bootstrapIP.stdout
 	EXPORT $$bootstrap
-	ON $$vmTavares
-		juju ssh 0 <<EOF
-			#wget http://ppa.launchpad.net/juju/devel/ubuntu/pool/main/j/juju-core/juju-core_1.11.2-3~1414~raring1_amd64.deb
-			#sudo dpkg -i juju-core_1.11.2-3~1414~raring1_amd64.deb
-			sudo add-apt-repository -y ppa:juju/devel
-			sudo apt-get update -y && sudo apt-get install -y juju-core
-			mkdir ~/.juju
-			sudo chmod 777 .juju/
-			ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -N ""
-			exit
-		EOF
+	
+	ON $$bootstrap
+		sudo service rsyslog stop
+		sudo apt-get install -y unzip
+		sudo add-apt-repository -y ppa:juju/devel
+		sudo apt-get update -y && sudo apt-get install -y juju-core
+		sudo apt-get install -y python-pip
+		sudo pip install shyaml
+		
+	ON $$bootstrap
+		wget https://region-a.geo-1.objects.hpcloudsvc.com/v1/AUTH_dc700102-734c-4a97-afc8-50530e87a171/n3phele-agent/precise.zip
+		unzip precise.zip -d charms
+		mkdir ~/.juju
+		sudo chmod 777 ~/.juju
+		ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -N ""
 		
 	ON $$vmTavares juju scp ~/.juju/* 0:~/.juju
+	
+	DESTROY $$vmTavares

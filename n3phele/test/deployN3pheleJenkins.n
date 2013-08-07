@@ -1,0 +1,96 @@
+# deployN3pheleJenkins.n
+# Author: Alexandre Tavares
+name       : deployN3pheleJenkins
+description: Deploy Jenkins for the N3phele project
+version    : 5.6
+preferred  : true
+processor  : StackService
+public     : true
+icon       : http://www.n3phele.com/icons/custom
+parameters :
+	string service_name = "nephele-jenkins"
+	string password = "password"
+HPZone1: # HP Cloud
+
+	ON $$bootstrap
+		juju deploy --repository=charms local:agent $${$$service_name}-agent
+		
+	$$exposeAgent = ON $$bootstrap
+					STAT="none";
+					RUN_STATUS="started";
+					while [ "$STAT" != "$RUN_STATUS" ];
+					do sleep 20;
+					juju status | shyaml get-value services.$${$$service_name}-agent > tmp.txt;
+					STAT=$(sed -n -e '0,/agent-state: /s///p' tmp.txt);
+					STAT=$(echo $STAT | tr -d ' ');
+					done;
+					IPS=$(grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' tmp.txt);
+					IPA=(${IPS//:/ });
+					IP=$(echo ${IPA[0]});
+					IP=$(echo $IP | tr -d ' ');
+					juju expose $${$$service_name}-agent;
+					sleep 10;
+					echo $IP
+	
+	$$jenkins = ASSIMILATEVM --targetIP $$exposeAgent.stdout
+	EXPORT $$jenkins
+	
+	ON $$jenkins
+		wget -q -O - http://pkg.jenkins-ci.org/debian/jenkins-ci.org.key | sudo apt-key add -;
+		sudo sh -c 'echo deb http://pkg.jenkins-ci.org/debian binary/ > /etc/apt/sources.list.d/jenkins.list';
+		sudo apt-get update;
+		sudo groupadd jenkins;
+		
+	ON $$bootstrap
+		printf "%s:\\n" $$service_name > config.yaml
+		echo "  username: admin " >> config.yaml
+		echo "  password: $$password " >> config.yaml
+		echo "  plugins: ant promoted-builds mask-passwords git-client git github github-api github-oauth github-sqs-plugin" >> config.yaml
+		juju status | shyaml get-value services.$${$$service_name}-agent > machine.txt;
+		machine=$(grep machine: machine.txt | cut -d: -f2 | tr -d "'" | tr -d ' ')
+		juju deploy --config config.yaml --to $machine jenkins $$service_name
+		rm config.yaml
+	
+	$$exposeJenkins = ON $$bootstrap
+					STAT="none";
+					RUN_STATUS="started";
+					while [ "$STAT" != "$RUN_STATUS" ];
+					do sleep 20;
+					juju status | shyaml get-value services.$$service_name > tmp.txt;
+					STAT=$(sed -n -e '0,/agent-state: /s///p' tmp.txt);
+					STAT=$(echo $STAT | tr -d ' ');
+					done;
+					juju expose $${$$service_name};
+					
+	ON $$jenkins
+		sudo apt-get install -y unzip
+
+	ON $$jenkins
+		sudo apt-get install -y ant
+		sudo apt-get install -y git
+		sudo apt-get install -y openjdk-6-jdk
+		sudo apt-get install -y wget
+
+	ON $$jenkins
+		var1="<org.jenkinsci.main.modules.cli.auth.ssh.UserPropertyImpl><authorizedKeys>";
+		var2="</authorizedKeys></org.jenkinsci.main.modules.cli.auth.ssh.UserPropertyImpl>";
+		ssh-keygen -t rsa -f ~/.ssh/id_rsa -N "";
+		key=$(sed -n "1,100p" ~/.ssh/id_rsa.pub);
+		echo $var1 $key  $var2 > mykey.txt;
+		aux1=$(sed -n "1,22p" /var/lib/jenkins/users/admin/config.xml);
+		aux2=$(sed -n "23,24p" /var/lib/jenkins/users/admin/config.xml);
+		id=$(sed -n "1,100p" mykey.txt);
+		echo $aux1 $id $aux2 > config.xml;
+		sudo mv config.xml /var/lib/jenkins/users/admin/;
+		git clone https://github.com/n3phele/builder.git ~/builder;
+		unzip ~/builder/SDKs/appengine-java-sdk-1.7.1 -d ~/ > /dev/null;
+		unzip ~/builder/SDKs/appengine-java-sdk-1.7.5 -d ~/ > /dev/null;
+		unzip ~/builder/SDKs/gwt-2.4.0 -d ~/ > /dev/null;
+		unzip ~/builder/sdks/gwt-2.5.0 -d ~/ > /dev/null;
+		sudo cp ~/builder/Libs/* /usr/share/ant/lib;
+		sudo wget http://127.0.0.1:8080/jnlpJars/jenkins-cli.jar -q;
+		sudo java -jar jenkins-cli.jar -s http://127.0.0.1:8080/ restart --username admin --password admin;
+		sleep 50;
+		sudo java -jar jenkins-cli.jar -s http://127.0.0.1:8080/ create-job n3phele-core < ~/builder/configN3phele.xml --username admin --password $${$$password};
+		sudo java -jar jenkins-cli.jar -s http://127.0.0.1:8080/ create-job core < ~/builder/configCore.xml --username admin --password $${$$password};
+		sudo java -jar jenkins-cli.jar -s http://127.0.0.1:8080/ create-job openstack-factory < ~/builder/config.xml --username admin --password $${$$password};

@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
+import n3phele.service.actions.ServiceAction;
 import n3phele.service.actions.StackServiceAction;
 import n3phele.service.core.NotFoundException;
 import n3phele.service.core.UnprocessableEntityException;
@@ -64,10 +65,7 @@ public class ProcessLifecycle {
 			throw new IllegalArgumentException(e);
 		}
 		boolean isService = false;
-		if(clazz.equals(StackServiceAction.class)) isService = true;
-		System.out.println(clazz);
-		System.out.println(clazz.getName());
-		System.out.println(StackServiceAction.class);
+		if((clazz.equals(StackServiceAction.class))||(clazz.equals(ServiceAction.class))) isService = true;
 		ActionResource.dao.add(action);	
 		CloudProcess process = new CloudProcess(user.getUri(), name, parent, topLevel, action, isService);
 		CloudProcessResource.dao.add(process);
