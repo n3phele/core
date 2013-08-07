@@ -26,6 +26,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
+import n3phele.service.actions.ServiceAction;
+import n3phele.service.actions.StackServiceAction;
 import n3phele.service.model.core.Entity;
 import n3phele.service.rest.impl.ActionResource;
 import n3phele.service.rest.impl.NarrativeResource;
@@ -365,6 +367,8 @@ public class CloudProcess extends Entity {
 	 */
 	public void setAction(URI task) {
 		this.action = URItoString(task);
+		Action action = ActionResource.dao.load(task);
+		if((action.getClass().equals(StackServiceAction.class))||(action.getClass().equals(ServiceAction.class))) this.isService = true;
 	}
 	/**
 	 * @return the parent
