@@ -2,7 +2,7 @@
 # Author: Alexandre Tavares
 name       : deployN3pheleJenkins
 description: Deploy Jenkins for the N3phele project
-version    : 5.6
+version    : 5.7
 preferred  : true
 processor  : StackService
 public     : true
@@ -89,7 +89,7 @@ HPZone1: # HP Cloud
 		unzip ~/builder/sdks/gwt-2.5.0 -d ~/ > /dev/null;
 		sudo cp ~/builder/Libs/* /usr/share/ant/lib;
 		sudo wget http://127.0.0.1:8080/jnlpJars/jenkins-cli.jar -q;
-		sudo java -jar jenkins-cli.jar -s http://127.0.0.1:8080/ restart --username admin --password admin;
+		sudo java -jar jenkins-cli.jar -s http://127.0.0.1:8080/ restart --username admin --password $${$$password};
 		sleep 50;
 		sudo java -jar jenkins-cli.jar -s http://127.0.0.1:8080/ create-job n3phele-core < ~/builder/configN3phele.xml --username admin --password $${$$password};
 		sudo java -jar jenkins-cli.jar -s http://127.0.0.1:8080/ create-job core < ~/builder/configCore.xml --username admin --password $${$$password};
