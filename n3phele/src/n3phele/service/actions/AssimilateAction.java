@@ -29,6 +29,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
+import n3phele.service.core.Resource;
 import n3phele.service.core.UnprocessableEntityException;
 import n3phele.service.lifecycle.ProcessLifecycle;
 import n3phele.service.lifecycle.ProcessLifecycle.WaitForSignalRequest;
@@ -151,11 +152,17 @@ public class AssimilateAction extends Action {
 				log.info("IP found on factory");
 				logger.info("IP found on factory");
 				URI[] list = response.getRefs();	
+				
+				Credential agentCredential = new Credential(Resource.get("agentUser", "test"), 
+						Resource.get("agentSecret", "password")).encrypt();
+				
+				this.context.putValue("vmIndex", 0);
 				this.context.putValue("vmFactory", list[0].toString());
 				this.context.putValue("agentURI", new URI("http://" + this.getTargetIP().trim() + ":8887/task"));
-				this.context.putValue("agentUser", "test");
-				this.context.putValue("agentSecret","password");
-				
+				this.context.putValue("factoryUser", Credential.unencrypted(factoryCredential).getAccount());
+				this.context.putValue("factorySecret", Credential.unencrypted(factoryCredential).getSecret());
+				this.context.putValue("agentUser", Credential.unencrypted(agentCredential).getAccount());
+				this.context.putValue("agentSecret", Credential.unencrypted(agentCredential).getSecret());
 				
 				Context childContext = new Context();
 				childContext.putAll(this.context);
