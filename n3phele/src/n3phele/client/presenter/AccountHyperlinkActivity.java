@@ -54,15 +54,8 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 	private HandlerRegistration handlerRegistration;
 	private HashMap<ActivityData, Activity> activityPerVS = null;
 	private List<Double> pricesQuery;
-	private volatile boolean hasDoneRest =false;
 	
-	public boolean isHasDoneRest() {
-		return this.hasDoneRest;
-	}
 
-	public void setHasDoneRest(boolean hasDoneRest) {
-		this.hasDoneRest = hasDoneRest;
-	}
 
 	public AccountHyperlinkActivity(String accountUri, ClientFactory factory) {
 		this.factory = factory;
@@ -81,7 +74,6 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 	@Override
 	public void start(AcceptsOneWidget panel, EventBus eventBus) {
 		getAccountList();
-		hasDoneRest = false;
 		this.eventBus = eventBus;
 		handlerRegistration(eventBus);
 		display.setPresenter(this);
