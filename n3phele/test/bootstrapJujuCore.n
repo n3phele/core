@@ -2,7 +2,7 @@
 # Author: Alexandre Tavares
 name       : bootstrapJujuCore
 description: Bootstraps Juju
-version    : 1.6
+version    : 1.7
 preferred  : true
 processor  : StackService
 public     : true
@@ -23,7 +23,7 @@ HPZone1: # HP Cloud
 		sudo pip install shyaml
 
 	ON $$vmTavares 
-		juju generate-config -w
+		juju init
 		echo "default: $${$$serviceName}" 																>  ~/.juju/environments.yaml
 		echo "environments:" 																			>> ~/.juju/environments.yaml
 		echo "  $${$$serviceName}:" 																	>> ~/.juju/environments.yaml
@@ -43,7 +43,7 @@ HPZone1: # HP Cloud
 		ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -N ""
 	
 	ON $$vmTavares
-		juju destroy-environment
+		juju destroy-environment -y
 		sleep 30
 		juju bootstrap
 		sleep 30
