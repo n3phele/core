@@ -19,6 +19,8 @@ import java.util.logging.Logger;
 
 import n3phele.service.core.NotFoundException;
 
+import com.google.appengine.api.memcache.MemcacheService;
+import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.googlecode.objectify.Key;
 
 public abstract class AbstractManager<Item extends Entity> {
@@ -26,11 +28,20 @@ public abstract class AbstractManager<Item extends Entity> {
 	protected Logger log = Logger.getLogger(this.getClass().getName());
 	protected GenericModelDao<Item> itemDao;
 	public final URI path;
+	private MemcacheService cache;
 
 	public AbstractManager() {
 		super();
 		itemDao = itemDaoFactory();
 		path = myPath();
+	}
+	
+	/**
+	 * @return the cache
+	 */
+	protected MemcacheService getCache() {
+		if(cache == null) cache = MemcacheServiceFactory.getMemcacheService();
+		return cache;
 	}
 	
 	/**
