@@ -92,8 +92,19 @@ public class BasicSecurityFilter implements ContainerRequestFilter {
 
         // Validate the extracted credentials
         User user=null;
-        try {
-        	user = UserResource.dao.load(username, UserResource.Root);
+        try {        	        	
+        	Long userId =  UserResource.dao.getFromMemcache(username); // returns null if username not in memcache
+        	
+             if(userId == null) {
+
+                    user = UserResource.dao.load(username, UserResource.Root);
+
+                    UserResource.dao.putUserIntoMemcache(username, user.getId());
+             }
+             else{
+            	 user = UserResource.dao.load(userId, UserResource.Root);
+             }
+        	
         } catch (Exception badUser) {
         	
         }

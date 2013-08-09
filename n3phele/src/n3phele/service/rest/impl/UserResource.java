@@ -55,6 +55,7 @@ import n3phele.service.model.core.Credential;
 import n3phele.service.model.core.GenericModelDao;
 import n3phele.service.model.core.User;
 
+import com.google.appengine.api.memcache.MemcacheService;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyService;
 
@@ -189,11 +190,12 @@ public class UserResource {
 		} catch (NotFoundException e) {
 			throw new IllegalArgumentException("User "+exists.getName()+" is unknown.");
 		}
+		dao.deleteUserFromMemcache(exists.getName());
 		String secret = UUID.randomUUID().toString();
 		exists.setCredential(new Credential(email, secret).encrypt());
 		dao.update(exists);
 		sendPasswordChangedEmail(exists, secret);
-		log.warning("Updated "+exists);
+		log.warning("Updated "+exists);		
 		return Response.created(exists.getUri()).build();
 	}
 	
@@ -262,6 +264,7 @@ public class UserResource {
 						@FormParam("secret") String secret) throws NotFoundException {
 		Credential credential = null;
 		User item = dao.load(id, UserResource.toUser(securityContext));
+		dao.deleteUserFromMemcache(item.getName());
 		if(email == null || !email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}$")) {
 			if(!email.equals(item.getName()))
 					throw new IllegalArgumentException("bad email");
@@ -281,6 +284,7 @@ public class UserResource {
 			item.setCredential(credential);
 		dao.update(item);
 		log.warning("Updated "+ item.getUri()+((credential != null)?" including credential.":""));
+		
 		return item;
 	}
 	
@@ -301,6 +305,7 @@ public class UserResource {
 	public void delete(@PathParam ("id") Long id) throws NotFoundException {
 		User item = dao.load(id, UserResource.toUser(securityContext));
 		dao.delete(item);
+		dao.deleteUserFromMemcache(item.getName());
 	}
 
 	public static class UserManager extends CachingAbstractManager<User> {
@@ -314,6 +319,19 @@ public class UserResource {
 		@Override
 		public GenericModelDao<User> itemDaoFactory() {
 			return new ServiceModelDao<User>(User.class);
+		}
+		
+		public Long getFromMemcache(String username){
+			if(super.getCache().contains(username))return (Long)super.getCache().get(username);
+			return null;		
+		}
+		
+		public void putUserIntoMemcache(String username, Long userId){
+			super.getCache().put(username, userId);
+		}
+		
+		public void deleteUserFromMemcache(String username){
+			super.getCache().delete(username);
 		}
 
 
@@ -370,6 +388,10 @@ public class UserResource {
 		
 		public Collection<User> getCollection(User owner) {
 			return super.getCollection(owner);
+		}
+		
+		public MemcacheService getCache(){
+			return super.getCache();
 		}
 		
 		/** Tests whether the user has administrator privilege
