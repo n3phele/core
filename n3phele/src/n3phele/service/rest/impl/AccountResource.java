@@ -383,7 +383,8 @@ public class AccountResource {
 				// setting the first day
 				dateStart.setMillis(cloudProcess.getEpoch().getTime());
 				dateComplete.setMillis(cloudProcess.getEpoch().getTime());
-				dateComplete.setDayOfMonth(dateComplete.getDayOfMonth() + 1);
+				dateComplete.setDayOfMonth(dateComplete.getDayOfMonth());
+				dateComplete.addDays(1);
 				dateComplete.setHourOfDay(0);
 				int hoursCharged = (int) Math.floor((dateComplete.getMillis() - dateStart.getMillis()) / 3600000);
 				test = hoursCharged;

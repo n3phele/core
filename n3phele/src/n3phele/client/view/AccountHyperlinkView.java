@@ -20,22 +20,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
-import n3phele.client.ClientFactory;
 import n3phele.client.N3phele;
 import n3phele.client.model.Account;
 import n3phele.client.model.Activity;
 import n3phele.client.model.ActivityData;
-import n3phele.client.model.CloudProcess;
-import n3phele.client.model.Collection;
-import n3phele.client.model.FileNode;
-import n3phele.client.model.RepoListResponse;
-//import n3phele.service.model.CloudProcessSummary;
-import n3phele.service.model.CloudProcessCollection;
-//import n3phele.service.model.CloudProcessSummary;
-//import n3phele.client.model.CloudProcessSummary;
-import n3phele.client.model.CloudProcessSummary;
+
 import n3phele.client.presenter.AccountHyperlinkActivity;
-import n3phele.client.presenter.CommandActivity;
 import n3phele.client.presenter.helpers.AuthenticatedRequestFactory;
 import n3phele.client.resource.DataGridResource;
 import n3phele.client.widgets.ActionDialogBox;
@@ -44,8 +34,6 @@ import n3phele.client.widgets.MenuItem;
 import n3phele.client.widgets.SectionPanel;
 import n3phele.client.widgets.ValidInputIndicatorWidget;
 import n3phele.client.widgets.WorkspaceVerticalPanel;
-import n3phele.service.rest.impl.AccountResource;
-import n3phele.service.rest.impl.CloudProcessResource;
 
 import com.google.gwt.cell.client.ActionCell.Delegate;
 import com.google.gwt.cell.client.ClickableTextCell;
@@ -61,12 +49,9 @@ import com.google.gwt.http.client.RequestBuilder;
 import com.google.gwt.http.client.RequestCallback;
 import com.google.gwt.http.client.RequestException;
 import com.google.gwt.http.client.Response;
-import com.google.gwt.http.client.URL;
-import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.DataGrid;
 import com.google.gwt.user.cellview.client.TextColumn;
-import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlexTable;
@@ -80,18 +65,14 @@ import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwt.visualization.client.AbstractDataTable;
-import com.google.gwt.visualization.client.Color3D;
 import com.google.gwt.visualization.client.DataTable;
 import com.google.gwt.visualization.client.LegendPosition;
 import com.google.gwt.visualization.client.VisualizationUtils;
 import com.google.gwt.visualization.client.AbstractDataTable.ColumnType;
-import com.google.gwt.visualization.client.visualizations.AnnotatedTimeLine;
 import com.google.gwt.visualization.client.visualizations.LineChart;
 import com.google.gwt.visualization.client.visualizations.LineChart.Options;
 import com.google.gwt.user.datepicker.client.CalendarUtil;
-//import com.sun.jersey.api.client.Client;
-//import com.sun.jersey.api.client.ClientResponse;
-//import com.sun.jersey.api.client.WebResource;
+
 
 @SuppressWarnings("deprecation")
 public class AccountHyperlinkView extends WorkspaceVerticalPanel implements EntryPoint {
@@ -228,6 +209,8 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		chartPanel.add(historyTable);
 		chartPanel.add(new SectionPanel("Active Machines"));
 		chartPanel.add(vsTable);
+		chartPanel = get();
+		setChartTableData();
 		onModuleLoad();
 	}
 
@@ -235,33 +218,19 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		Runnable onLoadCallback = new Runnable() {
 			public void run() {
 				chartPanel = get();
-
-				if (chartValues == null)
-					requestChartData("24hours");
-				else {
-					switch (chartValues.size()) {
-					case 24:
-						chartTitle = "24 Hours Costs Chart";
-						requestChartData("24hours");
-						break;
-					case 30:
-						chartTitle = "30 Days Costs Chart";
-						requestChartData("30days");
-						break;
-					case 7:
-						chartTitle = "7 Days Costs Chart";
-						requestChartData("7days");
-						break;
-
-					}
-				}
 				setChartTableData();
+				if (historyTable.isCellPresent(2, 0))
+					historyTable.clearCell(2, 0);
+				historyTable.setWidget(2, 0, chart);
+				historyTable.setWidget(2, 0, new LineChart(createTable(), createOptions(chartTitle)));
+				historyTable.getCellFormatter().setHorizontalAlignment(2, 0, HasHorizontalAlignment.ALIGN_CENTER);
 
+				vsTable.setWidget(1, 0, dataGrid);
+				vsTable.getCellFormatter().setHorizontalAlignment(1, 0, HasHorizontalAlignment.ALIGN_CENTER);
 			}
 		};
 		VisualizationUtils.loadVisualizationApi(onLoadCallback, LineChart.PACKAGE);
 	}
-
 	public void setTableData() {
 		table.setCellSpacing(8);
 		table.setTitle("HP Cloud account information");
@@ -423,7 +392,6 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		chartOptionsTable.setCellWidth(options, "160px");
 		hours = new Button("24 hours", new ClickHandler() {
 			public void onClick(ClickEvent event) {
-				// getProcessByDay(1);
 				requestChartData("24hours");
 				chartTitle = "24 Hours Costs Chart";
 				if (historyTable.isCellPresent(2, 0))
@@ -443,11 +411,6 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 					historyTable.clearCell(2, 0);
 				chart = new LineChart(createTable(), createOptions(chartTitle));
 				historyTable.setWidget(2, 0, chart);
-				// setChartData(getCost7());
-				// AbstractDataTable data = createTable();
-				// Options options = createOptions("7 days");
-				//
-				// chart.draw(data, options);
 
 			}
 		});
@@ -469,17 +432,13 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 		chartOptionsTable.add(month);
 		historyTable.setWidget(1, 0, chartOptionsTable);
 		historyTable.getCellFormatter().setHorizontalAlignment(1, 0, HasHorizontalAlignment.ALIGN_CENTER);
-
-
 		if (historyTable.isCellPresent(2, 0))
 			historyTable.clearCell(2, 0);
 		historyTable.setWidget(2, 0, chart);
-		historyTable.setWidget(2, 0, new LineChart(createTable(), createOptions(chartTitle)));
 		historyTable.getCellFormatter().setHorizontalAlignment(2, 0, HasHorizontalAlignment.ALIGN_CENTER);
 
 		vsTable.setWidget(1, 0, dataGrid);
 		vsTable.getCellFormatter().setHorizontalAlignment(1, 0, HasHorizontalAlignment.ALIGN_CENTER);
-
 	}
 
 	public void updateChartTable() {
@@ -631,11 +590,6 @@ public class AccountHyperlinkView extends WorkspaceVerticalPanel implements Entr
 				min = chartValues.get(i);
 		}
 		return min;
-	}
-
-	public CloudProcess requestTopLevel(String uri) {
-		//presenter.callGetTopLevel(uri);
-		return null;
 	}
 
 	public void refreshChart() {
