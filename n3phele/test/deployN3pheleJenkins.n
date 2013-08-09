@@ -2,7 +2,7 @@
 # Author: Alexandre Tavares
 name       : deployN3pheleJenkins
 description: Deploy Jenkins for the N3phele project
-version    : 5.7
+version    : 6.2
 preferred  : true
 processor  : StackService
 public     : true
@@ -20,7 +20,7 @@ HPZone1: # HP Cloud
 					RUN_STATUS="started";
 					while [ "$STAT" != "$RUN_STATUS" ];
 					do sleep 20;
-					juju status | shyaml get-value services.$${$$service_name}-agent > tmp.txt;
+					juju status $${$$service_name}-agent > tmp.txt;
 					STAT=$(sed -n -e '0,/agent-state: /s///p' tmp.txt);
 					STAT=$(echo $STAT | tr -d ' ');
 					done;
@@ -46,9 +46,9 @@ HPZone1: # HP Cloud
 		echo "  username: admin " >> config.yaml
 		echo "  password: $$password " >> config.yaml
 		echo "  plugins: ant promoted-builds mask-passwords git-client git github github-api github-oauth github-sqs-plugin" >> config.yaml
-		juju status | shyaml get-value services.$${$$service_name}-agent > machine.txt;
-		machine=$(grep machine: machine.txt | cut -d: -f2 | tr -d "'" | tr -d ' ')
-		juju deploy --config config.yaml --to $machine jenkins $$service_name
+		juju status $${$$service_name}-agent > machine.txt;
+		machine=$(grep machine: machine.txt | grep -o '[0-9]\{1,9\}');
+		juju deploy --config config.yaml --to $machine jenkins $${$$service_name};
 		rm config.yaml
 	
 	$$exposeJenkins = ON $$bootstrap
@@ -56,20 +56,20 @@ HPZone1: # HP Cloud
 					RUN_STATUS="started";
 					while [ "$STAT" != "$RUN_STATUS" ];
 					do sleep 20;
-					juju status | shyaml get-value services.$$service_name > tmp.txt;
+					juju status $$service_name > tmp.txt;
 					STAT=$(sed -n -e '0,/agent-state: /s///p' tmp.txt);
 					STAT=$(echo $STAT | tr -d ' ');
 					done;
 					juju expose $${$$service_name};
 					
 	ON $$jenkins
-		sudo apt-get install -y unzip
+		sudo apt-get install -y unzip;
 
 	ON $$jenkins
-		sudo apt-get install -y ant
-		sudo apt-get install -y git
-		sudo apt-get install -y openjdk-6-jdk
-		sudo apt-get install -y wget
+		sudo apt-get install -y ant;
+		sudo apt-get install -y git;
+		sudo apt-get install -y openjdk-6-jdk;
+		sudo apt-get install -y wget;
 
 	ON $$jenkins
 		var1="<org.jenkinsci.main.modules.cli.auth.ssh.UserPropertyImpl><authorizedKeys>";

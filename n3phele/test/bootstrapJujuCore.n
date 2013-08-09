@@ -2,7 +2,7 @@
 # Author: Alexandre Tavares
 name       : bootstrapJujuCore
 description: Bootstraps Juju
-version    : 1.7
+version    : 1.9
 preferred  : true
 processor  : StackService
 public     : true
@@ -19,8 +19,6 @@ HPZone1: # HP Cloud
 	ON $$vmTavares 
 		sudo add-apt-repository -y ppa:juju/devel
 		sudo apt-get update -y && sudo apt-get install -y juju-core
-		sudo apt-get install -y python-pip
-		sudo pip install shyaml
 
 	ON $$vmTavares 
 		juju init
@@ -74,7 +72,7 @@ HPZone1: # HP Cloud
 						RUN_STATUS="started"
 						while [ "$STAT" != "$RUN_STATUS" ]
 						do sleep 20
-						juju status | shyaml get-value services.bootstrap-agent > tmp.txt
+						juju status bootstrap-agent > tmp.txt
 						STAT=$(sed -n -e '0,/agent-state: /s///p' tmp.txt)
 						STAT=$(echo $STAT | tr -d ' ')
 						done
@@ -89,8 +87,6 @@ HPZone1: # HP Cloud
 		sudo apt-get install -y unzip
 		sudo add-apt-repository -y ppa:juju/devel
 		sudo apt-get update -y && sudo apt-get install -y juju-core
-		sudo apt-get install -y python-pip
-		sudo pip install shyaml
 		
 	ON $$bootstrap
 		wget https://region-a.geo-1.objects.hpcloudsvc.com/v1/AUTH_dc700102-734c-4a97-afc8-50530e87a171/n3phele-agent/precise.zip
