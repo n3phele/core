@@ -5,7 +5,6 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.Entity;
 
 @XmlRootElement(name="AccountDataCollection")

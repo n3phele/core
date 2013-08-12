@@ -3,7 +3,6 @@ package n3phele.client.model;
 import java.util.Date;
 
 import n3phele.client.presenter.helpers.SafeDate;
-import n3phele.client.model.Activity;
 
 public class VirtualServer extends Entity {
 	protected VirtualServer() {

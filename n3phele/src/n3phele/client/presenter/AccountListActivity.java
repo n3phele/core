@@ -13,7 +13,6 @@
  */
 package n3phele.client.presenter;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -42,13 +41,10 @@ import com.google.gwt.http.client.RequestCallback;
 import com.google.gwt.http.client.RequestException;
 import com.google.gwt.http.client.Response;
 import com.google.gwt.http.client.URL;
-import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
-import com.google.gwt.user.datepicker.client.CalendarUtil;
 
-@SuppressWarnings("deprecation")
 public class AccountListActivity extends AbstractActivity {
 	private EventBus eventBus;
 	private final AppPlaceHistoryMapper historyMapper;
@@ -99,11 +95,6 @@ public class AccountListActivity extends AbstractActivity {
 		unregister();
 	}
 
-
-	//	protected void updateClouds(List<Cloud> list) {
-	//		display.setClouds(list); 
-	//	}
-
 	public void goToPrevious() {
 		History.back();
 	}
@@ -128,23 +119,6 @@ public class AccountListActivity extends AbstractActivity {
 	protected void unregister() {
 		cacheManager.unregister(cacheManager.ServiceAddress + "account", "accountList");
 	}
-
-	/*public double get24Cost(String id){
-		System.out.println("chamou");
-		getVSList(id);
-		System.out.println("passou");
-		double total = 0.0;
-		if(vsCol == null)
-		System.out.println("vsCol = null");
-		if(vsCol != null){
-			List<Double> costList = vsCol.dayCost();
-			for(int i=0; i<costList.size(); i++)
-				total+=costList.get(i);
-		}
-		return total;
-	}*/
-
-
 
 	protected void updateAccountList(List<Account> list) {
 		this.accountList = list;
@@ -294,16 +268,6 @@ public class AccountListActivity extends AbstractActivity {
 			//displayError("Couldn't retrieve JSON "+e.getMessage());
 		}
 	}
-
-	//	protected void getClouds() {
-	//		this.eventBus.addHandler(CacheManager.CloudListUpdate.TYPE, new CacheManager.CloudListUpdateEventHandler() {
-	//			@Override
-	//			public void onMessageReceived(CacheManager.CloudListUpdate event) {
-	//				updateClouds(cacheManager.getClouds());
-	//			}
-	//		});
-	//		updateClouds(cacheManager.getClouds());
-	//	}
 
 	public void onSelect(Account selected) {
 		History.newItem(historyMapper.getToken(new AccountHyperlinkPlace(selected.getUri())));

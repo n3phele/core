@@ -51,17 +51,9 @@ public class ActivtiyActivity extends CommandActivity {
 		this(name, factory, factory.getActivityCommandView(), activityUri);
 	}
 	
-//	@Override
-//	protected void initData() {
-//		this.refreshActivity(this.activityUri);
-//	}
-	
-
-	
 	protected void refreshActivity(String key) {
 		
 		String url = key;
-		// String url = objectUri;
 		// Send request to server and catch any errors.
 		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, url);
 		try {
@@ -113,72 +105,7 @@ public class ActivtiyActivity extends CommandActivity {
 		return s==null || s.isEmpty();
 	}
 	
-//	protected void merge(Command command, Activity activity) {
-//		if(command==null || activity==null) 
-//			return;
-//		List<NameValue> specifiedParams = activity.getParameters();
-//		Map<String,String>paramMap = new HashMap<String,String>();
-//		if(specifiedParams != null) {
-//			for(NameValue nv : specifiedParams) {
-//				paramMap.put(nv.getKey(), nv.getValue());
-//			}
-//		}
-//		
-//		List<FileSpecification> specifiedInputs = activity.getInputs();
-//		Map<String,FileSpecification>inputMap = new HashMap<String,FileSpecification>();
-//		if(inputMap != null) {
-//			for(FileSpecification fs : specifiedInputs) {
-//				inputMap.put(fs.getName(), fs);
-//			}
-//		}
-//		
-//		List<FileSpecification> specifiedOutputs = activity.getOutputs();
-//		Map<String,FileSpecification>outputMap = new HashMap<String,FileSpecification>();
-//		if(outputMap != null) {
-//			for(FileSpecification fs : specifiedOutputs) {
-//				outputMap.put(fs.getName(), fs);
-//			}
-//		}
-//		/*
-//		 * Update parameters
-//		 */
-//		if(command.getExecutionParameters() != null) {
-//			for(TypedParameter p : command.getExecutionParameters()) {
-//				String value = paramMap.get(p.getName());
-//				if(!isNullOrBlank(value)) {
-//					if(!isSame(value, p.getDefaultValue())) {
-//						p.setValue(value);
-//					}	
-//				}
-//			}
-//		}
-//		/*
-//		 * Update input files
-//		 */
-//		if(command.getInputFiles() != null) {
-//			for(FileSpecification p : command.getInputFiles()) {
-//				FileSpecification value = inputMap.get(p.getName());
-//				if(value != null) {
-//					p.setDescription(value.getDescription());
-//					p.setFilename(value.getFilename());
-//					p.setRepository(value.getRepository());
-//				}	
-//			}
-//		}
-//		/*
-//		 * Update output files
-//		 */
-//		if(command.getOutputFiles() != null) {
-//			for(FileSpecification p : command.getOutputFiles()) {
-//				FileSpecification value = outputMap.get(p.getName());
-//				if(value != null) {
-//					p.setDescription(value.getDescription());
-//					p.setFilename(value.getFilename());
-//					p.setRepository(value.getRepository());
-//				}	
-//			}
-//		}
-//	}
+
 	protected boolean isNullOrBlank(String x) {
 		return x==null || x.length()==0;
 	}

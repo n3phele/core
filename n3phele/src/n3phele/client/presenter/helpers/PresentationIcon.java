@@ -25,6 +25,7 @@ public class PresentationIcon {
 		return image.toString();
 	}
 	
+	@SuppressWarnings("deprecation")
 	public static Image getIconImage(String url) {
 		ImageResource icon = N3phele.n3pheleResource.scriptIcon();
 

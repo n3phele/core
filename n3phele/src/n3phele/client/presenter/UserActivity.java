@@ -131,23 +131,6 @@ public class UserActivity extends AbstractActivity {
 	
 	public void goToPrevious() {
 		History.back();
-	}
+	}	
 	
-	/*
-	 * Data Handling
-	 * -------------
-	 */
-	
-
-
-
-
-	
-	/*
-	 * Event Definition
-	 * ----------------
-	 */
-	
-
-
 }

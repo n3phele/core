@@ -13,7 +13,6 @@
  */
 package n3phele.client.view;
 
-import java.util.StringTokenizer;
 
 import n3phele.client.model.User;
 import n3phele.client.widgets.ValidInputIndicatorWidget;

@@ -77,6 +77,7 @@ public class VirtualServerCollection<T extends VirtualServer> extends Entity {
 		return dayCost(new Date());
 	}
 
+	@SuppressWarnings("deprecation")
 	public final ArrayList<Double> dayCost(Date now){
 		Date today = now;
 
@@ -124,12 +125,8 @@ public class VirtualServerCollection<T extends VirtualServer> extends Entity {
 									totalCost.set(h,totalCost.get(h)+ Double.parseDouble(s.getPrice()));
 									h--;
 								}
-							}							
+							}					
 							
-							/*for(int i = dateCreated.getHours(); i <= today.getHours(); i++){
-								totalCost.set(h,totalCost.get(h)+Double.parseDouble(s.getPrice()));
-								h--;
-							}*/
 						}
 						//Virtual Server was shutdown today
 						else{
@@ -152,11 +149,6 @@ public class VirtualServerCollection<T extends VirtualServer> extends Entity {
 								}
 							}
 							
-							/*for(int i = dateCreated.getHours(); i <= dateEnd.getHours();i++){
-								totalCost.set(h,totalCost.get(h)+Double.parseDouble(s.getPrice()));
-								h--;
-							}*/						
-
 						}
 					}
 				}
@@ -185,11 +177,6 @@ public class VirtualServerCollection<T extends VirtualServer> extends Entity {
 									//h--;
 								}
 							}
-							
-							
-							/*for(int i = diff; i < 24; i++){
-								totalCost.set(i,totalCost.get(i)+Double.parseDouble(s.getPrice()));
-							}*/
 						}
 						else{
 							//Virtual Server was shutdown yesterday
@@ -215,10 +202,6 @@ public class VirtualServerCollection<T extends VirtualServer> extends Entity {
 									}
 								}
 								
-								/*for(int i = diff; i < limit; i++){
-									totalCost.set(i,totalCost.get(i)+Double.parseDouble(s.getPrice()));
-								}*/
-
 							}
 							//Virtual Server was shutdown today
 							else{
@@ -256,10 +239,6 @@ public class VirtualServerCollection<T extends VirtualServer> extends Entity {
 									}
 								}
 								
-								/*for(int i = posToday; i <= limit; i++){
-									totalCost.set(i,totalCost.get(i)+Double.parseDouble(s.getPrice()));
-								}*/
-
 							}
 						}
 
@@ -286,10 +265,6 @@ public class VirtualServerCollection<T extends VirtualServer> extends Entity {
 							totalCost.set(i,totalCost.get(i)+ Double.parseDouble(s.getPrice()));
 						}
 					}
-					
-					/*for(int i = 0; i < 24; i++){
-						totalCost.set(i,totalCost.get(i)+Double.parseDouble(s.getPrice()));
-					}*/
 				}
 
 				else if(dateEnd != null){
@@ -315,20 +290,6 @@ public class VirtualServerCollection<T extends VirtualServer> extends Entity {
 							}
 						}
 						
-						
-						/*int diff = 24 - yesterday.getHours();
-
-						for(int i = 0; i < diff; i++){
-							totalCost.set(i,totalCost.get(i)+Double.parseDouble(s.getPrice()));
-						}
-
-						int pos = diff;
-						for(int i = 0 ; i < dateEnd.getHours() ; i++){
-							totalCost.set(diff,totalCost.get(diff)+Double.parseDouble(s.getPrice()));
-							diff++;
-						}*/
-
-
 					}
 					//Virtual Server was shutdown yesterday
 					else if(dateEnd.getHours() >= yesterday.getHours() && dateEnd.getDate() == yesterday.getDate()){
@@ -348,9 +309,6 @@ public class VirtualServerCollection<T extends VirtualServer> extends Entity {
 							}
 						}
 						
-						/*for(int i = 0; i < limit; i++){
-							totalCost.set(i,totalCost.get(i)+Double.parseDouble(s.getPrice()));
-						}*/
 					}
 				}		
 
@@ -360,6 +318,7 @@ public class VirtualServerCollection<T extends VirtualServer> extends Entity {
 		return totalCost;
 	}
 
+	@SuppressWarnings("deprecation")
 	public final ArrayList<Double> weekCost() {
 
 		ArrayList<Double> totalCost = new ArrayList<Double>(7);
@@ -390,6 +349,7 @@ public class VirtualServerCollection<T extends VirtualServer> extends Entity {
 		return totalCost;
 	}
 	
+	@SuppressWarnings("deprecation")
 	public final ArrayList<Double> monthCost() {
 
 		ArrayList<Double> totalCost = new ArrayList<Double>(30);

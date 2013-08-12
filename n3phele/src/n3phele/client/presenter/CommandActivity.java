@@ -59,8 +59,6 @@ public class CommandActivity extends AbstractActivity {
 	private HandlerRegistration itemUpdateHandlerRegistration;
 	protected String objectUri;
 	private final String repoListUrl;
-//	private final String cloudListUrl;
-//	private final String accountListUrl;
 	private Map<String,Map<String,FileNode>> placeholderMap=null;
 
 
@@ -73,8 +71,6 @@ public class CommandActivity extends AbstractActivity {
 		this.display = view;
 		this.objectUri = uri;
 		this.repoListUrl = URL.encode(cacheManager.ServiceAddress + "repository");
-//		this.cloudListUrl = URL.encode(cacheManager.ServiceAddress + "cloud");
-//		this.accountListUrl = URL.encode(cacheManager.ServiceAddress + "account");
 	}
 	
 	public CommandActivity(String name, String uri, ClientFactory factory) {
@@ -130,18 +126,9 @@ public class CommandActivity extends AbstractActivity {
 	}
 
 	protected void initData() {
-//		CacheManager.EventConstructor constructor = new CacheManager.EventConstructor() {
-//			@Override
-//			public CommandUpdate newInstance(String key) {
-//				return new CommandUpdate(key);
-//			}
-//		};
-//		cacheManager.register(objectUri, this.name, constructor);
 		this.refresh(objectUri);
 
 		this.getRepos();
-//		this.getClouds();
-//		this.getAccounts();
 	}
 
 	protected void unregister() {
@@ -162,18 +149,10 @@ public class CommandActivity extends AbstractActivity {
 		this.display.setRepositories(update);
 	}
 	
-//	protected void updateClouds(List<Cloud> update) {
-//		this.display.setClouds(update);
-//	}
-	
-//	protected void updateAccounts(List<Account> update) {
-//		this.display.setAccounts(update);
-//	}
 
 	protected void refresh(String key) {
 	
 		String url = key;
-		// String url = objectUri;
 		// Send request to server and catch any errors.
 		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, url);
 		try {
@@ -221,44 +200,8 @@ public class CommandActivity extends AbstractActivity {
 		} catch (RequestException e) {
 			GWT.log("Couldn't retrieve JSON " + e.getMessage());
 		}
-	}
-	
-//	protected void getClouds() {
-//		this.eventBus.addHandler(CacheManager.CloudListUpdate.TYPE, new CacheManager.CloudListUpdateEventHandler() {
-//			@Override
-//			public void onMessageReceived(CacheManager.CloudListUpdate event) {
-//				updateClouds(cacheManager.getClouds());
-//			}
-//		});
-//		updateClouds(cacheManager.getClouds());
-//	}
-//	
-//	protected void getAccounts() {
-//		
-//		String url = accountListUrl;
-//		// Send request to server and catch any errors.
-//		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, url);
-//		try {
-//			builder.sendRequest(null, new RequestCallback() {
-//				public void onError(Request request, Throwable exception) {
-//					GWT.log("Couldn't retrieve JSON " + exception.getMessage());
-//				}
-//	
-//				public void onResponseReceived(Request request, Response response) {
-//					if (200 == response.getStatusCode()) {
-//						GWT.log(response.getText());
-//						Collection<Account> p = Account.asCollection(response.getText());
-//						updateAccounts(p.getElements());
-//					} else {
-//						GWT.log("Couldn't retrieve JSON ("
-//								+ response.getStatusText() + ")");
-//					}
-//				}
-//			});
-//		} catch (RequestException e) {
-//			GWT.log("Couldn't retrieve JSON " + e.getMessage());
-//		}
-//	}
+	}	
+
 
 	public void exec(String action, String name, String arg, Context context) {
 		List<String> params = new ArrayList<String>();

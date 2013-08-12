@@ -17,7 +17,6 @@ import com.google.gwt.resources.client.ClientBundle;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.resources.client.ImageResource.ImageOptions;
 import com.google.gwt.resources.client.ImageResource.RepeatStyle;
-import com.google.gwt.resources.client.TextResource;
 
 public interface N3pheleResource extends ClientBundle {
 

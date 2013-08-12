@@ -483,7 +483,6 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 		accountTable.setVisible(this.accounts.size() > 0);
 		
 		if(CommandDetailView.this.selectedImplementation!=null) {
-			String profileId = CommandDetailView.this.selectedImplementation;
 			String accountURI = CommandDetailView.this.selectedAccountURI;
 			setSelectedImplementation(accountURI);
 		} else {
@@ -1074,7 +1073,6 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 
 			@Override
 			public String getValue(FileSpecification object) {
-				String target = object.getRepository();
 				Repository r = CommandDetailView.this.uriToRepoMap.get(object.getRepository());
 				if(r != null && r.getName()!=null)
 					return r.getName();

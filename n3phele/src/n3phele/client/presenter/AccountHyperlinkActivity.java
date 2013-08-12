@@ -5,7 +5,6 @@
  */
 package n3phele.client.presenter;
 
-import java.util.logging.Logger;
 
 import java.util.HashMap;
 import java.util.List;

@@ -83,6 +83,7 @@ public class CommandListGridView extends WorkspaceVerticalPanel implements Comma
 	private UploadCommandPanel uploadPanel;
 	protected boolean suppressEvent = false;
 	private SimplePager simplePager;
+	@SuppressWarnings("deprecation")
 	public CommandListGridView() {
 		super(new MenuItem(N3phele.n3pheleResource.commandIcon(), "Commands", null));
 		String html = "<img style='border:none; vertical-align:bottom; margin:-2px; padding-right:2px;' width=20 height=20 src='"+N3phele.n3pheleResource.commandIcon().getURL()+"'/>create a new command";

@@ -2,7 +2,6 @@ package n3phele.client.model;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringTokenizer;
 
 import com.google.gwt.core.client.JavaScriptObject;
 

@@ -16,7 +16,6 @@ import static com.googlecode.objectify.ObjectifyService.ofy;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +58,6 @@ import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.GenericModelDao;
 import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.User;
-import n3phele.service.rest.impl.ActionResource.ActionManager;
 
 import com.googlecode.objectify.Key;
 
