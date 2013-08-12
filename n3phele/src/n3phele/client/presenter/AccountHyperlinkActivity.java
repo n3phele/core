@@ -5,13 +5,11 @@
  */
 package n3phele.client.presenter;
 
-import java.util.ArrayList;
-import java.util.Date;
+import java.util.logging.Logger;
+
 import java.util.HashMap;
 import java.util.List;
-import java.util.StringTokenizer;
 
-import n3phele.client.AppActivityMapper;
 import n3phele.client.AppPlaceHistoryMapper;
 import n3phele.client.CacheManager;
 import n3phele.client.ClientFactory;
@@ -19,20 +17,14 @@ import n3phele.client.model.Account;
 import n3phele.client.model.Activity;
 import n3phele.client.model.ActivityData;
 import n3phele.client.model.ActivityDataCollection;
-import n3phele.client.model.CloudProcess;
-import n3phele.client.model.CloudProcessSummary;
 import n3phele.client.model.Collection;
 import n3phele.client.model.CostsCollection;
-//import n3phele.client.model.CloudProcessCollection;
 
-import n3phele.client.model.CloudProcessSummary;
 import n3phele.client.presenter.helpers.AuthenticatedRequestFactory;
 import n3phele.client.view.AccountHyperlinkView;
-import n3phele.service.model.CloudProcessCollection;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
@@ -62,6 +54,8 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 	private HandlerRegistration handlerRegistration;
 	private HashMap<ActivityData, Activity> activityPerVS = null;
 	private List<Double> pricesQuery;
+	
+
 
 	public AccountHyperlinkActivity(String accountUri, ClientFactory factory) {
 		this.factory = factory;
@@ -74,20 +68,17 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 		String id = accountUri.substring(accountUri.lastIndexOf("/") + 1);
 		this.virtualServerCollection = URL.encode(factory.getCacheManager().ServiceAddress );
 		this.virtualServerCollection += id;
-
+		
 	}
 
 	@Override
 	public void start(AcceptsOneWidget panel, EventBus eventBus) {
-		//getVSList();
 		getAccountList();
 		this.eventBus = eventBus;
 		handlerRegistration(eventBus);
 		display.setPresenter(this);
 		panel.setWidget(display);
 		display.requestChartData("24hours");
-		// display.requestChartData("24hours");
-		// display.setDisplayList(null);
 		display.onModuleLoad();
 		this.initProcessUpdate();
 	}
@@ -155,7 +146,7 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 	 * ------------- Data Handling -------------
 	 */
 	private void getProcessByDay(int day) {
-		final String url = account.getUri() + "/lastcompleted/" + day + "/get";
+		final String url = accountUri + "/lastcompleted/" + day + "/get";
 		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, url);
 		try {
 			builder.sendRequest(null, new RequestCallback() {
@@ -168,9 +159,11 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 						GWT.log("Got reply");
 						CostsCollection result = CostsCollection.asCostsCollection(response.getText());
 						pricesQuery = result.getElements();
+						
 						display.setChartData(pricesQuery);
 						display.updateChartTable();
-
+						display.onModuleLoad();
+					
 					} else {
 						GWT.log("Couldn't retrieve JSON (" + response.getStatusText() + ")");
 					}
@@ -181,11 +174,6 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 		}
 		getRunningProcess();
 	}
-
-	public void callGetTopLevel() {
-		getRunningProcess();
-	}
-
 
 	private void getRunningProcess() {
 		final String url = accountUri + "/runningprocess/get";
