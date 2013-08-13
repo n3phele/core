@@ -27,6 +27,7 @@ import n3phele.client.presenter.ProcessPlace;
 import n3phele.client.presenter.RepoContentPlace;
 import n3phele.client.presenter.RepoListPlace;
 import n3phele.client.presenter.RepoPlace;
+import n3phele.client.presenter.ServiceListPlace;
 import n3phele.client.presenter.UserPlace;
 
 import com.google.gwt.place.shared.PlaceHistoryMapper;
@@ -37,7 +38,7 @@ import com.google.gwt.place.shared.WithTokenizers;
 	CommandPlace.Tokenizer.class,
 	UserPlace.Tokenizer.class, AccountPlace.Tokenizer.class, AccountListPlace.Tokenizer.class, AccountHyperlinkPlace.Tokenizer.class,
 	RepoListPlace.Tokenizer.class, RepoPlace.Tokenizer.class, RepoContentPlace.Tokenizer.class, 
-	ProcessPlace.Tokenizer.class, 
+	ProcessPlace.Tokenizer.class,  ServiceListPlace.Tokenizer.class,
 	ActivityPlace.Tokenizer.class})
 public interface AppPlaceHistoryMapper extends PlaceHistoryMapper {
 

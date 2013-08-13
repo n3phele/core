@@ -34,6 +34,7 @@ import n3phele.client.view.RecentActivityView;
 import n3phele.client.view.RepoContentView;
 import n3phele.client.view.RepoListView;
 import n3phele.client.view.RepoView;
+import n3phele.client.view.ServiceListView;
 import n3phele.client.view.UserView;
 
 public class ClientFactory {
@@ -44,6 +45,7 @@ public class ClientFactory {
 	public N3pheleResource n3pheleResource = null;
 	private AppPlaceHistoryMapper historyMapper;
 	private ActivityListView detailedActivityView=null;
+	private ServiceListView detailedServiceView=null;
 	private LoginView loginView=null;
 	private RecentActivityView recentActivity = null;
 	private CommandListView commandListView = null;
@@ -121,7 +123,13 @@ public class ClientFactory {
 		if(detailedActivityView == null) detailedActivityView = new ActivityListView();
 		return detailedActivityView;
 	}
-	
+	/**
+	 * @return the detailedServiceView
+	 */
+	public ServiceListView getDetailedServiceView() {
+		if(detailedServiceView == null) detailedServiceView = new ServiceListView();
+		return detailedServiceView;
+	}
 	/**
 	 * @return the recentActivityView
 	 */

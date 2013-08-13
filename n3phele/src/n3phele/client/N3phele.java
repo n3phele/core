@@ -44,6 +44,7 @@ import n3phele.client.presenter.ActivityListPlace;
 import n3phele.client.presenter.CommandGridListPlace;
 import n3phele.client.presenter.LoginPlace;
 import n3phele.client.presenter.RepoListPlace;
+import n3phele.client.presenter.ServiceListPlace;
 import n3phele.client.presenter.helpers.AuthenticatedRequestFactory;
 import n3phele.client.resource.N3pheleResource;
 import n3phele.client.view.LoginView;
@@ -128,6 +129,8 @@ public class N3phele implements EntryPoint {
 				historyMapper.getToken(new ActivityListPlace(null)), ActivityListPlace.class));
 		result.add(new MenuItem(N3phele.n3pheleResource.accountIcon(), "Accounts", 
 				historyMapper.getToken(new AccountListPlace(null)), AccountListPlace.class));
+		result.add(new MenuItem(N3phele.n3pheleResource.serviceIcon(), "Services", 
+				historyMapper.getToken(new ServiceListPlace(null)), ServiceListPlace.class));
 		
 		return result;
 	}

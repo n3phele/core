@@ -50,6 +50,8 @@ public interface N3pheleResource extends ClientBundle {
 	ImageResource FailedIcon();
 	@Source("cancelled.png")
 	ImageResource cancelledIcon();
+	@Source("service.png")
+	ImageResource serviceIcon();
 	@Source("init.png")
 	ImageResource initIcon();
 	@Source("blocked.png")

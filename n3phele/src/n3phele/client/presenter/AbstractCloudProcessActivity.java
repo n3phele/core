@@ -65,17 +65,23 @@ public abstract class AbstractCloudProcessActivity extends AbstractActivity {
 	private int pageSize;
 
 	public AbstractCloudProcessActivity(String name, ClientFactory factory, CloudProcessView activityView) {
-		this(name, factory, activityView, false);
+		this(name, factory, activityView, false,"");
 	}
 	
-	public AbstractCloudProcessActivity(String name, ClientFactory factory, CloudProcessView activityView, boolean countAll) {
+	
+	
+	public AbstractCloudProcessActivity(String name, ClientFactory factory, CloudProcessView activityView, String query) {
+		this(name, factory, activityView, false, query);
+	}
+	
+	public AbstractCloudProcessActivity(String name, ClientFactory factory, CloudProcessView activityView, boolean countAll,String query) {
 		super();
 		this.name = name;
 		this.cacheManager = factory.getCacheManager();
 		this.placeController = factory.getPlaceController();
 		this.display = activityView;
 		this.historyMapper = factory.getHistoryMapper();
-		this.collectionUrl = URL.encode(cacheManager.ServiceAddress + "process");
+		this.collectionUrl = URL.encode(cacheManager.ServiceAddress + "process") + query;
 		this.total = 0;
 		this.countAll = countAll;
 	}
@@ -286,7 +292,7 @@ public abstract class AbstractCloudProcessActivity extends AbstractActivity {
 			if(this.total == 0) count = true;
 		}
 		
-		String url = collectionUrl;
+		String url = collectionUrl ;
 		url += "?summary=true&start="+start+"&end="+(start+pageSize);
 		
 		//if needs to count all existent, ask for it in the url

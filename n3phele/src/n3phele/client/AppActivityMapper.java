@@ -40,6 +40,8 @@ import n3phele.client.presenter.RepoContentPlace;
 import n3phele.client.presenter.RepoListActivity;
 import n3phele.client.presenter.RepoListPlace;
 import n3phele.client.presenter.RepoPlace;
+import n3phele.client.presenter.ServiceListActivity;
+import n3phele.client.presenter.ServiceListPlace;
 import n3phele.client.presenter.UserActivity;
 import n3phele.client.presenter.UserPlace;
 
@@ -87,9 +89,11 @@ public class AppActivityMapper implements ActivityMapper {
 			return new RepoActivity(((RepoPlace) place).getPlaceName(), clientFactory);
 		} else if(place instanceof RepoContentPlace) {
 			return new RepoContentActivity(((RepoContentPlace)place).getPlaceName(), ((RepoContentPlace) place).getPrefix(), clientFactory);
-		}else if(place instanceof ProcessPlace) {
+		} else if(place instanceof ProcessPlace) {
 			return new ProcessActivity(((ProcessPlace) place).getPlaceName(), clientFactory);
-		}	else if(place instanceof ActivityPlace) {
+		} else if(place instanceof ServiceListPlace) {
+			return new ServiceListActivity(((ServiceListPlace) place).getPlaceName(), clientFactory);
+		} else if(place instanceof ActivityPlace) {
 			return new ActivtiyActivity("activity-detail", 
 					((ActivityPlace) place).getPlaceName(), clientFactory);
 		}
