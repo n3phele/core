@@ -65,23 +65,20 @@ public abstract class AbstractCloudProcessActivity extends AbstractActivity {
 	private int pageSize;
 
 	public AbstractCloudProcessActivity(String name, ClientFactory factory, CloudProcessView activityView) {
-		this(name, factory, activityView, false,"");
+		this(name, factory, activityView, false);
 	}
 	
 	
 	
-	public AbstractCloudProcessActivity(String name, ClientFactory factory, CloudProcessView activityView, String query) {
-		this(name, factory, activityView, false, query);
-	}
 	
-	public AbstractCloudProcessActivity(String name, ClientFactory factory, CloudProcessView activityView, boolean countAll,String query) {
+	public AbstractCloudProcessActivity(String name, ClientFactory factory, CloudProcessView activityView, boolean countAll) {
 		super();
 		this.name = name;
 		this.cacheManager = factory.getCacheManager();
 		this.placeController = factory.getPlaceController();
 		this.display = activityView;
 		this.historyMapper = factory.getHistoryMapper();
-		this.collectionUrl = URL.encode(cacheManager.ServiceAddress + "process") + query;
+		this.collectionUrl = URL.encode(cacheManager.ServiceAddress + "process");
 		this.total = 0;
 		this.countAll = countAll;
 	}
