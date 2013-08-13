@@ -2,7 +2,7 @@
  * @author Nigel Cook
  * @author Leonardo Amado
  *
- * (C) Copyright 2010-2012. Nigel Cook. All rights reserved.
+ * (C) Copyright 2010-2013. Nigel Cook. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  * 
  * Licensed under the terms described in LICENSE file that accompanied this code, (the "License"); you may not use this file
@@ -107,7 +107,6 @@ public class ServiceListView extends WorkspaceVerticalPanel {
 			};
 			cellTable.addColumn(cancelColumn);
 			cellTable.setColumnWidth(cancelColumn, "26px");
-		//cellTable.setSize("455px", "");
 		this.add(cellTable);
 		cellTable.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.DISABLED);
 		final SingleSelectionModel<CloudProcessSummary> selectionModel = new SingleSelectionModel<CloudProcessSummary>();
@@ -139,16 +138,8 @@ public class ServiceListView extends WorkspaceVerticalPanel {
 			public void onRangeChange(RangeChangeEvent event) {
 				Range range = cellTable.getVisibleRange();
 				int start = range.getStart();
-
-//				if(data == null || (data.size() < start) ){
-					GWT.log("Fetch "+start);
-					presenter.refresh(start);
-//				} else {
-//					if(length+start > data.size())
-//						length = data.size()-start;
-//					GWT.log("data available start="+start);
-//					grid.setRowData(start, chunk(data.subList(start, start+length)));
-//				}
+				GWT.log("Fetch "+start);
+				presenter.refresh(start);
 			}
 	    	
 	    });
@@ -168,7 +159,6 @@ public class ServiceListView extends WorkspaceVerticalPanel {
 			processList = new ArrayList<CloudProcessSummary>();
 		this.cellTable.setRowCount(max, true);
 		this.cellTable.setRowData(start, data=processList);
-		//N3phele.checkSize();
 	}
 
 
