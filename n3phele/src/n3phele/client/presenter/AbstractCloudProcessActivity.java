@@ -68,6 +68,9 @@ public abstract class AbstractCloudProcessActivity extends AbstractActivity {
 		this(name, factory, activityView, false);
 	}
 	
+	
+	
+	
 	public AbstractCloudProcessActivity(String name, ClientFactory factory, CloudProcessView activityView, boolean countAll) {
 		super();
 		this.name = name;
@@ -286,7 +289,7 @@ public abstract class AbstractCloudProcessActivity extends AbstractActivity {
 			if(this.total == 0) count = true;
 		}
 		
-		String url = collectionUrl;
+		String url = collectionUrl ;
 		url += "?summary=true&start="+start+"&end="+(start+pageSize);
 		
 		//if needs to count all existent, ask for it in the url
