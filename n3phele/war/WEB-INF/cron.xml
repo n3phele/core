@@ -3,6 +3,6 @@
   <cron>
     <url>/resources/process/refresh</url>
 	<description>Refresh the action list</description>
-	<schedule>every 1 minutes synchronized</schedule>
+	<schedule>every 2 minutes synchronized</schedule>
   </cron>
 </cronentries>
