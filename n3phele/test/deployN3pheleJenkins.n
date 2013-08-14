@@ -2,7 +2,7 @@
 # Author: Alexandre Tavares
 name       : deployN3pheleJenkins
 description: Deploy Jenkins for the N3phele project
-version    : 6.2
+version    : 6.4
 preferred  : true
 processor  : StackService
 public     : true
@@ -13,7 +13,7 @@ parameters :
 HPZone1: # HP Cloud
 
 	ON $$bootstrap
-		juju deploy --repository=charms local:agent $${$$service_name}-agent
+		juju deploy --constraints mem=4G --repository=charms local:agent $${$$service_name}-agent
 		
 	$$exposeAgent = ON $$bootstrap
 					STAT="none";
