@@ -33,7 +33,7 @@ import com.googlecode.objectify.annotation.Unindex;
 
 
 @XmlRootElement(name="Command")
-@XmlType(name="Command", propOrder={"shell", "description", "processor", "preferred", "version", "icon", "ownerName", "inputFiles", "outputFiles", "executionParameters", "cloudAccounts", "implementations"})
+@XmlType(name="Command", propOrder={"shell", "description", "tags", "processor", "preferred", "version", "icon", "ownerName", "inputFiles", "outputFiles", "executionParameters", "cloudAccounts", "implementations"})
 @Unindex
 @Cache
 @com.googlecode.objectify.annotation.Entity
@@ -41,6 +41,7 @@ public class Command extends Entity {
 	@Id private Long id;
 	private String shell;
 	private String description;
+	private List<String>tags = new ArrayList<String>();
 	private String processor;
 	@Index private boolean preferred;
 	private String version;
@@ -131,10 +132,22 @@ public class Command extends Entity {
 	 */
 	public void setVersion(String version) {
 		this.version = version;
+	}	
+
+	/**
+	 * @return the tags
+	 */
+	public List<String> getTags() {
+		return this.tags;
 	}
 
-	
-	
+	/**
+	 * @param tags the tags to set
+	 */
+	public void setTags(List<String> tags) {
+		this.tags = tags;
+	}
+
 	/**
 	 * @return the processor
 	 */
@@ -253,16 +266,18 @@ public class Command extends Entity {
 	}
 
 	
+
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		return String
-				.format("Command [id=%s, shell=%s, description=%s, processor=%s, preferred=%s, version=%s, icon=%s, ownerName=%s, inputFiles=%s, executionParameters=%s, outputFiles=%s, implementations=%s, cloudAccounts=%s]",
-						this.id, this.shell, this.description, this.processor,
-						this.preferred, this.version, this.icon,
-						this.ownerName, this.inputFiles,
+				.format("Command [id=%s, shell=%s, description=%s, tags=%s, processor=%s, preferred=%s, version=%s, icon=%s, ownerName=%s, inputFiles=%s, executionParameters=%s, outputFiles=%s, implementations=%s, cloudAccounts=%s]",
+						this.id, this.shell, this.description, this.tags,
+						this.processor, this.preferred, this.version,
+						this.icon, this.ownerName, this.inputFiles,
 						this.executionParameters, this.outputFiles,
 						this.implementations, this.cloudAccounts);
 	}

@@ -121,6 +121,7 @@ TOKEN :
   | < DESCRIPTION: "description" > : descriptionValueProcessing
   | < VERSION: "version" > : simpleValueProcessing
   | < PROCESSOR: "processor" > : simpleValueProcessing
+  | < TAGS: "tags" > : simpleValueProcessing
   | < PREFERRED: "preferred" >
   | < PUBLIC: "public" >
   | < ICON: "icon" >
@@ -287,6 +288,7 @@ Command parse():
 	boolean isPublic = false;
 	URI icon = null;
 	List<TypedParameter> parameters = null;
+	List<String> tags = null;
 	List<FileSpecification> inputFiles = null;
 	List<FileSpecification> outputFiles = null;
 	List<CommandImplementationDefinition> implementations = null;
@@ -296,6 +298,7 @@ Command parse():
   	description = description()
   	version = version()
   	preferred = preferred()
+  	[ tags = tags() ]
   	[ processor = processor() ]
   	[ isPublic = isPublic() ]
   	[ icon = icon() ]
@@ -311,6 +314,7 @@ Command parse():
 		cd.setDescription(description);
 		cd.setVersion(version);
 		cd.setPreferred(preferred);
+		cd.setTags(tags);
 		cd.setProcessor(processor);
 		cd.setPublic(isPublic);
 		cd.setIcon(icon);
@@ -344,6 +348,18 @@ String version() : { Token t; }
 	< VERSION > <COLON> t = <VALUE>
 	{
 	  return t.toString();
+	} 
+}
+
+List<String > tags() : { List<String> tagList = new ArrayList<String>(); Token t; }
+{
+	< TAGS > <COLON> t = <VALUE>
+	{
+	  String[] tagElements = t.toString().split(" ");
+	  for(String element : tagElements)	  {		if(element != null && !element.trim().isEmpty())		{
+		  tagList.add(element.trim());		}
+	  }
+	  return tagList;
 	} 
 }
 

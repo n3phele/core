@@ -64,6 +64,11 @@ public class ParserTest {
 		Assert.assertEquals("denoise", cd.getName());
 		Assert.assertEquals("denoise an aggregate of up to 5 files in .sff.txt format, which is the output of sffinfo", cd.getDescription());
 		Assert.assertTrue(cd.isPublic());
+		Assert.assertEquals("now", cd.getTags().get(0));
+		Assert.assertEquals("is", cd.getTags().get(1));
+		Assert.assertEquals("the", cd.getTags().get(2));
+		Assert.assertEquals("time", cd.getTags().get(3));
+		Assert.assertEquals(4, cd.getTags().size());
 		Assert.assertTrue(cd.isPreferred());
 		Assert.assertEquals("1.6", cd.getVersion());
 		Assert.assertEquals(URI.create("http://www.n3phele.com/qiimeIcon"), cd.getIcon());

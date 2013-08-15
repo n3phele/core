@@ -6,6 +6,7 @@ description: denoise an aggregate of up to 5 files in .sff.txt format,
 			 which is the output of sffinfo
 version	   : 1.6	# more comments
 preferred  : True	# a comment
+tags	   : now is the time # for all good men
 public	   : True	# another comment
 icon	   : http://www.n3phele.com/qiimeIcon
 parameters :						  
