@@ -177,95 +177,136 @@ public class OnAction extends Action {
 		}
 		
 	}
-
-	@Override
-	public boolean call() throws Exception {
-
+	
+	public boolean call(ActionLogger actionLogger) throws Exception
+	{
 		Client client = ClientFactory.create();
 
 		Credential plain = this.clientCredential.decrypt();
 		client.addFilter(new HTTPBasicAuthFilter(plain.getAccount(), plain.getSecret()));
 		client.setReadTimeout(30000);
 		client.setConnectTimeout(5000);
-		try {
-				Task t;
-				try {
-					t = getTask(client, this.instance);
-					clientUnresponsive = null;
-				} catch (ClientHandlerException e) {
-					if(clientUnresponsive == null) {
-						clientUnresponsive = Calendar.getInstance().getTimeInMillis();
-					} else {
-						long now = Calendar.getInstance().getTimeInMillis();
-						long timeout = Long.valueOf(Resource.get("agentStartupGracePeriodInSeconds", "600"))*1000;
-						// Give the agent a grace period to respond
-						if((now - clientUnresponsive) > timeout) {
-							logger.error("command execution FAILED with exception "+e.getMessage());
-							log.log(Level.SEVERE, this.name+" command execution FAILED with exception ", e);
-							throw new UnprocessableEntityException( this.name+" command execution FAILED with exception");
-						} else {
-							log.log(Level.SEVERE, this.name+" command execution has exception.Will retry ", e);
-							logger.error("command execution. Will retry "+e.getMessage());
-						}	
-					} 
-					return false;
-				} catch (Exception e) {
-					if(clientUnresponsive == null) {
-						clientUnresponsive = Calendar.getInstance().getTimeInMillis();
-					} else {
-						long now = Calendar.getInstance().getTimeInMillis();
-						long timeout = Long.valueOf(Resource.get("agentStartupGracePeriodInSeconds", "600"))*1000;
-						// Give the agent a grace period to respond
-						if((now - clientUnresponsive) > timeout) {
-							logger.error("command execution FAILED with exception "+e.getMessage());
-							log.log(Level.SEVERE, this.name+" command execution FAILED with exception ", e);
-							throw new UnprocessableEntityException( this.name+" command execution FAILED with exception");
-						} else {
-							log.log(Level.SEVERE, this.name+" command execution has exception.Will retry ", e);
-							logger.error("command execution. Will retry "+e.getMessage());
-						}	
+		try
+		{
+			Task t;
+			try
+			{
+				t = getTask(client, this.instance);
+				clientUnresponsive = null;
+			}
+			catch (ClientHandlerException e)
+			{
+				if(clientUnresponsive == null)
+				{
+					clientUnresponsive = Calendar.getInstance().getTimeInMillis();
+				}
+				else
+				{
+					long now = Calendar.getInstance().getTimeInMillis();
+					long timeout = Long.valueOf(Resource.get("agentStartupGracePeriodInSeconds", "600"))*1000;
+					// Give the agent a grace period to respond
+					if((now - clientUnresponsive) > timeout)
+					{
+						if(actionLogger != null)
+							actionLogger.error("command execution FAILED with exception "+e.getMessage());
 						
+						log.log(Level.SEVERE, this.name+" command execution FAILED with exception ", e);
+						throw new UnprocessableEntityException( this.name+" command execution FAILED with exception");
 					}
-					return false;
+					else
+					{
+						log.log(Level.SEVERE, this.name+" command execution has exception.Will retry ", e);
+						if(actionLogger != null)
+							actionLogger.error("command execution. Will retry "+e.getMessage());
+					}
+				} 
+				return false;
+			} catch (Exception e)
+			{
+				if(clientUnresponsive == null)
+				{
+					clientUnresponsive = Calendar.getInstance().getTimeInMillis();
 				}
-	
-				this.getContext().putValue("stdout", t.getStdout());
-				this.getContext().putValue("stderr", t.getStderr());
-				if(t.getFinished() != null) {
-					this.context.putValue("exitCode", t.getExitcode());
-					if(t.getStdout() != null && t.getStdout().length() > 0)
-						logger.info(t.getStdout());
-					if(t.getStderr() != null && t.getStderr().length() > 0)
-						logger.warning(t.getStderr());
+				else
+				{
+					long now = Calendar.getInstance().getTimeInMillis();
+					long timeout = Long.valueOf(Resource.get("agentStartupGracePeriodInSeconds", "600"))*1000;
+					// Give the agent a grace period to respond
+					if((now - clientUnresponsive) > timeout)
+					{
+						if(actionLogger != null)
+							actionLogger.error("command execution FAILED with exception "+e.getMessage());
+						
+						log.log(Level.SEVERE, this.name+" command execution FAILED with exception ", e);
+						throw new UnprocessableEntityException( this.name+" command execution FAILED with exception");
+					}
+					else
+					{
+						log.log(Level.SEVERE, this.name+" command execution has exception.Will retry ", e);
+						if(actionLogger != null)
+							actionLogger.error("command execution. Will retry "+e.getMessage());
+					}	
 					
-					if(t.getExitcode() == 0) {
-						long duration = (Calendar.getInstance().getTimeInMillis() - epoch);
-						String durationText;
-						if(duration < 1000) {
-							durationText = Long.toString(duration)+" milliseconds"; 
-						} else {
-							duration = duration/1000;
-							durationText = Long.toString(duration)+(duration>1?" seconds":" second"); 
-						}
-
-						log.fine(this.name+" command execution completed successfully. Elapsed time "+durationText);
-						logger.info("command execution completed successfully. Elapsed time "+durationText);
-						return true;
-					} else {
-						logger.error("Command execution "+this.instance+" failed with exit status "+t.getExitcode());
-						log.severe(name+" command execution "+this.instance+" failed with exit status "+t.getExitcode());
-						log.severe("Stdout: "+t.getStdout());
-						log.severe("Stderr: "+t.getStderr());
-						throw new UnprocessableEntityException("Command execution "+this.instance+" failed with exit status "+t.getExitcode());
-					}
-				} else {
-					return false;
 				}
+				return false;
+			}
 
+			this.getContext().putValue("stdout", t.getStdout());
+			this.getContext().putValue("stderr", t.getStderr());
+			if(t.getFinished() != null)
+			{
+				this.context.putValue("exitCode", t.getExitcode());
+				if(t.getStdout() != null && t.getStdout().length() > 0)
+					logger.info(t.getStdout());
+				if(t.getStderr() != null && t.getStderr().length() > 0)
+					logger.warning(t.getStderr());
+				
+				if(t.getExitcode() == 0)
+				{
+					long duration = (Calendar.getInstance().getTimeInMillis() - epoch);
+					String durationText;
+					if(duration < 1000)
+					{
+						durationText = Long.toString(duration)+" milliseconds"; 
+					}
+					else
+					{
+						duration = duration/1000;
+						durationText = Long.toString(duration)+(duration>1?" seconds":" second"); 
+					}
 
-		} finally {
+					log.fine(this.name+" command execution completed successfully. Elapsed time "+durationText);
+					if(actionLogger != null)
+						actionLogger.info("command execution completed successfully. Elapsed time "+durationText);
+					
+					return true;
+				}
+				else
+				{
+					if(actionLogger != null)
+						actionLogger.error("Command execution "+this.instance+" failed with exit status "+t.getExitcode());
+					
+					log.severe(name+" command execution "+this.instance+" failed with exit status "+t.getExitcode());
+					log.severe("Stdout: "+t.getStdout());
+					log.severe("Stderr: "+t.getStderr());
+					throw new UnprocessableEntityException("Command execution "+this.instance+" failed with exit status "+t.getExitcode());
+				}
+			}
+			else
+			{
+				return false;
+			}
+		}
+		finally
+		{
 			ClientFactory.give(client);
 		}
+	}
+
+	@Override
+	public boolean call() throws Exception
+	{
+		return this.call(this.logger);
 	}
 
 	@Override
