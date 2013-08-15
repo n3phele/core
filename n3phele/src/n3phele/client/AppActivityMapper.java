@@ -30,6 +30,7 @@ import n3phele.client.presenter.CommandGridListPlace;
 import n3phele.client.presenter.CommandListActivity;
 import n3phele.client.presenter.CommandListPlace;
 import n3phele.client.presenter.CommandPlace;
+import n3phele.client.presenter.CreateServiceActivity;
 import n3phele.client.presenter.LoginActivity;
 import n3phele.client.presenter.LoginPlace;
 import n3phele.client.presenter.ProcessActivity;
@@ -42,6 +43,7 @@ import n3phele.client.presenter.RepoListPlace;
 import n3phele.client.presenter.RepoPlace;
 import n3phele.client.presenter.ServiceListActivity;
 import n3phele.client.presenter.ServiceListPlace;
+import n3phele.client.presenter.ServicePlace;
 import n3phele.client.presenter.UserActivity;
 import n3phele.client.presenter.UserPlace;
 
@@ -79,6 +81,8 @@ public class AppActivityMapper implements ActivityMapper {
 			return new UserActivity(((UserPlace) place).getPlaceName(), clientFactory);
 		} else if(place instanceof AccountPlace) {
 			return new AccountActivity(((AccountPlace) place).getPlaceName(), clientFactory);
+		} else if(place instanceof ServicePlace) {
+			return new CreateServiceActivity(((ServicePlace) place).getPlaceName(), clientFactory);
 		} else if(place instanceof AccountListPlace) {
 			return new AccountListActivity(((AccountListPlace) place).getPlaceName(), clientFactory);
 		} else if(place instanceof AccountHyperlinkPlace) {

@@ -19,6 +19,7 @@ import java.util.List;
 
 import n3phele.client.N3phele;
 import n3phele.client.model.CloudProcessSummary;
+import n3phele.client.model.CommandCloudAccount;
 import n3phele.client.model.Narrative;
 import n3phele.client.presenter.AbstractCloudProcessActivity;
 import n3phele.client.presenter.AbstractServiceActivity;
@@ -30,6 +31,8 @@ import n3phele.client.widgets.WorkspaceVerticalPanel;
 
 import com.google.gwt.cell.client.ActionCell.Delegate;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.http.client.Request;
 import com.google.gwt.http.client.RequestBuilder;
 import com.google.gwt.http.client.RequestCallback;
@@ -41,6 +44,7 @@ import com.google.gwt.user.cellview.client.SimplePager;
 import com.google.gwt.user.cellview.client.SimplePager.TextLocation;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HasVerticalAlignment;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.view.client.Range;
@@ -48,20 +52,19 @@ import com.google.gwt.view.client.RangeChangeEvent;
 import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
 public class ServiceListView extends WorkspaceVerticalPanel {
-	private static final int PAGESIZE = 15;
+	private static final int PAGESIZE = 15; 
 	private ActivityStatusList cellTable;
 	private List<CloudProcessSummary> data = null;
 	private AbstractServiceActivity presenter;
-	
 	private ActionDialogBox<CloudProcessSummary> dialog = null;
 	public ServiceListView() {
-		super(new MenuItem(N3phele.n3pheleResource.activityIcon(), "Service List", null));
+		super(new MenuItem(N3phele.n3pheleResource.activityIcon(), "Service List", null),new MenuItem(N3phele.n3pheleResource.accountAddIcon(), "create a new service", "service:null"));
 		
+	
 		HorizontalPanel heading = new HorizontalPanel();
 		heading.setWidth("500px");
 		heading.setStyleName(N3phele.n3pheleResource.css().sectionPanelHeader());
 		add(heading);
-		
 		heading.setVerticalAlignment(HasVerticalAlignment.ALIGN_MIDDLE);
 		
 		SimplePager.Resources pagerResources = GWT.create(SimplePager.Resources.class);
@@ -227,5 +230,6 @@ public class ServiceListView extends WorkspaceVerticalPanel {
 	public void setPresenter(AbstractServiceActivity presenter) {
 		this.presenter = presenter;
 	}
+
 
 }

@@ -51,6 +51,8 @@ import n3phele.service.model.CachingAbstractManager;
 import n3phele.service.model.Cloud;
 import n3phele.service.model.CloudProcess;
 import n3phele.service.model.CloudProcessCollection;
+import n3phele.service.model.CommandCloudAccount;
+import n3phele.service.model.CommandCloudAccountCollection;
 import n3phele.service.model.CostsCollection;
 import n3phele.service.model.ServiceModelDao;
 import n3phele.service.model.core.Collection;
@@ -82,6 +84,25 @@ public class AccountResource {
 		return new AccountCollection(result, 0, -1);
 	}
 
+	/*
+	 * @return the list of accounts with using the CommandCloudAccount as JSon
+	 */
+	@GET
+	@Produces("application/json")
+	@RolesAllowed("authenticated")
+	@Path("/listAccounts")
+	public CommandCloudAccountCollection listAccounts(@DefaultValue("false") @QueryParam("summary") Boolean summary) {
+
+		log.warning("list Accounts entered with summary " + summary);
+
+		Collection<Account> result = dao.getAccountList(getUser(), summary);
+		ArrayList<CommandCloudAccount> response = new ArrayList<CommandCloudAccount>();
+		for(Account a: result.getElements()){
+			response.add(new CommandCloudAccount(a.getCloudName(), a.getName(), a.getUri()));
+		}
+		
+		return new CommandCloudAccountCollection( new Collection<CommandCloudAccount>(null, null, response));
+	}
 	@GET
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
