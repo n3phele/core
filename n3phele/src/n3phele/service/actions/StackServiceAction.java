@@ -167,13 +167,6 @@ public class StackServiceAction extends ServiceAction {
 				}
 			}
 		}
-		/*for (String vm : adopted) {
-			try {
-				processLifecycle().cancel(URI.create(vm));
-			} catch (NotFoundException e) {
-				log.severe("Not found: " + e.getMessage());
-			}
-		}*/
 	}
 
 	@Override
