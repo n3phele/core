@@ -177,8 +177,9 @@ public class OnAction extends Action {
 		}
 		
 	}
-	
-	public boolean call(ActionLogger actionLogger) throws Exception
+
+	@Override
+	public boolean call() throws Exception
 	{
 		Client client = ClientFactory.create();
 
@@ -207,17 +208,14 @@ public class OnAction extends Action {
 					// Give the agent a grace period to respond
 					if((now - clientUnresponsive) > timeout)
 					{
-						if(actionLogger != null)
-							actionLogger.error("command execution FAILED with exception "+e.getMessage());
-						
+						logger.error("command execution FAILED with exception "+e.getMessage());
 						log.log(Level.SEVERE, this.name+" command execution FAILED with exception ", e);
 						throw new UnprocessableEntityException( this.name+" command execution FAILED with exception");
 					}
 					else
 					{
 						log.log(Level.SEVERE, this.name+" command execution has exception.Will retry ", e);
-						if(actionLogger != null)
-							actionLogger.error("command execution. Will retry "+e.getMessage());
+						logger.error("command execution. Will retry "+e.getMessage());
 					}
 				} 
 				return false;
@@ -234,17 +232,14 @@ public class OnAction extends Action {
 					// Give the agent a grace period to respond
 					if((now - clientUnresponsive) > timeout)
 					{
-						if(actionLogger != null)
-							actionLogger.error("command execution FAILED with exception "+e.getMessage());
-						
+						logger.error("command execution FAILED with exception "+e.getMessage());
 						log.log(Level.SEVERE, this.name+" command execution FAILED with exception ", e);
 						throw new UnprocessableEntityException( this.name+" command execution FAILED with exception");
 					}
 					else
 					{
 						log.log(Level.SEVERE, this.name+" command execution has exception.Will retry ", e);
-						if(actionLogger != null)
-							actionLogger.error("command execution. Will retry "+e.getMessage());
+						logger.error("command execution. Will retry "+e.getMessage());
 					}	
 					
 				}
@@ -276,16 +271,12 @@ public class OnAction extends Action {
 					}
 
 					log.fine(this.name+" command execution completed successfully. Elapsed time "+durationText);
-					if(actionLogger != null)
-						actionLogger.info("command execution completed successfully. Elapsed time "+durationText);
-					
+					logger.info("command execution completed successfully. Elapsed time "+durationText);
 					return true;
 				}
 				else
 				{
-					if(actionLogger != null)
-						actionLogger.error("Command execution "+this.instance+" failed with exit status "+t.getExitcode());
-					
+					logger.error("Command execution "+this.instance+" failed with exit status "+t.getExitcode());
 					log.severe(name+" command execution "+this.instance+" failed with exit status "+t.getExitcode());
 					log.severe("Stdout: "+t.getStdout());
 					log.severe("Stderr: "+t.getStderr());
@@ -301,12 +292,6 @@ public class OnAction extends Action {
 		{
 			ClientFactory.give(client);
 		}
-	}
-
-	@Override
-	public boolean call() throws Exception
-	{
-		return this.call(this.logger);
 	}
 
 	@Override

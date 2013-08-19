@@ -85,11 +85,11 @@ public class OnExitAction extends OnAction {
 	 * @see n3phele.service.actions.OnAction#call()
 	 */
 	@Override
-	public boolean call() throws Exception
+	public boolean call() throws WaitForSignalRequest
 	{
 		try
 		{
-			super.call(null);
+			super.call();
 			return true;
 		}
 		catch(WaitForSignalRequest we)
