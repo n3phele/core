@@ -58,7 +58,7 @@ public class ServiceListView extends WorkspaceVerticalPanel {
 	private AbstractServiceActivity presenter;
 	private ActionDialogBox<CloudProcessSummary> dialog = null;
 	public ServiceListView() {
-		super(new MenuItem(N3phele.n3pheleResource.activityIcon(), "Service List", null),new MenuItem(N3phele.n3pheleResource.accountAddIcon(), "create a new service", "service:null"));
+		super(new MenuItem(N3phele.n3pheleResource.serviceIcon(), "Service List", null),new MenuItem(N3phele.n3pheleResource.serviceIcon(), "create a new service", "service:null"));
 		
 	
 		HorizontalPanel heading = new HorizontalPanel();

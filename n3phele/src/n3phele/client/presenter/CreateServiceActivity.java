@@ -22,6 +22,7 @@ import n3phele.client.ClientFactory;
 import n3phele.client.model.Account;
 import n3phele.client.model.Cloud;
 import n3phele.client.model.Collection;
+import n3phele.client.model.Context;
 import n3phele.client.presenter.helpers.AuthenticatedRequestFactory;
 import n3phele.client.view.AccountView;
 import n3phele.client.view.CreateServiceView;
@@ -86,11 +87,7 @@ public class CreateServiceActivity extends AbstractActivity {
 	public void onStop() {
 		this.display.setData(null);
 	}
-	public void onSave(Account account, String name, String description,
-			String cloud, String cloudId, String secret) {
-			updateAccountDetails(account.getUri(), name, description, cloud, cloudId, secret);	
-			
-	}
+
 
 	protected void updateClouds(List<Cloud> list) {
 		display.setClouds(list);
@@ -115,7 +112,6 @@ public class CreateServiceActivity extends AbstractActivity {
 
 
 	public void getAccount() {
-		// Send request to server and catch any errors.
 		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, accountUri);
 		try {
 			Request request = builder.sendRequest(null, new RequestCallback() {
@@ -135,7 +131,6 @@ public class CreateServiceActivity extends AbstractActivity {
 
 			});
 		} catch (RequestException e) {
-			//displayError("Couldn't retrieve JSON "+e.getMessage());
 		}
 	}
 
@@ -208,7 +203,6 @@ public class CreateServiceActivity extends AbstractActivity {
 	 */
 	public void getAccountList(){
 		String url= cacheManager.ServiceAddress+ "account/listAccounts";
-		System.out.println(url);
 		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, url);
 		try {
 			@SuppressWarnings("unused")
@@ -219,9 +213,7 @@ public class CreateServiceActivity extends AbstractActivity {
 
 				public void onResponseReceived(Request request, Response response) {
 					GWT.log("Got reply");
-					System.out.println("before sysout " + response.getText());
 					Collection<CommandCloudAccount> accounts = CommandCloudAccount.asCollection(response.getText());
-					System.out.println(accounts);
 					display.setCloudAccounts(accounts.getElements());
 				}
 
@@ -230,6 +222,55 @@ public class CreateServiceActivity extends AbstractActivity {
 			//displayError("Couldn't retrieve JSON "+e.getMessage());
 		}
 	}
+	
+	public void exec(String name,Context context){
+		List<String> params = new ArrayList<String>();
+		String action = "StackService";
+		if(name == null || name.trim().length() == 0) {
+			name = null;
+		}		
+     	params.add("action="+URL.encodeQueryString(action));	
+		String arg = "";
+		params.add("arg="+URL.encodeQueryString(arg.trim()));	
+		if(name != null)
+			params.add("name="+URL.encodeQueryString(name.trim()));
+		
+		String url = cacheManager.ServiceAddress+"process/exec";
+		String seperator = "?";
+		for(String param : params) {
+			url = url+seperator+param;
+			seperator = "&";
+		}
+		 // Send request to server and catch any errors.
+	    RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.POST, url);
+	    builder.setHeader("Content-type", "application/json");
+	    
+	    try {
+	    	GWT.log("Context :"+context.toJSON().toString());
+	      Request msg = builder.sendRequest(context==null?null:context.toJSON().toString(), new RequestCallback() {
+				public void onError(Request request, Throwable exception) {
+					GWT.log("Couldn't retrieve JSON " + exception.getMessage());
+					Window.alert("Couldn't retrieve JSON " + exception.getMessage());
+				}
+	
+				public void onResponseReceived(Request request, Response response) {
+					if (201 == response.getStatusCode()) {
+						GWT.log(response.getText()+" "+response.getHeader("location"));
+						goToPrevious();
+					} else {
+						Window.alert("Error code: "+response.getStatusCode()+" Status Text:"
+								+response.getStatusText()+"\n"+response.getText());
+						GWT.log("Couldn't submit command ("
+								+ response.getStatusText() + " "+ response.getText()+")");
+						
+					}
+				}
+			});
+	    } catch (RequestException e) {
+	    	Window.alert("Request exception " + e.getMessage()+"\n" + e.toString());
+	    }
+	  }
+	    
 
 
 }

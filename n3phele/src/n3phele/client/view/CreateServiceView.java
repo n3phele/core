@@ -23,6 +23,7 @@ import n3phele.client.model.Account;
 import n3phele.client.model.Cloud;
 import n3phele.client.model.CommandCloudAccount;
 import n3phele.client.model.User;
+import n3phele.client.model.Variable;
 import n3phele.client.presenter.AccountActivity;
 import n3phele.client.presenter.CreateServiceActivity;
 import n3phele.client.widgets.MenuItem;
@@ -83,7 +84,7 @@ public class CreateServiceView extends WorkspaceVerticalPanel {
 	final private List<CommandCloudAccount> accounts = new ArrayList<CommandCloudAccount>();
 	
 	public CreateServiceView() {
-		super(new MenuItem(N3phele.n3pheleResource.accountIcon(), "Create Service", null));
+		super(new MenuItem(N3phele.n3pheleResource.serviceIcon(), "Create Service", null));
 		table = new FlexTable();
 		table.setCellPadding(10);
 		
@@ -92,6 +93,7 @@ public class CreateServiceView extends WorkspaceVerticalPanel {
 			@Override
 			public void onChange(ChangeEvent event) {
 				validateAccount(true);
+				
 			}};
 			
 		KeyUpHandler keyup = new KeyUpHandler() {
@@ -132,57 +134,14 @@ public class CreateServiceView extends WorkspaceVerticalPanel {
 		divider.add(accountTable);
 		this.add(clouds);
 		
-		Label lblNewLabel_1 = new Label("Description");
-		table.setWidget(1, 0, lblNewLabel_1);
 		
-		description = new TextBox();
-		description.setVisibleLength(40);
-		description.addChangeHandler(update);
-		table.setWidget(1, 2, description);
-		
-		Label lblNewLabel_2 = new Label("on Cloud");
-		table.setWidget(2, 0, lblNewLabel_2);
-		
-		cloudSelected = new ValidInputIndicatorWidget("Cloud selection required", false);
-		table.setWidget(2, 1, cloudSelected);
-		
-		cloud.addItem("--loading--");
-		cloud.addChangeHandler(update);
-		table.setWidget(2, 2, cloud);
-		
-		Label lblNewLabel_3 = new Label("Cloud Id");
-		table.setWidget(3, 0, lblNewLabel_3);
-		
-		gotCloudId = new ValidInputIndicatorWidget("Cloud id required", false);
-		table.setWidget(3, 1, gotCloudId);
-		cloudId = new TextBox();
-		cloudId.setVisibleLength(40);
-		cloudId.addChangeHandler(update);
-		cloudId.addKeyUpHandler(keyup);
-		table.setWidget(3, 2, cloudId);
-		
-		Label lblNewLabel_4 = new Label("Cloud Secret");
-		table.setWidget(4, 0, lblNewLabel_4);
 		
 		secretTextSupplied = new ValidInputIndicatorWidget("Secret text required", false);
-		table.setWidget(4, 1, secretTextSupplied);
-		secret = new TextBox();
-		secret.setVisibleLength(40);
-		secret.addChangeHandler(update);
-		secret.addKeyUpHandler(keyup);
-		table.setWidget(4, 2, secret);
+
 		
-		/*
-		Label lblNewLabel_5 = new Label("Confirm Password");
-		table.setWidget(5, 0, lblNewLabel_5);
-		passwordConfirmSupplied = new ValidInputIndicatorWidget("Matching password text required", false);
-		table.setWidget(5, 1, passwordConfirmSupplied);
-		confirmPassword = new PasswordTextBox();
-		confirmPassword.setVisibleLength(40);
-		confirmPassword.addChangeHandler(update);
-		confirmPassword.addKeyUpHandler(keyup);
-		table.setWidget(5, 2, confirmPassword);
-		*/
+		gotCloudId = new ValidInputIndicatorWidget("Cloud id required", false);
+		cloudSelected = new ValidInputIndicatorWidget("Cloud selection required", false);
+
 		
 		cancel = new Button("cancel",  new ClickHandler() {
           public void onClick(ClickEvent event) {
@@ -190,42 +149,38 @@ public class CreateServiceView extends WorkspaceVerticalPanel {
           }
         });
 
-		table.setWidget(6, 3, cancel);
-		
-		
-		run = new Button("save",  new ClickHandler() {
+		table.setWidget(1, 2, cancel);
+			
+		run = new Button("create",  new ClickHandler() {
 	          public void onClick(ClickEvent event) {
-	              do_save();
+	              do_run();
 	            }
 	          });
-		table.setWidget(6, 2, run);
+		table.setWidget(1, 0, run);
+		
 		
 		errorsOnPage = new ValidInputIndicatorWidget("check for missing or invalid parameters marked with this icon", false);
-		table.setWidget(6, 1, errorsOnPage);
-		table.getFlexCellFormatter().setHorizontalAlignment(6, 3, HasHorizontalAlignment.ALIGN_CENTER);
+		table.setWidget(0, 3, errorsOnPage);
+		table.getFlexCellFormatter().setHorizontalAlignment(1, 2, HasHorizontalAlignment.ALIGN_RIGHT);
+		table.getFlexCellFormatter().setHorizontalAlignment(0, 0, HasHorizontalAlignment.ALIGN_RIGHT);
+		table.getFlexCellFormatter().setHorizontalAlignment(1, 0, HasHorizontalAlignment.ALIGN_CENTER);
 		
-		
-		for(int i=0; i < 6; i++) {
-			table.getFlexCellFormatter().setColSpan(i, 2, 2);
-			table.getFlexCellFormatter().setVerticalAlignment(i, 0, HasVerticalAlignment.ALIGN_MIDDLE);
-			table.getFlexCellFormatter().setHorizontalAlignment(i, 0, HasHorizontalAlignment.ALIGN_RIGHT);
-//			table.getFlexCellFormatter().setVerticalAlignment(i, 2, HasVerticalAlignment.ALIGN_MIDDLE);
-//			table.getFlexCellFormatter().setHorizontalAlignment(i, 2, HasHorizontalAlignment.ALIGN_LEFT);
-	
-		}
+
 		table.getColumnFormatter().setWidth(0, "25%");
 		table.getColumnFormatter().setWidth(1, "18px");
 		table.getColumnFormatter().setWidth(4, "16px");
 		table.setCellPadding(1);
 		table.setCellSpacing(5);
 		this.add(table);
+		validateAccount(true);
+		
 	}
 	
-	public void do_save() {
-		this.presenter.onSave(account, name.getText(), 
-				description.getText().trim(), uriMap.get(cloud.getSelectedIndex()), cloudId.getText().trim(), secret.getText().trim());
+	public void do_run() {
+		n3phele.client.model.Context context = new n3phele.client.model.Context();
+		context.put("account", Variable.newInstance("account", "Object", getSelectedAccount()));
+        presenter.exec(name.getText(), context);
 	}
-	
 	public void do_cancel() {
 		setData(null);
 		this.presenter.goToPrevious();
@@ -235,7 +190,6 @@ public class CreateServiceView extends WorkspaceVerticalPanel {
 		this.account = account;
 		if(account != null) {
 			name.setText(account.getName());
-			description.setText(account.getDescription());
 			if(cloudMap.containsKey(account.getCloud())) {
 				cloud.setSelectedIndex(cloudMap.get(account.getCloud()));
 			} else {
@@ -247,10 +201,6 @@ public class CreateServiceView extends WorkspaceVerticalPanel {
 			validateAccount(true);
 		} else {
 			name.setText("");
-			description.setText("");
-			cloudId.setText("");
-			secret.setText("");
-			//confirmPassword.setText("");
 			validateAccount(true);
 		}
 	}
@@ -259,9 +209,6 @@ public class CreateServiceView extends WorkspaceVerticalPanel {
 		this.presenter = presenter;
 	}
 
-	public void refresh(User newUser) {
-		
-	}
 	
 	public void setClouds(List<Cloud> list) {
 		uriMap.clear();
@@ -284,31 +231,16 @@ public class CreateServiceView extends WorkspaceVerticalPanel {
 	}
 
 	private boolean validateAccount(boolean isValid) {
-		if(account == null) return false;
 		boolean nameValid = (name.getText()!= null && name.getText().length()!=0);
 		this.nameValid.setVisible(!nameValid);
-		boolean cloudValid = cloud.getSelectedIndex() >=0 && cloudMap.size() > 0;
-		this.cloudSelected.setVisible(!cloudValid);
-		isValid = isValid && nameValid && cloudValid;
-		boolean gotId =  cloudId.getText() != null && cloudId.getText().length() != 0;
-		boolean gotPassword = secret.getText() != null && secret.getText().length() != 0;
-		//boolean gotConfirm = confirmPassword.getText() != null && confirmPassword.getText().length() != 0;
-		if(account.getUri() == null || account.getUri().length() == 0) {
-			this.gotCloudId.setVisible(!gotId);
-			this.secretTextSupplied.setVisible(!gotPassword);
-			//this.passwordConfirmSupplied.setVisible(!(gotConfirm && password.getText().equals(confirmPassword.getText())));
-			isValid = isValid && gotId && gotPassword; //&& gotConfirm && password.getText().equals(confirmPassword.getText());
-		} else {
-			if(gotPassword || gotId ) {
-				this.gotCloudId.setVisible(!gotId);
-				this.secretTextSupplied.setVisible(!gotPassword);
-				//this.passwordConfirmSupplied.setVisible(!(gotConfirm && password.getText().equals(confirmPassword.getText())));
-				isValid = isValid && gotPassword; //&& gotConfirm && password.getText().equals(confirmPassword.getText()) && gotId;
-			} else {
-				this.gotCloudId.setVisible(false);
-				this.secretTextSupplied.setVisible(false);
-				//this.passwordConfirmSupplied.setVisible(false);
-			}
+		isValid = isValid && nameValid;
+
+		if(selectedImplementation == null){
+			isValid = false;
+		}
+		if(!nameValid) {
+			this.nameValid.setVisible(true);
+			isValid = false; 
 		}
 		this.errorsOnPage.setVisible(!isValid);
 		this.run.setEnabled(isValid);
@@ -345,6 +277,7 @@ public class CreateServiceView extends WorkspaceVerticalPanel {
 						CreateServiceView.this.selectedAccountURI = profile.getAccountUri().toString();
 					} else {
 						if(profile.getImplementation().equals(CreateServiceView.this.selectedImplementation)) {
+							
 							CreateServiceView.this.selectedImplementation = null;
 							CreateServiceView.this.selectedAccountURI = null;
 						}
@@ -353,10 +286,12 @@ public class CreateServiceView extends WorkspaceVerticalPanel {
 					String visible = value?"-":"+";
 					CreateServiceView.this.gotExecutionSelection.setValue(visible+CreateServiceView.this.gotExecutionSelection.getValue().substring(1));
 					updateRunButton(true);
+					validateAccount(true);
 				} else {
 					checkbox.clearViewData(KEY_PROVIDER.getKey(profile));
 					table.redraw();
 					updateRunButton(false);
+					validateAccount(false);
 					GWT.log("update account");
 					CreateServiceView.this.gotExecutionSelection.setValue("+"+CreateServiceView.this.gotExecutionSelection.getValue().substring(1));
 				}
@@ -376,7 +311,6 @@ public class CreateServiceView extends WorkspaceVerticalPanel {
 			}
 		};
 		table.addColumn(accountColumn);
-		//table.setColumnWidth(accountColumn, "150px");
 		TextColumn<CommandCloudAccount> nameColumn = new TextColumn<CommandCloudAccount>() {
 			@Override
 			public String getValue(CommandCloudAccount profile) {
@@ -395,19 +329,6 @@ public class CreateServiceView extends WorkspaceVerticalPanel {
 	}
 	public void updateRunButton(boolean allValid) {
 		GWT.log("update run "+allValid);
-//		if(data != null) {
-//			if(allValid && data != null && data.getExecutionParameters().size() > 0) {
-//				allValid = checkParameterValues(data.getExecutionParameters());
-//				GWT.log("update run1 "+allValid);
-//			}
-//			if(allValid && data.getInputFiles() != null && data.getInputFiles().size() > 0) {
-//				allValid = validateRepoRefs(data.getInputFiles(), true);
-//				GWT.log("update run2 "+allValid);
-//			}
-//			if(allValid && data.getOutputFiles() != null && data.getOutputFiles().size() > 0) {
-//				allValid = validateRepoRefs(data.getOutputFiles(), false);
-//				GWT.log("update run3 "+allValid);
-//			}
 		if(allValid) {
 			allValid = getSelectedAccount() != null;
 			GWT.log("update run4 "+allValid);
@@ -417,7 +338,6 @@ public class CreateServiceView extends WorkspaceVerticalPanel {
 		}
 		GWT.log("update run final "+allValid);
 		this.run.setEnabled(allValid);
-		//this.errorsOnPage.setValue((allValid?"-":"+")+this.errorsOnPage.getValue().substring(1));
 	}
 	
 	private String getSelectedAccount() {
@@ -456,9 +376,8 @@ public class CreateServiceView extends WorkspaceVerticalPanel {
 					CreateServiceView.this.selectedImplementation = ep.getImplementation();
 					this.accountTable.redraw();
 					String visible = "-";
-
 					CreateServiceView.this.gotExecutionSelection.setValue(visible+CreateServiceView.this.gotExecutionSelection.getValue().substring(1));
-					updateRunButton(true);
+					CreateServiceView.this.validateAccount(true);
 					return;
 				}
 			}
