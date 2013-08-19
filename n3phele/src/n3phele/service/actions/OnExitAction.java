@@ -87,9 +87,14 @@ public class OnExitAction extends OnAction {
 	@Override
 	public boolean call() throws WaitForSignalRequest
 	{
+		logger = new ActionLogger(this);
+		
 		try
 		{
-			super.call();
+			boolean success = super.call();
+			if(!success)
+				log.info("Error into super call() of OnExitAction.");
+			
 			return true;
 		}
 		catch(WaitForSignalRequest we)
@@ -98,9 +103,7 @@ public class OnExitAction extends OnAction {
 		}
 		catch(Exception e)
 		{
-			logger = new ActionLogger(this);
-			logger.error("Error into calling OnExitAction");
-			
+			logger.error("Error into calling OnExitAction.");
 			log.info("Exception into call() of OnExitAction: " + e.getMessage());
 			return true;
 		}
