@@ -5,11 +5,12 @@ import java.net.URI;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import n3phele.service.model.core.Entity;
 import n3phele.service.model.core.Helpers;
 
 @XmlRootElement(name="CommandCloudAccount")
 @XmlType(name="CommandCloudAccount", propOrder={"accountName", "implementation", "accountUri"})
-public class CommandCloudAccount {
+public class CommandCloudAccount extends Entity{
 	private String accountName;
 	private String implementation;
 	private String accountUri;
