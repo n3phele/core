@@ -2,8 +2,9 @@
 # Author: Alexandre Tavares
 name       : bootstrapJujuCore
 description: Bootstraps Juju
-version    : 1.9
+version    : 2.0
 preferred  : true
+tags       : service
 processor  : StackService
 public     : true
 icon       : http://www.n3phele.com/icons/custom

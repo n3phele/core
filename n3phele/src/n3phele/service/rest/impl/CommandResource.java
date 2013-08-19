@@ -16,6 +16,7 @@ package n3phele.service.rest.impl;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -223,13 +224,17 @@ public class CommandResource {
 	@Produces("application/json")
 	@Path("{Id}") 
 	public Command get( @PathParam ("Id") Long id,
-						@DefaultValue("false") @QueryParam("full") boolean full) throws NotFoundException {
+						@DefaultValue("false") @QueryParam("full") boolean full) throws NotFoundException, URISyntaxException {
 
 		Command item = dao.load(id, UserResource.toUser(securityContext));
 		
 		User user = UserResource.toUser(securityContext);
-		item.initCloudAccounts(user);
-		if(!full) item.setImplementations(null);
+		if(item.getTags().contains("service")){
+			item.initServiceList(user);
+		}else{
+			item.initCloudAccounts(user);
+			if(!full) item.setImplementations(null);
+		}
 		return item;
 	}
 	
