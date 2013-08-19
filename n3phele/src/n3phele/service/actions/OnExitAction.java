@@ -13,6 +13,7 @@ package n3phele.service.actions;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import n3phele.service.lifecycle.ProcessLifecycle.WaitForSignalRequest;
 import n3phele.service.model.Command;
 import n3phele.service.model.Context;
 import n3phele.service.model.core.User;
@@ -32,6 +33,8 @@ import com.googlecode.objectify.annotation.Unindex;
 @Unindex
 @Cache
 public class OnExitAction extends OnAction {
+	private static java.util.logging.Logger log = java.util.logging.Logger.getLogger(OnExitAction.class.getName()); 
+	
 	public OnExitAction() {}
 	
 	protected OnExitAction(User owner, String name,
@@ -56,6 +59,54 @@ public class OnExitAction extends OnAction {
 		Command command = super.getPrototype();
 		command.setName("OnExit");
 		return command;
+	}
+	
+
+	/* (non-Javadoc)
+	 * @see n3phele.service.actions.OnAction#init()
+	 */
+	@Override
+	public void init() throws Exception
+	{
+		try
+		{
+			super.init();
+		}
+		catch(Exception e)
+		{
+			logger = new ActionLogger(this);
+			logger.error("Error initializing OnExitAction class");
+			
+			log.info("Exception into init() of OnExitAction: " + e.getMessage());
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see n3phele.service.actions.OnAction#call()
+	 */
+	@Override
+	public boolean call() throws WaitForSignalRequest
+	{
+		logger = new ActionLogger(this);
+		
+		try
+		{
+			boolean success = super.call();
+			if(!success)
+				log.info("Error into super call() of OnExitAction.");
+			
+			return true;
+		}
+		catch(WaitForSignalRequest we)
+		{
+			throw we;
+		}
+		catch(Exception e)
+		{
+			logger.error("Error into calling OnExitAction.");
+			log.info("Exception into call() of OnExitAction: " + e.getMessage());
+			return true;
+		}
 	}
 
 	/* (non-Javadoc)
