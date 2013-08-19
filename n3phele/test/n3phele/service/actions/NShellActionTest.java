@@ -978,7 +978,7 @@ public class NShellActionTest {
 		for(Narrative log : logs) {
 			System.out.println(log.toString());
 		}
-		assertEquals(3, logs.size());
+		assertEquals(5, logs.size());
 		assertEquals("command executes before ONEXIT\n", logs.get(2).getText());
 		
 		OnAction onExit_0 = (OnExitAction) ActionResource.dao.load(shell.getContext().getURIValue("OnExit_0"));
