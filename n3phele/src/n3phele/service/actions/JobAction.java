@@ -115,7 +115,7 @@ public class JobAction extends Action {
 
 			myParameters.add(new TypedParameter("$name", "job name", ParameterType.String, "", this.context.getValue("name")));
 			myParameters.add(new TypedParameter("$notify", "send notification email", ParameterType.Boolean, "", this.context.getValue("notify")));
-			myParameters.add(new TypedParameter("$account", "send notification email", ParameterType.String, "", this.context.getValue("account")));
+			myParameters.add(new TypedParameter("$account", "user account", ParameterType.String, "", this.context.getValue("account")));
 
 		} catch (Exception e) {
 			log.log(Level.WARNING, "get prototype failed", e);
