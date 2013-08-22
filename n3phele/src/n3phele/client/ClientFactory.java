@@ -28,6 +28,7 @@ import n3phele.client.view.CommandListGridView;
 import n3phele.client.view.CommandListView;
 import n3phele.client.view.ActivityListView;
 import n3phele.client.view.CompleteAccountView;
+import n3phele.client.view.CreateServiceView;
 import n3phele.client.view.LoginView;
 import n3phele.client.view.ProcessView;
 import n3phele.client.view.RecentActivityView;
@@ -46,6 +47,7 @@ public class ClientFactory {
 	private AppPlaceHistoryMapper historyMapper;
 	private ActivityListView detailedActivityView=null;
 	private ServiceListView detailedServiceView=null;
+	private CreateServiceView createServiceView=null;
 	private LoginView loginView=null;
 	private RecentActivityView recentActivity = null;
 	private CommandListView commandListView = null;
@@ -203,6 +205,14 @@ public class ClientFactory {
 	public ProcessView getProcessView() {
 		if(processView == null) processView = new ProcessView();
 		return this.processView;
+	}
+	
+	  /**
+	   * @return the detailedServiceView
+	   */
+	public CreateServiceView getCreateServiceView() {
+		if(createServiceView == null) createServiceView = new CreateServiceView();
+	    return createServiceView;
 	}
 	
 	/**

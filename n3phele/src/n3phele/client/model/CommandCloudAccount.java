@@ -2,7 +2,7 @@ package n3phele.client.model;
 
 import com.google.gwt.core.client.JavaScriptObject;
 
-public class CommandCloudAccount extends JavaScriptObject {
+public class CommandCloudAccount extends Entity{
 	protected CommandCloudAccount() {}
 
 	/**
@@ -24,6 +24,9 @@ public class CommandCloudAccount extends JavaScriptObject {
 		return this.accountUri;
 	}-*/;
 	
-	
+	public static final native Collection<CommandCloudAccount> asCollection(String assumedSafe) /*-{
+		return eval("("+assumedSafe+")");
+		// return JSON.parse(assumedSafe);
+	}-*/;
 	
 }
