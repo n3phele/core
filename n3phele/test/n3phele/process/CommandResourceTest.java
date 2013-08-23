@@ -163,65 +163,6 @@ public class CommandResourceTest {
 		CloudProcessResource.dao.add(cp);
 		return cp;
 	}
-	@Test
-	public void accountDataValidation() throws Exception{
-		User root = UserResource.Root;
-		assertNotNull(root);
-		AccountResource accr = PowerMockito.spy(new AccountResource());
-		AccountManager accm = PowerMockito.mock(AccountManager.class);
-		PowerMockito.mockStatic(AccountManager.class);
-		try {
-			setFinalStatic(AccountResource.class.getField("dao"), accm);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		Account acc1 = new Account("HP1", null, new URI("uri"), "cloud1", null, null, false);
-		Account acc2 = new Account("HP2", null, new URI("uriHP2"), "cloud2", null, null, false);
-		 acc1.setUri(new URI("uri"));
-		acc2.setUri(new URI("uri2"));
-		acc1.setId((long)1);
-		acc2.setId((long)2);
-		List<Account> listAcc = new ArrayList<Account>();
-		listAcc.add(acc1);
-		listAcc.add(acc2);
-		Collection<Account>  colAcc= new Collection<Account>("test", null, listAcc);
-		List<ActivityData> list  = new ArrayList<ActivityData>();
-		ActivityData data1 = new ActivityData("jerry", "data1", "", "5", "", "");
-		list.add(data1);
-		ActivityDataCollection col = new ActivityDataCollection(list);
-		List<ActivityData> list3 = new ArrayList<ActivityData>();
-		
-		ActivityDataCollection col2 = new ActivityDataCollection(list3);
-
-		
-		List<Double> list2 = new ArrayList<Double>();
-		list2.add(1.5);
-		CostsCollection col3 = new CostsCollection(list2);
-		List<Double> listCost = new ArrayList<Double>();
-		listCost.add(0.0);
-		CostsCollection col4 = new CostsCollection(listCost);
-		
-		
-		//PowerMockito.doReturn(col).when(accr.listRunningCloudProcessWithCostsActivityData("1"));		
-		PowerMockito.when(accm.getAccountList(root, false)).thenReturn(colAcc);
-		PowerMockito.doReturn(col).when(accr, "listRunningCloudProcessWithCostsActivityData", "1");
-		PowerMockito.doReturn(col2).when(accr, "listRunningCloudProcessWithCostsActivityData", "2");
-		PowerMockito.doReturn(col3).when(accr, "totalCost24Hour", "1");
-		PowerMockito.doReturn(col4).when(accr, "totalCost24Hour", "2");		
-		PowerMockito.doReturn(root).when(accr, "getUser");
-		List<AccountData> data = accr.listAccountOnlyData(false).getElements();
-		Assert.assertEquals("Wrong Value", "US$1.5", data.get(0).getCost());
-		Assert.assertEquals("Wrong Name", "HP1", data.get(0).getAccountName());
-		Assert.assertEquals("Wrong Cloud Name", "cloud1", data.get(0).getCloud());
-		Assert.assertEquals("Wrong Size",2, data.size());
-		Assert.assertEquals("Wrong Value", "US$0.0", data.get(1).getCost());
-		Assert.assertEquals("Wrong Name", "HP2", data.get(1).getAccountName());
-		Assert.assertEquals("Wrong Cloud Name", "cloud2", data.get(1).getCloud());
-		
-	}
-	
-
 
 	static void setFinalStatic(Field field, Object newValue) throws Exception {
 		field.setAccessible(true);

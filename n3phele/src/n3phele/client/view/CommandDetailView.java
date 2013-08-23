@@ -128,7 +128,6 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 	
 	public CommandDetailView(ImageResource icon, String heading, String runButtonText, String cancelButtonText) {
 		super(new MenuItem(icon, heading, null));
-		//MenuItem noService = new MenuItem(N3phele.n3pheleResource.serviceIcon(), "There is no service available", null);
 		
 		Hyperlink serviceHL = new Hyperlink("Create a new Service","service:null");
 		table = new FlexTable();
@@ -145,7 +144,6 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 		Label lblNewLabel2 = new Label("There's no account avaiable!");
 		newAccountTable.setWidget(1, 1, accountHL);
 		newAccountTable.setWidget(0, 1, lblNewLabel2);
-		//table.add(serviceHL);
 		title = new FlexTable();
 		title.setCellSpacing(8);
 		title.setWidth("100%");
@@ -740,7 +738,7 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 					
 					@Override
 					public void onFailure(Throwable reason) {
-						//
+						
 					}
 				});
 	    	  
@@ -1369,7 +1367,6 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 			}
 		};
 		table.addColumn(accountColumn);
-		//table.setColumnWidth(accountColumn, "150px");
 		TextColumn<CommandCloudAccount> nameColumn = new TextColumn<CommandCloudAccount>() {
 			@Override
 			public String getValue(CommandCloudAccount profile) {

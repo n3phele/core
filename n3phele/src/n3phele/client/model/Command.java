@@ -152,7 +152,6 @@ public class Command extends Entity {
 	
 	public final List<CommandCloudAccount> getServiceList() {
 		JavaScriptObject jsa = services();
-		System.out.println(jsa.toString());
 		return JsList.asList(jsa);
 	};
 	
