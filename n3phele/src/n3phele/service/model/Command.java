@@ -316,21 +316,13 @@ public class Command extends Entity {
 			for(CloudProcess process: CloudProcessResource.dao.getServiceStackCollectionNonFinalized(user.getUri().toString()).getElements()){
 				Action action = ActionResource.dao.load(new URI(process.action));
 				String accountURI = action.getContext().get("account").getValue()[0];
-				Account account = AccountResource.dao.load(new URI(accountURI), user);
-				
+				Account account = AccountResource.dao.load(new URI(accountURI), user);		
 				for(CommandImplementationDefinition implementation2 : this.getImplementations()) {
 					if(account.getCloudName().equals(implementation2.getName())){
 						decoratedProfiles.add(new CommandCloudAccount(implementation2.getName(), process.getName(), process.getUri()));
 					}
 				}
 			}
-//				for(Account account : AccountResource.dao.getAccountsForCloud(user,implementation.getName())) {
-//					decoratedProfiles.add(new CommandCloudAccount(implementation.getName(),
-//																  account.getName(), 
-//																  account.getUri()));
-//				}
-		
-
 			this.setServiceList(decoratedProfiles);
 		}
 		return this;

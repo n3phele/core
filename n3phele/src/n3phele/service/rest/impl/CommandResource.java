@@ -231,6 +231,7 @@ public class CommandResource {
 		User user = UserResource.toUser(securityContext);
 		if(item.getTags().contains("service")){
 			item.initServiceList(user);
+			//if(!full) item.setImplementations(null);
 		}else{
 			item.initCloudAccounts(user);
 			if(!full) item.setImplementations(null);

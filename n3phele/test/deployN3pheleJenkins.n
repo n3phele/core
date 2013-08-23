@@ -2,8 +2,9 @@
 # Author: Alexandre Tavares
 name       : deployN3pheleJenkins
 description: Deploy Jenkins for the N3phele project
-version    : 6.4
+version    : 6.5
 preferred  : true
+tags 	   : service
 processor  : StackService
 public     : true
 icon       : http://www.n3phele.com/icons/custom
