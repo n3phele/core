@@ -2,14 +2,14 @@
 # Author: Alexandre Tavares
 name       : deployN3pheleJenkins
 description: Deploy Jenkins for the N3phele project
-version    : 6.4
+version    : 6.5
 preferred  : true
 processor  : StackService
 public     : true
 icon       : http://www.n3phele.com/icons/custom
 parameters :
-	string service_name = "nephele-jenkins"
-	string password = "password"
+	string service_name = "nephele-jenkins" # A name for the service
+	string password = "password" # Password for Jenkins
 HPZone1: # HP Cloud
 
 	ON $$bootstrap
