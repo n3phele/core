@@ -85,7 +85,7 @@ public class CommandActivity extends AbstractActivity {
 		display.setPresenter(this);
 		display.setData(command);
 		panel.setWidget(display);
-		
+		display.setService(false);
 		initData();
 	}
 	
@@ -203,7 +203,7 @@ public class CommandActivity extends AbstractActivity {
 	}	
 
 
-	public void exec(String action, String name, String arg, Context context) {
+	public void exec(String action, String name, String arg, Context context, String parent) {
 		List<String> params = new ArrayList<String>();
 		if(action != null && action.trim().length()==0) {
 			action = null;
@@ -221,7 +221,8 @@ public class CommandActivity extends AbstractActivity {
 			arg = null;
 		if(arg != null)
 			params.add("arg="+URL.encodeQueryString(arg.trim()));
-		
+		if(parent != null)
+			params.add("parent="+URL.encodeQueryString(parent.trim()));
 		String url = cacheManager.ServiceAddress+"process/exec";
 		String seperator = "?";
 		for(String param : params) {

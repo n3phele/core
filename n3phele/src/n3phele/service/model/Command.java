@@ -12,6 +12,7 @@ package n3phele.service.model;
  */
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,11 +20,14 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
+import n3phele.service.core.NotFoundException;
 import n3phele.service.model.core.Entity;
 import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.TypedParameter;
 import n3phele.service.model.core.User;
 import n3phele.service.rest.impl.AccountResource;
+import n3phele.service.rest.impl.ActionResource;
+import n3phele.service.rest.impl.CloudProcessResource;
 
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Embed;
@@ -33,7 +37,7 @@ import com.googlecode.objectify.annotation.Unindex;
 
 
 @XmlRootElement(name="Command")
-@XmlType(name="Command", propOrder={"shell", "description", "tags", "processor", "preferred", "version", "icon", "ownerName", "inputFiles", "outputFiles", "executionParameters", "cloudAccounts", "implementations"})
+@XmlType(name="Command", propOrder={"shell", "description", "tags", "processor", "preferred", "version", "icon", "ownerName", "inputFiles", "outputFiles", "executionParameters", "cloudAccounts", "implementations","serviceList"})
 @Unindex
 @Cache
 @com.googlecode.objectify.annotation.Entity
@@ -52,6 +56,7 @@ public class Command extends Entity {
 	@Embed private List<FileSpecification> outputFiles;
 	@Embed private List<CommandImplementationDefinition> implementations = new ArrayList<CommandImplementationDefinition>();
 	@Embed private List<CommandCloudAccount> cloudAccounts = new ArrayList<CommandCloudAccount>();
+	@Embed private List<CommandCloudAccount> serviceList = new ArrayList<CommandCloudAccount>();
 	
 	public Command() {}
 	
@@ -264,9 +269,15 @@ public class Command extends Entity {
 	public void setCloudAccounts(List<CommandCloudAccount> cloudAccounts) {
 		this.cloudAccounts = cloudAccounts;
 	}
-
 	
 
+	public List<CommandCloudAccount> getServiceList() {
+		return this.serviceList;
+	}
+
+	public void setServiceList(List<CommandCloudAccount> serviceList) {
+		this.serviceList = serviceList;
+	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
@@ -294,6 +305,25 @@ public class Command extends Entity {
 			}
 
 			this.setCloudAccounts(decoratedProfiles);
+		}
+		return this;
+	}
+	
+
+	public Command initServiceList(User user) throws NotFoundException, URISyntaxException {
+		if(this.getImplementations() != null) {
+			ArrayList<CommandCloudAccount> decoratedProfiles = new ArrayList<CommandCloudAccount>();
+			for(CloudProcess process: CloudProcessResource.dao.getServiceStackCollectionNonFinalized(user.getUri().toString()).getElements()){
+				Action action = ActionResource.dao.load(new URI(process.action));
+				String accountURI = action.getContext().get("account").getValue()[0];
+				Account account = AccountResource.dao.load(new URI(accountURI), user);		
+				for(CommandImplementationDefinition implementation2 : this.getImplementations()) {
+					if(account.getCloudName().equals(implementation2.getName())){
+						decoratedProfiles.add(new CommandCloudAccount(implementation2.getName(), process.getName(), process.getUri()));
+					}
+				}
+			}
+			this.setServiceList(decoratedProfiles);
 		}
 		return this;
 	}
