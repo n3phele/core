@@ -44,6 +44,7 @@ import n3phele.service.core.Resource;
 import n3phele.service.core.ResourceFile;
 import n3phele.service.core.ResourceFileFactory;
 import n3phele.service.lifecycle.ProcessLifecycle;
+import n3phele.service.model.Account;
 import n3phele.service.model.Action;
 import n3phele.service.model.ActionState;
 import n3phele.service.model.CachingAbstractManager;
@@ -238,13 +239,13 @@ public class CloudProcessResource {
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
 	@Path("exec")
-	public Response exec(@DefaultValue("Log") @QueryParam("action") String action, @QueryParam("name") String name, 
+	public Response exec(@DefaultValue("Log") @QueryParam("action") String jobOrService, @QueryParam("name") String name, 
 			@DefaultValue("hello world!") @QueryParam("arg") String arg, @QueryParam("parent") String parent, List<Variable> context) throws ClassNotFoundException, URISyntaxException {
-		
+				
 		n3phele.service.model.Context env = new n3phele.service.model.Context();
 		env.putValue("arg", arg);
 			
-		Class<? extends Action> clazz = Class.forName("n3phele.service.actions." + action + "Action").asSubclass(Action.class);
+		Class<? extends Action> clazz = Class.forName("n3phele.service.actions." + jobOrService + "Action").asSubclass(Action.class);
 		//check parent here
 		if(parent != null && parent.trim().length() > 0){
 			URI parentURI = new URI(parent);
@@ -259,6 +260,14 @@ public class CloudProcessResource {
 				for (Variable v : Helpers.safeIterator(context)) {
 					env.put(v.getName(), v);
 				}
+								
+				String account = env.getValue("account");
+				if(Helpers.isBlankOrNull(account)) throw new NotFoundException("account not set");		
+				
+				//check if user has access to account
+				Account objectAccount = AccountResource.dao.load(new URI(account), UserResource.toUser(securityContext));
+				if(objectAccount == null) throw new NotFoundException("account not found");		
+				
 				env.putValue("arg", arg);
 				if(env.getValue("service_name") != null)
 					name = env.getValue("service_name");		
@@ -292,10 +301,18 @@ public class CloudProcessResource {
 		for (Variable v : Helpers.safeIterator(context)) {
 			env.put(v.getName(), v);
 		}
+		
+		String account = env.getValue("account");
+		if(Helpers.isBlankOrNull(account)) throw new NotFoundException("account not set");		
+		
+		//check if user has access to account
+		Account objectAccount = AccountResource.dao.load(new URI(account), UserResource.toUser(securityContext));
+		if(objectAccount == null) throw new NotFoundException("account not found");		
+		
 		if (clazz != null) {
 			CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), name, env, null, null, true, clazz);
 			ProcessLifecycle.mgr().init(p);
-			return Response.created(p.getUri()).build();
+ 			return Response.created(p.getUri()).build();
 		} else {
 			return Response.noContent().build();
 		}

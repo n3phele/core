@@ -5,7 +5,6 @@ import static org.junit.Assert.assertNotNull;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +21,6 @@ import n3phele.service.model.core.User;
 import n3phele.service.rest.impl.AccountResource;
 import n3phele.service.rest.impl.UserResource;
 import n3phele.service.rest.impl.AccountResource.AccountManager;
-import n3phele.service.rest.impl.CloudProcessResource;
 import n3phele.time.MutableTimeFactory;
 
 import org.joda.time.DateTimeZone;
