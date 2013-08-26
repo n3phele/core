@@ -35,6 +35,7 @@ import n3phele.client.widgets.SensitiveCheckBoxCell;
 import n3phele.client.widgets.StyledButtonCell;
 import n3phele.client.widgets.ValidInputIndicatorCell;
 import n3phele.client.widgets.WorkspaceVerticalPanel;
+import n3phele.service.rest.impl.N3pheleResource;
 
 import com.google.gwt.cell.client.ActionCell.Delegate;
 import com.google.gwt.cell.client.Cell;
@@ -70,6 +71,7 @@ import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.Hyperlink;
 import com.google.gwt.user.client.ui.InlineHTML;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.PopupPanel;
@@ -115,7 +117,10 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 	private DisappearingCheckBoxCell parameterCheckboxCell;
 	private String lastRepo = null;
 	private String lastPath = "";
-
+	private boolean isService = false;
+	private FlexTable table;
+	private FlexTable newAccountTable;
+	
 	public CommandDetailView() {
 		this(N3phele.n3pheleResource.commandIcon(), "Command", "run", "cancel");
 	}
@@ -123,6 +128,22 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 	
 	public CommandDetailView(ImageResource icon, String heading, String runButtonText, String cancelButtonText) {
 		super(new MenuItem(icon, heading, null));
+		
+		Hyperlink serviceHL = new Hyperlink("Create a new Service","service:null");
+		table = new FlexTable();
+		table.setCellSpacing(8);
+		table.setWidth("100%");
+		Label lblNewLabel = new Label("There's no service avaiable!");
+		table.setWidget(0, 1, lblNewLabel);
+		table.setWidget(1, 1, serviceHL);
+		
+		Hyperlink accountHL = new Hyperlink("Create a new Account","account:null");
+		newAccountTable = new FlexTable();
+		newAccountTable.setCellSpacing(8);
+		newAccountTable.setWidth("100%");
+		Label lblNewLabel2 = new Label("There's no account avaiable!");
+		newAccountTable.setWidget(1, 1, accountHL);
+		newAccountTable.setWidget(0, 1, lblNewLabel2);
 		title = new FlexTable();
 		title.setCellSpacing(8);
 		title.setWidth("100%");
@@ -229,7 +250,10 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 		buttons.add(cancel);
 		
 		this.add(buttons);
-	
+		this.add(table);
+		this.add(newAccountTable);
+		newAccountTable.setVisible(false);
+		table.setVisible(false);
 	}
 	
 	private void buttonVisibility(boolean on) {
@@ -329,22 +353,22 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 	
 	public n3phele.client.model.Context getRepoRefs(List<FileSpecification> fileSpecs, n3phele.client.model.Context context) {
 
-	for(FileSpecification p : fileSpecs) {
-		String repoURI = p.getRepository();
-		String repoName = "";
-		Repository r = CommandDetailView.this.uriToRepoMap.get(repoURI);
-		if(r != null && r.getName()!=null)
-			repoName = r.getName();
-		String repoFile = p.getFilename();
-		if(repoURI != null) {
-			GWT.log("File "+p.getName()+" maps to "+repoName+" path "+repoFile);
-			if(repoFile!=null)
-				repoFile = repoFile.trim();
-			context.put(p.getName(), Variable.newInstance(p.getName(), "File", repoName+":///"+repoFile));
-		} else {
-			GWT.log("File "+p.getName()+" not used");
+		for(FileSpecification p : fileSpecs) {
+			String repoURI = p.getRepository();
+			String repoName = "";
+			Repository r = CommandDetailView.this.uriToRepoMap.get(repoURI);
+			if(r != null && r.getName()!=null)
+				repoName = r.getName();
+			String repoFile = p.getFilename();
+			if(repoURI != null) {
+				GWT.log("File "+p.getName()+" maps to "+repoName+" path "+repoFile);
+				if(repoFile!=null)
+					repoFile = repoFile.trim();
+				context.put(p.getName(), Variable.newInstance(p.getName(), "File", repoName+":///"+repoFile));
+			} else {
+				GWT.log("File "+p.getName()+" not used");
+			}
 		}
-	}
 	return context;
 }
 	
@@ -395,7 +419,8 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 			getRepoRefs(data.getInputFiles(), context);
 			getRepoRefs(data.getOutputFiles(), context);
 			context.put("notify", Variable.newInstance("notify", "Boolean", Boolean.valueOf(getSendEmail()).toString()));
-			context.put("account", Variable.newInstance("account", "Object", getSelectedAccount()));
+			if(!isService)
+				context.put("account", Variable.newInstance("account", "Object", getSelectedAccount()));
 			String name = jobName.getText();
 			if(name==null || name.trim().length()==0) {
 				name = this.commandNameText;
@@ -404,7 +429,10 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 			if(processor == null || processor.trim().length()==0) {
 				processor = "Job";
 			}
-			this.presenter.exec(processor, name, data.getShell()+" "+data.getUri()+"#"+getSelectedImplementation(), context);
+			if(isService){
+				processor = "NShell";
+				this.presenter.exec(processor, name,data.getUri()+"#"+getSelectedImplementation(), context,getSelectedAccount());
+			}else this.presenter.exec(processor, name, data.getShell()+" "+data.getUri()+"#"+getSelectedImplementation(), context, null);
 		}
 	}
 	
@@ -424,6 +452,7 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 	}
 
 	public void setData(Command command) {
+		isService = false;
 		this.data = command;
 		if(command != null) {
 			setCommandName(command.getName());
@@ -432,9 +461,17 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 			setParameters(command.getExecutionParameters());
 			setInputFiles(command.getInputFiles());
 			setOutputFiles(command.getOutputFiles());
-			setCloudAccounts(command.getCloudAccounts());
-			updateRunButton(true);
-			buttonVisibility(command.getCloudAccounts()!=null && !command.getCloudAccounts().isEmpty());
+			if(command.getTags().contains("service")){
+				isService = true;
+				setCloudAccounts(command.getServiceList());
+				updateRunButton(true);
+				buttonVisibility(command.getServiceList()!=null && !command.getServiceList().isEmpty());
+				
+			}else{
+				setCloudAccounts(command.getCloudAccounts());
+				updateRunButton(true);
+				buttonVisibility(command.getCloudAccounts()!=null && !command.getCloudAccounts().isEmpty());
+			}
 		} else {
 			setCommandName("");
 			setCommandDescription("");
@@ -481,7 +518,14 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 		accountTable.setRowCount(this.accounts.size());
 		accountTable.setRowData(this.accounts);
 		accountTable.setVisible(this.accounts.size() > 0);
-		
+		if(isService){
+			newAccountTable.setVisible(false);
+			table.setVisible(this.accounts.size() <= 0);
+		}else{
+			newAccountTable.setVisible(this.accounts.size() <= 0);
+			table.setVisible(false);
+		}
+			
 		if(CommandDetailView.this.selectedImplementation!=null) {
 			String accountURI = CommandDetailView.this.selectedAccountURI;
 			setSelectedImplementation(accountURI);
@@ -694,7 +738,7 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 					
 					@Override
 					public void onFailure(Throwable reason) {
-						//
+						
 					}
 				});
 	    	  
@@ -892,7 +936,7 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 			if(repoName == null || repoName.equalsIgnoreCase("none")) {
 				
 				return pathValue == null;
-			} else {
+			} else { 
 				return pathValue != null;
 			}
 		}
@@ -1323,7 +1367,6 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 			}
 		};
 		table.addColumn(accountColumn);
-		//table.setColumnWidth(accountColumn, "150px");
 		TextColumn<CommandCloudAccount> nameColumn = new TextColumn<CommandCloudAccount>() {
 			@Override
 			public String getValue(CommandCloudAccount profile) {
@@ -1373,5 +1416,15 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 		    if(value != null)
 		    	super.render(context, value, sb);
 		  }
+	}
+
+	
+	public boolean isService() {
+		return this.isService;
+	}
+
+
+	public void setService(boolean isService) {
+		this.isService = isService;
 	}
 }

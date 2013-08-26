@@ -13,6 +13,7 @@
  */
 package n3phele.client.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gwt.core.client.JavaScriptObject;
@@ -132,6 +133,7 @@ public class Command extends Entity {
 		JavaScriptObject jsa = cloudAccounts();
 		return JsList.asList(jsa);
 	}
+	
 	public native final JavaScriptObject cloudAccounts() /*-{
 		var array = [];
 		if(this.cloudAccounts) {
@@ -143,6 +145,51 @@ public class Command extends Entity {
 		}
 		return array;
 	}-*/;
+	
+//	public native final List<String> getTags() /*-{
+//		return this.tags;
+//	}-*/;
+	
+	public final List<CommandCloudAccount> getServiceList() {
+		JavaScriptObject jsa = services();
+		return JsList.asList(jsa);
+	};
+	
+	
+	public native final JavaScriptObject services() /*-{
+		var array = [];
+		if(this.serviceList) {
+			if(this.serviceList.length) {
+				array = this.serviceList;
+			} else {
+				array[0] = this.serviceList;
+			}
+		}
+		return array;
+	}-*/;
+	
+	
+	public native final String getStringElements() /*-{
+		var array = [];
+		if (this.tags != undefined && this.tags != null) {
+			if (this.tags.length == undefined) {
+				array[0] = this.tags;
+			} else {
+				array = this.tags;
+			}
+		}else return "";
+		return array;
+	}-*/;
+
+	public final List<String> getTags() {
+		String jsa = getStringElements();
+		List<String> list = new ArrayList<String>();
+		String[] costs = jsa.toString().split(",");
+		for (int i = 0; i < costs.length; i++) {
+			list.add(costs[i]);
+		}
+		return list;
+	}
 	
 	public static final native Collection<Command> asCollection(String assumedSafe) /*-{
 	return eval("("+assumedSafe+")");

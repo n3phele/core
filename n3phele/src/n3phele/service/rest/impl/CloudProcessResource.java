@@ -282,6 +282,7 @@ public class CloudProcessResource {
 			
 				env.putValue("stackId", stack.getId());
 				CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), name, env, null, processParent, true, clazz);
+				p.setAccount(env.getValue("account"));
 				ProcessLifecycle.mgr().init(p);
 				stack.setDeployProcess(p.getUri().toString());
 				serviceAction.addStack(stack);
