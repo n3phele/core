@@ -126,6 +126,7 @@ public class JobAction extends Action {
 	
 	@Override
 	public void init() throws Exception {
+				
 		logger = new ActionLogger(this);
 		logger.setGroup(this);
 		this.actionName = null;
