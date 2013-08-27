@@ -261,12 +261,7 @@ public class CloudProcessResource {
 					env.put(v.getName(), v);
 				}
 								
-				String account = env.getValue("account");
-				if(Helpers.isBlankOrNull(account)) throw new NotFoundException("account not set");		
-				
-				//check if user has access to account
-				Account objectAccount = AccountResource.dao.load(new URI(account), UserResource.toUser(securityContext));
-				if(objectAccount == null) throw new NotFoundException("account not found");		
+				checkAccount(env);		
 				
 				env.putValue("arg", arg);
 				if(env.getValue("service_name") != null)
@@ -302,12 +297,7 @@ public class CloudProcessResource {
 			env.put(v.getName(), v);
 		}
 		
-		String account = env.getValue("account");
-		if(Helpers.isBlankOrNull(account)) throw new NotFoundException("account not set");		
-		
-		//check if user has access to account
-		Account objectAccount = AccountResource.dao.load(new URI(account), UserResource.toUser(securityContext));
-		if(objectAccount == null) throw new NotFoundException("account not found");		
+		checkAccount(env);		
 		
 		if (clazz != null) {
 			CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), name, env, null, null, true, clazz);
@@ -317,6 +307,15 @@ public class CloudProcessResource {
 			return Response.noContent().build();
 		}
 		
+	}
+
+	private void checkAccount(n3phele.service.model.Context env) throws URISyntaxException {
+		String account = env.getValue("account");
+		if(Helpers.isBlankOrNull(account)) throw new NotFoundException("account not set");		
+		
+		//check if user has access to account
+		Account objectAccount = AccountResource.dao.load(new URI(account), UserResource.toUser(securityContext));
+		if(objectAccount == null) throw new NotFoundException("account not found");
 	}
 
 	@POST
