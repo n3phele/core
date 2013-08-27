@@ -13,43 +13,42 @@ package n3phele;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
-import n3phele.service.actions.CountDownAction;
-import n3phele.service.actions.JobAction;
+import n3phele.service.actions.ServiceAction;
 import n3phele.service.actions.StackServiceAction;
-import n3phele.service.lifecycle.ProcessLifecycle;
-import n3phele.service.model.Action;
-import n3phele.service.model.ActionState;
+import n3phele.service.core.NotFoundException;
+import n3phele.service.model.Account;
 import n3phele.service.model.CloudProcess;
 import n3phele.service.model.Context;
 import n3phele.service.model.Stack;
 import n3phele.service.model.Variable;
 import n3phele.service.model.core.User;
+import n3phele.service.rest.impl.AccountResource;
 import n3phele.service.rest.impl.ActionResource;
 import n3phele.service.rest.impl.CloudProcessResource;
 import n3phele.service.rest.impl.UserResource;
+import n3phele.service.rest.impl.AccountResource.AccountManager;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.powermock.api.mockito.PowerMockito;
 
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalMemcacheServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
-import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
 import com.googlecode.objectify.Key;
 
 public class CreateStackServiceActionTest  {
@@ -73,14 +72,31 @@ public class CreateStackServiceActionTest  {
 	
 	 @After     
 	 public void tearDown() {         helper.tearDown();     } 
-
-	
+	 
 	@Test
 	public void testExecWithJobAndStackService() throws ClassNotFoundException, URISyntaxException, InterruptedException{
 		User root = UserResource.Root;
 		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
+		
+		AccountManager accm = PowerMockito.mock(AccountManager.class);
+		PowerMockito.mockStatic(AccountManager.class);
+		try {
+			setFinalStatic(AccountResource.class.getField("dao"), accm);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
+		
 		List<Variable> context = new ArrayList<Variable>();
+		Account acc1 = new Account("HP1", null, null, "cloud1", null, root.getUri(), false);
+		acc1.setUri(new URI("http://www.test.com/account/1"));
+		acc1.setId((long) 1);
+		
+		Variable var = new Variable("account",acc1.getUri());
+		context.add(var);		
+		
+		PowerMockito.when(accm.load(new URI("http://www.test.com/account/1"), root)).thenReturn(acc1);
 		Response result = cpr.exec("StackService", "testingExec", "", "", context);	
 		System.out.println(result.getMetadata());
 		URI processId = (URI) result.getMetadata().getFirst("Location");
@@ -97,6 +113,18 @@ public class CreateStackServiceActionTest  {
 		assertEquals("Stack not added", sAction.getStacks().get(0).getName(), "deployTest" );
 		assertEquals("List size different than expected", sAction.getStacks().size(), 1 );
 	}
+	
+	static void setFinalStatic(Field field, Object newValue) throws Exception {
+		field.setAccessible(true);
+
+		// remove final modifier from field
+		Field modifiersField = Field.class.getDeclaredField("modifiers");
+		modifiersField.setAccessible(true);
+		modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+
+		field.set(null, newValue);
+	}
+
 	
 	@Test
 	public void testDeleteStackService() {

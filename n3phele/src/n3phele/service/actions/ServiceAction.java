@@ -86,8 +86,9 @@ public class ServiceAction extends Action {
 			command = childAction.getPrototype();
 			List<TypedParameter> myParameters = command.getExecutionParameters();
 
-			myParameters.add(new TypedParameter("name", "service name", ParameterType.String, "", ""));
+			myParameters.add(new TypedParameter("$name", "service name", ParameterType.String, "", ""));
 			myParameters.add(new TypedParameter("arg", "command line", ParameterType.String, "", ""));
+			myParameters.add(new TypedParameter("$account", "user account", ParameterType.String, "", this.context.getValue("account")));
 			for(TypedParameter param : command.getExecutionParameters()) {
 				param.setDefaultValue(this.context.getValue(param.getName()));
 			}
@@ -99,7 +100,7 @@ public class ServiceAction extends Action {
 	}
 	
 	@Override
-	public void init() throws Exception {
+	public void init() throws Exception {	
 		
 		// Initialize serviceName into context
 		
