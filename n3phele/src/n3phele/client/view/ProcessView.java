@@ -193,6 +193,8 @@ public class ProcessView extends WorkspaceVerticalPanel {
 			statusVizualization.put("CANCELLED",N3phele.n3pheleResource.cancelledIcon());
 			statusVizualization.put("INIT",N3phele.n3pheleResource.initIcon());
 			statusVizualization.put("BLOCKED",N3phele.n3pheleResource.blockedIcon());
+			statusVizualization.put("RUNABLE",N3phele.n3pheleResource.barBackground());
+			//statusVizualization.put("SPINNER",N3phele.n3pheleResource.barBackground());
 			barUrl = new Image(N3phele.n3pheleResource.barBackground()).getUrl();
 		}
 		if(this.process != null) {

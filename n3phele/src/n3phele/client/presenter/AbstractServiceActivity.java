@@ -181,7 +181,7 @@ public abstract class AbstractServiceActivity extends AbstractActivity {
 	}
 	
 	public void onSelect(CloudProcessSummary selected) {
-		History.newItem(historyMapper.getToken(new ProcessPlace(selected.getUri())));
+		History.newItem(historyMapper.getToken(new ServiceDetailsPlace(selected.getUri())));
 	}
 
 	protected void initData() {
