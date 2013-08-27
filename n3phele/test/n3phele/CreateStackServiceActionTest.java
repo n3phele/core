@@ -79,7 +79,6 @@ public class CreateStackServiceActionTest  {
 		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 		
-		AccountResource accr = PowerMockito.spy(new AccountResource());
 		AccountManager accm = PowerMockito.mock(AccountManager.class);
 		PowerMockito.mockStatic(AccountManager.class);
 		try {

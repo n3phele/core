@@ -186,9 +186,7 @@ public class CloudProcessTest  {
 	public void emptyAccountOnContextNoParentTest() throws Exception{
 		
 		User root = UserResource.Root;
-		
-		//Account acc1 = new Account("HP1", null, new URI("uri"), "cloud1", null, root.getUri(), false);
-		
+				
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); 
 		cpr.addSecurityContext(root);
 		
@@ -228,6 +226,7 @@ public class CloudProcessTest  {
 		
 		User root = UserResource.Root;
 		
+		//acount owner = null
 		Account acc1 = new Account("HP1", null, null, "cloud1", null, null, false);
 		acc1.setUri(new URI("http://www.test.com/account/1"));
 		acc1.setId((long) 1);
@@ -246,6 +245,7 @@ public class CloudProcessTest  {
 	public void noAccessToAccountWithParentTest() throws Exception{
 		User root = UserResource.Root;
 		
+		//acount owner = null
 		Account acc1 = new Account("HP1", null, null, "cloud1", null, null, false);
 		acc1.setUri(new URI("http://www.test.com/account/1"));
 		acc1.setId((long) 1);
@@ -274,7 +274,6 @@ public class CloudProcessTest  {
 	public void accessToAccountNoParentTest() throws Exception{
 		
 		User root = UserResource.Root;
-		AccountResource accr = PowerMockito.spy(new AccountResource());
 		AccountManager accm = PowerMockito.mock(AccountManager.class);
 		PowerMockito.mockStatic(AccountManager.class);
 		try {
@@ -304,7 +303,6 @@ public class CloudProcessTest  {
 	@Test
 	public void accessToAccountParentTest() throws Exception{
 		User root = UserResource.Root;
-		AccountResource accr = PowerMockito.spy(new AccountResource());
 		AccountManager accm = PowerMockito.mock(AccountManager.class);
 		PowerMockito.mockStatic(AccountManager.class);
 		try {
