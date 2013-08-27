@@ -74,7 +74,7 @@ public class CreateStackServiceActionTest  {
 	 public void tearDown() {         helper.tearDown();     } 
 	 
 	@Test
-	public void testExecWithJobAndStackService() throws ClassNotFoundException, URISyntaxException, InterruptedException{
+	public void testExecWithJobAndStackService() throws Exception{
 		User root = UserResource.Root;
 		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
@@ -112,8 +112,10 @@ public class CreateStackServiceActionTest  {
 		sAction =  (StackServiceAction) ActionResource.dao.load(p.getAction());
 		assertEquals("Stack not added", sAction.getStacks().get(0).getName(), "deployTest" );
 		assertEquals("List size different than expected", sAction.getStacks().size(), 1 );
+		
+		setFinalStatic(AccountResource.class.getField("dao"),new AccountManager() );
 	}
-	
+		
 	static void setFinalStatic(Field field, Object newValue) throws Exception {
 		field.setAccessible(true);
 
