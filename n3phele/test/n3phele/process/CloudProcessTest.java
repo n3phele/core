@@ -298,6 +298,8 @@ public class CloudProcessTest  {
 		
 		Response response = cpr.exec("StackService", "StackServiceTest", "", null, context);
 		assertEquals(201,response.getStatus());
+		
+		setFinalStatic(AccountResource.class.getField("dao"),new AccountManager() );
 	}
 	
 	@Test
@@ -337,6 +339,7 @@ public class CloudProcessTest  {
 		Response response = cpr.exec("StackService", "StackServiceTest", "", jerry.getUri().toString(), context);
 		assertEquals(201,response.getStatus());
 		
+		setFinalStatic(AccountResource.class.getField("dao"),new AccountManager() );
 	}
 	
 	static void setFinalStatic(Field field, Object newValue) throws Exception {
