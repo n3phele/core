@@ -16,6 +16,8 @@ package n3phele.client.view;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.swing.SpinnerListModel;
+
 import n3phele.client.N3phele;
 import n3phele.client.model.CloudProcessSummary;
 import n3phele.client.presenter.helpers.ProcessUpdateHelper;
@@ -44,7 +46,9 @@ public class ActivityStatusList extends CellTable<CloudProcessSummary> {
 			statusVizualization.put("CANCELLED",N3phele.n3pheleResource.cancelledIcon());
 			statusVizualization.put("INIT",N3phele.n3pheleResource.initIcon());
 			statusVizualization.put("BLOCKED",N3phele.n3pheleResource.blockedIcon());
+			statusVizualization.put("RUNABLE",N3phele.n3pheleResource.barBackground());
 			barUrl = new Image(N3phele.n3pheleResource.barBackground()).getUrl();
+			
 		}
 		Column<CloudProcessSummary, IconText> activityColumn = new Column<CloudProcessSummary, IconText>(new IconTextCell<IconText>(20,20,25)) {
 			@Override

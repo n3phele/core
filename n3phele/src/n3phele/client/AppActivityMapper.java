@@ -43,10 +43,11 @@ import n3phele.client.presenter.RepoListPlace;
 import n3phele.client.presenter.RepoPlace;
 import n3phele.client.presenter.ServiceListActivity;
 import n3phele.client.presenter.ServiceListPlace;
+import n3phele.client.presenter.ServiceDetailsPlace;
+import n3phele.client.presenter.ServiceDetailsActivity;
 import n3phele.client.presenter.ServicePlace;
 import n3phele.client.presenter.UserActivity;
 import n3phele.client.presenter.UserPlace;
-
 import com.google.gwt.activity.shared.Activity;
 import com.google.gwt.activity.shared.ActivityMapper;
 import com.google.gwt.core.client.GWT;
@@ -97,6 +98,8 @@ public class AppActivityMapper implements ActivityMapper {
 			return new ProcessActivity(((ProcessPlace) place).getPlaceName(), clientFactory);
 		} else if(place instanceof ServiceListPlace) {
 			return new ServiceListActivity(((ServiceListPlace) place).getPlaceName(), clientFactory);
+		} else if(place instanceof ServiceDetailsPlace) {
+			return new ServiceDetailsActivity(((ServiceDetailsPlace) place).getPlaceName(), clientFactory); 
 		} else if(place instanceof ActivityPlace) {
 			return new ActivtiyActivity("activity-detail", 
 					((ActivityPlace) place).getPlaceName(), clientFactory);

@@ -29,8 +29,13 @@ public class PresentationIcon {
 	public static Image getIconImage(String url) {
 		ImageResource icon = N3phele.n3pheleResource.scriptIcon();
 
+		if(url.equals("stackIcon")) {
+			icon = N3phele.n3pheleResource.stackIcon();
+		}
+		
 		if(url==null || url.length()==0) {
 			
+	
 		} else if(url.startsWith("http://www.n3phele.com")|| url.startsWith("https://www.n3phele.com/icons/")) {
 			if(url.endsWith("qiimeIcon")) {
 				icon = N3phele.n3pheleResource.qiimeIcon();
@@ -44,7 +49,10 @@ public class PresentationIcon {
 				icon = N3phele.n3pheleResource.treeIcon();
 			} else if(url.endsWith("concatenate")) {
 				icon = N3phele.n3pheleResource.concatenateIcon();
+			} else if(url.equals("stackIcon")) {				
+				icon = N3phele.n3pheleResource.stackIcon();
 			}
+			
 			return new Image(icon.getURL());
 		} else if(!url.endsWith(".png")) {
 			return new Image(icon.getURL());
