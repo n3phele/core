@@ -70,7 +70,6 @@ public class CloudProcess extends Entity {
 	@Index(IfTrue.class) boolean topLevel = false;
 	protected ArrayList<String> pendingOnExit = new ArrayList<String>();
 
-
 	@Index(IfNotZero.class)protected double costPerHour = 0;
 	@Index(IfNotNull.class)protected Date epoch = null;
 	@Index(IfNotNull.class)protected String account = null;

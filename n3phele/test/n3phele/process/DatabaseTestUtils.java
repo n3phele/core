@@ -7,9 +7,12 @@ import java.util.List;
 
 import n3phele.service.actions.JobAction;
 import n3phele.service.actions.StackServiceAction;
+import n3phele.service.model.Account;
 import n3phele.service.model.Action;
 import n3phele.service.model.CloudProcess;
 import n3phele.service.model.Context;
+import n3phele.service.rest.impl.UserResource;
+import n3phele.service.rest.impl.AccountResource.AccountManager;
 import n3phele.service.rest.impl.ActionResource.ActionManager;
 import n3phele.service.rest.impl.CloudProcessResource.CloudProcessManager;
 
@@ -114,4 +117,19 @@ public class DatabaseTestUtils {
 				populateDatabaseWithRandomProcessesNoAction(manager, count, "http://127.0.0.1/account/1");
 			}
 
+	
+	public Account buildAValidAccount()
+	{
+		Account account = new Account();
+		account.setName("testAccount");
+		account.setOwner(UserResource.Root.getUri());
+		return account;
+	}
+	
+	public Account createValidAccount(AccountManager manager)
+	{
+		Account account = buildAValidAccount();
+		manager.add(account);
+		return account;
+	}
 }

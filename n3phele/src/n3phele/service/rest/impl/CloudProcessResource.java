@@ -50,6 +50,7 @@ import n3phele.service.model.ActionState;
 import n3phele.service.model.CachingAbstractManager;
 import n3phele.service.model.CloudProcess;
 import n3phele.service.model.CloudProcessCollection;
+import n3phele.service.model.ProcessCounter;
 import n3phele.service.model.Relationship;
 import n3phele.service.model.ServiceModelDao;
 import n3phele.service.model.SignalKind;
@@ -521,7 +522,7 @@ public class CloudProcessResource {
 		Collection<CloudProcess> result = dao.getServiceStackCollectionNonFinalized(currentUser.getUri().toString());
 		return new CloudProcessCollection(result);
 	}
-
+	
 	/*
 	 * Data Access
 	 */
