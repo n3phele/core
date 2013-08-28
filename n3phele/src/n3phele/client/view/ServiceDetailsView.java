@@ -15,28 +15,16 @@
 package n3phele.client.view;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-//import java_cup.version;
 import n3phele.client.N3phele;
-import n3phele.client.model.Account;
-import n3phele.client.model.Command;
 import n3phele.client.model.Stack;
 import n3phele.client.model.StackServiceAction;
-import n3phele.client.presenter.CommandListActivity;
-import n3phele.client.presenter.CommandPlace;
 import n3phele.client.presenter.ServiceDetailsActivity;
 import n3phele.client.presenter.helpers.PresentationIcon;
 import n3phele.client.presenter.helpers.StyledTextCellRenderer;
 
-import n3phele.client.view.CommandListGridView.CommandNameRenderer;
-import n3phele.client.view.CommandListGridView.CommandTextCell;
-import n3phele.client.view.CommandListGridView.CommandVersionRenderer;
 import n3phele.client.widgets.MenuItem;
-import n3phele.client.widgets.UploadCommandPanel;
-import n3phele.client.widgets.ValidInputIndicatorWidget;
 import n3phele.client.widgets.WorkspaceVerticalPanel;
 
 import com.google.gwt.cell.client.AbstractSafeHtmlCell;
@@ -46,20 +34,13 @@ import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.cell.client.HasCell;
 import com.google.gwt.cell.client.IconCellDecorator;
 import com.google.gwt.cell.client.ValueUpdater;
-import com.google.gwt.cell.client.Cell.Context;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.dom.client.Style.Unit;
-import com.google.gwt.event.dom.client.ChangeEvent;
-import com.google.gwt.event.dom.client.ChangeHandler;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.event.dom.client.KeyPressEvent;
 import com.google.gwt.event.dom.client.KeyPressHandler;
-import com.google.gwt.event.dom.client.KeyUpEvent;
-import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
@@ -72,19 +53,11 @@ import com.google.gwt.user.cellview.client.SimplePager;
 import com.google.gwt.user.cellview.client.HasKeyboardSelectionPolicy.KeyboardSelectionPolicy;
 import com.google.gwt.user.cellview.client.SimplePager.TextLocation;
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.DisclosurePanel;
 import com.google.gwt.user.client.ui.FlexTable;
-import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.user.client.ui.HasVerticalAlignment;
 import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Image;
-import com.google.gwt.user.client.ui.InlineLabel;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.ListBox;
-import com.google.gwt.user.client.ui.PopupPanel;
-import com.google.gwt.user.client.ui.PushButton;
-import com.google.gwt.user.client.ui.SimpleCheckBox;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.RangeChangeEvent;
@@ -92,34 +65,17 @@ import com.google.gwt.view.client.RangeChangeEvent;
 public class ServiceDetailsView extends WorkspaceVerticalPanel {
 	private CellTable<List<Stack>> grid;
 	final private FlexTable table;
-	private TextBox cloudId;
-	private TextBox secret;
 	private Button cancel;
-	private final ListBox cloud = new ListBox(false);
-	private final Map<String, Integer> cloudMap = new HashMap<String, Integer>();
-	private final ValidInputIndicatorWidget cloudSelected;
-	private final ValidInputIndicatorWidget gotCloudId;
-	private final ValidInputIndicatorWidget secretTextSupplied;
-	private final ValidInputIndicatorWidget errorsOnPage;
-	private Account account = null;
-	private Button run;
-	private TextBox name;
 	private StackServiceAction stackAction;
-	private FlowPanel flowPanel;
 
 	
 	
 	final static List<Stack> nullList = new ArrayList<Stack>();
-	// private List<Command> data = nullList;
 	private ServiceDetailsActivity commandActivity = null;
 	private int total = 0;
 	private final int ROWLENGTH = 2;
 	private final int PAGESIZE = 16;
 	private TextBox textBox;
-	private String searchText = null;
-	private SimpleCheckBox allVersions;
-	private PopupPanel uploadPopup;
-	private UploadCommandPanel uploadPanel;
 	protected boolean suppressEvent = false;
 	private SimplePager simplePager;
 	private List<Stack> data = new ArrayList<Stack>();
@@ -151,19 +107,8 @@ public class ServiceDetailsView extends WorkspaceVerticalPanel {
 		table.setWidget(0, 0, lblNewLabel);	
 		
 
-		secretTextSupplied = new ValidInputIndicatorWidget(
-				"Secret text required", false);
-
-		gotCloudId = new ValidInputIndicatorWidget("Cloud id required", false);
-		cloudSelected = new ValidInputIndicatorWidget(
-				"Cloud selection required", false);
 
 		table.setWidget(1, 2, cancel);
-
-		errorsOnPage = new ValidInputIndicatorWidget(
-				"check for missing or invalid parameters marked with this icon",
-				false);
-		table.setWidget(0, 3, errorsOnPage);
 		table.getFlexCellFormatter().setHorizontalAlignment(1, 2,
 				HasHorizontalAlignment.ALIGN_RIGHT);
 		table.getFlexCellFormatter().setHorizontalAlignment(0, 0,
@@ -176,8 +121,6 @@ public class ServiceDetailsView extends WorkspaceVerticalPanel {
 		table.getColumnFormatter().setWidth(4, "16px");
 		table.setCellPadding(1);
 		table.setCellSpacing(5);
-
-		// the real deal
 
 		HorizontalPanel heading = new HorizontalPanel();
 		heading.setWidth("500px");
@@ -202,37 +145,6 @@ public class ServiceDetailsView extends WorkspaceVerticalPanel {
 			}
 		});
 
-//		Image searchIcon = new Image(N3phele.n3pheleResource.searchIcon()
-//				.getURL());
-//		searchIcon.setPixelSize(20, 20);
-//		PushButton search = new PushButton(searchIcon);
-//		search.setTitle("search for a command");
-//		search.setStyleName(N3phele.n3pheleResource.css().commandSearchButton());
-//		heading.add(search);
-//		search.addClickHandler(new ClickHandler() {
-//
-//			@Override
-//			public void onClick(ClickEvent event) {
-//				commandActivity.getProcess();
-//
-//			}
-//		});
-//
-//		heading.setCellHorizontalAlignment(simplePager,
-//				HorizontalPanel.ALIGN_CENTER);
-//		DisclosurePanel more = new DisclosurePanel("advanced");
-//		more.setStyleName(N3phele.n3pheleResource.css().sectionPanelHeader());
-//		heading.add(more);
-//		heading.setCellHorizontalAlignment(more, HorizontalPanel.ALIGN_LEFT);
-//		HorizontalPanel disclosed = new HorizontalPanel();
-//		more.add(disclosed);
-//		disclosed.add(new InlineLabel("Search all versions"));
-
-//		allVersions = new SimpleCheckBox();
-//		allVersions.setName("allVersions");
-//		allVersions.setFormValue("Search all versions");
-//		disclosed.add(allVersions);
-
 		grid = new CellTable<List<Stack>>();
 		grid.setWidth("100%", true);
 		HasCell<Stack, ?> nameHasCell = new HasCell<Stack, Stack>() {
@@ -248,6 +160,7 @@ public class ServiceDetailsView extends WorkspaceVerticalPanel {
 
 					@Override
 					public void update(int index, Stack object, Stack value) {
+						// TODO Stack Details View
 						// if(value != null) {
 						// GWT.log("got-139 "+index+" "+value.getName());
 						// commandActivity.goTo(new
@@ -277,6 +190,7 @@ public class ServiceDetailsView extends WorkspaceVerticalPanel {
 
 					@Override
 					public void update(int index, Stack object, Stack value) {
+						// TODO Stack Details View
 						// if(value != null) {
 						// GWT.log("got-166 "+index+" "+value.getName());
 						// commandActivity.goTo(new
@@ -318,7 +232,7 @@ public class ServiceDetailsView extends WorkspaceVerticalPanel {
 						Stack value) {
 					if (value != null) {
 						GWT.log("got-201 " + index + " " + value.getName());
-						//FIXME
+						// TODO Stack Details View
 						//commandActivity.goTo(new CommandPlace(value.get()));
 					}
 
@@ -419,8 +333,6 @@ public class ServiceDetailsView extends WorkspaceVerticalPanel {
 			if (value == null) {
 				sb.appendHtmlConstant("<div></div>");
 			} else {
-				System.out.println(N3phele.n3pheleResource.stackIcon().getName());
-				System.out.println(N3phele.n3pheleResource.stackIcon().getSafeUri());
 				iconHtml = PresentationIcon.getIconImageHtml((N3phele.n3pheleResource.stackIcon().getName()));
 				sb.appendHtmlConstant("<div style=\"position:absolute;left:0px;top:0px;line-height:0px;\" title=\""
 						+ SafeHtmlUtils.htmlEscape(value.getName())

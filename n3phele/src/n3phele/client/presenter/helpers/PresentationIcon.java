@@ -29,7 +29,6 @@ public class PresentationIcon {
 	public static Image getIconImage(String url) {
 		ImageResource icon = N3phele.n3pheleResource.scriptIcon();
 
-		System.out.println("URL " + url);
 		if(url.equals("stackIcon")) {
 			icon = N3phele.n3pheleResource.stackIcon();
 		}
