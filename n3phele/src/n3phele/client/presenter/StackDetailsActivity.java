@@ -1,5 +1,7 @@
 /**
  * @author Nigel Cook
+ * @author Douglas Tondin 
+ * @author Leonardo Amado
  *
  * (C) Copyright 2010-2012. Nigel Cook. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
@@ -15,7 +17,6 @@ package n3phele.client.presenter;
 
 import java.util.HashMap;
 import java.util.List;
-
 import n3phele.client.AppPlaceHistoryMapper;
 import n3phele.client.CacheManager;
 import n3phele.client.ClientFactory;
@@ -32,7 +33,6 @@ import n3phele.client.model.VirtualServer;
 import n3phele.client.presenter.helpers.AuthenticatedRequestFactory;
 import n3phele.client.view.AccountListView;
 import n3phele.client.view.StackDetailsView;
-
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
@@ -57,8 +57,7 @@ public class StackDetailsActivity extends AbstractActivity {
 	private final CacheManager cacheManager;
 	private String accountCollection;
 	private final String virtualServerCollection;
-	private HandlerRegistration handlerRegistration;
-	private VirtualServerCollection<VirtualServer> vsCol = null;
+	private HandlerRegistration handlerRegistration;	
 	private HashMap<Account, Double> costPerAccount = null;
 	private HashMap<Account, Integer> vsPerAccount = null;
 	private int runningHours = 0;
@@ -66,14 +65,9 @@ public class StackDetailsActivity extends AbstractActivity {
 	protected final PlaceController placeController;
 
 	public StackDetailsActivity(String url ,String id, ClientFactory factory) {
-		System.out.println("ID: " + id);
+		//System.out.println("ID: " + id);
 		this.historyMapper = factory.getHistoryMapper();
 		this.display = factory.getStackDetailsView();
-		
-		
-//		for(String s: stack.getVms()){
-//			getProcess(s);
-//		}
 		this.cacheManager = factory.getCacheManager();
 		this.accountCollection = URL.encode(factory.getCacheManager().ServiceAddress + "account");
 		this.virtualServerCollection = URL.encode(factory.getCacheManager().ServiceAddress + "virtualServers/account/");
@@ -83,11 +77,9 @@ public class StackDetailsActivity extends AbstractActivity {
 	@Override
 	public void start(AcceptsOneWidget panel, EventBus eventBus) {
 		this.eventBus = eventBus;
-		handlerRegistration(eventBus);
-		//display.setPresenter(this);
+		handlerRegistration(eventBus);		
 		panel.setWidget(display);
-		display.setDisplayList(this.accountList);
-		//		getClouds();
+		display.setDisplayList(this.accountList);		
 		getAccountList();
 	}
 
@@ -134,9 +126,7 @@ public class StackDetailsActivity extends AbstractActivity {
 		this.accountList = list;
 		for(int i=0; i<accountList.size(); i++){
 			runningHours = 0;
-			runningMinutes = 0;
-			//getVSList(accountList.get(i));
-			//getRunningProcess(accountList.get(i));
+			runningMinutes = 0;			
 			getProcessByDay(accountList.get(i));
 		}
 		display.refresh(this.accountList, this.costPerAccount, this.vsPerAccount);

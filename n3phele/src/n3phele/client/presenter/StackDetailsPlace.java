@@ -1,6 +1,7 @@
 /**
  * @author Nigel Cook
  * @author Douglas Tondin
+ * @author Leonardo Amado
  *
  * (C) Copyright 2010-2013. Nigel Cook. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
@@ -15,7 +16,6 @@
 package n3phele.client.presenter;
 
 import n3phele.client.model.Stack;
-
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceTokenizer;
 import com.google.gwt.place.shared.Prefix;
