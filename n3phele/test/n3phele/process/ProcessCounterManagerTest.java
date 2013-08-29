@@ -75,5 +75,20 @@ public class ProcessCounterManagerTest {
 		assertEquals(counter.toString(), counter2.toString());
 		assertEquals(counter.getCount(), counter2.getCount());
 	}
+	
+	@Test
+	public void GivenAValidProcessCounterAlreadyWasPersistedWhenIsSearchedByOwnerThenItShouldBeReturned() {
+		ProcessCounter counter = new ProcessCounter(createAnAccount().getUri().toString());
+		counter.setOwner(UserResource.Root.getUri());
+		
+		ProcessCounterManager manager = new ProcessCounterManager();
+		
+		manager.add(counter);
+		ProcessCounter counter2 = manager.load(UserResource.Root);
+
+		assertEquals(counter.getUri().toString(), counter2.getUri().toString());
+		assertEquals(counter.toString(), counter2.toString());
+		assertEquals(counter.getCount(), counter2.getCount());
+	}
 
 }

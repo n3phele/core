@@ -43,6 +43,7 @@ import n3phele.service.core.NotFoundException;
 import n3phele.service.core.Resource;
 import n3phele.service.core.ResourceFile;
 import n3phele.service.core.ResourceFileFactory;
+import n3phele.service.dao.ProcessCounterManager;
 import n3phele.service.lifecycle.ProcessLifecycle;
 import n3phele.service.model.Account;
 import n3phele.service.model.Action;
@@ -292,6 +293,10 @@ public class CloudProcessResource {
 				stack.setDeployProcess(p.getUri().toString());
 				serviceAction.addStack(stack);
 				ActionResource.dao.update(serviceAction);
+
+				ProcessCounterManager manager = new ProcessCounterManager();
+				incrementProcessCount(manager, UserResource.toUser(securityContext));
+				
 				return Response.created(p.getUri()).build();
 			}
 		}
@@ -299,7 +304,10 @@ public class CloudProcessResource {
 			env.put(v.getName(), v);
 		}
 		
-		checkAccount(env);		
+		checkAccount(env);	
+		
+		ProcessCounterManager manager = new ProcessCounterManager();
+		incrementProcessCount(manager, UserResource.toUser(securityContext));
 		
 		if (clazz != null) {
 			CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), name, env, null, null, true, clazz);
@@ -309,6 +317,21 @@ public class CloudProcessResource {
 			return Response.noContent().build();
 		}
 		
+	}
+
+	private void incrementProcessCount(ProcessCounterManager manager, User user) {
+		ProcessCounter counter = null;
+		try{
+			counter = manager.load(user);
+		}
+		catch(NotFoundException e)
+		{
+			counter = new ProcessCounter();
+			counter.setOwner(user.getUri());
+			manager.add(counter);
+		}
+		counter.increment();
+		manager.update(counter);		
 	}
 
 	private void checkAccount(n3phele.service.model.Context env) throws URISyntaxException {
