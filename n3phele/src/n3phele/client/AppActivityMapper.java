@@ -103,7 +103,7 @@ public class AppActivityMapper implements ActivityMapper {
 		} else if(place instanceof ServiceDetailsPlace) {
 			return new ServiceDetailsActivity(((ServiceDetailsPlace) place).getPlaceName(), clientFactory); 
 		} else if(place instanceof StackDetailsPlace) {
-			return new StackDetailsActivity(((StackDetailsPlace) place).getPlaceName(), clientFactory); 
+			return new StackDetailsActivity(((StackDetailsPlace) place).getPlaceName(),((StackDetailsPlace) place).getId() , clientFactory); 
 		}else if(place instanceof ActivityPlace) {
 			return new ActivtiyActivity("activity-detail", 
 					((ActivityPlace) place).getPlaceName(), clientFactory);

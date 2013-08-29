@@ -20,6 +20,7 @@ import java.util.List;
 import n3phele.client.N3phele;
 import n3phele.client.model.Stack;
 import n3phele.client.model.StackServiceAction;
+import n3phele.client.presenter.AccountListActivity;
 import n3phele.client.presenter.ServiceDetailsActivity;
 import n3phele.client.presenter.helpers.PresentationIcon;
 import n3phele.client.presenter.helpers.StyledTextCellRenderer;
@@ -67,8 +68,7 @@ public class ServiceDetailsView extends WorkspaceVerticalPanel {
 	final private FlexTable table;
 	private Button cancel;
 	private StackServiceAction stackAction;
-
-	
+	private ServiceDetailsActivity presenter = null;
 	
 	final static List<Stack> nullList = new ArrayList<Stack>();
 	private ServiceDetailsActivity commandActivity = null;
@@ -160,6 +160,9 @@ public class ServiceDetailsView extends WorkspaceVerticalPanel {
 
 					@Override
 					public void update(int index, Stack object, Stack value) {
+						System.out.println("UPDATE1 : "+ index+" : " + value.getName());
+						presenter.onSelect(value);
+
 						// TODO Stack Details View
 						// if(value != null) {
 						// GWT.log("got-139 "+index+" "+value.getName());
@@ -190,6 +193,7 @@ public class ServiceDetailsView extends WorkspaceVerticalPanel {
 
 					@Override
 					public void update(int index, Stack object, Stack value) {
+						presenter.onSelect(value);
 						// TODO Stack Details View
 						// if(value != null) {
 						// GWT.log("got-166 "+index+" "+value.getName());
@@ -230,6 +234,9 @@ public class ServiceDetailsView extends WorkspaceVerticalPanel {
 				@Override
 				public void update(int index, List<Stack> object,
 						Stack value) {
+					System.out.println("UPDATE1 : "+ index+" : " + value.getName());
+					presenter.onSelect(value);
+
 					if (value != null) {
 						GWT.log("got-201 " + index + " " + value.getName());
 						// TODO Stack Details View
@@ -279,7 +286,6 @@ public class ServiceDetailsView extends WorkspaceVerticalPanel {
 
 		suppressEvent = true;
 		this.total = max;
-		//this.grid.setRowCount((max + ROWLENGTH - 1)/ROWLENGTH, true);
 		this.grid.setRowCount(0, true);
 		this.grid.setRowCount(max, true);
 		simplePager.setRangeLimited(false);
@@ -447,4 +453,11 @@ public class ServiceDetailsView extends WorkspaceVerticalPanel {
 	}
 	
 	
+	public ServiceDetailsActivity getPresenter() {
+		return this.presenter;
+	}
+
+	public void setPresenter(ServiceDetailsActivity presenter) {
+		this.presenter = presenter;
+	}
 }

@@ -15,18 +15,24 @@ package n3phele.client.presenter;
 
 import java.util.HashMap;
 import java.util.List;
+
 import n3phele.client.AppPlaceHistoryMapper;
 import n3phele.client.CacheManager;
 import n3phele.client.ClientFactory;
 import n3phele.client.model.Account;
 import n3phele.client.model.ActivityData;
 import n3phele.client.model.ActivityDataCollection;
+import n3phele.client.model.CloudProcess;
 import n3phele.client.model.Collection;
 import n3phele.client.model.CostsCollection;
+import n3phele.client.model.Stack;
+import n3phele.client.model.StackServiceAction;
 import n3phele.client.model.VirtualServerCollection;
 import n3phele.client.model.VirtualServer;
 import n3phele.client.presenter.helpers.AuthenticatedRequestFactory;
+import n3phele.client.view.AccountListView;
 import n3phele.client.view.StackDetailsView;
+
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
@@ -47,7 +53,7 @@ public class StackDetailsActivity extends AbstractActivity {
 	private EventBus eventBus;
 	private final AppPlaceHistoryMapper historyMapper;
 	private final StackDetailsView display;
-	private List<Account> accountList = null; 
+	private List<Account> accountList = null;
 	private final CacheManager cacheManager;
 	private String accountCollection;
 	private final String virtualServerCollection;
@@ -59,9 +65,15 @@ public class StackDetailsActivity extends AbstractActivity {
 	private int runningMinutes = 0;
 	protected final PlaceController placeController;
 
-	public StackDetailsActivity(String accountUri, ClientFactory factory) {
+	public StackDetailsActivity(String url ,String id, ClientFactory factory) {
+		System.out.println("ID: " + id);
 		this.historyMapper = factory.getHistoryMapper();
 		this.display = factory.getStackDetailsView();
+		
+		
+//		for(String s: stack.getVms()){
+//			getProcess(s);
+//		}
 		this.cacheManager = factory.getCacheManager();
 		this.accountCollection = URL.encode(factory.getCacheManager().ServiceAddress + "account");
 		this.virtualServerCollection = URL.encode(factory.getCacheManager().ServiceAddress + "virtualServers/account/");
@@ -72,7 +84,7 @@ public class StackDetailsActivity extends AbstractActivity {
 	public void start(AcceptsOneWidget panel, EventBus eventBus) {
 		this.eventBus = eventBus;
 		handlerRegistration(eventBus);
-		display.setPresenter(this);
+		//display.setPresenter(this);
 		panel.setWidget(display);
 		display.setDisplayList(this.accountList);
 		//		getClouds();
@@ -124,7 +136,7 @@ public class StackDetailsActivity extends AbstractActivity {
 			runningHours = 0;
 			runningMinutes = 0;
 			//getVSList(accountList.get(i));
-			getRunningProcess(accountList.get(i));
+			//getRunningProcess(accountList.get(i));
 			getProcessByDay(accountList.get(i));
 		}
 		display.refresh(this.accountList, this.costPerAccount, this.vsPerAccount);
@@ -180,7 +192,7 @@ public class StackDetailsActivity extends AbstractActivity {
 		}
 	}
 	
-	private void getRunningProcess(final Account account) {
+	private void processList(final Account account) {
 		final String url = account.getUri() + "/runningprocess/get";
 		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, url);
 		try {
@@ -251,7 +263,7 @@ public class StackDetailsActivity extends AbstractActivity {
 						costPerAccount = new HashMap<Account, Double>(account.getElements().size());
 						vsPerAccount = new HashMap<Account, Integer>(account.getElements().size());
 						for(Account acc : account.getElements()){
-							getRunningProcess(acc);
+							//getRunningProcess(acc);
 							
 						}
 						
@@ -267,8 +279,59 @@ public class StackDetailsActivity extends AbstractActivity {
 		}
 	}
 
+	//REST CALLS
+	
+	public void getAction() {
+		// Send request to server and catch any errors.
+		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET,"");
+		try {
+			Request request = builder.sendRequest(null, new RequestCallback() {
+				public void onError(Request request, Throwable exception) {
+					GWT.log("Got error");
+				}
+
+				public void onResponseReceived(Request request, Response response) {
+					GWT.log("Got reply");
+					if (200 == response.getStatusCode()) {
+						StackServiceAction stackAction = StackServiceAction.asAction(response.getText());
+						//display.setStackAction(stackAction);
+					} 
+				}
+
+			});
+		} catch (RequestException e) {
+			GWT.log("Got error");
+		}
+	}
+	
+	public void getProcess(String processUri) {
+		// Send request to server and catch any errors.
+		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, processUri);
+		try {
+			Request request = builder.sendRequest(null, new RequestCallback() {
+				public void onError(Request request, Throwable exception) {
+					// displayError("Couldn't retrieve JSON "+exception.getMessage());
+				}
+
+				public void onResponseReceived(Request request, Response response) {
+					GWT.log("Got reply");
+					if (200 == response.getStatusCode()) {
+						CloudProcess process = CloudProcess.asCloudProcess(response.getText());
+						//TODO do something in the view
+					} else {
+
+					}
+				}
+
+			});
+		} catch (RequestException e) {
+			//displayError("Couldn't retrieve JSON "+e.getMessage());
+		}
+	}
+	
+	
 	public void onSelect(Account selected) {
-		History.newItem(historyMapper.getToken(new StackDetailsPlace(selected.getUri())));
+		History.newItem(historyMapper.getToken(new AccountHyperlinkPlace(selected.getUri())));
 	}
 	
 

@@ -14,22 +14,28 @@
  */
 package n3phele.client.presenter;
 
+import n3phele.client.model.Stack;
+
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceTokenizer;
 import com.google.gwt.place.shared.Prefix;
 
 public class StackDetailsPlace extends Place { 
 	private String placeName;
+	private String id;
 
-	public StackDetailsPlace(String token) {
+	public StackDetailsPlace(String token,String id) {
 		this.placeName = token;
-		
+		this.id = id;
 	}
 
 	public String getPlaceName() {
 		return placeName;
 	}
 
+	public String getId(){
+		return id;
+	}
 	@Prefix("stackDetails")
 	public static class Tokenizer implements PlaceTokenizer<StackDetailsPlace> {
 
@@ -40,9 +46,12 @@ public class StackDetailsPlace extends Place {
 
 		@Override
 		public StackDetailsPlace getPlace(String token) {
-			return new StackDetailsPlace(token);
+			return new StackDetailsPlace(token,null);
 		}
-
+		
+		public StackDetailsPlace getPlaceWithId(String token, String id) {
+			return new StackDetailsPlace(token,id);
+		}
 	}
 	
 }
