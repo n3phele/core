@@ -1,6 +1,7 @@
 package n3phele.process;
 
 import static org.junit.Assert.*;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -11,7 +12,6 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
-import n3phele.process.CloudProcessTest.CloudResourceTestWrapper;
 import n3phele.service.actions.CountDownAction;
 import n3phele.service.core.NotFoundException;
 import n3phele.service.model.Account;
@@ -32,6 +32,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
@@ -39,7 +40,7 @@ import com.googlecode.objectify.Key;
 
 public class CloudProcessExecAccountAccessTest {
 
-	private final LocalServiceTestHelper helper =   new LocalServiceTestHelper(
+	static private final LocalServiceTestHelper helper =   new LocalServiceTestHelper(
 			new LocalDatastoreServiceTestConfig()
 				.setApplyAllHighRepJobPolicy(),
 			new LocalTaskQueueTestConfig()
@@ -47,20 +48,26 @@ public class CloudProcessExecAccountAccessTest {
 								.setCallbackClass(LocalTaskQueueTestConfig.DeferredTaskCallback.class)) ;
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-
 	}
-
+	
 	/**
 	 * @throws java.lang.Exception
 	 */
 	@Before
 	public void setUp() throws Exception {
 		helper.setUp();
-		UserResource.dao = new UserManager();
+		//FIXME If we don't put this, we are getting weird results for two test methods. The ofy().load.type(User.class).count() returns 0, 
+		//but the root will be still on database on load (maybe inside a cache area). We need to delete it from db. Also, after deleting, we need to add it 
+		//again, and let it generate a new id for it, because if we use the same id (1), the next user to be inserted was being setting with id 1 too. Maybe
+		//It does not know that 1 already exist and repeat it once... we should investigate this problem for a better solution.
+		UserResource.dao.delete(UserResource.Root);
+		UserResource.Root.setId(null);
+		UserResource.Root.setUri(null);
+		UserResource.dao.add(UserResource.Root);
 	}
 
 	@After     
-	public void tearDown() {         
+	public void tearDown() {
 		helper.tearDown();     
 	} 
 
@@ -129,12 +136,12 @@ public class CloudProcessExecAccountAccessTest {
 	public void noAccessToAccountNoParentTest() throws Exception{
 		
 		User root = UserResource.Root;
-		
-		User user = new User("user", "firstname", "lastname");
+		root = UserResource.dao.load(root.getUri());
+				
+ 		User user = new User("user", "firstname", "lastname");
 		//user.setId(2l);
 		UserResource.dao.add(user);
 		
-		//acount owner = null
 		Account acc1 = new Account("HP1", null, null, "cloud1", null, root.getUri(), false);
 		AccountResource.dao.add(acc1);
 		
@@ -151,6 +158,7 @@ public class CloudProcessExecAccountAccessTest {
 	@Test (expected = NotFoundException.class)
 	public void noAccessToAccountWithParentTest() throws Exception{
 		User root = UserResource.Root;
+		root = UserResource.dao.load(root.getUri());
 
 		User user = new User("user", "firstname", "lastname");
 		//user.setId(2l);
