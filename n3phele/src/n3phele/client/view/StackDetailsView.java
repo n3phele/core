@@ -49,8 +49,7 @@ public class StackDetailsView extends WorkspaceVerticalPanel {
 	private HashMap<Account, Double> costPerAccount = null; 
 	private HashMap<Account, Integer> vsPerAccount = null;
 	public StackDetailsView() {
-		super(new MenuItem(N3phele.n3pheleResource.accountIcon(), "Accounts", null),
-				new MenuItem(N3phele.n3pheleResource.accountAddIcon(), "create a new account", "account:null"));
+		super(new MenuItem(N3phele.n3pheleResource.serviceIcon(), "Stack Details", null));			
 
 		if(resource ==null)
 			resource = GWT.create(ClickableCellTableResource.class);
@@ -84,7 +83,7 @@ public class StackDetailsView extends WorkspaceVerticalPanel {
 				return result;
 			}
 		};
-		cellTable.addColumn(hoursColumn, "Last 24 hours");
+		cellTable.addColumn(hoursColumn, "Cost");
 		cellTable.setColumnWidth(hoursColumn, "100px");
 
 		TextColumn<Account> activeColumn = new TextColumn<Account>() {
@@ -102,7 +101,7 @@ public class StackDetailsView extends WorkspaceVerticalPanel {
 				return result;
 			}
 		};
-		cellTable.addColumn(activeColumn, "Active");
+		cellTable.addColumn(activeColumn, "IP");
 		cellTable.setColumnWidth(activeColumn, "80px");
 
 
@@ -116,8 +115,8 @@ public class StackDetailsView extends WorkspaceVerticalPanel {
 				return result;
 			}
 		};
-		cellTable.addColumn(cloudColumn, "Cloud");
-		cellTable.setColumnWidth(cloudColumn, "120px");
+//		cellTable.addColumn(cloudColumn, "Cloud");
+//		cellTable.setColumnWidth(cloudColumn, "120px");
 
 
 		// Add a selection model to handle user selection.
@@ -134,23 +133,23 @@ public class StackDetailsView extends WorkspaceVerticalPanel {
 			}
 		});
 
-		Column<Account, Account> cancelColumn = new Column<Account, Account>(
-				new CancelButtonCell<Account>(new Delegate<Account>() {
-
-					@Override
-					public void execute(Account value) {
-						if(value != null) {
-							cellTable.getSelectionModel().setSelected(value, false);
-							getDialog(value).show();
-						}
-					}}, "delete account")) {
-			@Override
-			public Account getValue(Account object) {
-				return object;
-			}
-		};
-		cellTable.addColumn(cancelColumn);
-		cellTable.setColumnWidth(cancelColumn, "20px");
+//		Column<Account, Account> cancelColumn = new Column<Account, Account>(
+//				new CancelButtonCell<Account>(new Delegate<Account>() {
+//
+//					@Override
+//					public void execute(Account value) {
+//						if(value != null) {
+//							cellTable.getSelectionModel().setSelected(value, false);
+//							getDialog(value).show();
+//						}
+//					}}, "delete account")) {
+//			@Override
+//			public Account getValue(Account object) {
+//				return object;
+//			}
+//		};
+//		cellTable.addColumn(cancelColumn);
+//		cellTable.setColumnWidth(cancelColumn, "20px");
 		
 		cellTable.setTableLayoutFixed(true);
 		cellTable.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.DISABLED);
