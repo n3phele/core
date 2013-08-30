@@ -41,8 +41,6 @@ public interface N3pheleResource extends ClientBundle {
 	ImageResource profileIcon();
 	@Source("export.png")
 	ImageResource commandIcon();
-
-
 	@Source("completed.png")
 	ImageResource completedIcon();
 	@Source("failed.png")
@@ -57,13 +55,13 @@ public interface N3pheleResource extends ClientBundle {
 	ImageResource blockedIcon();
 	@Source("transparent10x10.png")
 	ImageResource transparent();
-	@Source("progress_background.png")
+	
+	@Source("progress_background.gif")
 	ImageResource barBackground();
 	
 	@ImageOptions(repeatStyle = RepeatStyle.Horizontal)
 	@Source("body_bg.jpg")
-	ImageResource cloudBackground();
-	
+	ImageResource cloudBackground();	
 	@ImageOptions(repeatStyle = RepeatStyle.Horizontal)
 	@Source("clouds_left.jpg")
 	ImageResource skyBackground();
@@ -123,6 +121,9 @@ public interface N3pheleResource extends ClientBundle {
 	ImageResource searchIcon();
 	@Source("Script.png")
 	ImageResource scriptIcon();
+	
+	@Source("stack.png")
+	ImageResource stackIcon();
 	@Source("qiime.png") 
 	ImageResource qiimeIcon();
 	@Source("fileCopy.png")

@@ -1,7 +1,7 @@
 /**
  * @author Nigel Cook
- * @author Leonardo Amado
  * @author Douglas Tondin
+ *
  * (C) Copyright 2010-2013. Nigel Cook. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  * 
@@ -18,30 +18,31 @@ import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceTokenizer;
 import com.google.gwt.place.shared.Prefix;
 
-public class ServiceListPlace extends Place {
-
+public class ServiceDetailsPlace extends Place {
 	private String placeName;
 
-	public ServiceListPlace(String token) {
+	public ServiceDetailsPlace(String token) {
 		this.placeName = token;
+		
 	}
 
 	public String getPlaceName() {
 		return placeName;
 	}
 
-	@Prefix("serviceList")
-	public static class Tokenizer implements PlaceTokenizer<ServiceListPlace> {
+	@Prefix("serviceDetails")
+	public static class Tokenizer implements PlaceTokenizer<ServiceDetailsPlace> {
 
 		@Override
-		public String getToken(ServiceListPlace place) {
+		public String getToken(ServiceDetailsPlace place) {
 			return place.getPlaceName();
 		}
 
 		@Override
-		public ServiceListPlace getPlace(String token) {
-			return new ServiceListPlace(token);
+		public ServiceDetailsPlace getPlace(String token) {
+			return new ServiceDetailsPlace(token);
 		}
 
 	}
+	
 }
