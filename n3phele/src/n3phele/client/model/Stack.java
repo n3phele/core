@@ -47,7 +47,7 @@ public class Stack extends JavaScriptObject {
 	}-*/;
 
 	public native final String vms() /*-{
-		var array = [];
+		var array = "";
 		if (this.vms != undefined && this.vms != null) {
 			if (this.vms.length == undefined) {
 				array[0] = this.vms;

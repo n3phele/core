@@ -157,19 +157,10 @@ public class ServiceDetailsView extends WorkspaceVerticalPanel {
 			@Override
 			public FieldUpdater<Stack, Stack> getFieldUpdater() {
 				return new FieldUpdater<Stack, Stack>() {
-
 					@Override
 					public void update(int index, Stack object, Stack value) {
 						System.out.println("UPDATE1 : "+ index+" : " + value.getName());
 						presenter.onSelect(value);
-
-						// TODO Stack Details View
-						// if(value != null) {
-						// GWT.log("got-139 "+index+" "+value.getName());
-						// commandActivity.goTo(new
-						// CommandPlace(value.getUri()));
-						// }
-
 					}
 				};
 			}
