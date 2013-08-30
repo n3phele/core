@@ -89,6 +89,7 @@ public class ServiceDetailsView extends WorkspaceVerticalPanel {
 		data = stackAction.getStackList();
 		setDisplayList(data, 0, 0);
 		lblNewLabel.setText(stackAction.getName());
+		lblNewLabel.setStyleName(N3phele.n3pheleResource.css().labelFontWeight());
 		this.stackAction = stackAction;
 	}
 
