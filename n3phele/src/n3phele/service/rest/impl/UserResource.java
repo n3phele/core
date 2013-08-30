@@ -443,8 +443,7 @@ public class UserResource {
 		Root = root;
 	}
 	public static final User Root;
-	public static UserManager dao = new UserManager();
-
+	final public static UserManager dao = new UserManager();
 	
 	public static User toUser(SecurityContext securityContext) {
 		Principal principal = securityContext.getUserPrincipal();

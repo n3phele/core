@@ -11,6 +11,7 @@ import n3phele.service.model.Account;
 import n3phele.service.model.Action;
 import n3phele.service.model.CloudProcess;
 import n3phele.service.model.Context;
+import n3phele.service.model.core.User;
 import n3phele.service.rest.impl.UserResource;
 import n3phele.service.rest.impl.AccountResource.AccountManager;
 import n3phele.service.rest.impl.ActionResource.ActionManager;
@@ -41,14 +42,14 @@ public class DatabaseTestUtils {
 		return actions;
 	}
 
-	public List<CloudProcess> populateDatabaseWithRandomProcessAndTheseActions(CloudProcessManager manager, ActionManager actionManager, List<Action> actions) 
+	public List<CloudProcess> populateDatabaseWithRandomProcessAndTheseActions(CloudProcessManager manager, User user, ActionManager actionManager, List<Action> actions) 
 			throws URISyntaxException {
 		
 		List<CloudProcess> processes = new ArrayList<CloudProcess>();
 		
 		for(int i=1; i <= actions.size(); i++)
 		{
-			CloudProcess process = buildValidCloudProcess("http://127.0.0.1/account/1");
+			CloudProcess process = buildValidCloudProcess(user.getUri().toString());
 			process.setTopLevel(true);
 			process.setAction(actions.get(i-1).getUri());
 			manager.add(process);
@@ -61,14 +62,14 @@ public class DatabaseTestUtils {
 		return processes;
 	}
 	
-	public List<CloudProcess> populateDatabaseWithRandomProcessAndTheseActionsTwoAccounts(CloudProcessManager manager, ActionManager actionManager, List<Action> actions) 
+	public List<CloudProcess> populateDatabaseWithRandomProcessAndTheseActionsTwoAccounts(CloudProcessManager manager, String user1, String user2, ActionManager actionManager, List<Action> actions) 
 			throws URISyntaxException {
 		
 		List<CloudProcess> processes = new ArrayList<CloudProcess>();
 		
 		for(int i=1; i <= actions.size(); i++)
 		{
-			CloudProcess process = buildValidCloudProcess("http://127.0.0.1/account/1");
+			CloudProcess process = buildValidCloudProcess(user1);
 			process.setTopLevel(true);
 			process.setAction(actions.get(i-1).getUri());
 			manager.add(process);
@@ -80,7 +81,7 @@ public class DatabaseTestUtils {
 		
 		for(int i=1; i <= actions.size(); i++)
 		{
-			CloudProcess process = buildValidCloudProcess("http://127.0.0.1/account/2");
+			CloudProcess process = buildValidCloudProcess(user2);
 			process.setTopLevel(true);
 			process.setAction(actions.get(i-1).getUri());
 			manager.add(process);
@@ -113,22 +114,22 @@ public class DatabaseTestUtils {
 			}
 
 	public void populateDatabaseWithRandomProcessesNoAction(CloudProcessManager manager,
-			int count) throws URISyntaxException {
-				populateDatabaseWithRandomProcessesNoAction(manager, count, "http://127.0.0.1/account/1");
+			int count, User owner) throws URISyntaxException {
+				populateDatabaseWithRandomProcessesNoAction(manager, count, owner.getUri().toString());
 			}
 
 	
-	public Account buildAValidAccount()
+	public Account buildAValidAccount(User owner)
 	{
 		Account account = new Account();
 		account.setName("testAccount");
-		account.setOwner(UserResource.Root.getUri());
+		account.setOwner(owner.getUri());
 		return account;
 	}
 	
-	public Account createValidAccount(AccountManager manager)
+	public Account createValidAccount(AccountManager manager, User owner)
 	{
-		Account account = buildAValidAccount();
+		Account account = buildAValidAccount(owner);
 		manager.add(account);
 		return account;
 	}

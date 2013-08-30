@@ -4,7 +4,9 @@ import static org.junit.Assert.*;
 import junit.framework.Assert;
 import n3phele.service.model.Account;
 import n3phele.service.model.ProcessCounter;
+import n3phele.service.model.core.User;
 import n3phele.service.rest.impl.AccountResource;
+import n3phele.service.rest.impl.UserResource;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -42,14 +44,15 @@ public class ProcessCounterTests {
 		helper.tearDown();   
 	} 
 	
-	public Account createAnAccount()
+	public Account createAnAccount(User user)
 	{
-		return new DatabaseTestUtils().createValidAccount(AccountResource.dao);
+		return new DatabaseTestUtils().createValidAccount(AccountResource.dao, user);
 	}
 
 	@Test
 	public void WhenAProcessCounterIsCreatedThenItsCountIsStartedAsZero() {
-		ProcessCounter counter = new ProcessCounter(createAnAccount().getUri().toString());
+		User user = UserResource.Root;
+		ProcessCounter counter = new ProcessCounter(createAnAccount(user).getUri().toString());
 		
 		assertEquals(0, counter.getCount() );
 	}
@@ -61,7 +64,8 @@ public class ProcessCounterTests {
 	
 	@Test
 	public void GivenAValidCounterWhenItIsIncrementedThenTheCountValueShouldBeUpdatedByOne() {
-		ProcessCounter counter = new ProcessCounter(createAnAccount().getUri().toString());
+		User user = UserResource.Root;
+		ProcessCounter counter = new ProcessCounter(createAnAccount(user).getUri().toString());
 		assertEquals(0, counter.getCount() );
 		counter.increment();
 		assertEquals(1, counter.getCount() );

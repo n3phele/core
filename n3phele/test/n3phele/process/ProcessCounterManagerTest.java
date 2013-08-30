@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 import n3phele.service.dao.ProcessCounterManager;
 import n3phele.service.model.Account;
 import n3phele.service.model.ProcessCounter;
+import n3phele.service.model.core.User;
 import n3phele.service.rest.impl.AccountResource;
 import n3phele.service.rest.impl.UserResource;
 
@@ -43,14 +44,15 @@ public class ProcessCounterManagerTest {
 		helper.tearDown();   
 	} 
 	
-	public Account createAnAccount()
+	public Account createAnAccount(User user)
 	{
-		return new DatabaseTestUtils().createValidAccount(AccountResource.dao);
+		return new DatabaseTestUtils().createValidAccount(AccountResource.dao,user);
 	}
 
 	@Test
-	public void GivenAValidProcessCounterWhenItIsPersistedThenIsCanBeRetrieved() {
-		ProcessCounter counter = new ProcessCounter(createAnAccount().getUri().toString());
+	public void GivenAValidProcessCounterWhenItIsPersistedThenItCanBeRetrieved() {
+		User user = UserResource.Root;
+		ProcessCounter counter = new ProcessCounter(createAnAccount(user).getUri().toString());
 		counter.setOwner(UserResource.Root.getUri());
 		ProcessCounterManager manager = new ProcessCounterManager();
 		
@@ -62,8 +64,9 @@ public class ProcessCounterManagerTest {
 	}
 	
 	@Test
-	public void GivenAValidProcessCounterAndThatItWasIncrementedWhenItIsPersistedThenIsCanBeRetrieved() {
-		ProcessCounter counter = new ProcessCounter(createAnAccount().getUri().toString());
+	public void GivenAValidProcessCounterAndThatItWasIncrementedWhenItIsPersistedThenItCanBeRetrieved() {
+		User user = UserResource.Root;
+		ProcessCounter counter = new ProcessCounter(createAnAccount(user).getUri().toString());
 		counter.setOwner(UserResource.Root.getUri());
 		counter.increment();
 		
@@ -78,13 +81,14 @@ public class ProcessCounterManagerTest {
 	
 	@Test
 	public void GivenAValidProcessCounterAlreadyWasPersistedWhenIsSearchedByOwnerThenItShouldBeReturned() {
-		ProcessCounter counter = new ProcessCounter(createAnAccount().getUri().toString());
+		User user = UserResource.Root;
+		ProcessCounter counter = new ProcessCounter(createAnAccount(user).getUri().toString());
 		counter.setOwner(UserResource.Root.getUri());
 		
 		ProcessCounterManager manager = new ProcessCounterManager();
 		
 		manager.add(counter);
-		ProcessCounter counter2 = manager.load(UserResource.Root);
+		ProcessCounter counter2 = manager.loadByUser(user.getUri());
 
 		assertEquals(counter.getUri().toString(), counter2.getUri().toString());
 		assertEquals(counter.toString(), counter2.toString());

@@ -30,7 +30,7 @@ public class ProcessCounter extends Entity {
 		count = 0;
 	}
 
-	public Object getCount() {
+	public int getCount() {
 		return count;
 	}
 

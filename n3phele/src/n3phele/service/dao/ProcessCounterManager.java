@@ -50,9 +50,9 @@ public class ProcessCounterManager extends CachingAbstractManager<ProcessCounter
 	public void delete(ProcessCounter cloud) { super.delete(cloud); }
 	
 	public void update(ProcessCounter cloud) { super.update(cloud); }
-
-	public ProcessCounter load(User user) {
-		return super.itemDao.getByProperty("owner", user.getUri().toString());
+	
+	public ProcessCounter loadByUser(URI userUri) {
+		return super.itemDao.getByProperty("owner", userUri.toString());
 	}
 	
 }

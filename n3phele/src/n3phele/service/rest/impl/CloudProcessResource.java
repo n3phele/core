@@ -322,7 +322,7 @@ public class CloudProcessResource {
 	private void incrementProcessCount(ProcessCounterManager manager, User user) {
 		ProcessCounter counter = null;
 		try{
-			counter = manager.load(user);
+			counter = manager.loadByUser(user.getUri());
 		}
 		catch(NotFoundException e)
 		{
@@ -675,7 +675,23 @@ public class CloudProcessResource {
 			result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, items);
 
 			if (count) {
-				result.setTotal(ofy().load().type(CloudProcess.class).filter("topLevel", true).count());
+				ProcessCounterManager manager = new ProcessCounterManager();
+				int total = 0;
+				List<User> users = ofy().load().type(User.class).list();
+				
+				for(User user:users)
+				{
+					try
+					{
+						total += manager.loadByUser(user.getUri()).getCount();
+					}
+					catch(NotFoundException e)
+					{
+						//User has no counter
+						log.info(" user " + user.getName() + " has no counter registered.");
+					}
+				}
+				result.setTotal(total);
 			}
 
 			log.info("admin query total (with sort) -is- " + result.getTotal());
@@ -710,7 +726,16 @@ public class CloudProcessResource {
 			result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, items);
 
 			if (count) {
-				result.setTotal(ofy().load().type(CloudProcess.class).filter("owner", owner.toString()).filter("topLevel", true).count());
+				ProcessCounterManager manager = new ProcessCounterManager();
+				try
+				{
+					ProcessCounter counter = manager.loadByUser(owner);				
+					result.setTotal(counter.getCount());
+				}
+				catch(NotFoundException n)
+				{
+					result.setTotal(0);
+				}
 			}
 
 			return result;

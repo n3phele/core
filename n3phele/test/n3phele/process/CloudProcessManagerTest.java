@@ -2,16 +2,19 @@ package n3phele.process;
 
 import static org.junit.Assert.*;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
-import junit.framework.Assert;
-
 import n3phele.service.actions.StackServiceAction;
+import n3phele.service.dao.ProcessCounterManager;
+import n3phele.service.model.Account;
 import n3phele.service.model.Action;
 import n3phele.service.model.CloudProcess;
+import n3phele.service.model.ProcessCounter;
 import n3phele.service.model.core.Collection;
+import n3phele.service.model.core.User;
+import n3phele.service.rest.impl.AccountResource;
+import n3phele.service.rest.impl.UserResource;
 import n3phele.service.rest.impl.ActionResource.ActionManager;
 import n3phele.service.rest.impl.CloudProcessResource.CloudProcessManager;
 
@@ -37,24 +40,60 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 
 	}
 
+	User user = new User("test","testName","testLastName");
+	
 	/**
 	 * @throws java.lang.Exception
 	 */
 	@Before
 	public void setUp() throws Exception {
 		helper.setUp();
+		UserResource.dao.delete(UserResource.Root);
+		UserResource.dao.add(user);
 	}
-	
-	 @After     
-	 public void tearDown() {         helper.tearDown();     } 
 
+	@After     
+	public void tearDown() {         
+		helper.tearDown();     
+	} 
+
+	 
+	 public ProcessCounter initializeCounter(Account account, User user, int count)
+	 {
+		ProcessCounter counter = new ProcessCounter(account.getUri().toString());
+		counter.setOwner(user.getUri());
+		counter.setCount(count);
+		ProcessCounterManager counterManager = new ProcessCounterManager();
+		counterManager.add(counter);
+			
+		return counter;
+	 }
+	 
 	@Test
-	public void GetCollectionExecuteCountTest() {
+	public void givenUserJerryHasFiveCloudProcessesAndUserTomHasFiveCloudProcesses_WhenWeAskForAllTheFirstFiveProcessesAndTheTotal_ThenTheResultShouldIncludeFiveProcessesAndTheTotalAsTen() {
 		CloudProcessManager manager = new CloudProcessManager();
 		
-		int totalInDatabase = 10;
-		try {
-			populateDatabaseWithRandomProcessesNoAction(manager, totalInDatabase);
+		//We will use other users here, delete the common one on this test
+		UserResource.dao.delete(user);
+		
+		//Create users
+		User jerry = new User("jerry@hp.com","jerry","the rat");
+		User tom = new User("tom@hp.com","tom","the cat");
+		UserResource.dao.add(jerry);
+		UserResource.dao.add(tom);
+		
+		//InitializeCoutnerForJerry
+		Account jerryAccount = new DatabaseTestUtils().createValidAccount(AccountResource.dao, user);
+		initializeCounter(jerryAccount, jerry, 5);
+		
+		//InitializeCoutnerForTom
+		Account tomAccount = new DatabaseTestUtils().createValidAccount(AccountResource.dao, user);
+		initializeCounter(tomAccount, tom, 5);
+		
+		//Populate database with five processes for jerry and five for tom
+		try {			
+			populateDatabaseWithRandomProcessesNoAction(manager, 5, jerry);
+			populateDatabaseWithRandomProcessesNoAction(manager, 5, tom);
 		} catch (URISyntaxException e) {
 			fail(e.getMessage());
 		}
@@ -62,8 +101,50 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 		//Get first 5 results
 		Collection<CloudProcess> collection = manager.getCollection(0, 5, true);
 		
-		Assert.assertEquals(5, collection.getElements().size());
-		Assert.assertEquals(totalInDatabase, collection.getTotal());		
+		assertEquals(5, collection.getElements().size());
+		assertEquals(10, collection.getTotal());		
+	}
+	
+	@Test
+	public void givenDatabaseHasTenCloudProcessesAndCounterHasTheTotal_WhenWeAskForTheFirstFiveAndTheTotal_ThenTheResultShouldIncludeTheFiveCloudProcessesAndTheTotalAsTen() {
+		CloudProcessManager manager = new CloudProcessManager();
+		
+		Account account = new DatabaseTestUtils().createValidAccount(AccountResource.dao, user);
+		int totalInDatabase = 10;
+		initializeCounter(account, user, totalInDatabase);		
+		try {			
+			populateDatabaseWithRandomProcessesNoAction(manager, totalInDatabase, user);
+		} catch (URISyntaxException e) {
+			fail(e.getMessage());
+		}
+		
+		//Get first 5 results
+		Collection<CloudProcess> collection = manager.getCollection(0, 5, true);
+		
+		assertEquals(5, collection.getElements().size());
+		assertEquals(totalInDatabase, collection.getTotal());		
+	}
+	
+	@Test
+	public void givenDatabaseHasNoCloudProcess_WhenWeAskForTheFirstFiveAndTheTotal_ThenTheResultShouldBeEmptyAndTheTotalZero() {
+		CloudProcessManager manager = new CloudProcessManager();
+		
+		//Get first 5 results
+		Collection<CloudProcess> collection = manager.getCollection(0, 5, true);
+		
+		assertEquals(0, collection.getElements().size());
+		assertEquals(0, collection.getTotal());		
+	}
+	
+	@Test
+	public void givenUserHasNoCloudProcess_WhenWeAskForTheFirstFiveAndTheTotal_ThenTheResultShouldBeEmptyAndTheTotalZero() {
+		CloudProcessManager manager = new CloudProcessManager();
+
+		//Get first 5 results
+		Collection<CloudProcess> collection = manager.getCollection(0, 5, user.getUri(), true);
+		
+		assertEquals(0, collection.getElements().size());
+		assertEquals(0, collection.getTotal());		
 	}
 	
 	@Test
@@ -72,7 +153,7 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 
 		int totalInDatabase = 10;
 		try {
-			populateDatabaseWithRandomProcessesNoAction(manager, totalInDatabase);
+			populateDatabaseWithRandomProcessesNoAction(manager, totalInDatabase,user);
 		} catch (URISyntaxException e) {
 			fail(e.getMessage());
 		}
@@ -80,55 +161,51 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 		//Get first 5 results
 		Collection<CloudProcess> collection = manager.getCollection(0, 5);
 		
-		Assert.assertEquals(5, collection.getElements().size());
-		Assert.assertEquals(5, collection.getTotal());
+		assertEquals(5, collection.getElements().size());
+		assertEquals(5, collection.getTotal());
 	}
 	
 	@Test
 	public void GetCollectionWithOwnerExecuteCountTest() throws URISyntaxException {
 		CloudProcessManager manager = new CloudProcessManager();
 
-		String owner = "http://127.0.0.1/account/1";
-		
+		Account account = new DatabaseTestUtils().createValidAccount(AccountResource.dao, user);
 		int totalInDatabase = 10;
+		initializeCounter(account, user, totalInDatabase);		
 		try {
-			populateDatabaseWithRandomProcessesNoAction(manager, totalInDatabase, owner);
+			populateDatabaseWithRandomProcessesNoAction(manager, totalInDatabase, user);
 		} catch (URISyntaxException e) {
 			fail(e.getMessage());
 		}
 		
 		//Get first 5 results
-		Collection<CloudProcess> collection = manager.getCollection(0, 5, new URI(owner), true);
+		Collection<CloudProcess> collection = manager.getCollection(0, 5, user.getUri(), true);
 
-		Assert.assertEquals(5, collection.getElements().size());
-		Assert.assertEquals(totalInDatabase, collection.getTotal());			
+		assertEquals(5, collection.getElements().size());
+		assertEquals(totalInDatabase, collection.getTotal());			
 	}
 	
 	@Test
 	public void GetCollectionWithOwnerDoNotExecuteCountTest() throws URISyntaxException {
 		CloudProcessManager manager = new CloudProcessManager();
-				
-		String owner = "http://127.0.0.1/account/1";
 		
 		try {
 			int totalInDatabase = 10;
-			populateDatabaseWithRandomProcessesNoAction(manager, totalInDatabase, owner);
+			populateDatabaseWithRandomProcessesNoAction(manager, totalInDatabase, user);
 		} catch (URISyntaxException e) {
 			fail(e.getMessage());
 		}
 		
 		//Get first 5 results
-		Collection<CloudProcess> collection = manager.getCollection(0, 5, new URI(owner));
+		Collection<CloudProcess> collection = manager.getCollection(0, 5, user.getUri());
 
-		Assert.assertEquals(5, collection.getElements().size());
-		Assert.assertEquals(5, collection.getTotal());
+		assertEquals(5, collection.getElements().size());
+		assertEquals(5, collection.getTotal());
 	}		
 	
 	@Test
 	public void RetrieveFiveProcessesThatAreServiceStackActionsAndAreStillRunningTogetherWithOtherProcessesTest() throws URISyntaxException {
 		CloudProcessManager processManager = new CloudProcessManager();
-
-		String owner = "http://127.0.0.1/account/1";
 		
 		int processCount = 5;
 		//Add processes with stack service actions
@@ -139,7 +216,7 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 			actionManager.add(action);
 		}
 		
-		populateDatabaseWithRandomProcessAndTheseActions(processManager, actionManager, actions);
+		populateDatabaseWithRandomProcessAndTheseActions(processManager, user, actionManager, actions);
 		
 		//Add processes with job actions
 		actions = createValidJobActions(processCount);
@@ -147,24 +224,22 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 		{
 			actionManager.add(action);
 		}		
-		populateDatabaseWithRandomProcessAndTheseActions(processManager, actionManager, actions);
+		populateDatabaseWithRandomProcessAndTheseActions(processManager, user, actionManager, actions);
 		
-		Collection<CloudProcess> collection = processManager.getServiceStackCollectionNonFinalized(owner);
+		Collection<CloudProcess> collection = processManager.getServiceStackCollectionNonFinalized(user.getUri().toString());
 
 		Collection<StackServiceAction> stackServiceActionsCollection = actionManager.getStackServiceAction();
 		List<StackServiceAction> stackServiceActions = stackServiceActionsCollection.getElements();
-		Assert.assertEquals(processCount, stackServiceActions.size());
+		assertEquals(processCount, stackServiceActions.size());
 		Collection<CloudProcess> processes = processManager.getCollection(0, processCount*3);
-		Assert.assertEquals(processCount*2, processes.getElements().size());
+		assertEquals(processCount*2, processes.getElements().size());
 		List<CloudProcess> serviceActionsProcesses = collection.getElements();
-		Assert.assertEquals(processCount + " elements should be found", processCount, serviceActionsProcesses.size());
+		assertEquals(processCount + " elements should be found", processCount, serviceActionsProcesses.size());
 	}
 	
 	@Test
 	public void RetrieveFiveProcessesThatAreServiceStackActionsAndAreStillRunningWithNoOtherProcessTest() throws URISyntaxException {
 		CloudProcessManager processManager = new CloudProcessManager();
-
-		String owner = "http://127.0.0.1/account/1";
 		
 		int processCount = 5;
 		//Add processes with stack service actions
@@ -175,24 +250,22 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 			actionManager.add(action);
 		}
 		
-		populateDatabaseWithRandomProcessAndTheseActions(processManager, actionManager, actions);
+		populateDatabaseWithRandomProcessAndTheseActions(processManager, user, actionManager, actions);
 		
-		Collection<CloudProcess> collection = processManager.getServiceStackCollectionNonFinalized(owner);
+		Collection<CloudProcess> collection = processManager.getServiceStackCollectionNonFinalized(user.getUri().toString());
 
 		Collection<StackServiceAction> stackServiceActionsCollection = actionManager.getStackServiceAction();
 		List<StackServiceAction> stackServiceActions = stackServiceActionsCollection.getElements();
-		Assert.assertEquals(processCount, stackServiceActions.size());
+		assertEquals(processCount, stackServiceActions.size());
 		Collection<CloudProcess> processes = processManager.getCollection(0, processCount*3);
-		Assert.assertEquals(processCount, processes.getElements().size());
+		assertEquals(processCount, processes.getElements().size());
 		List<CloudProcess> serviceActionsProcesses = collection.getElements();
-		Assert.assertEquals(processCount + " elements should be found", processCount, serviceActionsProcesses.size());
+		assertEquals(processCount + " elements should be found", processCount, serviceActionsProcesses.size());
 	}
 	
 	@Test
-	public void RetrieveFiveProcessesThatAreServiceStackActionsAndAreStillRunningWithNoOtherProcessTestSameAccount() throws URISyntaxException {
+	public void RetrieveFiveProcessesThatAreServiceStackActionsAndAreStillRunningFromTheUser() throws URISyntaxException {
 		CloudProcessManager processManager = new CloudProcessManager();
-
-		String owner = "http://127.0.0.1/account/1";
 		
 		int processCount = 5;
 		//Add processes with stack service actions
@@ -203,18 +276,18 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 			actionManager.add(action);
 		}
 		
-		populateDatabaseWithRandomProcessAndTheseActionsTwoAccounts(processManager, actionManager, actions);
+		populateDatabaseWithRandomProcessAndTheseActionsTwoAccounts(processManager, user.getUri().toString(), "http://localhost/user/auser", actionManager, actions);
 		
-		Collection<CloudProcess> collection = processManager.getServiceStackCollectionNonFinalized(owner);
+		Collection<CloudProcess> collection = processManager.getServiceStackCollectionNonFinalized(user.getUri().toString());
 		
 		List<CloudProcess> serviceActionsProcesses = collection.getElements();
-		Assert.assertEquals(processCount + " elements should be found", processCount, serviceActionsProcesses.size());
+		assertEquals(processCount + " elements should be found", processCount, serviceActionsProcesses.size());
 	}
 	
 	@Test
 	public void RetrieveTwoProcessesThatAreServiceStackActionsAndAreStillRunningWithOtherTwoNotRunningTest() throws URISyntaxException {
 		CloudProcessManager processManager = new CloudProcessManager();
-		String owner = "http://127.0.0.1/account/1";
+
 		int processCount = 4;
 		//Add processes with stack service actions
 		ActionManager actionManager = new ActionManager();
@@ -224,21 +297,21 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 			actionManager.add(action);
 		}
 		
-		List<CloudProcess> processes = populateDatabaseWithRandomProcessAndTheseActions(processManager, actionManager, actions);
+		List<CloudProcess> processes = populateDatabaseWithRandomProcessAndTheseActions(processManager, user, actionManager, actions);
 		processes.get(0).setFinalized(true);
 		processes.get(1).setFinalized(true);
 		processManager.update(processes.get(0));
 		processManager.update(processes.get(1));
 		
-		Collection<CloudProcess> collection = processManager.getServiceStackCollectionNonFinalized(owner);
+		Collection<CloudProcess> collection = processManager.getServiceStackCollectionNonFinalized(user.getUri().toString());
 		
-		Assert.assertEquals(2, collection.getElements().size());		
+		assertEquals(2, collection.getElements().size());		
 	}
 	
 	@Test
 	public void RetrieveEmptyListOfProcessesThatAreServiceStackActionsAndAreStillRunningTest() throws URISyntaxException {
 		CloudProcessManager processManager = new CloudProcessManager();
-		String owner = "http://127.0.0.1/account/1";
+
 		int processCount = 5;
 
 		ActionManager actionManager = new ActionManager();
@@ -248,16 +321,16 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 		{
 			actionManager.add(action);
 		}		
-		populateDatabaseWithRandomProcessAndTheseActions(processManager, actionManager, actions);
+		populateDatabaseWithRandomProcessAndTheseActions(processManager, user, actionManager, actions);
 		
-		Collection<CloudProcess> collection = processManager.getServiceStackCollectionNonFinalized(owner);
+		Collection<CloudProcess> collection = processManager.getServiceStackCollectionNonFinalized(user.getUri().toString());
 
 		Collection<StackServiceAction> stackServiceActionsCollection = actionManager.getStackServiceAction();
 		List<StackServiceAction> stackServiceActions = stackServiceActionsCollection.getElements();
-		Assert.assertEquals(0, stackServiceActions.size());
+		assertEquals(0, stackServiceActions.size());
 		Collection<CloudProcess> processes = processManager.getCollection(0, processCount*3);
-		Assert.assertEquals(processCount, processes.getElements().size());
+		assertEquals(processCount, processes.getElements().size());
 		List<CloudProcess> serviceActionsProcesses = collection.getElements();
-		Assert.assertEquals("No element should be returned", 0, serviceActionsProcesses.size());
+		assertEquals("No element should be returned", 0, serviceActionsProcesses.size());
 	}
 }
