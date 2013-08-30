@@ -13,6 +13,7 @@
  */
 package n3phele.client.presenter;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -64,13 +65,19 @@ public class StackDetailsActivity extends AbstractActivity {
 	private int runningHours = 0;
 	private int runningMinutes = 0;
 	protected final PlaceController placeController;
-
-	public StackDetailsActivity(String url ,String id, ClientFactory factory) {
-		System.out.println("ID: " + id);
+	private String stackId = "-1";
+	private StackServiceAction stackAction = null;
+	private Stack stack = null;
+	private List<CloudProcess> listCloudProcess = new ArrayList<CloudProcess>();
+	
+	public StackDetailsActivity(String url , ClientFactory factory) {
+		System.out.println("ID: " + url);
 		this.historyMapper = factory.getHistoryMapper();
 		this.display = factory.getStackDetailsView();
-		
-		
+		String []splitedToken = url.split("#");
+		stackId = splitedToken[1];
+		url = splitedToken[0];
+		getAction(url);
 //		for(String s: stack.getVms()){
 //			getProcess(s);
 //		}
@@ -88,7 +95,6 @@ public class StackDetailsActivity extends AbstractActivity {
 		panel.setWidget(display);
 		display.setDisplayList(this.accountList);
 		//		getClouds();
-		getAccountList();
 	}
 
 	@Override
@@ -135,8 +141,6 @@ public class StackDetailsActivity extends AbstractActivity {
 		for(int i=0; i<accountList.size(); i++){
 			runningHours = 0;
 			runningMinutes = 0;
-			//getVSList(accountList.get(i));
-			//getRunningProcess(accountList.get(i));
 			getProcessByDay(accountList.get(i));
 		}
 		display.refresh(this.accountList, this.costPerAccount, this.vsPerAccount);
@@ -192,33 +196,6 @@ public class StackDetailsActivity extends AbstractActivity {
 		}
 	}
 	
-	private void processList(final Account account) {
-		final String url = account.getUri() + "/runningprocess/get";
-		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, url);
-		try {
-			builder.sendRequest(null, new RequestCallback() {
-				public void onError(Request request, Throwable exception) {
-					GWT.log("Couldn't retrieve JSON " + exception.getMessage());
-				}
-
-				public void onResponseReceived(Request request, Response response) {
-					if (200 == response.getStatusCode()) {
-						GWT.log("Got reply");
-						ActivityDataCollection result = ActivityDataCollection.asActivityDataCollection(response.getText());
-						result.getStringElements();
-						List<ActivityData> list = result.getElements();
-						vsPerAccount.put(account, list.size());
-						updateVsPerAccount(account, list.size());
-					} else {
-						GWT.log("Couldn't retrieve JSON (" + response.getStatusText() + ")");
-					}
-				}
-			});
-		} catch (RequestException e) {
-			GWT.log("Couldn't retrieve JSON " + e.getMessage());
-		}
-
-	}
 	
 	private void getProcessByDay(final Account account) {
 		final String url = account.getUri() + "/totalCost24Hour";
@@ -281,9 +258,9 @@ public class StackDetailsActivity extends AbstractActivity {
 
 	//REST CALLS
 	
-	public void getAction() {
+	public void getAction(String uri) {
 		// Send request to server and catch any errors.
-		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET,"");
+		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET,uri);
 		try {
 			Request request = builder.sendRequest(null, new RequestCallback() {
 				public void onError(Request request, Throwable exception) {
@@ -293,7 +270,19 @@ public class StackDetailsActivity extends AbstractActivity {
 				public void onResponseReceived(Request request, Response response) {
 					GWT.log("Got reply");
 					if (200 == response.getStatusCode()) {
-						StackServiceAction stackAction = StackServiceAction.asAction(response.getText());
+						for(Stack s : stackAction.getStackList()){
+							if( s.getId() .equals( stackId)){
+								stack = s;
+								break;
+							}
+								
+						}
+						if(stack.getVms().size() > 0){
+							System.out.println("test "+stack.getVms());
+							for(String str : stack.getVms()){
+								 getProcess(str);
+							}
+						}
 						//display.setStackAction(stackAction);
 					} 
 				}
@@ -317,7 +306,8 @@ public class StackDetailsActivity extends AbstractActivity {
 					GWT.log("Got reply");
 					if (200 == response.getStatusCode()) {
 						CloudProcess process = CloudProcess.asCloudProcess(response.getText());
-						//TODO do something in the view
+					    listCloudProcess.add(process);
+					    //TODO do something in the view
 					} else {
 
 					}

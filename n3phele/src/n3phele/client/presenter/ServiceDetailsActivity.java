@@ -75,7 +75,9 @@ public class ServiceDetailsActivity extends AbstractActivity {
 	}
 
 	public void onSelect(Stack stack){
-		History.newItem(historyMapper.getToken(new StackDetailsPlace(serviceUri,stack.getId())));
+		System.out.println("STACK ID BEFORE " + stack.getId() );
+		String concatString = serviceUri + "#" + stack.getId();
+		History.newItem(historyMapper.getToken(new StackDetailsPlace(concatString)));
 	}
 
 	
