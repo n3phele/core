@@ -22,20 +22,16 @@ import com.google.gwt.place.shared.Prefix;
 
 public class StackDetailsPlace extends Place { 
 	private String placeName;
-	private String id;
 
-	public StackDetailsPlace(String token,String id) {
+	public StackDetailsPlace(String token) {
+	
 		this.placeName = token;
-		this.id = id;
 	}
 
 	public String getPlaceName() {
 		return placeName;
 	}
 
-	public String getId(){
-		return id;
-	}
 	@Prefix("stackDetails")
 	public static class Tokenizer implements PlaceTokenizer<StackDetailsPlace> {
 
@@ -46,12 +42,9 @@ public class StackDetailsPlace extends Place {
 
 		@Override
 		public StackDetailsPlace getPlace(String token) {
-			return new StackDetailsPlace(token,null);
+			return new StackDetailsPlace(token);
 		}
-		
-		public StackDetailsPlace getPlaceWithId(String token, String id) {
-			return new StackDetailsPlace(token,id);
-		}
+	
 	}
 	
 }
