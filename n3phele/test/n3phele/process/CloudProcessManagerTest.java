@@ -60,7 +60,7 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 	 
 	 public ProcessCounter initializeCounter(Account account, User user, int count)
 	 {
-		ProcessCounter counter = new ProcessCounter(account.getUri().toString());
+		ProcessCounter counter = new ProcessCounter();
 		counter.setOwner(user.getUri());
 		counter.setCount(count);
 		ProcessCounterManager counterManager = new ProcessCounterManager();

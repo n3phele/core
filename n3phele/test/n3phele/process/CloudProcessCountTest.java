@@ -64,7 +64,7 @@ public class CloudProcessCountTest {
 		Account acc1 = new Account("HP1", null, null, "cloud1", null, root.getUri(), false);
 		AccountResource.dao.add(acc1);
 		
-		ProcessCounter counter = new ProcessCounter(acc1.getUri().toString());
+		ProcessCounter counter = new ProcessCounter();
 		counter.setOwner(root.getUri());
 		ProcessCounterManager counterManager = new ProcessCounterManager();
 		counterManager.add(counter);
@@ -89,7 +89,7 @@ public class CloudProcessCountTest {
 		Account acc1 = new Account("HP1", null, null, "cloud1", null, root.getUri(), false);
 		AccountResource.dao.add(acc1);
 		
-		ProcessCounter counter = new ProcessCounter(acc1.getUri().toString());
+		ProcessCounter counter = new ProcessCounter();
 		counter.setOwner(root.getUri());
 		ProcessCounterManager counterManager = new ProcessCounterManager();
 		counterManager.add(counter);
@@ -170,11 +170,8 @@ public class CloudProcessCountTest {
 	public void givenCounterIsEmptyWhenExecFailsBecauseNoAccountWasPassedThenCounterShouldStayZero() throws Exception{
 		
 		User root = UserResource.Root;
-				
-		Account acc1 = new Account("HP1", null, null, "cloud1", null, root.getUri(), false);
-		AccountResource.dao.add(acc1);
 		
-		ProcessCounter counter = new ProcessCounter(acc1.getUri().toString());
+		ProcessCounter counter = new ProcessCounter();
 		counter.setOwner(root.getUri());
 		ProcessCounterManager counterManager = new ProcessCounterManager();
 		counterManager.add(counter);

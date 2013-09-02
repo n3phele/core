@@ -51,21 +51,14 @@ public class ProcessCounterTests {
 
 	@Test
 	public void WhenAProcessCounterIsCreatedThenItsCountIsStartedAsZero() {
-		User user = UserResource.Root;
-		ProcessCounter counter = new ProcessCounter(createAnAccount(user).getUri().toString());
+		ProcessCounter counter = new ProcessCounter();
 		
 		assertEquals(0, counter.getCount() );
 	}
 	
-	@Test( expected = IllegalArgumentException.class )
-	public void WhenACounterIsCreatedWithANullAccountThenAnExceptionIsThrow() {
-		ProcessCounter counter = new ProcessCounter(null);		
-	}
-	
 	@Test
 	public void GivenAValidCounterWhenItIsIncrementedThenTheCountValueShouldBeUpdatedByOne() {
-		User user = UserResource.Root;
-		ProcessCounter counter = new ProcessCounter(createAnAccount(user).getUri().toString());
+		ProcessCounter counter = new ProcessCounter();
 		assertEquals(0, counter.getCount() );
 		counter.increment();
 		assertEquals(1, counter.getCount() );

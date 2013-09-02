@@ -15,18 +15,9 @@ public class ProcessCounter extends Entity {
 	@Id protected Long id;
 	
 	protected Integer count;
-
-	@Index(IfNotNull.class)protected String accountUri = null;
 	
 	public ProcessCounter()
 	{
-		count = 0;
-	}
-
-	public ProcessCounter(String accountUri)
-	{
-		if(accountUri == null) throw new IllegalArgumentException("Account URI can't be null");
-		this.accountUri = accountUri;
 		count = 0;
 	}
 
@@ -44,14 +35,6 @@ public class ProcessCounter extends Entity {
 
 	public void setId(Long id) {
 		this.id = id;
-	}
-
-	public String getAccountUri() {
-		return this.accountUri;
-	}
-
-	public void setAccountUri(String accountUri) {
-		this.accountUri = accountUri;
 	}
 
 	public void setCount(Integer count) {

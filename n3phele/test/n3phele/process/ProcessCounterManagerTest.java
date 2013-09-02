@@ -52,8 +52,8 @@ public class ProcessCounterManagerTest {
 	@Test
 	public void GivenAValidProcessCounterWhenItIsPersistedThenItCanBeRetrieved() {
 		User user = UserResource.Root;
-		ProcessCounter counter = new ProcessCounter(createAnAccount(user).getUri().toString());
-		counter.setOwner(UserResource.Root.getUri());
+		ProcessCounter counter = new ProcessCounter();
+		counter.setOwner(user.getUri());
 		ProcessCounterManager manager = new ProcessCounterManager();
 		
 		manager.add(counter);
@@ -66,8 +66,8 @@ public class ProcessCounterManagerTest {
 	@Test
 	public void GivenAValidProcessCounterAndThatItWasIncrementedWhenItIsPersistedThenItCanBeRetrieved() {
 		User user = UserResource.Root;
-		ProcessCounter counter = new ProcessCounter(createAnAccount(user).getUri().toString());
-		counter.setOwner(UserResource.Root.getUri());
+		ProcessCounter counter = new ProcessCounter();
+		counter.setOwner(user.getUri());
 		counter.increment();
 		
 		ProcessCounterManager manager = new ProcessCounterManager();
@@ -82,8 +82,8 @@ public class ProcessCounterManagerTest {
 	@Test
 	public void GivenAValidProcessCounterAlreadyWasPersistedWhenIsSearchedByOwnerThenItShouldBeReturned() {
 		User user = UserResource.Root;
-		ProcessCounter counter = new ProcessCounter(createAnAccount(user).getUri().toString());
-		counter.setOwner(UserResource.Root.getUri());
+		ProcessCounter counter = new ProcessCounter();
+		counter.setOwner(user.getUri());
 		
 		ProcessCounterManager manager = new ProcessCounterManager();
 		
