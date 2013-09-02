@@ -4,10 +4,10 @@ import java.net.URISyntaxException;
 import java.util.List;
 
 import junit.framework.Assert;
-
 import n3phele.service.model.Action;
 import n3phele.service.model.CloudProcessCollection;
 import n3phele.service.rest.impl.CloudProcessResource;
+import n3phele.service.rest.impl.UserResource;
 import n3phele.service.rest.impl.ActionResource.ActionManager;
 import n3phele.service.rest.impl.CloudProcessResource.CloudProcessManager;
 
@@ -58,7 +58,7 @@ public class CloudProcessResourceTest extends DatabaseTestUtils {
 			actionManager.add(action);
 		}
 		
-		populateDatabaseWithRandomProcessAndTheseActions(processManager, actionManager, actions);
+		populateDatabaseWithRandomProcessAndTheseActions(processManager, UserResource.Root, actionManager, actions);
 		
 		CloudProcessResource resource = new CloudProcessResource();
 		

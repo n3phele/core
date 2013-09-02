@@ -43,6 +43,7 @@ import n3phele.service.core.NotFoundException;
 import n3phele.service.core.Resource;
 import n3phele.service.core.ResourceFile;
 import n3phele.service.core.ResourceFileFactory;
+import n3phele.service.dao.ProcessCounterManager;
 import n3phele.service.lifecycle.ProcessLifecycle;
 import n3phele.service.model.Account;
 import n3phele.service.model.Action;
@@ -50,6 +51,7 @@ import n3phele.service.model.ActionState;
 import n3phele.service.model.CachingAbstractManager;
 import n3phele.service.model.CloudProcess;
 import n3phele.service.model.CloudProcessCollection;
+import n3phele.service.model.ProcessCounter;
 import n3phele.service.model.Relationship;
 import n3phele.service.model.ServiceModelDao;
 import n3phele.service.model.SignalKind;
@@ -291,6 +293,10 @@ public class CloudProcessResource {
 				stack.setDeployProcess(p.getUri().toString());
 				serviceAction.addStack(stack);
 				ActionResource.dao.update(serviceAction);
+
+				ProcessCounterManager manager = new ProcessCounterManager();
+				incrementProcessCount(manager, UserResource.toUser(securityContext));
+				
 				return Response.created(p.getUri()).build();
 			}
 		}
@@ -298,7 +304,10 @@ public class CloudProcessResource {
 			env.put(v.getName(), v);
 		}
 		
-		checkAccount(env);		
+		checkAccount(env);	
+		
+		ProcessCounterManager manager = new ProcessCounterManager();
+		incrementProcessCount(manager, UserResource.toUser(securityContext));
 		
 		if (clazz != null) {
 			CloudProcess p = ProcessLifecycle.mgr().createProcess(UserResource.toUser(securityContext), name, env, null, null, true, clazz);
@@ -308,6 +317,21 @@ public class CloudProcessResource {
 			return Response.noContent().build();
 		}
 		
+	}
+
+	private void incrementProcessCount(ProcessCounterManager manager, User user) {
+		ProcessCounter counter = null;
+		try{
+			counter = manager.loadByUser(user.getUri());
+		}
+		catch(NotFoundException e)
+		{
+			counter = new ProcessCounter();
+			counter.setOwner(user.getUri());
+			manager.add(counter);
+		}
+		counter.increment();
+		manager.update(counter);		
 	}
 
 	private void checkAccount(n3phele.service.model.Context env) throws URISyntaxException {
@@ -521,7 +545,7 @@ public class CloudProcessResource {
 		Collection<CloudProcess> result = dao.getServiceStackCollectionNonFinalized(currentUser.getUri().toString());
 		return new CloudProcessCollection(result);
 	}
-
+	
 	/*
 	 * Data Access
 	 */
@@ -651,7 +675,23 @@ public class CloudProcessResource {
 			result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, items);
 
 			if (count) {
-				result.setTotal(ofy().load().type(CloudProcess.class).filter("topLevel", true).count());
+				ProcessCounterManager manager = new ProcessCounterManager();
+				int total = 0;
+				List<User> users = ofy().load().type(User.class).list();
+				
+				for(User user:users)
+				{
+					try
+					{
+						total += manager.loadByUser(user.getUri()).getCount();
+					}
+					catch(NotFoundException e)
+					{
+						//User has no counter
+						log.info(" user " + user.getName() + " has no counter registered.");
+					}
+				}
+				result.setTotal(total);
 			}
 
 			log.info("admin query total (with sort) -is- " + result.getTotal());
@@ -686,7 +726,16 @@ public class CloudProcessResource {
 			result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, items);
 
 			if (count) {
-				result.setTotal(ofy().load().type(CloudProcess.class).filter("owner", owner.toString()).filter("topLevel", true).count());
+				ProcessCounterManager manager = new ProcessCounterManager();
+				try
+				{
+					ProcessCounter counter = manager.loadByUser(owner);				
+					result.setTotal(counter.getCount());
+				}
+				catch(NotFoundException n)
+				{
+					result.setTotal(0);
+				}
 			}
 
 			return result;

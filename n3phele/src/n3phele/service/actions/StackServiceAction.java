@@ -63,7 +63,7 @@ public class StackServiceAction extends ServiceAction {
 	public Action create(URI owner, String name, Context context) {
 		super.create(owner, name, context);
 		this.serviceDescription = "";
-		registerServiceCommandsToContext();
+		//registerServiceCommandsToContext();
 		return this;
 	}
 	
