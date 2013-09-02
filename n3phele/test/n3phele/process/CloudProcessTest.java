@@ -25,8 +25,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
@@ -38,8 +36,8 @@ import n3phele.service.model.Action;
 import n3phele.service.model.ActionState;
 import n3phele.service.model.CloudProcess;
 import n3phele.service.model.Context;
+import n3phele.service.model.ProcessCounter;
 import n3phele.service.model.Variable;
-import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.User;
 import n3phele.service.rest.impl.AccountResource;
 import n3phele.service.rest.impl.ActionResource;
@@ -47,6 +45,7 @@ import n3phele.service.rest.impl.CloudProcessResource;
 import n3phele.service.rest.impl.UserResource;
 import n3phele.service.rest.impl.AccountResource.AccountManager;
 import n3phele.service.core.NotFoundException;
+import n3phele.service.dao.ProcessCounterManager;
 
 import org.junit.After;
 import org.junit.Before;
@@ -144,202 +143,6 @@ public class CloudProcessTest  {
 		
 		CloudProcessResource.dao.add(jerry);
 		
-	}
-	
-	@Test (expected = NotFoundException.class )
-	public void noAccountOnContextNoParentTest() throws Exception{
-		
-		User root = UserResource.Root;
-		
-		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); 
-		cpr.addSecurityContext(root);
-		
-		List<Variable> context = new ArrayList<Variable>();
-				
-		cpr.exec("Job", "JobTest", "", null, context);
-	}
-	
-	@Test (expected = NotFoundException.class)
-	public void noAccountOnContextWithParentTest() throws Exception{
-
-		User root = UserResource.Root;
-		
-		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); 
-		cpr.addSecurityContext(root);
-		
-		List<Variable> context = new ArrayList<Variable>();
-
-		Action task = new CountDownAction();
-		task.setUri(new URI("http://www.test.com/task/1"));
-		task.setOwner(root.getUri());
-		ActionResource.dao.add(task);
-		
-		CloudProcess jerry = new CloudProcess(UserResource.Root.getUri(), "jerry", null, true, task, false);
-		jerry.setState(ActionState.RUNABLE);
-		CloudProcessResource.dao.add(jerry);		
-		
-		cpr.exec("Job", "JobTest", "", jerry.getUri().toString(), context);
-		
-	}
-	
-	@Test (expected = NotFoundException.class )
-	public void emptyAccountOnContextNoParentTest() throws Exception{
-		
-		User root = UserResource.Root;
-				
-		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); 
-		cpr.addSecurityContext(root);
-		
-		List<Variable> context = new ArrayList<Variable>();
-		Variable var = new Variable("account","");
-		context.add(var);
-		
-		cpr.exec("Job", "JobTest", "", null, context);
-	}
-	
-	@Test (expected = NotFoundException.class)
-	public void emptyAccountOnContextWithParentTest() throws Exception{
-		User root = UserResource.Root;
-		
-		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); 
-		cpr.addSecurityContext(root);
-		
-		List<Variable> context = new ArrayList<Variable>();
-		Variable var = new Variable("account","");
-		context.add(var);
-
-		Action task = new CountDownAction();
-		task.setUri(new URI("http://www.test.com/task/1"));
-		task.setOwner(root.getUri());
-		ActionResource.dao.add(task);
-		
-		CloudProcess jerry = new CloudProcess(UserResource.Root.getUri(), "jerry", null, true, task, false);
-		jerry.setState(ActionState.RUNABLE);
-		CloudProcessResource.dao.add(jerry);		
-		
-		cpr.exec("Job", "JobTest", "", jerry.getUri().toString(), context);
-		
-	}
-	
-	@Test (expected = NotFoundException.class )
-	public void noAccessToAccountNoParentTest() throws Exception{
-		
-		User root = UserResource.Root;
-		
-		//acount owner = null
-		Account acc1 = new Account("HP1", null, null, "cloud1", null, null, false);
-		acc1.setUri(new URI("http://www.test.com/account/1"));
-		acc1.setId((long) 1);
-		
-		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); 
-		cpr.addSecurityContext(root);
-		
-		List<Variable> context = new ArrayList<Variable>();
-		Variable var = new Variable("account",acc1.getUri());
-		context.add(var);
-		
-		cpr.exec("Job", "JobTest", "", null, context);
-	}
-	
-	@Test (expected = NotFoundException.class)
-	public void noAccessToAccountWithParentTest() throws Exception{
-		User root = UserResource.Root;
-		
-		//acount owner = null
-		Account acc1 = new Account("HP1", null, null, "cloud1", null, null, false);
-		acc1.setUri(new URI("http://www.test.com/account/1"));
-		acc1.setId((long) 1);
-		
-		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); 
-		cpr.addSecurityContext(root);
-		
-		List<Variable> context = new ArrayList<Variable>();
-		Variable var = new Variable("account",acc1.getUri());
-		context.add(var);
-
-		Action task = new CountDownAction();
-		task.setUri(new URI("http://www.test.com/task/1"));
-		task.setOwner(root.getUri());
-		ActionResource.dao.add(task);
-		
-		CloudProcess jerry = new CloudProcess(UserResource.Root.getUri(), "jerry", null, true, task, false);
-		jerry.setState(ActionState.RUNABLE);
-		CloudProcessResource.dao.add(jerry);		
-		
-		cpr.exec("Job", "JobTest", "", jerry.getUri().toString(), context);
-		
-	}
-	
-	@Test
-	public void accessToAccountNoParentTest() throws Exception{
-		
-		User root = UserResource.Root;
-		AccountManager accm = PowerMockito.mock(AccountManager.class);
-		PowerMockito.mockStatic(AccountManager.class);
-		try {
-			setFinalStatic(AccountResource.class.getField("dao"), accm);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-				
-		Account acc1 = new Account("HP1", null, null, "cloud1", null, root.getUri(), false);
-		acc1.setUri(new URI("http://www.test.com/account/1"));
-		acc1.setId((long) 1);
-		
-		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); 
-		cpr.addSecurityContext(root);		
-		
-		List<Variable> context = new ArrayList<Variable>();
-		Variable var = new Variable("account",acc1.getUri());
-		context.add(var);		
-		
-		PowerMockito.when(accm.load(new URI("http://www.test.com/account/1"), root)).thenReturn(acc1);
-		
-		Response response = cpr.exec("StackService", "StackServiceTest", "", null, context);
-		assertEquals(201,response.getStatus());
-		
-		setFinalStatic(AccountResource.class.getField("dao"),new AccountManager() );
-	}
-	
-	@Test
-	public void accessToAccountParentTest() throws Exception{
-		User root = UserResource.Root;
-		AccountManager accm = PowerMockito.mock(AccountManager.class);
-		PowerMockito.mockStatic(AccountManager.class);
-		try {
-			setFinalStatic(AccountResource.class.getField("dao"), accm);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-				
-		Account acc1 = new Account("HP1", null, null, "cloud1", null, root.getUri(), false);
-		acc1.setUri(new URI("http://www.test.com/account/1"));
-		acc1.setId((long) 1);
-		
-		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); 
-		cpr.addSecurityContext(root);		
-		
-		List<Variable> context = new ArrayList<Variable>();
-		Variable var = new Variable("account",acc1.getUri());
-		context.add(var);			
-		
-		Action task = new CountDownAction();
-		task.setUri(new URI("http://www.test.com/task/1"));
-		task.setOwner(root.getUri());
-		ActionResource.dao.add(task);
-		
-		CloudProcess jerry = new CloudProcess(UserResource.Root.getUri(), "jerry", null, true, task, false);
-		jerry.setState(ActionState.RUNABLE);
-		CloudProcessResource.dao.add(jerry);	
-		
-		PowerMockito.when(accm.load(new URI("http://www.test.com/account/1"), root)).thenReturn(acc1);
-		
-		Response response = cpr.exec("StackService", "StackServiceTest", "", jerry.getUri().toString(), context);
-		assertEquals(201,response.getStatus());
-		
-		setFinalStatic(AccountResource.class.getField("dao"),new AccountManager() );
 	}
 	
 	static void setFinalStatic(Field field, Object newValue) throws Exception {
