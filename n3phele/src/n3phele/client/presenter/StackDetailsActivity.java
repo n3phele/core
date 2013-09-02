@@ -22,18 +22,14 @@ import n3phele.client.AppPlaceHistoryMapper;
 import n3phele.client.CacheManager;
 import n3phele.client.ClientFactory;
 import n3phele.client.model.Account;
-import n3phele.client.model.ActivityData;
-import n3phele.client.model.ActivityDataCollection;
+import n3phele.client.model.AssimilateVMAction;
 import n3phele.client.model.CloudProcess;
-import n3phele.client.model.Collection;
-import n3phele.client.model.CostsCollection;
 import n3phele.client.model.Stack;
 import n3phele.client.model.StackServiceAction;
-import n3phele.client.model.VirtualServerCollection;
-import n3phele.client.model.VirtualServer;
 import n3phele.client.presenter.helpers.AuthenticatedRequestFactory;
-import n3phele.client.view.AccountListView;
 import n3phele.client.view.StackDetailsView;
+
+
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
@@ -54,15 +50,11 @@ public class StackDetailsActivity extends AbstractActivity {
 	private EventBus eventBus;
 	private final AppPlaceHistoryMapper historyMapper;
 	private final StackDetailsView display;
-	private List<Account> accountList = null;
+	private List<CloudProcess> accountList = null;
 	private final CacheManager cacheManager;
-	private String accountCollection;
-	private final String virtualServerCollection;
 	private HandlerRegistration handlerRegistration;	
-	private HashMap<Account, Double> costPerAccount = null;
-	private HashMap<Account, Integer> vsPerAccount = null;
-	private int runningHours = 0;
-	private int runningMinutes = 0;
+	private HashMap<String, String> cloudIP = null;
+
 	protected final PlaceController placeController;
 	private String stackId = "-1";
 	private StackServiceAction stackAction = null;
@@ -70,24 +62,19 @@ public class StackDetailsActivity extends AbstractActivity {
 	private List<CloudProcess> listCloudProcess = new ArrayList<CloudProcess>();
 	
 	public StackDetailsActivity(String url , ClientFactory factory) {
-		System.out.println("ID: " + url);
 		this.historyMapper = factory.getHistoryMapper();
 		this.display = factory.getStackDetailsView();
 		String []splitedToken = url.split("#");
 		stackId = splitedToken[1];
-		url = splitedToken[0];
+		url = splitedToken[0].trim();
 		getAction(url);
-//		for(String s: stack.getVms()){
-//			getProcess(s);
-//		}
 		this.cacheManager = factory.getCacheManager();
-		this.accountCollection = URL.encode(factory.getCacheManager().ServiceAddress + "account");
-		this.virtualServerCollection = URL.encode(factory.getCacheManager().ServiceAddress + "virtualServers/account/");
 		this.placeController = factory.getPlaceController();
 	}
 
 	@Override
 	public void start(AcceptsOneWidget panel, EventBus eventBus) {
+		cloudIP = new HashMap<String, String>();
 		this.eventBus = eventBus;
 		handlerRegistration(eventBus);		
 		panel.setWidget(display);
@@ -115,7 +102,7 @@ public class StackDetailsActivity extends AbstractActivity {
 		this.handlerRegistration = this.eventBus.addHandler(AccountListUpdate.TYPE, new AccountListUpdateEventHandler() {
 			@Override
 			public void onMessageReceived(AccountListUpdate event) {
-				getAccountList();
+				//TODO update here?
 			}
 		});
 		CacheManager.EventConstructor change = new CacheManager.EventConstructor() {
@@ -133,27 +120,18 @@ public class StackDetailsActivity extends AbstractActivity {
 		cacheManager.unregister(cacheManager.ServiceAddress + "account", "accountList");
 	}
 
-	protected void updateAccountList(List<Account> list) {
+	protected void updateAccountList(List<CloudProcess> list) {
 		this.accountList = list;
-		for(int i=0; i<accountList.size(); i++){
-			runningHours = 0;
-			runningMinutes = 0;
-			getProcessByDay(accountList.get(i));
-		}
-		display.refresh(this.accountList, this.costPerAccount, this.vsPerAccount);
+		display.refresh(this.listCloudProcess, this.cloudIP);
 	}
 
-	protected void updateCostPerAccount(Account account, double cost) {
-		if(costPerAccount == null) return;
-		costPerAccount.put(account, cost);
-		display.refresh(this.accountList, this.costPerAccount, this.vsPerAccount);
+	protected void updateCloudIP(String name, String ip) {
+		if(cloudIP == null) return;
+		cloudIP.put(name, ip);
+		display.refresh(this.listCloudProcess, this.cloudIP);
 	}
 
 
-	public void updateVsPerAccount(Account account, int cont){
-		vsPerAccount.put(account, cont);
-		display.refresh(this.accountList, this.costPerAccount, this.vsPerAccount);
-	}
 	
 	/*
 	 * -------------
@@ -161,99 +139,6 @@ public class StackDetailsActivity extends AbstractActivity {
 	 * -------------
 	 */
 
-	public void getVSList(final Account account){
-		String uri = virtualServerCollection + account.getUri().substring(account.getUri().lastIndexOf("/")+1);
-		// Send request to server and catch any errors.
-		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, uri);
-		try {
-			Request request = builder.sendRequest(null, new RequestCallback() {
-				public void onError(Request request, Throwable exception) {
-					// displayError("Couldn't retrieve JSON "+exception.getMessage());
-				}
-
-				public void onResponseReceived(Request request, Response response) {
-					GWT.log("Got reply");
-					int cont = 0;
-					if (200 == response.getStatusCode()) {
-						VirtualServerCollection<VirtualServer> virtualServerCollection = VirtualServer.asCollection(response.getText());
-						//updateCostPerAccount(account, virtualServerCollection.dayCost());
-						for(VirtualServer vs : virtualServerCollection.getElements()){
-							//updateTimePerAccount(account, vs);
-							if(vs.getStatus().equalsIgnoreCase("running")) cont++;
-						}
-						updateVsPerAccount(account, cont);
-					} else {
-
-					}
-				}
-
-			});
-		} catch (RequestException e) {
-			//displayError("Couldn't retrieve JSON "+e.getMessage());
-		}
-	}
-	
-	
-	private void getProcessByDay(final Account account) {
-		final String url = account.getUri() + "/totalCost24Hour";
-		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, url);
-		try {
-			builder.sendRequest(null, new RequestCallback() {
-				public void onError(Request request, Throwable exception) {
-					GWT.log("Couldn't retrieve JSON " + exception.getMessage());
-				}
-
-				public void onResponseReceived(Request request, Response response) {
-					if (200 == response.getStatusCode()) {
-						GWT.log("Got reply");
-						CostsCollection result = CostsCollection.asCostsCollection(response.getText());
-						List<Double> value = result.getElements();
-						double d = value.get(0);
-						costPerAccount.put(account, d);		
-						updateCostPerAccount(account, d); 
-					} else {
-						GWT.log("Couldn't retrieve JSON (" + response.getStatusText() + ")");
-					}
-				}
-			});
-		} catch (RequestException e) {
-			GWT.log("Couldn't retrieve JSON " + e.getMessage());
-		}
-	}
-
-	public void getAccountList() {
-		// Send request to server and catch any errors.
-		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, accountCollection);
-		try {
-			Request request = builder.sendRequest(null, new RequestCallback() {
-				public void onError(Request request, Throwable exception) {
-					// displayError("Couldn't retrieve JSON "+exception.getMessage());
-				}
-
-				public void onResponseReceived(Request request, Response response) {
-					GWT.log("Got reply");
-					if (200 == response.getStatusCode()) {
-						Collection<Account> account = Account.asCollection(response.getText());
-						costPerAccount = new HashMap<Account, Double>(account.getElements().size());
-						vsPerAccount = new HashMap<Account, Integer>(account.getElements().size());
-						for(Account acc : account.getElements()){
-							//getRunningProcess(acc);
-							
-						}
-						
-						updateAccountList(account.getElements());
-					} else {
-
-					}
-				}
-
-			});
-		} catch (RequestException e) {
-			//displayError("Couldn't retrieve JSON "+e.getMessage());
-		}
-	}
-
-	//REST CALLS
 	
 	public void getAction(String uri) {
 		// Send request to server and catch any errors.
@@ -267,20 +152,19 @@ public class StackDetailsActivity extends AbstractActivity {
 				public void onResponseReceived(Request request, Response response) {
 					GWT.log("Got reply");
 					if (200 == response.getStatusCode()) {
+						stackAction = StackServiceAction.asAction(response.getText());
 						for(Stack s : stackAction.getStackList()){
-							if( s.getId() .equals( stackId)){
+							if( s.getId().equals(stackId)){
 								stack = s;
 								break;
 							}
 								
 						}
 						if(stack.getVms().size() > 0){
-							System.out.println("test "+stack.getVms());
 							for(String str : stack.getVms()){
 								 getProcess(str);
 							}
 						}
-						//display.setStackAction(stackAction);
 					} 
 				}
 
@@ -304,7 +188,9 @@ public class StackDetailsActivity extends AbstractActivity {
 					if (200 == response.getStatusCode()) {
 						CloudProcess process = CloudProcess.asCloudProcess(response.getText());
 					    listCloudProcess.add(process);
-					    //TODO do something in the view
+					    display.setDisplayList(listCloudProcess);
+					    getAssimilateAction(process.getName(), process.getAction());
+					    
 					} else {
 
 					}
@@ -313,6 +199,29 @@ public class StackDetailsActivity extends AbstractActivity {
 			});
 		} catch (RequestException e) {
 			//displayError("Couldn't retrieve JSON "+e.getMessage());
+		}
+	}
+	
+	public void getAssimilateAction(String name, String uri) {
+		// Send request to server and catch any errors.
+		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET,uri);
+		final String fname = name;
+		try {
+			Request request = builder.sendRequest(null, new RequestCallback() {
+				public void onError(Request request, Throwable exception) {
+					GWT.log("Got error");
+				}
+				public void onResponseReceived(Request request, Response response) {
+					GWT.log("Got reply");
+					if (200 == response.getStatusCode()) {
+						AssimilateVMAction action = AssimilateVMAction.asAction(response.getText());
+						updateCloudIP(fname, action.getTargetIP());
+					} 
+				}
+
+			});
+		} catch (RequestException e) {
+			GWT.log("Got error");
 		}
 	}
 	

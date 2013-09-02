@@ -68,7 +68,7 @@ public class Stack{
 		this.name = name;
 	}
 	
-	public List<String    > getVms() {
+	public List<String> getVms() {
 		return this.vms;
 	}
 

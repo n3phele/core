@@ -293,7 +293,6 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 			public void run() {
 				
 				if(param == null || param != display.getVsData()){
-					System.out.println("!CANCELED");
 					param.removeAll(display.getVsData());
 					for (ActivityData activityData : param) {
 						display.getVsData().remove(activityData);
@@ -301,7 +300,6 @@ public class AccountHyperlinkActivity extends AbstractActivity {
 					updateCall();
 					this.cancel();
 				}else{
-					System.out.println("!NOT CANCELED");
 					updateCall();
 					
 				}

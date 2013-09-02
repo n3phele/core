@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import n3phele.client.N3phele;
 import n3phele.client.model.Account;
+import n3phele.client.model.CloudProcess;
 import n3phele.client.presenter.StackDetailsActivity;
 import n3phele.client.presenter.helpers.AuthenticatedRequestFactory;
 import n3phele.client.resource.ClickableCellTableResource;
@@ -41,25 +42,23 @@ import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
 
 public class StackDetailsView extends WorkspaceVerticalPanel {
-	private CellTable<Account> cellTable;
-	private List<Account> data = null;
+	private CellTable<CloudProcess> cellTable;
+	private List<CloudProcess> data = null;
 	private StackDetailsActivity presenter = null;
-	private ActionDialogBox<Account> dialog;
 	private static ClickableCellTableResource resource = null;
-	private HashMap<Account, Double> costPerAccount = null; 
-	private HashMap<Account, Integer> vsPerAccount = null;
+	private HashMap<String, String> cloudIP = null; 
 	public StackDetailsView() {
 		super(new MenuItem(N3phele.n3pheleResource.serviceIcon(), "Stack Details", null));			
 
 		if(resource ==null)
 			resource = GWT.create(ClickableCellTableResource.class);
 
-		cellTable = new CellTable<Account>(15, resource);
+		cellTable = new CellTable<CloudProcess>(15, resource);
 		cellTable.setSize("455px", "");
 
-		TextColumn<Account> nameColumn = new TextColumn<Account>() {
+		TextColumn<CloudProcess> nameColumn = new TextColumn<CloudProcess>() {
 			@Override
-			public String getValue(Account item) {
+			public String getValue(CloudProcess item) {
 				String result = "";
 				if(item != null){
 					result += item.getName();
@@ -70,33 +69,27 @@ public class StackDetailsView extends WorkspaceVerticalPanel {
 		cellTable.addColumn(nameColumn, "Name");
 		cellTable.setColumnWidth(nameColumn, "120px");
 
-		TextColumn<Account> hoursColumn = new TextColumn<Account>() {
+		TextColumn<CloudProcess> hoursColumn = new TextColumn<CloudProcess>() {
 			@Override
-			public String getValue(Account item) {
+			public String getValue(CloudProcess item) {
 				String result = "";
 				if(item != null){
-					if(costPerAccount != null && costPerAccount.containsKey(item))
-						result += "US$" + (double)Math.round(costPerAccount.get(item) * 1000) / 1000;
-					else
-						result += "US$" + 0.0;
-				}
+					result += "US$" + item.getCost();
+				}	
 				return result;
 			}
 		};
 		cellTable.addColumn(hoursColumn, "Cost");
 		cellTable.setColumnWidth(hoursColumn, "100px");
 
-		TextColumn<Account> activeColumn = new TextColumn<Account>() {
+		TextColumn<CloudProcess> activeColumn = new TextColumn<CloudProcess>() {
 			@Override
-			public String getValue(Account item) {
+			public String getValue(CloudProcess item) {
 				String result = "";
-				if(item != null){
-					if(vsPerAccount != null && vsPerAccount.containsKey(item)){
-						int value = vsPerAccount.get(item);
-						result += value;
+				if(cloudIP!= null){
+					if(cloudIP.get(item.getName()) != null){
+						result = cloudIP.get(item.getName()).trim();
 					}
-					else
-						result += 0;
 				}
 				return result;
 			}
@@ -104,28 +97,15 @@ public class StackDetailsView extends WorkspaceVerticalPanel {
 		cellTable.addColumn(activeColumn, "IP");
 		cellTable.setColumnWidth(activeColumn, "80px");
 
-
-		TextColumn<Account> cloudColumn = new TextColumn<Account>() {
-			@Override
-			public String getValue(Account item) {
-				String result = "";
-				if(item != null) {
-					result = item.getCloudName();
-				}
-				return result;
-			}
-		};
-
-
 		// Add a selection model to handle user selection.
-		final SingleSelectionModel<Account> selectionModel = new SingleSelectionModel<Account>();
+		final SingleSelectionModel<CloudProcess> selectionModel = new SingleSelectionModel<CloudProcess>();
 		cellTable.setSelectionModel(selectionModel);
 		selectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
 			public void onSelectionChange(SelectionChangeEvent event) {
-				Account selected = selectionModel.getSelectedObject();
+				CloudProcess selected = selectionModel.getSelectedObject();
 				if (selected != null) {
 					if(presenter != null) {
-						presenter.onSelect(selected);
+						//presenter.onSelect(selected);
 					}
 				}
 			}
@@ -137,9 +117,9 @@ public class StackDetailsView extends WorkspaceVerticalPanel {
 
 	}
 
-	public void setDisplayList(List<Account> list) {
+	public void setDisplayList(List<CloudProcess> list) {
 		if(list == null)
-			list = new ArrayList<Account>();
+			list = new ArrayList<CloudProcess>();
 		this.cellTable.setRowCount(list.size(), true);
 		this.cellTable.setRowData(data=list);
 	}
@@ -149,69 +129,17 @@ public class StackDetailsView extends WorkspaceVerticalPanel {
 
 	}
 
-	public void refresh(List<Account> newProgressList, HashMap<Account, Double> costPerAccount, HashMap<Account, Integer> vsPerAccount) {
-		this.costPerAccount = costPerAccount;
-		this.vsPerAccount = vsPerAccount;
+	public void refresh(List<CloudProcess> newProgressList, HashMap<String, String> cloudIP) {
+		this.cloudIP = cloudIP;
 		setDisplayList(newProgressList);
 	}
 
 
-	public void refresh(int i, Account update) {
+	public void refresh(int i, CloudProcess update) {
 		this.cellTable.setRowData(i, data.subList(i, i+1));
 	}
 
-	public void refreshCostPerAccount(HashMap<Account, Double> cost) {
-		this.costPerAccount = cost;
-	}
-
-
-
-	protected ActionDialogBox<Account> getDialog(Account item) {
-		if(dialog == null) {
-			dialog = new ActionDialogBox<Account>("Account Removal Confirmation",
-					"No", "Yes", new Delegate<Account>(){
-
-				@Override
-				public void execute(Account object) {
-					kill(object.getUri());
-
-				}});
-			dialog.setGlassEnabled(true);
-			dialog.setAnimationEnabled(true);
-
-		}
-		dialog.setValue("Remove cloud account \""+item.getName()+"\" from n3phele?<p>" +
-				"The account setup on the cloud will not be affected.", item);
-		dialog.center();
-		return dialog;
-	}
-
-	private void kill(String uri) {
-		String url = uri;
-		// Send request to server and catch any errors.
-		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.DELETE, url);
-
-		try {
-			@SuppressWarnings("unused")
-			Request request = builder.sendRequest(null, new RequestCallback() {
-				public void onError(Request request, Throwable exception) {
-					Window.alert("Couldn't delete "+exception.getMessage());
-				}
-
-				public void onResponseReceived(Request request, Response response) {
-					if (204 == response.getStatusCode()) {
-						if(StackDetailsView.this.presenter != null)
-							StackDetailsView.this.presenter.getAccountList();
-					} else {
-						Window.alert("Couldn't delete (" + response.getStatusText() + ")");
-					}
-				}
-			});
-		} catch (RequestException e) {
-			Window.alert("Couldn't delete "+e.getMessage());
-
-		}
-
-	}
-
+	public void refreshCostPerAccount(HashMap<String, String> cloudIP) {
+		this.cloudIP = cloudIP;
+	}	
 }
