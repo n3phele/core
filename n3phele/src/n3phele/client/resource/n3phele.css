@@ -434,3 +434,8 @@ background-color: #e8eef7;
 	cursor: pointer;
   	cursor: hand;
 }
+
+.labelFontWeight{
+	font-weight:bold;
+	font-size:12pt;
+}

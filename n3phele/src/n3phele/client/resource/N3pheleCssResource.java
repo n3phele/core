@@ -56,6 +56,9 @@ public interface N3pheleCssResource extends CssResource {
   @ClassName("sectionPanelHeader")
   String sectionPanelHeader();
   
+  @ClassName("labelFontWeight")
+  String labelFontWeight();
+  
   @ClassName("baseBackground")
   String baseBackground();
   

@@ -42,8 +42,30 @@ public class Stack extends JavaScriptObject {
 		return this.deployProcess;
 	}-*/;
 	public static final native Stack asActivity(String assumedSafe) /*-{
-	return eval("("+assumedSafe+")");
-	// return JSON.parse(assumedSafe);
+		return eval("("+assumedSafe+")");
+		// return JSON.parse(assumedSafe);
 	}-*/;
 
+	public native final String vms() /*-{
+		var array = "";
+		if (this.vms != undefined && this.vms != null) {
+			if (this.vms.length == undefined) {
+				array[0] = this.vms;
+			} else {
+				array = this.vms;
+			}
+		} else
+			return "";
+		return array;
+	}-*/;
+
+	public final List<String> getVms() {
+		String jsa = vms();
+		List<String> list = new ArrayList<String>();
+		String[] vms = jsa.toString().split(",");
+		for (int i = 0; i < vms.length; i++) {
+			list.add(vms[i]);
+		}
+		return list;
+	}
 }
