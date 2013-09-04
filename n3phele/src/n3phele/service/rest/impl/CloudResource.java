@@ -51,9 +51,16 @@ import com.sun.jersey.api.representation.Form;
 @Path("/cloud")
 public class CloudResource {
 	private static Logger log = Logger.getLogger(CloudResource.class.getName()); 
+	
+	public CloudResource(){}
+	
+	protected @Context
+	UriInfo uriInfo;
+	protected @Context
+	SecurityContext securityContext;
 
-	@Context UriInfo uriInfo;
-	@Context SecurityContext securityContext;
+	//@Context UriInfo uriInfo;
+	//@Context SecurityContext securityContext;
 	@GET
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
@@ -178,7 +185,7 @@ public class CloudResource {
 	 *                      	== Private & Internal support functions ==
 	 * ------------------------------------------------------------------------------------------ *
 	 */
-	private void fetchParameters(Cloud cloud) {
+	protected void fetchParameters(Cloud cloud) {
 		Client client = Client.create();
 		Credential plain = Credential.unencrypted(cloud.getFactoryCredential());
 		client.addFilter(new HTTPBasicAuthFilter(plain.getAccount(), plain.getSecret()));
