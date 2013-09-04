@@ -8,6 +8,7 @@ import n3phele.service.actions.NShellActionTest;
 import n3phele.service.actions.StackServiceActionTest;
 import n3phele.service.nShell.ExpressionTest;
 import n3phele.service.nShell.ParserTest;
+import n3phele.service.rest.impl.CloudResourceTest;
 import n3phele.time.TimeFactoryTest;
 import n3phele.workloads.CloudProcessWorkloadsTest;
 
@@ -17,7 +18,7 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({CloudProcessTest.class, ExpressionTest.class, ParserTest.class, CreateVMActionTest.class, NShellActionTest.class, CloudProcessManagerTest.class, 
-	AccountResourceTest.class, CloudProcessWorkloadsTest.class, TimeFactoryTest.class ,CreateStackServiceActionTest.class, StackServiceActionTest.class})
+	AccountResourceTest.class, CloudProcessWorkloadsTest.class, TimeFactoryTest.class ,CreateStackServiceActionTest.class, StackServiceActionTest.class, CloudResourceTest.class})
 public class AllUnitTests {
 
 }
