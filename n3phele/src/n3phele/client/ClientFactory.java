@@ -37,6 +37,7 @@ import n3phele.client.view.RepoListView;
 import n3phele.client.view.RepoView;
 import n3phele.client.view.ServiceListView;
 import n3phele.client.view.ServiceDetailsView;
+import n3phele.client.view.StackDetailsView;
 import n3phele.client.view.UserView;
 
 public class ClientFactory {
@@ -47,7 +48,8 @@ public class ClientFactory {
 	public N3pheleResource n3pheleResource = null;
 	private AppPlaceHistoryMapper historyMapper;
 	private ActivityListView detailedActivityView=null;
-	private ServiceDetailsView ServiceDetailView=null;
+	private ServiceDetailsView ServiceDetailView =null;
+	private StackDetailsView StackDetailView=null;
 	private ServiceListView detailedServiceView=null;
 	private CreateServiceView createServiceView=null;
 	private LoginView loginView=null;
@@ -209,20 +211,28 @@ public class ClientFactory {
 		return this.processView;
 	}
 	
-	  /**
-	   * @return the detailedServiceView
-	   */
+	/**
+	* @return the detailedServiceView
+	*/
 	public CreateServiceView getCreateServiceView() {
 		if(createServiceView == null) createServiceView = new CreateServiceView();
 	    return createServiceView;
 	}
 	
-		/**
-	   * @return the ServiceDetailView
-	   */
+	/**
+	* @return the ServiceDetailsView
+	*/
 	public ServiceDetailsView getServiceDetailsView(){
 		if(ServiceDetailView == null) ServiceDetailView = new ServiceDetailsView();
 	    return ServiceDetailView;
+	}
+	
+	/**
+	* @return the StackDetailsView
+	*/
+	public StackDetailsView getStackDetailsView(){
+		if(StackDetailView == null) StackDetailView = new StackDetailsView();
+	    return StackDetailView;
 	}
 	
 	/**

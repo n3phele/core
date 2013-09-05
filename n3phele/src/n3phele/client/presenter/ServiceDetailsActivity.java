@@ -14,11 +14,13 @@
  */
 package n3phele.client.presenter;
 
+import n3phele.client.AppPlaceHistoryMapper;
 import n3phele.client.CacheManager;
 import n3phele.client.ClientFactory;
 import n3phele.client.model.Account;
 import n3phele.client.model.CloudProcess;
 import n3phele.client.model.Collection;
+import n3phele.client.model.Stack;
 import n3phele.client.model.StackServiceAction;
 import n3phele.client.presenter.helpers.AuthenticatedRequestFactory;
 import n3phele.client.view.ServiceDetailsView;
@@ -37,11 +39,13 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 
 public class ServiceDetailsActivity extends AbstractActivity {
 	private final String processUri;
+	private final AppPlaceHistoryMapper historyMapper;
 	private final ServiceDetailsView display;	
 	private final CacheManager cacheManager;
 	private String serviceUri;
 
 	public ServiceDetailsActivity(String processUri, ClientFactory factory) {
+		historyMapper = factory.getHistoryMapper();
 		this.processUri = processUri;
 		this.display = factory.getServiceDetailsView();
 		this.cacheManager = factory.getCacheManager();
@@ -49,6 +53,7 @@ public class ServiceDetailsActivity extends AbstractActivity {
 	
 	@Override
 	public void start(AcceptsOneWidget panel, EventBus eventBus) {
+		display.setPresenter(this);
 		panel.setWidget(display);
 		this.getProcess();
 		if(processUri == null || processUri.length()==0 || processUri.equals("null")) {
@@ -69,8 +74,9 @@ public class ServiceDetailsActivity extends AbstractActivity {
 		History.back();
 	}
 
-	public void onSelect(){
-		
+	public void onSelect(Stack stack){
+		String concatString = serviceUri + "#" + stack.getId();
+		History.newItem(historyMapper.getToken(new StackDetailsPlace(concatString)));
 	}
 
 	
@@ -79,26 +85,7 @@ public class ServiceDetailsActivity extends AbstractActivity {
 	 * Rest calls
 	 * ----------------
 	 */
-	public void getAccountList(){
-		String url= cacheManager.ServiceAddress+ "account/listAccounts";
-		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, url);
-		try {
-			@SuppressWarnings("unused")
-			Request request = builder.sendRequest(null, new RequestCallback() {
-				public void onError(Request request, Throwable exception) {
-					GWT.log("Got error");
 
-				}
-				public void onResponseReceived(Request request, Response response) {
-					GWT.log("Got reply");
-					Collection<CommandCloudAccount> accounts = CommandCloudAccount.asCollection(response.getText());
-				}
-
-			});
-		} catch (RequestException e) {
-			GWT.log("Got error");
-		}
-	}
 	
 	public void getProcess() {
 		// Send request to server and catch any errors.
