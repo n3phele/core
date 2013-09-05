@@ -132,7 +132,9 @@ public interface N3pheleResource extends ClientBundle {
 	ImageResource unzipIcon();
 	@Source("tree.png")
 	ImageResource treeIcon();
-
+	@Source("juju.png")
+	ImageResource jujuIcon();
+	
 	@Source("cloud-theme.png")
 	ImageResource profile_alt();
 	@Source("publicFolder32x32.png")
