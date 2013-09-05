@@ -51,6 +51,8 @@ public class PresentationIcon {
 				icon = N3phele.n3pheleResource.concatenateIcon();
 			} else if(url.equals("stackIcon")) {				
 				icon = N3phele.n3pheleResource.stackIcon();
+			} else if(url.endsWith("jujuIcon")){
+				icon = N3phele.n3pheleResource.jujuIcon();
 			}
 			
 			return new Image(icon.getURL());

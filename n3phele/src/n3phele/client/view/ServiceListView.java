@@ -97,7 +97,7 @@ public class ServiceListView extends WorkspaceVerticalPanel {
 								cellTable.getSelectionModel().setSelected(value, false);
 								getDialog(value).show();
 							}
-						}}, "cancel activity")) {
+						}}, "cancel service")) {
 				@Override
 				public CloudProcessSummary getValue(CloudProcessSummary object) {
 					String status = object.getState();
@@ -176,7 +176,7 @@ public class ServiceListView extends WorkspaceVerticalPanel {
 	
 	protected ActionDialogBox<CloudProcessSummary> getDialog(CloudProcessSummary item) {
 		if(dialog == null) {
-			dialog = new ActionDialogBox<CloudProcessSummary>("Activity Terminate Confirmation",
+			dialog = new ActionDialogBox<CloudProcessSummary>("Service Terminate Confirmation",
 					"No", "Yes", new Delegate<CloudProcessSummary>(){
 
 						@Override
@@ -188,7 +188,7 @@ public class ServiceListView extends WorkspaceVerticalPanel {
 			 dialog.setAnimationEnabled(true);
 
 		}
-		dialog.setValue("Terminate processing of running activity \""+item.getName()+"\"?", item);
+		dialog.setValue("Terminate processing of running service \""+item.getName()+"\"?", item);
 		dialog.center();
 		return dialog;
 	}
