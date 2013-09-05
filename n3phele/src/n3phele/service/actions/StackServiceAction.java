@@ -2,6 +2,7 @@ package n3phele.service.actions;
 
 import java.io.FileNotFoundException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -159,9 +160,14 @@ public class StackServiceAction extends ServiceAction {
 	public void cancel() {
 		log.info("Cancelling " + stacks.size() + " stacks");
 		for (Stack stack : stacks) {
-			for (URI uri : stack.getVms()) {
+			for (String uri : stack.getVms()) {
 				try {
-					processLifecycle().cancel(uri);
+					try {
+						processLifecycle().cancel(new URI(uri));
+					} catch (URISyntaxException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				} catch (NotFoundException e) {
 					log.severe("Not found: " + e.getMessage());
 				}
@@ -173,9 +179,14 @@ public class StackServiceAction extends ServiceAction {
 	public void dump() {
 		log.info("Dumping " + stacks.size() + " stacks");
 		for (Stack stack : stacks) {
-			for (URI uri : stack.getVms()) {
+			for (String uri : stack.getVms()) {
 				try {
-					processLifecycle().dump(uri);
+					try {
+						processLifecycle().dump(new URI(uri));
+					} catch (URISyntaxException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				} catch (NotFoundException e) {
 					log.severe("Not found: " + e.getMessage());
 				}
@@ -223,7 +234,7 @@ public class StackServiceAction extends ServiceAction {
 				if (action instanceof AssimilateVMAction) {
 					for (Stack s : stacks) {
 						if (s.getId() == action.getContext().getLongValue("stackId")) {
-							s.addVm(child.getUri());
+							s.addVm(child.getUri().toString());
 						}
 					}
 				}

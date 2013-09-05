@@ -45,6 +45,8 @@ import n3phele.client.presenter.ServiceListActivity;
 import n3phele.client.presenter.ServiceListPlace;
 import n3phele.client.presenter.ServiceDetailsPlace;
 import n3phele.client.presenter.ServiceDetailsActivity;
+import n3phele.client.presenter.StackDetailsPlace;
+import n3phele.client.presenter.StackDetailsActivity;
 import n3phele.client.presenter.ServicePlace;
 import n3phele.client.presenter.UserActivity;
 import n3phele.client.presenter.UserPlace;
@@ -100,7 +102,9 @@ public class AppActivityMapper implements ActivityMapper {
 			return new ServiceListActivity(((ServiceListPlace) place).getPlaceName(), clientFactory);
 		} else if(place instanceof ServiceDetailsPlace) {
 			return new ServiceDetailsActivity(((ServiceDetailsPlace) place).getPlaceName(), clientFactory); 
-		} else if(place instanceof ActivityPlace) {
+		} else if(place instanceof StackDetailsPlace) {
+			return new StackDetailsActivity(((StackDetailsPlace) place).getPlaceName(), clientFactory); 
+		}else if(place instanceof ActivityPlace) {
 			return new ActivtiyActivity("activity-detail", 
 					((ActivityPlace) place).getPlaceName(), clientFactory);
 		}

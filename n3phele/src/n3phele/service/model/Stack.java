@@ -30,7 +30,7 @@ public class Stack{
 	
 
 	@Serialize
-	private List<URI> vms = new ArrayList<URI>();
+	private List<String> vms = new ArrayList<String>();
 
 	public Stack () {
 		this.commandUri = "";
@@ -42,7 +42,6 @@ public class Stack{
 		this.name = name;
 		this.description = description;
 		this.commandUri = "";
-
 	}
 
 	public String getDescription() {
@@ -69,15 +68,15 @@ public class Stack{
 		this.name = name;
 	}
 	
-	public List<URI> getVms() {
+	public List<String> getVms() {
 		return this.vms;
 	}
 
-	public void setVms(List<URI> vms) {
+	public void setVms(List<String> vms) {
 		this.vms = vms;
 	}
 	
-	public boolean addVm(URI r){
+	public boolean addVm(String r){
 		return vms.add(r);
 	}
 	
