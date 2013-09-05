@@ -128,7 +128,8 @@ public class CreateStackServiceActionTest  {
 	}
 
 	
-	@Test
+	//@Test
+	//TODO this functionality should be deleted since is not being used anymore
 	public void testDeleteStackService() {
 		User root = UserResource.Root;
 		assertNotNull(root);
