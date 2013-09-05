@@ -112,8 +112,7 @@ public class CloudWebServiceTest  {
 
 			ClientResponse result = webResource.post(ClientResponse.class, form);
 			cloud = result.getLocation();
-
-
+			
 			Assert.assertEquals(201, result.getStatus());  
 		}
 		
