@@ -59,8 +59,6 @@ public class CloudResource {
 	protected @Context
 	SecurityContext securityContext;
 
-	//@Context UriInfo uriInfo;
-	//@Context SecurityContext securityContext;
 	@GET
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
@@ -153,7 +151,6 @@ public class CloudResource {
 
 	@GET
 	@RolesAllowed("authenticated")
-	// @Produces("application/vnd.com.n3phele.CloudEntry+json")
 	@Produces("application/json")
 	@Path("{id}") 
 	public Cloud get( @PathParam ("id") Long id) throws NotFoundException {
