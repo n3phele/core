@@ -111,7 +111,7 @@ public class CommandListGridView extends WorkspaceVerticalPanel implements Comma
 		textBox.addKeyPressHandler(new KeyPressHandler() {
 			public void onKeyPress(KeyPressEvent event) {
 				if (KeyCodes.KEY_ENTER == event.getNativeEvent().getKeyCode()) {
-					commandActivity.fetch(0, searchText = textBox.getText(), !allVersions.getValue());
+					commandActivity.fetch(0, searchText = textBox.getText(), !allVersions.getValue(),null);
 				}
 			}
 		});
@@ -126,7 +126,7 @@ public class CommandListGridView extends WorkspaceVerticalPanel implements Comma
 
 			@Override
 			public void onClick(ClickEvent event) {
-				commandActivity.fetch(0, searchText = textBox.getText(), !allVersions.getValue());
+				commandActivity.fetch(0, searchText = textBox.getText(), !allVersions.getValue(),null);
 				
 			}});
 		
@@ -144,6 +144,7 @@ public class CommandListGridView extends WorkspaceVerticalPanel implements Comma
 		allVersions.setName("allVersions");
 		allVersions.setFormValue("Search all versions");
 		disclosed.add(allVersions);
+		
 
 		grid = new CellTable<List<Command>>();
 		grid.setWidth("100%", true);
@@ -255,7 +256,7 @@ public class CommandListGridView extends WorkspaceVerticalPanel implements Comma
 					start = total;
 //				if(data == null || (data.size() < start) ){
 					
-					commandActivity.fetch(start,  searchText, !allVersions.getValue());
+					commandActivity.fetch(start,  searchText, !allVersions.getValue(),null);
 //				} else {
 //					if(length+start > data.size())
 //						length = data.size()-start;
@@ -268,7 +269,6 @@ public class CommandListGridView extends WorkspaceVerticalPanel implements Comma
 		this.add(grid);	
 	}
 	
-
 	/* (non-Javadoc)
 	 * @see n3phele.client.view.CommandListViewInterface#setDisplayList(java.util.List, int, int)
 	 */

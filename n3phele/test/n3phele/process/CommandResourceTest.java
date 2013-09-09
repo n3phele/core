@@ -6,8 +6,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.Principal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+
+import javax.ws.rs.core.SecurityContext;
 
 import junit.framework.Assert;
 
@@ -20,6 +24,7 @@ import n3phele.service.model.ActivityDataCollection;
 import n3phele.service.model.CloudProcess;
 import n3phele.service.model.Command;
 import n3phele.service.model.CommandCloudAccount;
+import n3phele.service.model.CommandCollection;
 import n3phele.service.model.CommandImplementationDefinition;
 import n3phele.service.model.Context;
 import n3phele.service.model.CostsCollection;
@@ -35,6 +40,7 @@ import n3phele.service.rest.impl.AccountResource.AccountManager;
 import n3phele.service.rest.impl.CommandResource.CommandManager;
 import n3phele.service.rest.impl.CloudProcessResource;
 import n3phele.time.MutableTimeFactory;
+import n3phele.workloads.CloudProcessWorkloadsTest.CloudResourceTestWrapper;
 
 import org.joda.time.DateTimeZone;
 import org.joda.time.MutableDateTime;
@@ -48,6 +54,7 @@ import org.powermock.api.mockito.PowerMockito;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
+import com.googlecode.objectify.Key;
 
 public class CommandResourceTest {
 	private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig().setApplyAllHighRepJobPolicy(), new LocalTaskQueueTestConfig().setDisableAutoTaskExecution(false).setCallbackClass(LocalTaskQueueTestConfig.DeferredTaskCallback.class));
@@ -71,6 +78,45 @@ public class CommandResourceTest {
 
 		//field.set(null, new AccountManager());
 	}
+	
+	@Test
+	public void getListCommandWithTagsAndSearchParams(){
+		Command c = commandWithTags("cp1", "service","juju");
+		Command c2 = commandWithTags("cp2", "service");
+		Command c3 = commandWithTags("cp3");
+		ArrayList<Command> listCommand = new ArrayList<Command>();
+		listCommand.add(c);
+		listCommand.add(c2);
+		listCommand.add(c3);
+		CommandResource cr = new CommandResource();
+		HashSet<String> listQ = new HashSet<String>();
+		listQ.add("juju");
+		listQ.add("untagged");
+		Collection<Command> col = new Collection<Command>();
+		col.setElements(listCommand);
+		Assert.assertEquals(2,cr.filter(false,"cp", listQ,col).getElements().size());
+		Assert.assertEquals(1,cr.filter(false,"1", listQ,col).getElements().size());
+		listQ.remove("untagged");
+		Assert.assertEquals(1,cr.filter(false,"cp", listQ,col).getElements().size());
+		listQ.remove("juju");
+		Assert.assertEquals(0,cr.filter(false,"cp1", listQ,col).getElements().size());
+		listQ.add("alltags");
+		Assert.assertEquals(3,cr.filter(true,null, listQ,col).getElements().size());	
+	}
+	
+	public Command commandWithTags(String name, String... tags){
+		Command c = new Command();
+		c.setOwner(UserResource.Root.getUri());
+		c.setName(name);
+		c.setDescription("asd");
+		ArrayList<String> tagList = new ArrayList<String>();
+		for(int i = 0;i<tags.length;i++){
+			tagList.add(tags[i]);
+		}
+		c.setTags(tagList);
+		return c;
+	}
+	
 	
 	@Test
 	public void getCommandWithServiceListWith1Implementation() throws NotFoundException, URISyntaxException{
@@ -174,8 +220,5 @@ public class CommandResourceTest {
 
 		field.set(null, newValue);
 	}
-
-	
-
 	
 }

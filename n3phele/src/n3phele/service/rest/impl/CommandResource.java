@@ -18,6 +18,7 @@ import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
@@ -49,6 +50,7 @@ import n3phele.service.model.ChangeManager;
 import n3phele.service.model.Command;
 import n3phele.service.model.CommandCollection;
 import n3phele.service.model.ServiceModelDao;
+import n3phele.service.model.Variable;
 import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.GenericModelDao;
 import n3phele.service.model.core.Helpers;
@@ -86,10 +88,12 @@ public class CommandResource {
 			@DefaultValue("false") 	@QueryParam("preferred") boolean preferred,
 			@DefaultValue("0") 		@QueryParam("start") int start,
 			@DefaultValue("-1") 	@QueryParam("end") int end,
-									@QueryParam("search") String search) {
+									@QueryParam("search") String search,
+									@QueryParam("tags") List<String> list) {
 
 		log.warning("list entered with summary "+summary+" start "+start+" end "+end+" preferred "+preferred);
-
+		HashSet<String> tagSet = new HashSet<String>();
+		tagSet.addAll(list);
 		if(start < 0)
 			start = 0;
 
@@ -101,32 +105,7 @@ public class CommandResource {
 		Collection<Command> result = null;
 		if(search != null || preferred == false) {
 			result = dao.getCollection(UserResource.toUser(securityContext), preferred);
-
-			List<Command> filtered;
-			if(search != null) {
-				filtered = new ArrayList<Command>(result.getElements().size());
-				for(Command item : result.getElements()) {
-					Boolean nameMatch=null;
-					Boolean descriptionMatch=null;
-					if((nameMatch =item.getName().toLowerCase(Locale.ENGLISH).contains(search)) || 
-					   (item.getDescription()!=null && 
-					   (descriptionMatch=item.getDescription().toLowerCase(Locale.ENGLISH).contains(search)))) {
-						log.info("Adding "+item.getName()+" under "+search+" nameMatch "+nameMatch+" descriptionMatch "+descriptionMatch);
-						if(summary) {
-							item.setImplementations(null);
-						}
-						filtered.add(item);
-					}
-				}
-				result.setElements(filtered);
-			} else {
-				if(summary)
-					for(Command item : result.getElements()) {
-						item.setImplementations(null);
-					}
-			}
-
-
+			filter(summary, search, tagSet, result);
 			return new CommandCollection(result, start, end);
 		} else {
 			result = getPreferredCommandDefinitionFromCache(UserResource.toUser(securityContext), start, end);
@@ -134,6 +113,62 @@ public class CommandResource {
 			return reply;
 		}
 
+	}
+
+	public Collection<Command> filter(Boolean summary, String search, HashSet<String> tagSet, Collection<Command> result) {
+		List<Command> filtered;
+		filtered = new ArrayList<Command>(result.getElements().size());
+		Collection<Command> filteredCol = new Collection<Command>();
+		if(search != null) {
+			for(Command item : result.getElements()) {
+				Boolean nameMatch=null;
+				Boolean descriptionMatch=null;
+				if((nameMatch =item.getName().toLowerCase(Locale.ENGLISH).contains(search)) || 
+				   (item.getDescription()!=null && 
+				   (descriptionMatch=item.getDescription().toLowerCase(Locale.ENGLISH).contains(search)))) {
+						if(item.getTags() == null || item.getTags().size() == 0){
+							if(tagSet.contains("untagged") || tagSet.contains("alltags")){
+								if(summary) {
+									item.setImplementations(null);
+								}
+								filtered.add(item);
+								continue;
+							}
+						}
+						for(String s: item.getTags()){
+							if(tagSet.contains(s) || tagSet.contains("alltags")){
+								item.setImplementations(null);		
+								if(summary) {
+									item.setImplementations(null);
+								}
+								filtered.add(item);
+								break;
+							}
+						}	
+					}		
+				}
+			filteredCol.setElements(filtered);			
+		} else {
+			if(summary){		
+				for(Command item : result.getElements()) {
+					if(item.getTags() == null || item.getTags().size() == 0){
+						if(tagSet.contains("untagged")|| tagSet.contains("alltags")){
+							filtered.add(item);
+							continue;
+						}
+					}
+					for(String s: item.getTags()){
+						if(tagSet.contains(s) || tagSet.contains("alltags")){
+							item.setImplementations(null);		
+							filtered.add(item);
+							break;
+						}
+					}	
+				}
+			}
+			filteredCol.setElements(filtered);
+		}
+		return filteredCol;
 	}
 	
 
