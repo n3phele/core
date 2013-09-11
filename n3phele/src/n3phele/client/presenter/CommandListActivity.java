@@ -25,6 +25,7 @@ import n3phele.client.model.Collection;
 import n3phele.client.model.Command;
 import n3phele.client.model.Context;
 import n3phele.client.presenter.helpers.AuthenticatedRequestFactory;
+import n3phele.client.view.CommandListGridView;
 import n3phele.client.view.CommandListViewInterface;
 
 import com.google.gwt.activity.shared.AbstractActivity;
@@ -62,6 +63,7 @@ public class CommandListActivity extends AbstractActivity {
 	private int lastStart;
 	private boolean lastPreferred;
 	private String lastSearch;
+	protected boolean knowTags = false;
 
 	public CommandListActivity(String name, ClientFactory factory, String commandCollectionArgs, CommandListViewInterface view) {
 		super();
@@ -137,14 +139,14 @@ public class CommandListActivity extends AbstractActivity {
 	}
 
 	protected void initData() {
+		this.fetch(lastStart=0, lastSearch=null, lastPreferred=knowTags,null);
 		CacheManager.EventConstructor change = new CacheManager.EventConstructor() {
 			@Override
 			public CommandListUpdate newInstance(String key) {
 				return new CommandListUpdate();
 			}
 		};
-		cacheManager.register(cacheManager.ServiceAddress + "command", this.name, change);
-		this.fetch(lastStart=0, lastSearch=null, lastPreferred=true,null);
+		cacheManager.register(cacheManager.ServiceAddress + "command", this.name, change);		
 	}
 
 	protected void unregister() {
@@ -157,89 +159,27 @@ public class CommandListActivity extends AbstractActivity {
 		//this.itemUpdateHandlerRegistration.removeHandler();
 	}
 
-//	protected void updateData(String uri, List<Command> update) {
-//
-//		if(commandList==null) {
-//			commandList = new ArrayList<Command>();
-//		} else {
-//			commandList.clear();
-//		}
-//		commandList.addAll(update);
-//		display.refresh(commandList);
-//	}
-
 	protected void updateData(String uri, List<Command> update, int start, int total) {
 		display.setDisplayList(update, start, total);
-
-//		if(start==0) {
-//			commandList.clear();
-//			if(update!=null)
-//				commandList.addAll(update);
-//			display.setDisplayList(commandList, start, total);
-//		} else if(start <= commandList.size()) {
-//			for(int i=0; i < update.size() ; i++) {
-//				if((i+start) < commandList.size()) {
-//					commandList.set(i+start, update.get(i));
-//				} else {
-//					commandList.add(update.get(i));
-//				}
-//			}
-//			display.setDisplayList(update, start, total);
-//		} else {
-//			commandList.clear();
-//			display.setDisplayList(update, start, total);
-//		}
 	}
-	
-//	protected void updateData(String uri, Command update) {
-//		if(update != null) {
-//			for(int i=0; i < commandList.size(); i++) {
-//				Command p = commandList.get(i);
-//				if(p.getUri().equals(update.getUri())) {
-//					commandList.set(i, update);
-//					display.refresh(i, update);
-//					return;
-//				}
-//			}
-//		}
-//	}
-
-
-//	protected void refresh(String key) {
-//	
-//		String url = URL.encode(key);
-//		// Send request to server and catch any errors.
-//		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, url);
-//		try {
-//			builder.sendRequest(null, new RequestCallback() {
-//				public void onError(Request request, Throwable exception) {
-//					Window.alert("Request error " + exception.getMessage());
-//				}
-//	
-//				public void onResponseReceived(Request request, Response response) {
-//					if (200 == response.getStatusCode()) {
-//						Command p = Command.asCommand(response.getText());
-//						updateData(p.getUri(), p);
-//					} else {
-//						Window.alert("Response error " + response.getStatusText());
-//					}
-//				}
-//			});
-//		} catch (RequestException exception) {
-//			Window.alert("Request exception " + exception.getMessage());
-//		}
-//	}
-	
+		
 	public void fetch(final int start, String search, boolean preferred, List<String> list) {
 		GWT.log("Command fetch start="+start+" search="+search+" preferred="+preferred);
 		lastStart = start;
-		String url = URL.encode(collectionUrl+"&start="+start+"&end="+(start+PAGESIZE)+"&preferred="+preferred);
+		String url = collectionUrl+"&start="+start+"&end="+(start+PAGESIZE)+"&preferred="+preferred;
 		if(list == null){
 			list = new ArrayList<String>();
+			list.add("alltags");
+			list.add("untagged");
 		}
 		if(!isBlankOrNull(search))
 			url += "&search="+URL.encodeQueryString(search);
 		// Send request to server and catch any errors.
+		for(String s : list)
+		{
+			url += "&tags=" + s;
+		}
+		url = URL.encode(url);
 		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, url);
 		try {
 			 Request msg = builder.sendRequest(null, new RequestCallback() {
@@ -251,6 +191,17 @@ public class CommandListActivity extends AbstractActivity {
 					if (200 == response.getStatusCode()) {
 						Collection<Command> c = Command.asCollection(response.getText());
 						updateData(c.getUri(), c.getElements(), start, c.getTotal());
+						if(!knowTags ){
+							knowTags = true;
+							HashSet<String> tags = new HashSet<String>();
+							for(Command command :c.getElements()){
+								tags.addAll(command.getTags());
+							}
+							if(display instanceof CommandListGridView){
+								((CommandListGridView) display).updateTags(tags);
+							}
+							knowTags = true;
+						}
 					} else {
 						Window.alert("Response error " + response.getStatusText());
 					}

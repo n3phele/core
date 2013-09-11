@@ -59,6 +59,9 @@ public interface N3pheleCssResource extends CssResource {
   @ClassName("labelFontWeight")
   String labelFontWeight();
   
+  @ClassName("tagSpacing")
+  String tagSpacing();
+  
   @ClassName("baseBackground")
   String baseBackground();
   
