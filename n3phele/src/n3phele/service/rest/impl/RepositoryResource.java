@@ -69,6 +69,8 @@ import com.google.appengine.api.taskqueue.TaskOptions.Method;
 @Path("/repository")
 public class RepositoryResource {
 	private static Logger log = Logger.getLogger(RepositoryResource.class.getName());  
+	
+	public RepositoryResource(){}
 
 	@Context UriInfo uriInfo;
 	@Context SecurityContext securityContext;
@@ -164,6 +166,18 @@ public class RepositoryResource {
 
 		Repository item = dao.load(id, UserResource.toUser(securityContext));
 		return Response.seeOther(CloudStorage.factory().getRedirectURL(item, path, name)).build();
+	}
+	
+	@GET
+	@RolesAllowed("authenticated")
+	@Produces("text/plain")
+	@Path("{id}/redirectUrl")
+	public String redirectUrl(@PathParam ("id") Long id,
+			@DefaultValue("") @QueryParam("name") String name,
+			@DefaultValue("") @QueryParam("path") String path) throws NotFoundException {
+
+		Repository item = dao.load(id, UserResource.toUser(securityContext));
+		return Helpers.URItoString(CloudStorage.factory().getRedirectURL(item, path, name));
 	}
 
 	@GET
