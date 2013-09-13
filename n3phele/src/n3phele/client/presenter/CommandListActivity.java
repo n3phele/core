@@ -13,6 +13,7 @@
  */
 package n3phele.client.presenter;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -22,6 +23,7 @@ import n3phele.client.CacheManager;
 import n3phele.client.ClientFactory;
 import n3phele.client.model.Collection;
 import n3phele.client.model.Command;
+import n3phele.client.model.Context;
 import n3phele.client.presenter.helpers.AuthenticatedRequestFactory;
 import n3phele.client.view.CommandListViewInterface;
 
@@ -97,7 +99,7 @@ public class CommandListActivity extends AbstractActivity {
 		this.handlerRegistration = this.eventBus.addHandler(CommandListUpdate.TYPE, new CommandListUpdateEventHandler() {
 			@Override
 			public void onMessageReceived(CommandListUpdate event) {
-				fetch(lastStart, lastSearch, lastPreferred);
+				fetch(lastStart, lastSearch, lastPreferred,null);
 			}
 		});
 		
@@ -142,7 +144,7 @@ public class CommandListActivity extends AbstractActivity {
 			}
 		};
 		cacheManager.register(cacheManager.ServiceAddress + "command", this.name, change);
-		this.fetch(lastStart=0, lastSearch=null, lastPreferred=true);
+		this.fetch(lastStart=0, lastSearch=null, lastPreferred=true,null);
 	}
 
 	protected void unregister() {
@@ -228,16 +230,19 @@ public class CommandListActivity extends AbstractActivity {
 //		}
 //	}
 	
-	public void fetch(final int start, String search, boolean preferred) {
+	public void fetch(final int start, String search, boolean preferred, List<String> list) {
 		GWT.log("Command fetch start="+start+" search="+search+" preferred="+preferred);
 		lastStart = start;
 		String url = URL.encode(collectionUrl+"&start="+start+"&end="+(start+PAGESIZE)+"&preferred="+preferred);
+		if(list == null){
+			list = new ArrayList<String>();
+		}
 		if(!isBlankOrNull(search))
 			url += "&search="+URL.encodeQueryString(search);
 		// Send request to server and catch any errors.
 		RequestBuilder builder = AuthenticatedRequestFactory.newRequest(RequestBuilder.GET, url);
 		try {
-			builder.sendRequest(null, new RequestCallback() {
+			 Request msg = builder.sendRequest(null, new RequestCallback() {
 				public void onError(Request request, Throwable exception) {
 					Window.alert("Request error " + exception.getMessage());
 				}

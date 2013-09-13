@@ -2,12 +2,12 @@
 # Author: Alexandre Tavares
 name       : bootstrapJujuCore
 description: Bootstraps Juju
-version    : 2.0
+version    : 2.2
 preferred  : true
 tags       : service
 processor  : StackService
 public     : true
-icon       : http://www.n3phele.com/icons/custom
+icon       : http://www.n3phele.com/icons/jujuIcon
 
 HPZone1: # HP Cloud
 	$$vmTavares = CREATEVM --name vmTavares --imageRef 142792 --n 1

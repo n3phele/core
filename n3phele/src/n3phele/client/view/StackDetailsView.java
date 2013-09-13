@@ -79,7 +79,7 @@ public class StackDetailsView extends WorkspaceVerticalPanel {
 				return result;
 			}
 		};
-		cellTable.addColumn(hoursColumn, "Cost");
+		cellTable.addColumn(hoursColumn, "Cost per hour");
 		cellTable.setColumnWidth(hoursColumn, "100px");
 
 		TextColumn<CloudProcess> activeColumn = new TextColumn<CloudProcess>() {
@@ -95,22 +95,7 @@ public class StackDetailsView extends WorkspaceVerticalPanel {
 			}
 		};
 		cellTable.addColumn(activeColumn, "IP");
-		cellTable.setColumnWidth(activeColumn, "80px");
-
-		// Add a selection model to handle user selection.
-		final SingleSelectionModel<CloudProcess> selectionModel = new SingleSelectionModel<CloudProcess>();
-		cellTable.setSelectionModel(selectionModel);
-		selectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
-			public void onSelectionChange(SelectionChangeEvent event) {
-				CloudProcess selected = selectionModel.getSelectedObject();
-				if (selected != null) {
-					if(presenter != null) {
-						//presenter.onSelect(selected);
-					}
-				}
-			}
-		});	
-		
+		cellTable.setColumnWidth(activeColumn, "80px");		
 		cellTable.setTableLayoutFixed(true);
 		cellTable.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.DISABLED);
 		this.add(cellTable);
