@@ -1,0 +1,19 @@
+# copy.n
+# Author: Leonardo Amado
+name	   : copy
+description: File copy
+version	   : 0.0.3
+preferred  : true
+public	   : true
+icon	   : http://www.n3phele.com/icons/fileCopy
+input files:
+	input.file # Input file
+output files:
+	output.file # Output file
+HPZone1: # HP Cloud	
+	$$vmCreated = CREATEVM --name vmCreated --n 1
+	
+	ON $$vmCreated --produces [
+		output.file: output.file]
+		mv input.file output.file; 
+		ls -l output.file;

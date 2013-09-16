@@ -1,0 +1,30 @@
+# untar.n
+# Author: Leonardo Amado
+name	   : untar
+description: unpack a tar, .tgz or tar.gz file
+version	   : 0.1.7
+preferred  : true
+public	   : true
+icon	   : http://www.n3phele.com/icons/untar
+parameters :
+	boolean z = true # true if is .gz or tgz
+input files:
+	input.tgz # Input tar file
+output files:
+	output.zip #zipped file
+HPZone1: # HP Cloud	
+	$$vmCreated = CREATEVM --name vmCreated --n 1
+	
+	ON $$vmCreated --produces [
+		output.zip: output.zip]
+		sudo apt-get install zip -y;
+		mkdir unpack; 
+		cd unpack;
+		if [ $1 == true ]
+		then
+		   tar xvzf ../input.tgz;
+		else
+		   tar xvf ../input.tgz;
+		fi
+		rm ../input.tgz; 
+		zip -r ../output.zip ../unpack;

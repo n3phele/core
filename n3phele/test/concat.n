@@ -1,0 +1,26 @@
+# concat.n
+# Author: Leonardo Amado
+name	   : concat
+description: concat multiple files
+version	   : 0.0.3
+preferred  : true
+public	   : true
+icon	   : http://www.n3phele.com/icons/concatenate
+input files:
+	input1.txt # Input  file
+	optional input2.txt # Input  file
+	optional input3.txt # Input  file
+	optional input4.txt  # Input  file
+	optional input5.txt  # Input  file
+	optional input6.txt  # Input  file
+	optional input7.txt  # Input  file
+	optional input8.txt  # Input  file
+output files:
+	output.txt #txt file
+HPZone1: # HP Cloud	
+	$$vmCreated = CREATEVM --name vmCreated --n 1
+	
+	ON $$vmCreated --produces [
+		output.txt: output.txt]
+		cat input[12345678].txt > output.txt
+		ls -l input[12345678].txt output.txt;

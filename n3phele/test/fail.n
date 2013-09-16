@@ -1,0 +1,16 @@
+# fail.n
+# Author: Leonardo Amado
+name	   : fail
+description: prints a fail message
+version	   : 0.0.1
+preferred  : true
+public	   : true
+icon	   : http://www.n3phele.com/icons/custom
+parameters :
+	string fail = "failed" # a message for failure
+HPZone1: # HP Cloud	
+	$$vmCreated = CREATEVM --name vmCreated --n 1
+	
+	ON $$vmCreated 
+		echo $$fail ;
+		exit 1;
