@@ -102,6 +102,7 @@ public class CommandResourceTest {
 		Assert.assertEquals(0,cr.filter(false,"cp1", listQ,col).getElements().size());
 		listQ.add("alltags");
 		Assert.assertEquals(3,cr.filter(true,null, listQ,col).getElements().size());	
+		Assert.assertEquals(0,cr.filter(true,"cp4", listQ,col).getElements().size());	
 	}
 	
 	public Command commandWithTags(String name, String... tags){

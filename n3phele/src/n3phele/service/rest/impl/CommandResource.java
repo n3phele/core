@@ -103,9 +103,9 @@ public class CommandResource {
 				search = null;
 		}
 		Collection<Command> result = null;
-		if(search != null || preferred == false) {
+		if(search != null || preferred == false || !tagSet.isEmpty()) {
 			result = dao.getCollection(UserResource.toUser(securityContext), preferred);
-			filter(summary, search, tagSet, result);
+			result = filter(summary, search, tagSet, result);
 			return new CommandCollection(result, start, end);
 		} else {
 			result = getPreferredCommandDefinitionFromCache(UserResource.toUser(securityContext), start, end);

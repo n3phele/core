@@ -439,3 +439,7 @@ background-color: #e8eef7;
 	font-weight:bold;
 	font-size:12pt;
 }
+
+.tagSpacing{
+	padding-right:10px !important;
+}
