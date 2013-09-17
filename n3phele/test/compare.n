@@ -1,0 +1,23 @@
+# compare.n
+# Author: Leonardo Amado
+name	   : compare
+description: Compare two files
+version	   : 0.0.2
+preferred  : true
+tags       : nshell
+public	   : true
+icon	   : http://www.n3phele.com/icons/filecompare
+input files:
+	input1.file # Input file1 for compare
+	input2.file # Input file2 for compare
+HPZone1: # HP Cloud	
+	$$vmCreated = CREATEVM --name vmCreated --n 1
+	
+	ON $$vmCreated
+		md5sum input1.file input2.file; 
+		if cmp input1.file input2.file; 
+			then 
+				echo "Files match"; 
+		else 
+			echo "Files do not match"; 
+		fi

@@ -1,0 +1,21 @@
+# wget.n
+# Author: Leonardo Amado
+name	   : wget
+description: downloads from a url
+version	   : 0.0.6
+preferred  : true
+tags       : nshell 
+public	   : true
+icon	   : http://www.n3phele.com/icons/wget
+parameters :
+	string url = "" # a url for downloading
+output files:
+	output.txt # The file to be downloaded and saved
+HPZone1: # HP Cloud	
+	$$vmCreated = CREATEVM --name vmCreated --n 1
+	
+	ON $$vmCreated --produces [
+		output.txt: output]
+		wget -o wget.log -t 3 -O - $$url > output;
+		grep -v -F '....'  wget.log 1>&2; 
+		file output;

@@ -1,0 +1,21 @@
+# grep.n
+# Author: Leonardo Amado
+name	   : grep
+description: find and print lines that match a regular expression
+version	   : 0.0.9
+preferred  : true
+tags       : nshell
+public	   : true
+icon	   : http://www.n3phele.com/icons/custom
+parameters:
+	string regularexp = "a" # the regular expression 
+input files:
+	input.txt # Input  file
+output files:
+	output.txt # Output with macthed lines
+HPZone1: # HP Cloud	
+	$$vmCreated = CREATEVM --name vmCreated --n 1
+	
+	ON $$vmCreated --produces [
+		output.txt: output.txt]
+		grep $$regularexp input.txt > output.txt || exit 0;		
