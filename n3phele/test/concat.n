@@ -4,6 +4,7 @@ name	   : concat
 description: concat multiple files
 version	   : 0.0.3
 preferred  : true
+tags       : nshell
 public	   : true
 icon	   : http://www.n3phele.com/icons/concatenate
 input files:

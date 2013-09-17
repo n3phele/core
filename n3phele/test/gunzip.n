@@ -4,6 +4,7 @@ name	   : gunzip
 description: unpack a gz
 version	   : 0.0.4
 preferred  : true
+tags       : nshell
 public	   : true
 icon	   : http://www.n3phele.com/icons/unzip
 input files:

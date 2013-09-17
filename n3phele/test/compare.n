@@ -4,6 +4,7 @@ name	   : compare
 description: Compare two files
 version	   : 0.0.2
 preferred  : true
+tags       : nshell
 public	   : true
 icon	   : http://www.n3phele.com/icons/filecompare
 input files:

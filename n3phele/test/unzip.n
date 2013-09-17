@@ -4,6 +4,7 @@ name	   : unzip
 description: unpack a zip
 version	   : 0.0.2
 preferred  : true
+tags       : nshell 
 public	   : true
 icon	   : http://www.n3phele.com/icons/unzip
 input files:

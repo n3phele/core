@@ -2,8 +2,9 @@
 # Author: Leonardo Amado
 name	   : untar
 description: unpack a tar, .tgz or tar.gz file
-version	   : 0.1.7
+version	   : 0.1.8
 preferred  : true
+tags       : nshell
 public	   : true
 icon	   : http://www.n3phele.com/icons/untar
 parameters :
