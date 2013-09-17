@@ -1,0 +1,25 @@
+# unzip.n
+# Author: Leonardo Amado
+name	   : unzip
+description: unpack a zip
+version	   : 0.0.2
+preferred  : true
+tags       : nshell 
+public	   : true
+icon	   : http://www.n3phele.com/icons/unzip
+input files:
+	input.zip # Input tar file
+output files:
+	output.zip #zipped file
+HPZone1: # HP Cloud	
+	$$vmCreated = CREATEVM --name vmCreated --n 1
+	
+	ON $$vmCreated --produces [
+		output.zip: output.zip]
+		sudo apt-get install zip -y;
+		sudo apt-get install unzip -y;
+		mkdir unpack; 
+		cd unpack; 
+		unzip ../input.zip;
+		rm ../input.zip; 
+		zip -r ../output.zip ../unpack;
