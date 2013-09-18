@@ -69,6 +69,7 @@ import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.PushButton;
 import com.google.gwt.user.client.ui.SimpleCheckBox;
 import com.google.gwt.user.client.ui.TextBox;
+import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.RangeChangeEvent;
 
@@ -90,9 +91,12 @@ public class CommandListGridView extends WorkspaceVerticalPanel implements Comma
 	protected boolean suppressEvent = false;
 	private SimplePager simplePager;
 	private List<SimpleCheckBox> checkBoxList = new ArrayList<SimpleCheckBox>();
-	private HorizontalPanel disclosed;
-	private final HorizontalPanel tagPanel = new HorizontalPanel();
-	private String cellWidth = "100px";
+	private FlowPanel disclosed;
+	private final FlowPanel tagPanel = new FlowPanel();
+	private DisclosurePanel more;
+	private boolean lastSearch = true;
+	private List<String> lastTags = null;
+	private HashSet<String> setTags = new HashSet<String>();
 	@SuppressWarnings("deprecation")
 	public CommandListGridView() {
 		super(new MenuItem(N3phele.n3pheleResource.commandIcon(), "Commands", null));
@@ -103,9 +107,11 @@ public class CommandListGridView extends WorkspaceVerticalPanel implements Comma
 			public void onClick(ClickEvent event) {
 				createUploadPopup();	
 			}});
+		
 		addDataSet.setStyleName(N3phele.n3pheleResource.css().newCommandButton());
 		this.strip.add(addDataSet);
 		HorizontalPanel heading = new HorizontalPanel();
+		more = new DisclosurePanel("advanced");
 		heading.setWidth("500px");
 		heading.setStyleName(N3phele.n3pheleResource.css().sectionPanelHeader());
 		add(heading);	
@@ -115,7 +121,7 @@ public class CommandListGridView extends WorkspaceVerticalPanel implements Comma
 		SimplePager.Resources pagerResources = GWT.create(SimplePager.Resources.class);
 	    simplePager = new SimplePager(TextLocation.CENTER, pagerResources, false, 0, true);
 		heading.add(simplePager);
-		tagPanel.setBorderWidth(100);
+		//tagPanel.setBorderWidth(100);
 		
 		textBox = new TextBox();
 		textBox.setTitle("search for a command");
@@ -137,7 +143,12 @@ public class CommandListGridView extends WorkspaceVerticalPanel implements Comma
 							tags.add(checkBox.getName());
 						}
 					}
-					commandActivity.fetch(0, searchText = textBox.getText(), !allVersions.getValue(),tags);
+					boolean allVersionsBoo = !allVersions.getValue();
+					if(!more.isOpen()){
+						tags = null;
+						allVersionsBoo = true;
+					}
+					commandActivity.fetch(0, searchText = textBox.getText(), lastSearch = allVersionsBoo,lastTags =tags);
 				}
 			}
 		});
@@ -149,7 +160,7 @@ public class CommandListGridView extends WorkspaceVerticalPanel implements Comma
 		search.setStyleName(N3phele.n3pheleResource.css().commandSearchButton());
 		heading.add(search);
 		search.addClickHandler(new ClickHandler(){
-
+			
 			@Override
 			public void onClick(ClickEvent event) {
 				ArrayList<String> tags = new ArrayList<String>();
@@ -164,19 +175,24 @@ public class CommandListGridView extends WorkspaceVerticalPanel implements Comma
 						tags.add(checkBox.getName());
 					}
 				}
-				commandActivity.fetch(0, searchText = textBox.getText(), !allVersions.getValue(),tags);
-				
+				boolean allVersionsBoo = !allVersions.getValue();
+				if(!more.isOpen()){
+					tags = null;
+					allVersionsBoo = true;
+				}
+				commandActivity.fetch(0, searchText = textBox.getText(), lastSearch = allVersionsBoo,lastTags =tags);				
 			}});
 		
 
 		heading.setCellHorizontalAlignment(simplePager, HorizontalPanel.ALIGN_CENTER);
-		DisclosurePanel more = new DisclosurePanel("advanced");
+		
 		
 		more.setStyleName(N3phele.n3pheleResource.css().sectionPanelHeader());
 		heading.add(more);
 		heading.setCellHorizontalAlignment(more, HorizontalPanel.ALIGN_LEFT);
-		disclosed = new HorizontalPanel();
+		disclosed = new FlowPanel();
 		//more.add(disclosed);
+		disclosed.setWidth("500px");
 		more.addOpenHandler(new OpenHandler<DisclosurePanel>() {
 			@Override
 			public void onOpen(OpenEvent<DisclosurePanel> event) {
@@ -189,14 +205,31 @@ public class CommandListGridView extends WorkspaceVerticalPanel implements Comma
 				tagPanel.setVisible(false);       
 			}
 		});
-		disclosed.add(new InlineLabel("Search all versions"));
-		FlowPanel fl = new FlowPanel();
+		//disclosed.add(new InlineLabel("Search all versions"));
+		HorizontalPanel fl = new HorizontalPanel();
+		fl.add(new InlineLabel("Search all versions"));
 		allVersions = new SimpleCheckBox();
 		allVersions.setName("allVersions");
 		allVersions.setFormValue("Search all versions");
-		allVersions.setStyleName(N3phele.n3pheleResource.css().tagSpacing());
-		fl.add(allVersions);
 		fl.setStyleName(N3phele.n3pheleResource.css().tagSpacing());
+		fl.add(allVersions);
+		disclosed.setStyleName(N3phele.n3pheleResource.css().repoTextCell());
+		disclosed.add(fl);
+		fl = new HorizontalPanel();
+		fl.setStyleName(N3phele.n3pheleResource.css().tagSpacing());
+		fl.add(new InlineLabel("All tags"));
+		allTags = new SimpleCheckBox();
+		allTags.setName("alltags");
+		allTags.setFormValue(" All tags");
+		fl.add(allTags);
+		disclosed.add(fl);
+		fl = new HorizontalPanel();
+		fl.add(new InlineLabel(" Without tag"));
+		fl.setStyleName(N3phele.n3pheleResource.css().tagSpacing());
+		untagged= new SimpleCheckBox();
+		untagged.setName("Untagged");
+		untagged.setFormValue("Without tag");
+		fl.add(untagged);
 		disclosed.add(fl);
 		tagPanel.add(disclosed);
 		grid = new CellTable<List<Command>>();
@@ -308,20 +341,8 @@ public class CommandListGridView extends WorkspaceVerticalPanel implements Comma
 				if(start > total)
 					start = total;
 //				if(data == null || (data.size() < start) ){
-					
-				ArrayList<String> tags = new ArrayList<String>();
-				if(untagged.getValue()){
-					tags.add("untagged");
-				}
-				if(allTags.getValue()){
-					tags.add("alltags");
-				}
-				for(SimpleCheckBox checkBox : checkBoxList){
-					if(checkBox.getValue()){
-						tags.add(checkBox.getName());
-					}
-				}
-				commandActivity.fetch(0, searchText = textBox.getText(), !allVersions.getValue(),tags);
+				commandActivity.fetch(start, searchText, lastSearch,lastTags);
+			//	commandActivity.fetch(start, searchText = textBox.getText(), !allVersions.getValue(),tags);
 //				} else {
 //					if(length+start > data.size())
 //						length = data.size()-start;
@@ -555,32 +576,18 @@ public class CommandListGridView extends WorkspaceVerticalPanel implements Comma
 	}
 	
 	public void updateTags(HashSet<String> tags){
-		if(this.checkBoxList.size() > 0) return;
-		FlowPanel fl = new FlowPanel();
-		fl.setStyleName(N3phele.n3pheleResource.css().tagSpacing());
-		disclosed.add(new InlineLabel("All tags"));
-		allTags = new SimpleCheckBox();
-		allTags.setName("alltags");
-		allTags.setFormValue(" All tags");
-		fl.add(allTags);
-		disclosed.add(fl);
-		disclosed.add(new InlineLabel(" Without tag"));
-		fl = new FlowPanel();
-		fl.setStyleName(N3phele.n3pheleResource.css().tagSpacing());
-		untagged= new SimpleCheckBox();
-		untagged.setName("Untagged");
-		untagged.setFormValue("Without tag");
-		fl.add(untagged);
-		disclosed.add(fl);
+		HorizontalPanel fl = new HorizontalPanel();
 		for(String s : tags){
 			if(s.trim().length() == 0) continue;
+			if(setTags.contains(s)) continue;
+			setTags.add(s);
 			SimpleCheckBox newTag = new SimpleCheckBox();
-			disclosed.add(new InlineLabel(" " +s));
+			fl = new HorizontalPanel();
+			fl.add(new InlineLabel(" " +s));
 			newTag = new SimpleCheckBox();
 			newTag.setName(s);
 			newTag.setFormValue(s);
 			this.checkBoxList.add(newTag);
-			fl = new FlowPanel();
 			fl.setStyleName(N3phele.n3pheleResource.css().tagSpacing());
 			fl.add(newTag);
 			disclosed.add(fl);

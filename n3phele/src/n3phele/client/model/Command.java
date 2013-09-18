@@ -169,28 +169,37 @@ public class Command extends Entity {
 	}-*/;
 	
 	
-	public native final String getStringElements() /*-{
+	public native final JavaScriptObject tags() /*-{
 		var array = [];
 		if (this.tags != undefined && this.tags != null) {
 			if (this.tags.length == undefined) {
-				array[0] = this.tags;
-			} else {
 				array = this.tags;
+			} else {
+				if(!(this.tags instanceof Array)){
+					array[0] = "#";
+					array[1] = this.tags;
+				}
+				else{
+					 array = this.tags;
+				}
 			}
-		}else return "";
+		} else{
+			return array; 
+		}
 		return array;
 	}-*/;
 
 	public final List<String> getTags() {
-		String jsa = getStringElements();
+		String jsa = tags().toString();
 		List<String> list = new ArrayList<String>();
 		String[] costs = jsa.toString().split(",");
 		for (int i = 0; i < costs.length; i++) {
+			if(costs[i].equals("#")) continue;
 			list.add(costs[i]);
 		}
 		return list;
 	}
-	
+
 	public static final native Collection<Command> asCollection(String assumedSafe) /*-{
 	return eval("("+assumedSafe+")");
 	// return JSON.parse(assumedSafe);

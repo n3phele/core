@@ -64,6 +64,7 @@ public class CommandListActivity extends AbstractActivity {
 	private boolean lastPreferred;
 	private String lastSearch;
 	protected boolean knowTags = false;
+	private HashSet<String> tags = new HashSet<String>();
 
 	public CommandListActivity(String name, ClientFactory factory, String commandCollectionArgs, CommandListViewInterface view) {
 		super();
@@ -139,7 +140,7 @@ public class CommandListActivity extends AbstractActivity {
 	}
 
 	protected void initData() {
-		this.fetch(lastStart=0, lastSearch=null, lastPreferred=knowTags,null);
+		this.fetch(lastStart=0, lastSearch=null, lastPreferred=!knowTags,null);
 		CacheManager.EventConstructor change = new CacheManager.EventConstructor() {
 			@Override
 			public CommandListUpdate newInstance(String key) {
@@ -191,17 +192,15 @@ public class CommandListActivity extends AbstractActivity {
 					if (200 == response.getStatusCode()) {
 						Collection<Command> c = Command.asCollection(response.getText());
 						updateData(c.getUri(), c.getElements(), start, c.getTotal());
-						if(!knowTags ){
-							knowTags = true;
-							HashSet<String> tags = new HashSet<String>();
-							for(Command command :c.getElements()){
+						//knowTags = true;						
+						for(Command command :c.getElements()){
+							if(command.getTags() != null)
 								tags.addAll(command.getTags());
-							}
-							if(display instanceof CommandListGridView){
-								((CommandListGridView) display).updateTags(tags);
-							}
-							knowTags = true;
 						}
+						if(display instanceof CommandListGridView){
+							((CommandListGridView) display).updateTags(tags);
+						}
+						knowTags = true;
 					} else {
 						Window.alert("Response error " + response.getStatusText());
 					}
