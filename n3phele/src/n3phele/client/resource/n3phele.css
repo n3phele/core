@@ -442,4 +442,5 @@ background-color: #e8eef7;
 
 .tagSpacing{
 	padding-right:10px !important;
+	display: inline-block;
 }
