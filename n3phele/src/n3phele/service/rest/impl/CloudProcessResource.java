@@ -51,6 +51,8 @@ import n3phele.service.model.ActionState;
 import n3phele.service.model.CachingAbstractManager;
 import n3phele.service.model.CloudProcess;
 import n3phele.service.model.CloudProcessCollection;
+import n3phele.service.model.CloudProcessSummary;
+import n3phele.service.model.ProcessCachingAbstractManager;
 import n3phele.service.model.ProcessCounter;
 import n3phele.service.model.Relationship;
 import n3phele.service.model.ServiceModelDao;
@@ -58,6 +60,7 @@ import n3phele.service.model.SignalKind;
 import n3phele.service.model.Stack;
 import n3phele.service.model.Variable;
 import n3phele.service.model.core.Collection;
+import n3phele.service.model.core.Entity;
 import n3phele.service.model.core.GenericModelDao;
 import n3phele.service.model.core.Helpers;
 import n3phele.service.model.core.User;
@@ -140,7 +143,7 @@ public class CloudProcessResource {
 	@RolesAllowed("authenticated")
 	@Path("/toplevel{id:[0-9]+}")
 	public CloudProcess getTopLevel(@PathParam("id") Long id) throws NotFoundException {
-		return get(null, id);
+		return (CloudProcess)get(null, id, false);
 	}
 
 	@GET
@@ -156,21 +159,30 @@ public class CloudProcessResource {
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
 	@Path("{group:[0-9]+_}{id:[0-9]+}")
-	public CloudProcess get(@PathParam("group") String group, @PathParam("id") Long id) throws NotFoundException {
+	public Entity get(@PathParam("group") String group, @PathParam("id") Long id, @DefaultValue("false") @QueryParam("summary") Boolean summary) throws NotFoundException {
+
 		Key<CloudProcess> root = null;
 		if (group != null) {
 			root = Key.create(CloudProcess.class, Long.valueOf(group.substring(0, group.length() - 1)));
 		}
 		CloudProcess item = dao.load(root, id, UserResource.toUser(securityContext));
-		return item;
+		
+		Entity entity = item;
+		if(summary)
+		{
+			entity = new CloudProcessSummary(item);
+		}
+		return entity;
 	}
 
 	@GET
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
 	@Path("{id:[0-9]+}")
-	public CloudProcess get(@PathParam("id") Long id) throws NotFoundException {
-		return get(null, id);
+	public Entity get(@PathParam("id") Long id, @DefaultValue("false") @QueryParam("summary") Boolean summary) throws NotFoundException {
+		Entity entity = get(null, id, summary);
+		
+		return entity;
 	}
 
 	@DELETE
@@ -549,7 +561,7 @@ public class CloudProcessResource {
 	/*
 	 * Data Access
 	 */
-	public static class CloudProcessManager extends CachingAbstractManager<CloudProcess> {
+	public static class CloudProcessManager extends ProcessCachingAbstractManager {
 		public CloudProcessManager() {
 		}
 

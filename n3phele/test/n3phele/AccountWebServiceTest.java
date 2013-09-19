@@ -26,16 +26,23 @@ public class AccountWebServiceTest  {
 
 	}
 
+	String serverUri;
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-
+		
 	}
 
 	@Before
 	public void setUp() throws Exception {
 		client = Client.create();
 		client.addFilter(new HTTPBasicAuthFilter("test-user@gmail.com", "testit!"));
-		webResource = client.resource(UriBuilder.fromUri("http://127.0.0.1:8888/resources").path(AccountResource.class).build());
+		serverUri = getServiceAddress();
+		webResource = client.resource(UriBuilder.fromUri(serverUri).path(AccountResource.class).build());
+	}
+	
+	public String getServiceAddress()
+	{
+		return "https://n3phele-dev4.appspot.com/resources";		
 	}
 
 	private Client client;
@@ -44,7 +51,7 @@ public class AccountWebServiceTest  {
 	@Test
 	public void addEC2AccountCloudTest() {
 		URI account = null;
-		Cloud cloud = webResource.uri(UriBuilder.fromUri("http://127.0.0.1:8888/resources").path(CloudResource.class).build()).path("byName").queryParam("id","EC2").accept(MediaType.APPLICATION_JSON_TYPE).get(Cloud.class);
+		Cloud cloud = webResource.uri(UriBuilder.fromUri(serverUri).path(CloudResource.class).build()).path("byName").queryParam("id","EC2").accept(MediaType.APPLICATION_JSON_TYPE).get(Cloud.class);
 
 		if(account == null) {
 
@@ -82,7 +89,7 @@ public class AccountWebServiceTest  {
 	@Test
 	public void addHPAccountCloudTest(){
 		URI account = null;
-		Cloud cloud = webResource.uri(UriBuilder.fromUri("http://127.0.0.1:8888/resources").path(CloudResource.class).build()).path("byName").queryParam("id","HPZone1").accept(MediaType.APPLICATION_JSON_TYPE).get(Cloud.class);
+		Cloud cloud = webResource.uri(UriBuilder.fromUri(serverUri).path(CloudResource.class).build()).path("byName").queryParam("id","HPZone1").accept(MediaType.APPLICATION_JSON_TYPE).get(Cloud.class);
 		if(account == null) {
 			
 			Form form = new Form();

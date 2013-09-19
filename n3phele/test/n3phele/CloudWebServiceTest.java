@@ -13,6 +13,7 @@ import java.util.Map.Entry;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
+import n3phele.client.CacheManager;
 import n3phele.service.model.Cloud;
 import n3phele.service.model.core.BaseEntity;
 import n3phele.service.model.core.Collection;
@@ -48,13 +49,16 @@ public class CloudWebServiceTest  {
 		client = Client.create();
 		client.addFilter(new HTTPBasicAuthFilter("test-user@gmail.com", "testit!"));
 		//client.addFilter(new HTTPBasicAuthFilter("root", "n3phelepoa"));
-		webResource = client.resource(UriBuilder.fromUri("http://127.0.0.1:8888/resources").path(CloudResource.class).build());
-		//webResource = client.resource(UriBuilder.fromUri("https://n3phele-dev.appspot.com/resources").path(CloudResource.class).build());
+		webResource = client.resource(UriBuilder.fromUri(getServiceAddress()).path(CloudResource.class).build());
 	}
 
 	private Client client;
 	private WebResource webResource;
-	
+		
+	public String getServiceAddress()
+	{
+		return new CacheManager(null).ServiceAddress;
+	}	
 	
 	public Map<String,Double> readFile(String fileName){
 		Map<String, Double> map = new HashMap<String,Double>();
