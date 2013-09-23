@@ -5,6 +5,7 @@ import java.net.URI;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
+import n3phele.client.CacheManager;
 import n3phele.service.model.core.BaseEntity;
 import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.Entity;
@@ -38,7 +39,12 @@ public class UserWebServiceTest  {
 
 		client = Client.create();
 		client.addFilter(new HTTPBasicAuthFilter("test-user@gmail.com", "testit!"));
-		webResource = client.resource(UriBuilder.fromUri("http://127.0.0.1:8888/resources").path(UserResource.class).build());
+		webResource = client.resource(UriBuilder.fromUri(getServiceAddress()).path(UserResource.class).build());
+	}
+	
+	public String getServiceAddress()
+	{
+		return new CacheManager(null).ServiceAddress;
 	}
 
 	private Client client;
