@@ -2,15 +2,19 @@ package n3phele.process;
 
 import static org.junit.Assert.*;
 
+import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 
 import n3phele.service.actions.StackServiceAction;
 import n3phele.service.dao.ProcessCounterManager;
 import n3phele.service.model.Account;
 import n3phele.service.model.Action;
+import n3phele.service.model.ChangeManager;
 import n3phele.service.model.CloudProcess;
 import n3phele.service.model.ProcessCounter;
+import n3phele.service.model.core.Change;
 import n3phele.service.model.core.Collection;
 import n3phele.service.model.core.User;
 import n3phele.service.rest.impl.AccountResource;
@@ -18,6 +22,7 @@ import n3phele.service.rest.impl.UserResource;
 import n3phele.service.rest.impl.ActionResource.ActionManager;
 import n3phele.service.rest.impl.CloudProcessResource.CloudProcessManager;
 
+import org.hsqldb.DatabaseURL;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -332,5 +337,156 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 		assertEquals(processCount, processes.getElements().size());
 		List<CloudProcess> serviceActionsProcesses = collection.getElements();
 		assertEquals("No element should be returned", 0, serviceActionsProcesses.size());
+	}
+	
+	@Test
+	public void WhenOneCloudProcessTopLevelIsAddedToDatabaseThenAChangeToTheCollectionPathIsAddedToChangeManager() throws URISyntaxException {
+		CloudProcessManager processManager = new CloudProcessManager();
+				
+		String owner = "http://localhost/user/1";
+		CloudProcess process = buildValidCloudProcess(owner);
+		process.setTopLevel(true);
+
+		ChangeManager cacheManager = ChangeManager.factory();				
+		Long stamp = cacheManager.initCache();
+		
+		processManager.add(process);		
+		
+		ArrayList<Change> changes = cacheManager.getChanges(stamp, new URI(owner), true).getChange();
+		assertEquals(1, changes.size() );
+		assertEquals(processManager.path.toString(), changes.get(0).getUri().toString() );		
+	}
+	
+	@Test
+	public void WhenOneCloudProcessTopLevelIsUpdatedThenAChangeToTheProcessIsAddedToChangeManager() throws URISyntaxException {
+		CloudProcessManager processManager = new CloudProcessManager();
+				
+		String owner = "http://localhost/user/1";
+		CloudProcess process = buildValidCloudProcess(owner);
+		process.setTopLevel(true);
+
+		ChangeManager cacheManager = ChangeManager.factory();		
+		Long stamp = cacheManager.initCache();
+
+		processManager.add(process);
+		processManager.update(process);
+		
+		//Ask for stamp +1 so ignores change made by the add call
+		ArrayList<Change> changes = cacheManager.getChanges(stamp+1, new URI(owner), true).getChange();
+		assertEquals(1, changes.size() );
+		assertEquals( process.getUri().toString(), changes.get(0).getUri().toString() );		
+	}
+	
+	@Test
+	public void WhenOneCloudProcessTopLevelIsDeletedThenAChangeToTheCollectionAndAChangeToTheProcessAreAddedToChangeManager() throws URISyntaxException {
+		CloudProcessManager processManager = new CloudProcessManager();
+				
+		String owner = "http://localhost/user/1";
+		CloudProcess process = buildValidCloudProcess(owner);
+		process.setTopLevel(true);
+
+		ChangeManager cacheManager = ChangeManager.factory();		
+		Long stamp = cacheManager.initCache();
+
+		processManager.add(process);
+		processManager.delete(process);
+		
+		//Ask for stamp +1 so ignores change made by the add call
+		ArrayList<Change> changes = cacheManager.getChanges(stamp+1, new URI(owner), true).getChange();
+		assertEquals(2, changes.size() );
+		
+		boolean collectionIsOnChange = false;
+		boolean processIsOnChange = false;
+		
+		for(int i=0; i<changes.size(); i++)
+		{
+				if(processManager.path.equals(changes.get(i).getUri()) ) collectionIsOnChange = true;
+				if(process.getUri().equals(changes.get(i).getUri())) processIsOnChange = true;
+		}
+		
+		assertTrue( collectionIsOnChange);
+		assertTrue( processIsOnChange );	
+	}
+	
+	@Test
+	public void WhenOneCloudProcessNonTopLevelIsAddedToDatabaseThenAChangeToItsParentIsAddedToChangeManager() throws URISyntaxException {
+		CloudProcessManager processManager = new CloudProcessManager();
+				
+		String owner = "http://localhost/user/1";
+		String parenUri = "http://localhost/process/2";
+		CloudProcess parent = buildValidCloudProcess(owner);
+		parent.setUri(new URI(parenUri));
+		CloudProcess process = buildValidCloudProcess(owner);
+		process.setTopLevel(false);
+		
+		process.setParent(parent.getUri());
+
+		ChangeManager cacheManager = ChangeManager.factory();				
+		Long stamp = cacheManager.initCache();
+
+		processManager.add(process);		
+		
+		ArrayList<Change> changes = cacheManager.getChanges(stamp, new URI(owner), true).getChange();
+		assertEquals(1, changes.size() );
+		assertEquals( parenUri, changes.get(0).getUri().toString() );		
+	}
+	
+	@Test
+	public void WhenOneCloudProcessNonTopLevelIsUpdatedThenAChangeToItsParentIsAddedToChangeManager() throws URISyntaxException {
+		CloudProcessManager processManager = new CloudProcessManager();
+				
+		String owner = "http://localhost/user/1";
+		String parenUri = "http://localhost/process/2";
+		CloudProcess parent = buildValidCloudProcess(owner);
+		parent.setUri(new URI(parenUri));
+		CloudProcess process = buildValidCloudProcess(owner);
+		process.setTopLevel(false);
+		process.setParent(parent.getUri());
+
+		ChangeManager cacheManager = ChangeManager.factory();		
+		Long stamp = cacheManager.initCache();
+
+		processManager.add(process);
+		processManager.update(process);
+		
+		//Ask for stamp +1 so ignores change made by the add call
+		ArrayList<Change> changes = cacheManager.getChanges(stamp+1, new URI(owner), true).getChange();
+		assertEquals(1, changes.size() );
+		assertEquals( parenUri, changes.get(0).getUri().toString() );		
+	}
+	
+	@Test
+	public void WhenOneCloudProcessNonTopLevelIsDeletedThenAChangeToItsParentAndAChangeToTheProcessAreAddedToChangeManager() throws URISyntaxException {
+		CloudProcessManager processManager = new CloudProcessManager();
+				
+		String owner = "http://localhost/user/1";
+		String parenUri = "http://localhost/process/2";
+		CloudProcess parent = buildValidCloudProcess(owner);
+		parent.setUri(new URI(parenUri));
+		CloudProcess process = buildValidCloudProcess(owner);
+		process.setTopLevel(false);
+		process.setParent(parent.getUri());
+
+		ChangeManager cacheManager = ChangeManager.factory();		
+		Long stamp = cacheManager.initCache();
+
+		processManager.add(process);
+		processManager.delete(process);
+		
+		//Ask for stamp +1 so ignores change made by the add call
+		ArrayList<Change> changes = cacheManager.getChanges(stamp+1, new URI(owner), true).getChange();
+		assertEquals(2, changes.size() );
+		
+		boolean parentIsOnChange = false;
+		boolean processIsOnChange = false;
+		
+		for(int i=0; i<changes.size(); i++)
+		{
+				if(process.getParent().equals(changes.get(i).getUri()) ) parentIsOnChange = true;
+				if(process.getUri().equals(changes.get(i).getUri())) processIsOnChange = true;
+		}
+		
+		assertTrue( parentIsOnChange);
+		assertTrue( processIsOnChange );	
 	}
 }
