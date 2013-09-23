@@ -21,16 +21,13 @@ public abstract class ProcessCachingAbstractManager extends AbstractManager<Clou
 	protected void add(CloudProcess item) throws IllegalArgumentException {
 			super.add(item);
 			
-			log.info("entered add");
 			if(item != null) 
 			if(item.isTopLevel())
 			{
-				log.info("added change for collection");
 				ChangeManager.factory().addChange(super.path);
 			}
 			else
 			{
-				log.info("added change for parent");
 				ChangeManager.factory().addChange(item.getParent());				
 			}
 	}
@@ -51,7 +48,6 @@ public abstract class ProcessCachingAbstractManager extends AbstractManager<Clou
 		}
 		else
 		{
-			//add change to parent (?)
 			ChangeManager.factory().addChange(item.getParent());
 		}
 	}

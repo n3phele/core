@@ -5,6 +5,7 @@ import java.net.URI;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
+import n3phele.client.CacheManager;
 import n3phele.service.model.Account;
 import n3phele.service.model.Cloud;
 import n3phele.service.rest.impl.AccountResource;
@@ -42,7 +43,7 @@ public class AccountWebServiceTest  {
 	
 	public String getServiceAddress()
 	{
-		return "https://n3phele-dev4.appspot.com/resources";		
+		return new CacheManager(null).ServiceAddress;		
 	}
 
 	private Client client;
