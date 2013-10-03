@@ -179,7 +179,22 @@ public class NShellAction extends Action {
 			ShellFragment fragment = this.executable.get(script.children[i]);
 			if(assertDependenciesAvailable(buildDependencySetFor(fragment))) {
 				log.info("execute "+i+":"+this.executable.get(script.children[i]).kind);
-				this.execute(script.children[i], null);
+				try {
+					this.execute(script.children[i], null);
+				} catch (IllegalArgumentException e) {
+					log.info("Illegal argument: "+e.getMessage());
+					logger.error("Illegal argument: "+e.getMessage());
+					throw e;
+				} catch (UnexpectedTypeException e) {
+					log.info("Unexpected type: "+e.getMessage());
+					logger.error("Unexpected type: "+e.getMessage());
+					throw e;
+				} catch (NotFoundException e) {
+					log.info("Not found: "+e.getMessage());
+					logger.error("Not found: "+e.getMessage());
+					throw e;
+				}
+				
 			} else {
 				log.info("has dependencies");
 				return false;
