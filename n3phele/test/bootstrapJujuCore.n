@@ -2,7 +2,7 @@
 # Author: Alexandre Tavares
 name       : bootstrapJujuCore
 description: Bootstraps Juju
-version    : 2.2
+version    : 4.5
 preferred  : true
 tags       : service
 processor  : StackService
@@ -18,31 +18,30 @@ HPZone1: # HP Cloud
 	$$secret = $$credential[1]
 	
 	ON $$vmTavares 
-		sudo add-apt-repository -y ppa:juju/devel
-		sudo apt-get update -y && sudo apt-get install -y juju-core
+		sudo add-apt-repository -y ppa:juju/devel ;
+		sudo apt-get update -y && sudo apt-get install -y juju-core ;
 
 	ON $$vmTavares 
-		juju init
-		echo "default: $${$$serviceName}" 																>  ~/.juju/environments.yaml
-		echo "environments:" 																			>> ~/.juju/environments.yaml
-		echo "  $${$$serviceName}:" 																	>> ~/.juju/environments.yaml
-		echo "    type: openstack" 																		>> ~/.juju/environments.yaml
-		echo "    default-series: precise" 																>> ~/.juju/environments.yaml
-		echo "    use-floating-ip: false"																>> ~/.juju/environments.yaml
-		echo "    control-bucket: $${$$controlBucket}" 													>> ~/.juju/environments.yaml
-		echo "    admin-secret: secretword" 															>> ~/.juju/environments.yaml
-		echo "    public-bucket-url: https://region-a.geo-1.objects.hpcloudsvc.com/v1/60502529753910" 	>> ~/.juju/environments.yaml
-		echo "    region: az-1.region-a.geo-1" 															>> ~/.juju/environments.yaml
-		echo "    tenant-name: $${$$tenant}" 															>> ~/.juju/environments.yaml
-		echo "    auth-url: https://region-a.geo-1.identity.hpcloudsvc.com:35357/v2.0/" 				>> ~/.juju/environments.yaml
-		echo "    auth-mode: keypair" 																	>> ~/.juju/environments.yaml
-		echo "    access-key: $${$$key}" 																>> ~/.juju/environments.yaml
-		echo "    secret-key: $${$$secret}" 															>> ~/.juju/environments.yaml
-		echo "    default-image-id: \"142792\"" 														>> ~/.juju/environments.yaml
-		ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -N ""
+		juju init -f ;
+		echo "default: $${$$serviceName}" 																>  ~/.juju/environments.yaml ;
+		echo "environments:" 																			>> ~/.juju/environments.yaml ;
+		echo "  $${$$serviceName}:" 																	>> ~/.juju/environments.yaml ;
+		echo "    type: openstack" 																		>> ~/.juju/environments.yaml ;
+		echo "    default-series: precise" 																>> ~/.juju/environments.yaml ;
+		echo "    use-floating-ip: false"																>> ~/.juju/environments.yaml ;
+		echo "    control-bucket: $${$$controlBucket}" 													>> ~/.juju/environments.yaml ;
+		echo "    admin-secret: secretword" 															>> ~/.juju/environments.yaml ;
+		echo "    public-bucket-url: https://region-a.geo-1.objects.hpcloudsvc.com/v1/60502529753910" 	>> ~/.juju/environments.yaml ;
+		echo "    region: az-1.region-a.geo-1" 															>> ~/.juju/environments.yaml ;
+		echo "    tenant-name: $${$$tenant}" 															>> ~/.juju/environments.yaml ;
+		echo "    auth-url: https://region-a.geo-1.identity.hpcloudsvc.com:35357/v2.0/" 				>> ~/.juju/environments.yaml ;
+		echo "    auth-mode: keypair" 																	>> ~/.juju/environments.yaml ;
+		echo "    access-key: $${$$key}" 																>> ~/.juju/environments.yaml ;
+		echo "    secret-key: $${$$secret}" 															>> ~/.juju/environments.yaml ;
+		echo "    default-image-id: \"81078\"" 														>> ~/.juju/environments.yaml ;
+		ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -N "" ;
 	
 	ON $$vmTavares
-		juju destroy-environment -y
 		sleep 30
 		juju bootstrap
 		sleep 30
@@ -96,6 +95,24 @@ HPZone1: # HP Cloud
 		sudo chmod 777 ~/.juju
 		ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -N ""
 		
-	ON $$vmTavares juju scp ~/.juju/* 0:~/.juju
+	ON $$vmTavares 
+		juju scp ~/.juju/environments.yaml 0:~/.juju
+		juju scp ~/.juju/environments/* 0:~/.juju
+	ON $$bootstrap
+		mkdir ~/.juju/environments;
+		cp ~/.juju/*.jenv ~/.juju/environments;
 	
 	DESTROY $$vmTavares
+
+	ONEXIT $$bootstrap
+		echo "export OS_AUTH_SYSTEM=secretkey" > ~/novarc ;
+		echo "export OS_ACCESS_KEY_ID=$${$$key}" >> ~/novarc ;
+		echo "export OS_SECRET_KEY=$${$$secret}" >> ~/novarc ;
+		echo "export OS_REGION_NAME=az-1.region-a.geo-1" >> ~/novarc ;
+		echo "export OS_AUTH_URL=https://region-a.geo-1.identity.hpcloudsvc.com:35357/v2.0/" >> ~/novarc ;
+		echo "export OS_TENANT_NAME=$${$$tenant}" >> ~/novarc ;
+		echo "export OS_PASSWORD=useapikey" >> ~/novarc ;
+		echo "export OS_USERNAME=useapikey" >> ~/novarc ;
+		source ~/novarc ;
+		nova secgroup-list | grep -E -o juju-$${$$serviceName}-?[0-9]+? | while read line; do nova secgroup-delete $line; done;
+		juju destroy-environment -y ;

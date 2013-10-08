@@ -2,9 +2,9 @@
 # Author: Alexandre Tavares
 name       : deployN3pheleJenkins
 description: Deploy Jenkins for the N3phele project
-version    : 6.5
+version    : 7.4
 preferred  : true
-tags 	   : service
+tags 	   : service jenkins othertest otherothertest
 processor  : StackService
 public     : true
 icon       : http://www.n3phele.com/icons/custom
@@ -62,8 +62,9 @@ HPZone1: # HP Cloud
 					STAT=$(echo $STAT | tr -d ' ');
 					done;
 					juju expose $${$$service_name};
-					
+	
 	ON $$jenkins
+		sleep 50;
 		sudo apt-get install -y unzip;
 
 	ON $$jenkins
@@ -73,6 +74,7 @@ HPZone1: # HP Cloud
 		sudo apt-get install -y wget;
 
 	ON $$jenkins
+		sleep 50;
 		var1="<org.jenkinsci.main.modules.cli.auth.ssh.UserPropertyImpl><authorizedKeys>";
 		var2="</authorizedKeys></org.jenkinsci.main.modules.cli.auth.ssh.UserPropertyImpl>";
 		ssh-keygen -t rsa -f ~/.ssh/id_rsa -N "";
