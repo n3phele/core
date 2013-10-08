@@ -1,18 +1,18 @@
-# Denoise 
+# Experiment Command 
 # Copyright (c) 2012 Nigel Cook. All Rights reserved
 # xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-name	   :  tuberculosistest
+name	   :  tuberculosis
 description: cures tuberculosis
-version	   : 8.4	# more comments
-preferred  : True	# a comment
+version	   : 8.5	
+preferred  : True	
 tags	   : tuberculosis
 processor  : StackService
-public	   : True	# another comment
+public	   : True	
 icon	   : http://www.n3phele.com/qiimeIcon
 parameters :						  
 	 int n = 3								# cluster size					  
 HPZone3: # Amazon instance description
-	$$DenoiseCluster = CREATEVM --name DenoiseCluster --imageRef 104 --nodeCount $$n-1 --minCount $$n-1
+	$$Cluster = CREATEVM --name Cluster --imageRef 104 --nodeCount $$n-1 --minCount $$n-1
 							  --spotPrice 5.0 --flavorRef 103 --securityGroups n3phele-default
      						  --userData %%{
 								#!/bin/bash
@@ -22,7 +22,7 @@ HPZone3: # Amazon instance description
 								wget -q -O - https://n3phele-agent.s3.amazonaws.com/n3ph-install-tgz-basic | su - -c '/bin/bash -s ubuntu ~/agent /mnt/sandbox' ubuntu
 								ln -s /mnt/sandbox ~ubuntu/sandbox
 							 }%%
-	$$DenoiseMaster = CREATEVM --name DenoiseMaster --imageRef 104 --launchGroup "denoise" --minCount 1 --spotPrice 5.0
+	$$Master = CREATEVM --name Master --imageRef 104 --launchGroup "" --minCount 1 --spotPrice 5.0
 							 --flavorRef 103 --securityGroups n3phele-default
 							 --userData %%{
 								#!/bin/bash
@@ -34,7 +34,7 @@ HPZone3: # Amazon instance description
 							 }%%
 	
 
-	ON $$DenoiseMaster
+	ON $$Master
 				sudo apt-get install -y gcc ;
 				sudo apt-get install -y mpich2;
 				sudo apt-get install -y libxml2;
@@ -59,14 +59,14 @@ HPZone3: # Amazon instance description
 				sudo service nfs-kernel-server restart;
 				
 	
-	$$MasterIP = ON $$DenoiseMaster	
+	$$MasterIP = ON $$Master	
 				export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games;	
 				ifconfig | grep -oP "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" > ip.txt;
 				IP=$(head -1 ip.txt);
 				echo $IP | tr -d [:space:];
 
 	FOR $$i : $$n-1
-		ON $$DenoiseCluster.cloudVM[$$i]
+		ON $$Cluster.cloudVM[$$i]
 			IP=$${$$MasterIP.stdout}
 			IP=$IP | tr -d [:space:]
 			echo $IP > ipnew.txt;
