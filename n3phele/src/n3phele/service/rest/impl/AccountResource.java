@@ -480,17 +480,7 @@ public class AccountResource {
 					hourStart = 0;
 					hourEnd = 23;
 
-					if (now.getMinuteOfHour() > cpStart.getMinuteOfHour()) {
-						hourEnd++;
-					} else if (now.getMinuteOfHour() == cpStart.getMinuteOfHour()) {
-						if (now.getSecondOfMinute() > cpStart.getSecondOfMinute()) {
-							hourEnd++;
-						} else if (now.getSecondOfMinute() == cpStart.getSecondOfMinute()) {
-							if (now.getMillisOfSecond() > cpStart.getMillisOfSecond()) {
-								hourEnd++;
-							}
-						}
-					}
+					hourEnd = processCloudProcessEndTime(cpStart, now, hourEnd);
 
 				} else {
 					// CloudProcess terminated in this day
@@ -499,17 +489,7 @@ public class AccountResource {
 					if (hourEnd < 0)
 						hourEnd += 24;
 
-					if (cpComplete.getMinuteOfHour() > cpStart.getMinuteOfHour()) {
-						hourEnd++;
-					} else if (cpComplete.getMinuteOfHour() == cpStart.getMinuteOfHour()) {
-						if (cpComplete.getSecondOfMinute() > cpStart.getSecondOfMinute()) {
-							hourEnd++;
-						} else if (cpComplete.getSecondOfMinute() == cpStart.getSecondOfMinute()) {
-							if (cpComplete.getMillisOfSecond() > cpStart.getMillisOfSecond()) {
-								hourEnd++;
-							}
-						}
-					}
+					hourEnd = processCloudProcessEndTime(cpStart, cpComplete, hourEnd);
 				}
 
 			} else {
@@ -522,17 +502,7 @@ public class AccountResource {
 						hourStart += 24;
 					hourEnd = 23;
 
-					if (now.getMinuteOfHour() > cpStart.getMinuteOfHour()) {
-						hourEnd++;
-					} else if (now.getMinuteOfHour() == cpStart.getMinuteOfHour()) {
-						if (now.getSecondOfMinute() > cpStart.getSecondOfMinute()) {
-							hourEnd++;
-						} else if (now.getSecondOfMinute() == cpStart.getSecondOfMinute()) {
-							if (now.getMillisOfSecond() > cpStart.getMillisOfSecond()) {
-								hourEnd++;
-							}
-						}
-					}
+					hourEnd = processCloudProcessEndTime(cpStart, now, hourEnd);
 
 				} else {
 					// CloudProcess terminated today
@@ -544,17 +514,7 @@ public class AccountResource {
 						hourEnd += 24;
 						
 
-					if (cpComplete.getMinuteOfHour() > cpStart.getMinuteOfHour()) {
-						hourEnd++;
-					} else if (cpComplete.getMinuteOfHour() == cpStart.getMinuteOfHour()) {
-						if (cpComplete.getSecondOfMinute() > cpStart.getSecondOfMinute()) {
-							hourEnd++;
-						} else if (cpComplete.getSecondOfMinute() == cpStart.getSecondOfMinute()) {
-							if (cpComplete.getMillisOfSecond() > cpStart.getMillisOfSecond()) {
-								hourEnd++;
-							}
-						}
-					}
+					hourEnd = processCloudProcessEndTime(cpStart, cpComplete, hourEnd);
 
 				}
 			}
@@ -566,6 +526,22 @@ public class AccountResource {
 		formatDoubleList(listfinal);
 
 		return new CostsCollection(listfinal);
+	}
+
+	private int processCloudProcessEndTime(MutableDateTime start, MutableDateTime now, int hour)
+	{
+		if (now.getMinuteOfHour() > start.getMinuteOfHour()) {
+			hour++;
+		} else if (now.getMinuteOfHour() == start.getMinuteOfHour()) {
+			if (now.getSecondOfMinute() > start.getSecondOfMinute()) {
+				hour++;
+			} else if (now.getSecondOfMinute() == start.getSecondOfMinute()) {
+				if (now.getMillisOfSecond() > start.getMillisOfSecond()) {
+					hour++;
+				}
+			}
+		}
+		return hour;
 	}
 	
 	@GET
