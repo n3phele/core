@@ -4,10 +4,10 @@ name       : deployN3pheleJenkins
 description: Deploy Jenkins for the N3phele project
 version    : 7.4
 preferred  : true
-tags 	   : service jenkins othertest otherothertest
+tags 	   : service jenkins 
 processor  : StackService
 public     : true
-icon       : http://www.n3phele.com/icons/custom
+icon       : http://www.n3phele.com/icons/jujuIcon
 parameters :
 	string service_name = "nephele-jenkins" # A name for the service
 	string password = "password" # Password for Jenkins
