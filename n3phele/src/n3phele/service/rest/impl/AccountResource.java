@@ -731,7 +731,42 @@ public class AccountResource {
 			list.addAll(dao.getRunningProcess(account).getElements());
 			Collection<CloudProcess> result = new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, list);
 			result.setTotal(list.size());
-			return result;
+			return filterZombieProcess(result);
+		}
+		
+		public Collection<CloudProcess> filterZombieProcess(Collection<CloudProcess> colProcess){
+			List<CloudProcess> list = colProcess.getElements();
+			ArrayList<CloudProcess> result = new ArrayList<CloudProcess>();
+			
+			boolean willAdd = true;
+			int countNulls = 0;
+			for(CloudProcess cp : list){
+				if(cp.getEpoch() == null){
+					countNulls += 1;
+					continue;
+				}
+				for(int i = 0; i < result.size(); i++){
+					CloudProcess cp2 = result.get(i);
+					if(cp2.getEpoch().compareTo(cp.getEpoch()) == 0){
+						if(cp2.getComplete() != null){
+							if(cp.getComplete() == null){
+								result.set(i, cp);
+							}
+							else if(cp2.getComplete().compareTo(cp.getComplete()) < 0){
+								result.set(i, cp);
+							}
+						}
+						willAdd = false;
+						break;
+					}
+				}
+				if(willAdd){
+					result.add(cp);
+				}
+				willAdd = true;
+				
+			}
+			return new Collection<CloudProcess>(itemDao.clazz.getSimpleName(), super.path, result);
 		}
 	}
 
