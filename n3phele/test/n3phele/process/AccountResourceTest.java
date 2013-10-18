@@ -6,6 +6,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import junit.framework.Assert;
@@ -204,6 +205,294 @@ public class AccountResourceTest {
 		Assert.assertEquals("Wrong Value", 0.5, listfinal.get(21));
 		Assert.assertEquals("Wrong Value", 1.0, listfinal.get(22));
 		Assert.assertEquals("Wrong Value", 0.5, listfinal.get(23));
+	}
+	
+	@Test
+	public void filterZombieProcess_WithEqualEpochs_MaintainFirstProcess() {
+		AccountResource accr = PowerMockito.spy(new AccountResource());
+		AccountManager accm = PowerMockito.mock(AccountManager.class);
+		PowerMockito.mockStatic(AccountManager.class);
+		//DateTimeUtils.setCurrentMillisFixed(1000200000000L);
+		
+		MutableTimeFactory factory = mockTimeFactory();
+		accr.setTimeFactory(factory);
+		
+		ArrayList<CloudProcess> list = new ArrayList<CloudProcess>();
+		CloudProcess p = new CloudProcess();
+		p.setAccount("acc");
+		MutableDateTime c = createMutableTime(1000200000000L);
+		p.setComplete(c.toDate());
+		c.addHours(-10);
+		Date equalEpoch = c.toDate();
+		p.setEpoch(equalEpoch);
+		p.setStart(c.toDate());
+		p.setCostPerHour(0.5);
+		list.add(p);
+
+		// second process
+		p = new CloudProcess();
+		p.setAccount("acc");
+		c = createMutableTime(1000200000000L);
+		c.addHours(-9);
+		p.setComplete(c.toDate());
+		p.setEpoch(equalEpoch);
+		p.setStart(c.toDate());
+		p.setCostPerHour(0.6);
+		list.add(p);
+		
+		Collection<CloudProcess> col = new Collection<CloudProcess>("acc", null, list);
+		col.setTotal(2L);
+	
+		Collection<CloudProcess> result  = accr.dao.filterZombieProcess(col);
+		
+		List<CloudProcess> listfinal = result.getElements();
+
+		Assert.assertEquals("Wrong Value", 0.5, listfinal.get(0).getCostPerHour());
+		Assert.assertEquals("Wrong size", 1, listfinal.size());
+		try {
+			setFinalStatic(AccountResource.class.getField("dao"), accm);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	@Test
+	public void filterZombieProcess_WithEqualEpochs_MaintainSecondProcessBecauseCompleteEqualsNull() {
+		AccountResource accr = PowerMockito.spy(new AccountResource());
+		AccountManager accm = PowerMockito.mock(AccountManager.class);
+		PowerMockito.mockStatic(AccountManager.class);
+		//DateTimeUtils.setCurrentMillisFixed(1000200000000L);
+		
+		MutableTimeFactory factory = mockTimeFactory();
+		accr.setTimeFactory(factory);
+		
+		ArrayList<CloudProcess> list = new ArrayList<CloudProcess>();
+		CloudProcess p = new CloudProcess();
+		p.setAccount("acc");
+		MutableDateTime c = createMutableTime(1000200000000L);
+		p.setComplete(c.toDate());
+		c.addHours(-10);
+		Date equalEpoch = c.toDate();
+		p.setEpoch(equalEpoch);
+		p.setStart(c.toDate());
+		p.setCostPerHour(0.5);
+		list.add(p);
+
+		// second process
+		p = new CloudProcess();
+		p.setAccount("acc");
+		c = createMutableTime(1000200000000L);
+		c.addHours(-9);
+		p.setEpoch(equalEpoch);
+		p.setStart(c.toDate());
+		p.setCostPerHour(0.6);
+		list.add(p);
+		
+		Collection<CloudProcess> col = new Collection<CloudProcess>("acc", null, list);
+		col.setTotal(2L);
+	
+		Collection<CloudProcess> result  = accr.dao.filterZombieProcess(col);
+		
+		List<CloudProcess> listfinal = result.getElements();
+
+		Assert.assertEquals("Wrong Value", 0.6, listfinal.get(0).getCostPerHour());
+		Assert.assertEquals("Wrong size", 1, listfinal.size());
+		try {
+			setFinalStatic(AccountResource.class.getField("dao"), accm);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	@Test
+	public void filterZombieProcess_WithEqualEpochs_MaintainFirstProcessBecauseCompleteEqualsNull() {
+		AccountResource accr = PowerMockito.spy(new AccountResource());
+		AccountManager accm = PowerMockito.mock(AccountManager.class);
+		PowerMockito.mockStatic(AccountManager.class);
+		//DateTimeUtils.setCurrentMillisFixed(1000200000000L);
+		
+		MutableTimeFactory factory = mockTimeFactory();
+		accr.setTimeFactory(factory);
+		
+		ArrayList<CloudProcess> list = new ArrayList<CloudProcess>();
+		CloudProcess p = new CloudProcess();
+		p.setAccount("acc");
+		MutableDateTime c = createMutableTime(1000200000000L);
+		c.addHours(-10);
+		Date equalEpoch = c.toDate();
+		p.setEpoch(equalEpoch);
+		p.setStart(c.toDate());
+		p.setCostPerHour(0.5);
+		list.add(p);
+
+		// second process
+		p = new CloudProcess();
+		p.setAccount("acc");
+		c = createMutableTime(1000200000000L);
+		p.setComplete(c.toDate());
+		c.addHours(-9);
+		p.setEpoch(equalEpoch);
+		p.setStart(c.toDate());
+		p.setCostPerHour(0.6);
+		list.add(p);
+		
+		Collection<CloudProcess> col = new Collection<CloudProcess>("acc", null, list);
+		col.setTotal(2L);
+	
+		Collection<CloudProcess> result  = accr.dao.filterZombieProcess(col);
+		
+		List<CloudProcess> listfinal = result.getElements();
+
+		Assert.assertEquals("Wrong Value", 0.5, listfinal.get(0).getCostPerHour());
+		Assert.assertEquals("Wrong size", 1, listfinal.size());
+		try {
+			setFinalStatic(AccountResource.class.getField("dao"), accm);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	@Test
+	public void filterZombieProcess_WithEqualEpochs_OneProcessWithEpochEqualNull() {
+		AccountResource accr = PowerMockito.spy(new AccountResource());
+		AccountManager accm = PowerMockito.mock(AccountManager.class);
+		PowerMockito.mockStatic(AccountManager.class);
+		//DateTimeUtils.setCurrentMillisFixed(1000200000000L);
+		
+		MutableTimeFactory factory = mockTimeFactory();
+		accr.setTimeFactory(factory);
+		
+		ArrayList<CloudProcess> list = new ArrayList<CloudProcess>();
+		CloudProcess p = new CloudProcess();
+		p.setAccount("acc");
+		MutableDateTime c = createMutableTime(1000200000000L);
+		p.setComplete(c.toDate());
+		c.addHours(-10);
+		p.setEpoch(null);
+		p.setStart(c.toDate());
+		p.setCostPerHour(0.5);
+		list.add(p);
+		
+		Collection<CloudProcess> col = new Collection<CloudProcess>("acc", null, list);
+		col.setTotal(2L);
+	
+		Collection<CloudProcess> result  = accr.dao.filterZombieProcess(col);
+		
+		List<CloudProcess> listfinal = result.getElements();
+
+		Assert.assertEquals("Wrong size", 0, listfinal.size());
+		try {
+			setFinalStatic(AccountResource.class.getField("dao"), accm);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	@Test
+	public void filterZombieProcess_WithEqualEpochs_MaintainSecondProcess() {
+		AccountResource accr = PowerMockito.spy(new AccountResource());
+		AccountManager accm = PowerMockito.mock(AccountManager.class);
+		PowerMockito.mockStatic(AccountManager.class);
+		//DateTimeUtils.setCurrentMillisFixed(1000200000000L);
+		
+		MutableTimeFactory factory = mockTimeFactory();
+		accr.setTimeFactory(factory);
+		
+		ArrayList<CloudProcess> list = new ArrayList<CloudProcess>();
+		CloudProcess p = new CloudProcess();
+		p.setAccount("acc");
+		MutableDateTime c = createMutableTime(1000200000000L);
+		c.addHours(-10);
+		p.setComplete(c.toDate());
+		Date equalEpoch = c.toDate();
+		p.setEpoch(equalEpoch);
+		p.setStart(c.toDate());
+		p.setCostPerHour(0.5);
+		list.add(p);
+
+		// second process
+		p = new CloudProcess();
+		p.setAccount("acc");
+		c = createMutableTime(1000200000000L);
+		c.addHours(-4);
+		p.setComplete(c.toDate());
+		p.setEpoch(equalEpoch);
+		p.setStart(c.toDate());
+		p.setCostPerHour(0.6);
+		list.add(p);
+		
+		Collection<CloudProcess> col = new Collection<CloudProcess>("acc", null, list);
+		col.setTotal(2L);
+	
+		Collection<CloudProcess> result  = accr.dao.filterZombieProcess(col);
+		
+		List<CloudProcess> listfinal = result.getElements();
+
+		Assert.assertEquals("Wrong Value", 0.6, listfinal.get(0).getCostPerHour());
+		Assert.assertEquals("Wrong size", 1, listfinal.size());
+		try {
+			setFinalStatic(AccountResource.class.getField("dao"), accm);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	@Test
+	public void filterZombieProcess_WithDifferentEpochs() {
+		AccountResource accr = PowerMockito.spy(new AccountResource());
+		AccountManager accm = PowerMockito.mock(AccountManager.class);
+		PowerMockito.mockStatic(AccountManager.class);
+		//DateTimeUtils.setCurrentMillisFixed(1000200000000L);
+		
+		MutableTimeFactory factory = mockTimeFactory();
+		accr.setTimeFactory(factory);
+		
+		ArrayList<CloudProcess> list = new ArrayList<CloudProcess>();
+		CloudProcess p = new CloudProcess();
+		p.setAccount("acc");
+		MutableDateTime c = createMutableTime(1000200000000L);
+		p.setComplete(c.toDate());
+		c.addHours(-10);
+		p.setEpoch(c.toDate());
+		p.setStart(c.toDate());
+		p.setCostPerHour(0.5);
+		list.add(p);
+
+		// second process
+		p = new CloudProcess();
+		p.setAccount("acc");
+		c = createMutableTime(1000200000000L);
+		c.addHours(-9);
+		p.setComplete(c.toDate());
+		c.addHours(-3);
+		p.setEpoch(c.toDate());
+		p.setStart(c.toDate());
+		p.setCostPerHour(0.6);
+		list.add(p);
+		
+		Collection<CloudProcess> col = new Collection<CloudProcess>("acc", null, list);
+		col.setTotal(2L);
+	
+		Collection<CloudProcess> result  = accr.dao.filterZombieProcess(col);
+		
+		List<CloudProcess> listfinal = result.getElements();
+
+		Assert.assertEquals("Wrong Value", 0.5, listfinal.get(0).getCostPerHour());
+		Assert.assertEquals("Wrong Value", 0.6, listfinal.get(1).getCostPerHour());
+		Assert.assertEquals("Wrong size", 2, listfinal.size());
+		
+		
+		try {
+			setFinalStatic(AccountResource.class.getField("dao"), accm);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	protected MutableTimeFactory mockTimeFactory() {
