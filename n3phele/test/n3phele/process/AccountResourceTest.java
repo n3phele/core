@@ -356,7 +356,7 @@ public class AccountResourceTest {
 	}
 	
 	@Test
-	public void filterZombieProcess_WithEqualEpochs_OneProcessWithEpochEqualNull() {
+	public void filterZombieProcess_OneProcessWithEpochEqualNull() {
 		AccountResource accr = PowerMockito.spy(new AccountResource());
 		AccountManager accm = PowerMockito.mock(AccountManager.class);
 		PowerMockito.mockStatic(AccountManager.class);
