@@ -30,13 +30,15 @@ import n3phele.service.rest.impl.CloudProcessResource;
 
 public abstract class ProcessCachingAbstractManager extends AbstractManager<CloudProcess> {
 	private static Logger log = Logger.getLogger(ProcessCachingAbstractManager.class.getName());
-	
+	private int sleepTime = 1000;
+
+
 	@Override
 	protected void add(CloudProcess item) throws IllegalArgumentException {
 			super.add(item);
 			Date date = new Date(System.currentTimeMillis());
 			QueueFactory.getDefaultQueue().add(ofy().getTxn(),
-					TaskOptions.Builder.withPayload(new AddChangeTask(item.getUri(), date, super.path)));
+					TaskOptions.Builder.withPayload(new AddChangeTask(item.getUri(), date, super.path,sleepTime)));
 	}
 	
 	private static class AddChangeTask implements DeferredTask {
@@ -44,11 +46,14 @@ public abstract class ProcessCachingAbstractManager extends AbstractManager<Clou
 		final private URI process;
 		final private Date stamp;
 		final private URI path;
+		private int sleepTime;
 		
-		public AddChangeTask(URI process, Date stamp, URI path ) {
+		
+		public AddChangeTask(URI process, Date stamp, URI path, int sleepTime ) {
 			this.process = process;
 			this.stamp = stamp;
 			this.path = path;
+			this.sleepTime = sleepTime;
 		}
 
 		@Override
@@ -57,9 +62,9 @@ public abstract class ProcessCachingAbstractManager extends AbstractManager<Clou
 			Date date = new Date(System.currentTimeMillis());
 			long result = date.getTime() - stamp.getTime();
 			log.log(Level.INFO, "!Calling changes after: " + result);
-			if(result < 1000){
+			if(result < sleepTime){
 				try {
-					Thread.sleep(result);
+					Thread.sleep(sleepTime - result);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -110,5 +115,12 @@ public abstract class ProcessCachingAbstractManager extends AbstractManager<Clou
 			}
 			ChangeManager.factory().addDelete(item);			
 		}
+	}
+	public int getSleepTime() {
+		return this.sleepTime;
+	}
+
+	public void setSleepTime(int sleepTime) {
+		this.sleepTime = sleepTime;
 	}
 }
