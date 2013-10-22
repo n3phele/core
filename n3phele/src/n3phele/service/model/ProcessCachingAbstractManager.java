@@ -16,8 +16,6 @@ import static com.googlecode.objectify.ObjectifyService.ofy;
 
 import java.net.URI;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import com.google.appengine.api.taskqueue.DeferredTask;
 import com.google.appengine.api.taskqueue.QueueFactory;
@@ -25,11 +23,9 @@ import com.google.appengine.api.taskqueue.TaskOptions;
 
 import n3phele.service.core.NotFoundException;
 import n3phele.service.model.core.AbstractManager;
-import n3phele.service.rest.impl.AccountResource;
 import n3phele.service.rest.impl.CloudProcessResource;
 
 public abstract class ProcessCachingAbstractManager extends AbstractManager<CloudProcess> {
-	private static Logger log = Logger.getLogger(ProcessCachingAbstractManager.class.getName());
 	private int sleepTime = 1000;
 
 
@@ -61,7 +57,6 @@ public abstract class ProcessCachingAbstractManager extends AbstractManager<Clou
 			CloudProcess item = CloudProcessResource.dao.load(process);
 			Date date = new Date(System.currentTimeMillis());
 			long result = date.getTime() - stamp.getTime();
-			log.log(Level.INFO, "!Calling changes after: " + result);
 			if(result < sleepTime){
 				try {
 					Thread.sleep(sleepTime - result);
