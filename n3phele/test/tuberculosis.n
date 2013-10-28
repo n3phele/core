@@ -1,14 +1,14 @@
 # Experiment Command 
 # Copyright (c) 2012 Nigel Cook. All Rights reserved
 # xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-name	   :  tuberculosisN
+name	   : tuberculosis
 description: cures tuberculosis
-version	   : 11.1
+version	   : 11.3
 preferred  : True	
-tags	   : NShell
+tags	   : nshell
 processor  : StackService
 public	   : True	
-icon	   : http://www.n3phele.com/qiimeIcon
+icon	   : http://www.n3phele.com/experimentIcon
 parameters :						  
 	 int n = 3								# cluster size					  
 HPZone3: # Amazon instance description
