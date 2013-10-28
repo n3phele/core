@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import n3phele.QueueTestHelper;
 import n3phele.service.actions.StackServiceAction;
 import n3phele.service.dao.ProcessCounterManager;
 import n3phele.service.model.Account;
@@ -35,13 +36,11 @@ import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
 
 public class CloudProcessManagerTest extends DatabaseTestUtils {
 
-	private final LocalTaskQueueTestConfig.TaskCountDownLatch latch = new LocalTaskQueueTestConfig.TaskCountDownLatch(1);
 	private final LocalServiceTestHelper helper =   new LocalServiceTestHelper(
 			new LocalDatastoreServiceTestConfig()
 				.setApplyAllHighRepJobPolicy(),
 			new LocalTaskQueueTestConfig()
-								.setTaskExecutionLatch(latch)
-								.setDisableAutoTaskExecution(false)             
+								.setDisableAutoTaskExecution(true)             
 								.setCallbackClass(LocalTaskQueueTestConfig.DeferredTaskCallback.class));
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -274,6 +273,8 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 	@Test
 	public void RetrieveFiveProcessesThatAreServiceStackActionsAndAreStillRunningFromTheUser() throws URISyntaxException {
 		CloudProcessManager processManager = new CloudProcessManager();
+
+		processManager.setSleepTime(1);
 		
 		int processCount = 5;
 		//Add processes with stack service actions
@@ -296,6 +297,8 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 	public void RetrieveTwoProcessesThatAreServiceStackActionsAndAreStillRunningWithOtherTwoNotRunningTest() throws URISyntaxException {
 		CloudProcessManager processManager = new CloudProcessManager();
 
+		processManager.setSleepTime(1);
+		
 		int processCount = 4;
 		//Add processes with stack service actions
 		ActionManager actionManager = new ActionManager();
@@ -320,6 +323,7 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 	public void RetrieveEmptyListOfProcessesThatAreServiceStackActionsAndAreStillRunningTest() throws URISyntaxException {
 		CloudProcessManager processManager = new CloudProcessManager();
 
+		processManager.setSleepTime(1);
 		int processCount = 5;
 
 		ActionManager actionManager = new ActionManager();
@@ -345,16 +349,18 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 	@Test
 	public void WhenOneCloudProcessTopLevelIsAddedToDatabaseThenAChangeToTheCollectionPathIsAddedToChangeManager() throws URISyntaxException, InterruptedException {
 		CloudProcessManager processManager = new CloudProcessManager();
-				
+
+		processManager.setSleepTime(1);
 		String owner = "http://localhost/user/1";
 		CloudProcess process = buildValidCloudProcess(owner);
 		process.setTopLevel(true);
 
 		ChangeManager cacheManager = ChangeManager.factory();				
 		Long stamp = cacheManager.initCache();
-		processManager.setSleepTime(1);
 		processManager.add(process);		
-		assertTrue(latch.await(2,TimeUnit.SECONDS));
+
+		QueueTestHelper.runAllTasksOnQueue();
+		
 		ArrayList<Change> changes = cacheManager.getChanges(stamp, new URI(owner), true).getChange();
 		assertEquals(1, changes.size() );
 		assertEquals(processManager.path.toString(), changes.get(0).getUri().toString() );		
@@ -363,16 +369,17 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 	@Test
 	public void WhenOneCloudProcessTopLevelIsUpdatedThenAChangeToTheProcessIsAddedToChangeManager() throws URISyntaxException, InterruptedException {
 		CloudProcessManager processManager = new CloudProcessManager();
-				
+
+		processManager.setSleepTime(1);
 		String owner = "http://localhost/user/1";
 		CloudProcess process = buildValidCloudProcess(owner);
 		process.setTopLevel(true);
 
 		ChangeManager cacheManager = ChangeManager.factory();		
 		Long stamp = cacheManager.initCache();
-		processManager.setSleepTime(1);
 		processManager.add(process);
-		assertTrue(latch.await(2,TimeUnit.SECONDS));
+		
+		QueueTestHelper.runAllTasksOnQueue();
 
 		processManager.update(process);
 		
@@ -386,7 +393,8 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 	@Test
 	public void WhenOneCloudProcessTopLevelIsDeletedThenAChangeToTheCollectionAndAChangeToTheProcessAreAddedToChangeManager() throws URISyntaxException, InterruptedException {
 		CloudProcessManager processManager = new CloudProcessManager();
-				
+
+		processManager.setSleepTime(1);
 		String owner = "http://localhost/user/1";
 		CloudProcess process = buildValidCloudProcess(owner);
 		process.setTopLevel(true);
@@ -395,7 +403,7 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 		Long stamp = cacheManager.initCache();
 
 		processManager.add(process);
-		assertTrue(latch.await(2,TimeUnit.SECONDS));
+		QueueTestHelper.runAllTasksOnQueue();
 		processManager.delete(process);
 		
 		//Ask for stamp +1 so ignores change made by the add call
@@ -419,7 +427,8 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 	@Test
 	public void WhenOneCloudProcessNonTopLevelIsAddedToDatabaseThenAChangeToItsParentIsAddedToChangeManager() throws URISyntaxException, InterruptedException {
 		CloudProcessManager processManager = new CloudProcessManager();
-				
+
+		processManager.setSleepTime(1);
 		String owner = "http://localhost/user/1";
 		String parenUri = "http://localhost/process/2";
 		CloudProcess parent = buildValidCloudProcess(owner);
@@ -432,9 +441,9 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 		ChangeManager cacheManager = ChangeManager.factory();				
 		Long stamp = cacheManager.initCache();
 
-		processManager.add(process);		
-	
-		assertTrue(latch.await(2,TimeUnit.SECONDS));
+		processManager.add(process);
+
+		QueueTestHelper.runAllTasksOnQueue();
 		ArrayList<Change> changes = cacheManager.getChanges(stamp, new URI(owner), true).getChange();
 		assertEquals(1, changes.size() );
 		assertEquals( parenUri, changes.get(0).getUri().toString() );		
@@ -443,7 +452,8 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 	@Test
 	public void WhenOneCloudProcessNonTopLevelIsUpdatedThenAChangeToItsParentIsAddedToChangeManager() throws URISyntaxException, InterruptedException {
 		CloudProcessManager processManager = new CloudProcessManager();
-				
+
+		processManager.setSleepTime(1);
 		String owner = "http://localhost/user/1";
 		String parenUri = "http://localhost/process/2";
 		CloudProcess parent = buildValidCloudProcess(owner);
@@ -454,9 +464,9 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 
 		ChangeManager cacheManager = ChangeManager.factory();		
 		Long stamp = cacheManager.initCache();
-
+		
 		processManager.add(process);
-		assertTrue(latch.await(2,TimeUnit.SECONDS));
+		QueueTestHelper.runAllTasksOnQueue();
 
 		processManager.update(process);
 		
@@ -469,7 +479,8 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 	@Test
 	public void WhenOneCloudProcessNonTopLevelIsDeletedThenAChangeToItsParentAndAChangeToTheProcessAreAddedToChangeManager() throws URISyntaxException, InterruptedException {
 		CloudProcessManager processManager = new CloudProcessManager();
-				
+
+		processManager.setSleepTime(1);
 		String owner = "http://localhost/user/1";
 		String parenUri = "http://localhost/process/2";
 		CloudProcess parent = buildValidCloudProcess(owner);
@@ -482,7 +493,7 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 		Long stamp = cacheManager.initCache();
 
 		processManager.add(process);
-		assertTrue(latch.await(2,TimeUnit.SECONDS));
+		QueueTestHelper.runAllTasksOnQueue();
 
 		processManager.delete(process);
 		
@@ -511,13 +522,19 @@ public class CloudProcessManagerTest extends DatabaseTestUtils {
 		CloudProcess process = buildValidCloudProcess(owner);
 		process.setTopLevel(true);
 
+		long start = System.currentTimeMillis();
+		
 		ChangeManager cacheManager = ChangeManager.factory();				
 		Long stamp = cacheManager.initCache();
 		processManager.setSleepTime(1000);
-		processManager.add(process);		
-		Thread.sleep(500);
+		processManager.add(process);	
+		QueueTestHelper.runAllTasksOnQueue();
+		
+		long end = System.currentTimeMillis();
+		
 		ArrayList<Change> changes = cacheManager.getChanges(stamp, new URI(owner), true).getChange();
-		assertEquals(0, changes.size() );
+		assertEquals(1, changes.size() );
+		assertTrue((end-start)>1000);
 	}
 	
 	
