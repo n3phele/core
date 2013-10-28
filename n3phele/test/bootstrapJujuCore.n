@@ -2,7 +2,7 @@
 # Author: Alexandre Tavares
 name       : bootstrapJujuCore
 description: Bootstraps Juju
-version    : 4.5
+version    : 4.7
 preferred  : true
 tags       : service
 processor  : StackService
@@ -18,8 +18,8 @@ HPZone1: # HP Cloud
 	$$secret = $$credential[1]
 	
 	ON $$vmTavares 
-		sudo add-apt-repository -y ppa:juju/devel ;
-		sudo apt-get update -y && sudo apt-get install -y juju-core ;
+		sudo add-apt-repository -y ppa:juju/stable ;
+		sudo apt-get update -y && sudo apt-get install -y juju-core=1.16.0-0ubuntu1~ubuntu13.04.1~juju1 ;
 
 	ON $$vmTavares 
 		juju init -f ;
@@ -85,8 +85,8 @@ HPZone1: # HP Cloud
 	ON $$bootstrap
 		sudo service rsyslog stop
 		sudo apt-get install -y unzip
-		sudo add-apt-repository -y ppa:juju/devel
-		sudo apt-get update -y && sudo apt-get install -y juju-core
+		sudo add-apt-repository -y ppa:juju/stable ;
+		sudo apt-get update -y && sudo apt-get install -y juju-core=1.16.0-0ubuntu1~ubuntu12.04.1~juju1 ;
 		
 	ON $$bootstrap
 		wget https://region-a.geo-1.objects.hpcloudsvc.com/v1/AUTH_dc700102-734c-4a97-afc8-50530e87a171/n3phele-agent/precise.zip
