@@ -86,6 +86,7 @@ public class CommandActivity extends AbstractActivity {
 		display.setData(command);
 		panel.setWidget(display);
 		display.setService(false);
+		display.drawAccountTable();
 		initData();
 	}
 	

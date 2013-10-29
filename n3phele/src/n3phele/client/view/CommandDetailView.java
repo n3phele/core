@@ -60,6 +60,7 @@ import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.text.shared.SafeHtmlRenderer;
+import com.google.gwt.user.cellview.client.AbstractHasData;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.CellWidget;
 import com.google.gwt.user.cellview.client.Column;
@@ -118,7 +119,7 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 	private String lastRepo = null;
 	private String lastPath = "";
 	private boolean isService = false;
-	private FlexTable table;
+	private FlexTable serviceTable;
 	private FlexTable newAccountTable;
 	
 	public CommandDetailView() {
@@ -130,12 +131,12 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 		super(new MenuItem(icon, heading, null));
 		
 		Hyperlink serviceHL = new Hyperlink("Create a new Service","service:null");
-		table = new FlexTable();
-		table.setCellSpacing(8);
-		table.setWidth("100%");
+		serviceTable = new FlexTable();
+		serviceTable.setCellSpacing(8);
+		serviceTable.setWidth("100%");
 		Label lblNewLabel = new Label("There's no service avaiable!");
-		table.setWidget(0, 1, lblNewLabel);
-		table.setWidget(1, 1, serviceHL);
+		serviceTable.setWidget(0, 1, lblNewLabel);
+		serviceTable.setWidget(1, 1, serviceHL);
 		
 		Hyperlink accountHL = new Hyperlink("Create a new Account","account:null");
 		newAccountTable = new FlexTable();
@@ -250,10 +251,13 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 		buttons.add(cancel);
 		
 		this.add(buttons);
-		this.add(table);
+		this.add(serviceTable);
 		this.add(newAccountTable);
 		newAccountTable.setVisible(false);
-		table.setVisible(false);
+		serviceTable.setVisible(false);
+		setSelectedImplementation("");
+		accountTable.redraw();
+		
 	}
 	
 	private void buttonVisibility(boolean on) {
@@ -520,10 +524,11 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 		accountTable.setVisible(this.accounts.size() > 0);
 		if(isService){
 			newAccountTable.setVisible(false);
-			table.setVisible(this.accounts.size() <= 0);
+			serviceTable.setVisible(this.accounts.size() <= 0);
 		}else{
 			newAccountTable.setVisible(this.accounts.size() <= 0);
-			table.setVisible(false);
+			serviceTable.setVisible(false);
+			accountTable.redraw();
 		}
 			
 		if(CommandDetailView.this.selectedImplementation!=null) {
@@ -1427,4 +1432,11 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 	public void setService(boolean isService) {
 		this.isService = isService;
 	}
+	
+	public void drawAccountTable() {
+		selectedAccountURI = null;
+		selectedImplementation = null;
+		accountTable.redraw();
+	}
+
 }
