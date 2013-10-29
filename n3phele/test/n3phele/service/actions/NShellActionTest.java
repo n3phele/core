@@ -16,6 +16,7 @@ import java.util.Map;
 import javax.ws.rs.core.UriBuilder;
 
 import junit.framework.Assert;
+import n3phele.QueueTestHelper;
 import n3phele.service.actions.CreateVMAction.CreateVirtualServerResult;
 import n3phele.service.core.NotFoundException;
 import n3phele.service.lifecycle.ProcessLifecycle;
@@ -68,7 +69,7 @@ public class NShellActionTest {
 			new LocalDatastoreServiceTestConfig()
 				.setApplyAllHighRepJobPolicy(),
 			new LocalTaskQueueTestConfig()
-								.setDisableAutoTaskExecution(false)             
+								.setDisableAutoTaskExecution(true)             
 								.setCallbackClass(LocalTaskQueueTestConfig.DeferredTaskCallback.class)) ;
 	
 	@BeforeClass
@@ -84,11 +85,7 @@ public class NShellActionTest {
 	}
 	
 	 @After     
-	 public void tearDown() {   try {
-		Thread.sleep(1000L);
-	} catch (InterruptedException e) {
-
-	}  helper.tearDown();     } 
+	 public void tearDown() {   helper.tearDown();     } 
 
 	
 
@@ -103,7 +100,6 @@ public class NShellActionTest {
 		User root = getRoot();
 		ObjectifyService.register(NShellActionTestHarness.class);
 		assertNotNull(root);
-
 		
 		NParser n = new NParser(new FileInputStream("./test/logTest.n"));
 		Command cd = n.parse();
@@ -123,7 +119,7 @@ public class NShellActionTest {
 		
 		CloudProcess shellProcess = ProcessLifecycle.mgr().createProcess(root, "shell", context, null, null, true, NShellActionTestHarness.class);
 		ProcessLifecycle.mgr().init(shellProcess);
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudProcessResource.dao.clear();
 		
 		String refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
@@ -131,7 +127,6 @@ public class NShellActionTest {
 		Narrative log = NarrativeResource.dao.getNarratives(shellProcess.getUri()).toArray(new Narrative[1])[0];
 		assertEquals("my first message", log.getText());
 		assertEquals(NarrativeLevel.warning, log.getState());
-		Thread.sleep(1000);
 	}
 	
 	/** Tests shell expression assignment
@@ -165,7 +160,7 @@ public class NShellActionTest {
 		
 		CloudProcess shellProcess = ProcessLifecycle.mgr().createProcess(root, "shell", context, null, null, true, NShellActionTestHarness.class);
 		ProcessLifecycle.mgr().init(shellProcess);
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudProcessResource.dao.clear();
 		
 		String refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
@@ -176,7 +171,6 @@ public class NShellActionTest {
 		 */
 		assertEquals("hello! is what I say  true", log.getText());
 		assertEquals(NarrativeLevel.info, log.getState());
-		Thread.sleep(1000);
 	}
 	
 	
@@ -211,7 +205,7 @@ public class NShellActionTest {
 		
 		CloudProcess shellProcess = ProcessLifecycle.mgr().createProcess(root, "shell", context, null, null, true, NShellActionTestHarness.class);
 		ProcessLifecycle.mgr().init(shellProcess);
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudProcessResource.dao.clear();
 		
 		/*
@@ -233,7 +227,6 @@ public class NShellActionTest {
 		log = NarrativeResource.dao.getNarratives(shellProcess.getUri()).toArray(new Narrative[2])[1];
 		assertEquals("my 2nd message and a suffix", log.getText());
 		assertEquals(NarrativeLevel.success, log.getState());
-		Thread.sleep(1000);
 	}
 	
 	/** Invokes a simple command that creates a single vm and then explicitly deletes it
@@ -275,7 +268,7 @@ public class NShellActionTest {
 		
 		CloudProcess shellProcess = ProcessLifecycleWrapper.mgr().createProcess(root, "shell", context, null, null, true, NShellActionTestHarness.class);
 		ProcessLifecycleWrapper.mgr().init(shellProcess);
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudProcessResource.dao.clear();
 		
 		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
@@ -288,7 +281,7 @@ public class NShellActionTest {
 		String refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
 		Assert.assertEquals("{}", refresh);
 		
-		Thread.sleep(1000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudProcessResource.dao.clear();
 		
 		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
@@ -338,7 +331,7 @@ public class NShellActionTest {
 		
 		CloudProcess shellProcess = ProcessLifecycleWrapper.mgr().createProcess(root, "shell", context, null, null, true, NShellActionTestHarness.class);
 		ProcessLifecycleWrapper.mgr().init(shellProcess);
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudProcessResource.dao.clear();
 		
 		/*
@@ -355,8 +348,8 @@ public class NShellActionTest {
 		
 		String refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
 		Assert.assertEquals("{}", refresh);
-		
-		Thread.sleep(1000);
+
+		QueueTestHelper.runAllTasksOnQueue();
 		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
 		CloudProcess createVMProcess = CloudProcessResource.dao.load(vmAction.getProcess());
 		vmAction = ActionResource.dao.load(vmURI);
@@ -409,7 +402,7 @@ public class NShellActionTest {
 		
 		CloudProcess shellProcess = ProcessLifecycleWrapper.mgr().createProcess(root, "shell", context, null, null, true, NShellActionTestHarness.class);
 		ProcessLifecycleWrapper.mgr().init(shellProcess);
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudProcessResource.dao.clear();
 		
 		/*
@@ -475,7 +468,7 @@ public class NShellActionTest {
 		
 		CloudProcess shellProcess = ProcessLifecycleWrapper.mgr().createProcess(root, "shell", context, null, null, true, NShellActionTestHarness.class);
 		ProcessLifecycleWrapper.mgr().init(shellProcess);
-		Thread.sleep(4000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudProcessResource.dao.clear();
 		
 		/*
@@ -492,8 +485,8 @@ public class NShellActionTest {
 		
 		String refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
 		Assert.assertEquals("{}", refresh);
-		
-		Thread.sleep(1000);
+
+		QueueTestHelper.runAllTasksOnQueue();
 		shellProcess = CloudProcessResource.dao.load(shellProcess.getUri());
 		CloudProcess createVMProcess = CloudProcessResource.dao.load(vmAction.getProcess());
 		vmAction = ActionResource.dao.load(vmURI);
@@ -552,7 +545,7 @@ public class NShellActionTest {
 		
 		CloudProcess shellProcess = ProcessLifecycleWrapper.mgr().createProcess(root, "shell", context, null, null, true, NShellActionTestHarness.class);
 		ProcessLifecycleWrapper.mgr().init(shellProcess);
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudProcessResource.dao.clear();
 		
 
@@ -573,8 +566,7 @@ public class NShellActionTest {
 		Assert.assertEquals(UriBuilder.fromUri(on_0.getProcess()).scheme("http").path("event").build(), OnActionWrapper.request.getNotification());
 		Assert.assertEquals(null, OnActionWrapper.request.getStdin());
 		
-		
-		Thread.sleep(1000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudProcessResource.dao.clear();
 		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
 		Assert.assertEquals("{}", refresh);
@@ -640,7 +632,7 @@ public class NShellActionTest {
 		
 		CloudProcess shellProcess = ProcessLifecycleWrapper.mgr().createProcess(root, "shell", context, null, null, true, NShellActionTestHarness.class);
 		ProcessLifecycleWrapper.mgr().init(shellProcess);
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudProcessResource.dao.clear();
 		
 
@@ -677,8 +669,8 @@ public class NShellActionTest {
 		
 		String refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
 		Assert.assertEquals("file copy running", "{\"RUNABLE\": 1, \"RUNABLE_Wait\": 2, \"INIT\": 1}", refresh);
-		
-		Thread.sleep(1000);
+
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudProcessResource.dao.clear();
 
 		on_0Process = CloudProcessResource.dao.load(on_0.getProcess());
@@ -694,8 +686,8 @@ public class NShellActionTest {
 		
 		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
 		Assert.assertEquals("command runs", "{\"RUNABLE\": 1, \"RUNABLE_Wait\": 2}", refresh);
-		
-		Thread.sleep(1000);
+
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudProcessResource.dao.clear();
 		on_0Process = CloudProcessResource.dao.load(on_0.getProcess());
 		fileTransfer_0Process = CloudProcessResource.dao.load(fileTransfer_0Process.getUri());
@@ -712,7 +704,7 @@ public class NShellActionTest {
 		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
 		Assert.assertEquals("filecopy completes, command runs", "{}", refresh);
 
-		Thread.sleep(500);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudProcessResource.dao.clear();
 		on_0Process = CloudProcessResource.dao.load(on_0.getProcess());
 		fileTransfer_0Process = CloudProcessResource.dao.load(fileTransfer_0Process.getUri());
@@ -727,8 +719,8 @@ public class NShellActionTest {
 
 		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
 		Assert.assertEquals("all complete", "{}", refresh);
-		
-		Thread.sleep(500);
+
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudProcessResource.dao.clear();
 		on_0Process = CloudProcessResource.dao.load(on_0.getProcess());
 		fileTransfer_0Process = CloudProcessResource.dao.load(fileTransfer_0Process.getUri());
@@ -797,7 +789,7 @@ public class NShellActionTest {
 		
 		CloudProcess shellProcess = ProcessLifecycleWrapper.mgr().createProcess(root, "shell", context, null, null, true, NShellActionTestHarness.class);
 		ProcessLifecycleWrapper.mgr().init(shellProcess);
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudProcessResource.dao.clear();
 		
 
@@ -838,8 +830,8 @@ public class NShellActionTest {
 		
 		String refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
 		Assert.assertEquals("input file copy running", "{\"RUNABLE\": 1, \"RUNABLE_Wait\": 2, \"INIT\": 2}", refresh);
-		
-		Thread.sleep(1000);
+
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudProcessResource.dao.clear();
 
 		on_0Process = CloudProcessResource.dao.load(on_0.getProcess());
@@ -857,8 +849,8 @@ public class NShellActionTest {
 		
 		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
 		Assert.assertEquals("command runs", "{\"RUNABLE\": 1, \"RUNABLE_Wait\": 2, \"INIT\": 1}", refresh);
-		
-		Thread.sleep(500);
+
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudProcessResource.dao.clear();
 		on_0Process = CloudProcessResource.dao.load(on_0.getProcess());
 		fileTransfer_0Process = CloudProcessResource.dao.load(fileTransfer_0Process.getUri());
@@ -877,7 +869,7 @@ public class NShellActionTest {
 		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
 		Assert.assertEquals("output filecopy running", "{\"RUNABLE\": 1, \"RUNABLE_Wait\": 2}", refresh);
 
-		Thread.sleep(500);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudProcessResource.dao.clear();
 		
 		on_0Process = CloudProcessResource.dao.load(on_0.getProcess());
@@ -895,8 +887,8 @@ public class NShellActionTest {
 
 		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
 		Assert.assertEquals("all complete", "{}", refresh);
-		
-		Thread.sleep(500);
+
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudProcessResource.dao.clear();
 		on_0Process = CloudProcessResource.dao.load(on_0.getProcess());
 		fileTransfer_0Process = CloudProcessResource.dao.load(fileTransfer_0Process.getUri());
@@ -960,7 +952,7 @@ public class NShellActionTest {
 		
 		CloudProcess shellProcess = ProcessLifecycleWrapper.mgr().createProcess(root, "shell", context, null, null, true, NShellActionTestHarness.class);
 		ProcessLifecycleWrapper.mgr().init(shellProcess);
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudProcessResource.dao.clear();
 		
 
@@ -988,8 +980,8 @@ public class NShellActionTest {
 		Assert.assertEquals(UriBuilder.fromUri(onExit_0.getProcess()).scheme("http").path("event").build(), OnExitActionWrapper.request.getNotification());
 		Assert.assertEquals(null, OnExitActionWrapper.request.getStdin());
 		
-		
-		Thread.sleep(1000);
+
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudProcessResource.dao.clear();
 		refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
 //		Assert.assertEquals("{\"RUNABLE_Wait\": 1, \"ONEXIT_Running\": 1}", refresh);
@@ -1046,7 +1038,7 @@ public class NShellActionTest {
 		
 		CloudProcess shellProcess = ProcessLifecycle.mgr().createProcess(root, "shell", context, null, null, true, NShellActionTestHarness.class);
 		ProcessLifecycle.mgr().init(shellProcess);
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudProcessResource.dao.clear();
 		
 		String refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
@@ -1071,9 +1063,6 @@ public class NShellActionTest {
 			(	"log shell For_0_0 0".equals(logs.get(1).getText()) && 
 					"log For_0_1 1".equals(logs.get(0).getText()) ));
 		
-
-		
-		Thread.sleep(1000);
 	}
 
 
@@ -1405,6 +1394,6 @@ public class NShellActionTest {
 				return this.status;
 			}
 		}
-	 
+
 
 }

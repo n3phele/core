@@ -24,10 +24,16 @@ import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
+import n3phele.QueueTestHelper;
 import n3phele.service.actions.CountDownAction;
 import n3phele.service.actions.JobAction;
 import n3phele.service.lifecycle.ProcessLifecycle;
@@ -53,6 +59,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.powermock.api.mockito.PowerMockito;
 
+import com.google.appengine.api.taskqueue.QueueFactory;
+import com.google.appengine.api.taskqueue.dev.LocalTaskQueue;
+import com.google.appengine.api.taskqueue.dev.QueueStateInfo;
+import com.google.appengine.api.taskqueue.dev.QueueStateInfo.TaskStateInfo;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
@@ -64,7 +74,7 @@ public class CloudProcessTest  {
 			new LocalDatastoreServiceTestConfig()
 				.setApplyAllHighRepJobPolicy(),
 			new LocalTaskQueueTestConfig()
-								.setDisableAutoTaskExecution(false)             
+								.setDisableAutoTaskExecution(true)             
 								.setCallbackClass(LocalTaskQueueTestConfig.DeferredTaskCallback.class)) ;
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -78,10 +88,9 @@ public class CloudProcessTest  {
 	public void setUp() throws Exception {
 		helper.setUp();
 	}
-	
-	 @After     
-	 public void tearDown() {         helper.tearDown();     } 
 
+	@After     
+	public void tearDown() {         helper.tearDown();     } 
 	
 	/** Creates and runs a simple test process verifying preservation of running task state
 	 * @throws InterruptedException
@@ -91,22 +100,24 @@ public class CloudProcessTest  {
 		User root = UserResource.Root;
 		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
-
+				
 		Response result;
 
 		result = cpr.exec("CountDown", "CountDown", "now is the time");
 
 		assertEquals(201, result.getStatus());
 		URI processId = (URI) result.getMetadata().getFirst("Location");
-		Thread.sleep(3000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		CloudProcess process = CloudResourceTestWrapper.dao.load(processId);
 		assertEquals(ActionState.RUNABLE, process.getState());
 		CloudResourceTestWrapper.dao.clear();
+		
 		result = cpr.refresh();
 		assertEquals(200,result.getStatus());
 		assertEquals("{\"RUNABLE\": 1}", result.getEntity());
-		Thread.sleep(1000);
+		QueueTestHelper.runAllTasksOnQueue();
+		
 		CloudResourceTestWrapper.dao.clear();
 		CountDownAction action = (CountDownAction) ActionResource.dao.load(process.getAction());
 		assertEquals("Count value", 3, action.getCount());
@@ -169,8 +180,8 @@ public class CloudProcessTest  {
 		result = cpr.exec("Job", "Job", "CountDown foo");
 		
 		assertEquals(201, result.getStatus());
-		URI processId = (URI) result.getMetadata().getFirst("Location");
-		Thread.sleep(2000);
+		URI processId = (URI) result.getMetadata().getFirst("Location");		
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		CloudProcess job = CloudResourceTestWrapper.dao.load(processId);
 		assertEquals(ActionState.RUNABLE, job.getState());
@@ -178,7 +189,7 @@ public class CloudProcessTest  {
 		result = cpr.refresh();
 		assertEquals(200,result.getStatus());
 		assertEquals("{\"RUNABLE\": 1, \"RUNABLE_Wait\": 1}", result.getEntity());
-		Thread.sleep(1000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		JobAction jobAction = (JobAction) ActionResource.dao.load(job.getAction());
 		URI childProcess = jobAction.getChildProcess();
@@ -192,14 +203,11 @@ public class CloudProcessTest  {
 		CloudResourceTestWrapper.dao.clear();
 		result = cpr.refresh();
 		assertEquals("{\"RUNABLE\": 1, \"RUNABLE_Wait\": 1}", result.getEntity());
-		Thread.sleep(1000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		result = cpr.refresh();
 		assertEquals("{}", result.getEntity());
 		CloudResourceTestWrapper.dao.clear();
-		
-		
-		
 	}
 	
 	/** Demonstrates cancellation of a task
@@ -215,12 +223,12 @@ public class CloudProcessTest  {
 		assertEquals(201, result.getStatus());
 		URI processId = (URI) result.getMetadata().getFirst("Location");
 		CloudProcess process = CloudResourceTestWrapper.dao.load(processId);
-		Thread.sleep(3000);
+		QueueTestHelper.runAllTasksOnQueue();
 		assertEquals(ActionState.RUNABLE, process.getState());
 
 		ProcessLifecycle.mgr().cancel(process);
 		CloudResourceTestWrapper.dao.clear();
-		Thread.sleep(1000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		process = CloudResourceTestWrapper.dao.load(processId);
 		assertEquals(ActionState.CANCELLED, process.getState());
@@ -243,8 +251,8 @@ public class CloudProcessTest  {
 		
 		assertEquals(201, result.getStatus());
 		URI processId = (URI) result.getMetadata().getFirst("Location");
-		
-		Thread.sleep(2000);
+
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		CloudProcess job = CloudResourceTestWrapper.dao.load(processId);
 		JobAction jobAction = (JobAction) ActionResource.dao.load(job.getAction());
@@ -254,7 +262,7 @@ public class CloudProcessTest  {
 
 		ProcessLifecycle.mgr().cancel(process);
 		CloudResourceTestWrapper.dao.clear();
-		Thread.sleep(1000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		process = CloudResourceTestWrapper.dao.load(process.getUri());
 		assertEquals(ActionState.CANCELLED, process.getState());
@@ -282,8 +290,8 @@ public class CloudProcessTest  {
 		
 		assertEquals(201, result.getStatus());
 		URI processId = (URI) result.getMetadata().getFirst("Location");
-		
-		Thread.sleep(2000);
+
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		CloudProcess job = CloudResourceTestWrapper.dao.load(processId);
 		JobAction jobAction = (JobAction) ActionResource.dao.load(job.getAction());
@@ -293,7 +301,7 @@ public class CloudProcessTest  {
 
 		ProcessLifecycle.mgr().cancel(job);
 		CloudResourceTestWrapper.dao.clear();
-		Thread.sleep(1000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		process = CloudResourceTestWrapper.dao.load(process.getUri());
 		assertEquals(ActionState.CANCELLED, process.getState());
@@ -318,7 +326,7 @@ public class CloudProcessTest  {
 		Response result = cpr.exec("CountDown", "CountDown", "throwInit");
 		assertEquals(201, result.getStatus());
 		URI processId = (URI) result.getMetadata().getFirst("Location");
-		Thread.sleep(3000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		CloudProcess process = CloudResourceTestWrapper.dao.load(processId);
 
@@ -338,23 +346,27 @@ public class CloudProcessTest  {
 		assertNotNull(root);
 		CloudResourceTestWrapper cpr = new CloudResourceTestWrapper(); cpr.addSecurityContext(null);
 		Response result;
-		result = cpr.exec("Job", "Job", "CountDown throwInit");
+		
+		result = cpr.exec("Job", "Job", "CountDown throwInit");		
+		QueueTestHelper.runAllTasksOnQueue();
+		
 		assertEquals(201, result.getStatus());
 		URI processId = (URI) result.getMetadata().getFirst("Location");
-		Thread.sleep(3000);
 		CloudResourceTestWrapper.dao.clear();
 		CloudProcess job = CloudResourceTestWrapper.dao.load(processId);
 		JobAction jobAction = (JobAction) ActionResource.dao.load(job.getAction());
 		CloudProcess process = CloudResourceTestWrapper.dao.load(jobAction.getChildProcess());
-
+		
 		assertEquals(ActionState.FAILED, process.getState());
 		assertTrue(process.isFinalized());
 		CountDownAction action = (CountDownAction) ActionResource.dao.load(process.getAction());
 		assertEquals("Count value", 5, action.getCount());
 		CloudResourceTestWrapper.dao.clear();
 		result = cpr.refresh();
+		
+		QueueTestHelper.runAllTasksOnQueue();
+		
 		assertEquals(200,result.getStatus());
-		Thread.sleep(1000);
 		CloudResourceTestWrapper.dao.clear();
 		job = CloudResourceTestWrapper.dao.load(job.getUri());
 		jobAction = (JobAction) ActionResource.dao.load(jobAction.getId());
@@ -374,7 +386,7 @@ public class CloudProcessTest  {
 		Response result = cpr.exec("CountDown", "CountDown", "throw5");
 		assertEquals(201, result.getStatus());
 		URI processId = (URI) result.getMetadata().getFirst("Location");
-		Thread.sleep(3000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		CloudProcess process = CloudResourceTestWrapper.dao.load(processId);
 		assertEquals(ActionState.FAILED, process.getState());
@@ -396,7 +408,7 @@ public class CloudProcessTest  {
 		Response result = cpr.exec("Job", "Job", "CountDown throw5");
 		assertEquals(201, result.getStatus());
 		URI processId = (URI) result.getMetadata().getFirst("Location");
-		Thread.sleep(3000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		CloudProcess job = CloudResourceTestWrapper.dao.load(processId);
 		JobAction jobAction = (JobAction) ActionResource.dao.load(job.getAction());
@@ -409,10 +421,8 @@ public class CloudProcessTest  {
 		result = cpr.refresh();
 		assertEquals(200,result.getStatus());
 		assertEquals("{}", result.getEntity());
-		Thread.sleep(1000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
-		
-		
 		job = CloudResourceTestWrapper.dao.load(job.getUri());
 		jobAction = (JobAction) ActionResource.dao.load(jobAction.getId());
 		assertEquals(ActionState.FAILED, job.getState());
@@ -439,10 +449,8 @@ public class CloudProcessTest  {
 		CloudProcess jerry = ProcessLifecycle.mgr().createProcess(UserResource.Root, "jerry", jerry_env, jerryDependency, null, true, CountDownAction.class);
 		ProcessLifecycle.mgr().init(tom);
 		ProcessLifecycle.mgr().init(jerry);
-
-		Thread.sleep(3000);
-		CloudResourceTestWrapper.dao.clear();
-		
+		QueueTestHelper.runAllTasksOnQueue();
+		CloudResourceTestWrapper.dao.clear();		
 		
 		tom  = CloudResourceTestWrapper.dao.load(tom.getUri());
 		jerry  = CloudResourceTestWrapper.dao.load(jerry.getUri());
@@ -456,9 +464,9 @@ public class CloudProcessTest  {
 		CloudResourceTestWrapper.dao.clear();
 		Response result = cpr.refresh();
 		assertEquals(200,result.getStatus());
-		assertEquals("{\"RUNABLE\": 1, \"INIT\": 1}", result.getEntity());
+		assertEquals("{\"RUNABLE\": 1, \"INIT\": 1}", result.getEntity());	
+		QueueTestHelper.runAllTasksOnQueue();
 		
-		Thread.sleep(2000);
 		CloudResourceTestWrapper.dao.clear();
 		tom  = CloudResourceTestWrapper.dao.load(tom.getUri());
 		jerry  = CloudResourceTestWrapper.dao.load(jerry.getUri());
@@ -490,11 +498,12 @@ public class CloudProcessTest  {
 		jerryDependency.add(tom.getUri());
 		jerryDependency.add(curley.getUri());
 		CloudProcess jerry = ProcessLifecycle.mgr().createProcess(UserResource.Root, "jerry", jerry_env, jerryDependency, null, true, CountDownAction.class);
+		
 		ProcessLifecycle.mgr().init(tom);
 		ProcessLifecycle.mgr().init(curley);
 		ProcessLifecycle.mgr().init(jerry);
 
-		Thread.sleep(3000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		
 		
@@ -516,8 +525,8 @@ public class CloudProcessTest  {
 		Response result = cpr.refresh();
 		assertEquals(200,result.getStatus());
 		assertEquals("{\"RUNABLE\": 2, \"INIT\": 1}", result.getEntity());
-		
-		Thread.sleep(2000);
+
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		tom  = CloudResourceTestWrapper.dao.load(tom.getUri());
 		jerry  = CloudResourceTestWrapper.dao.load(jerry.getUri());
@@ -544,7 +553,7 @@ public class CloudProcessTest  {
 	
 		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, true, CountDownAction.class);
 		ProcessLifecycle.mgr().init(tom);
-		Thread.sleep(1000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		tom  = CloudResourceTestWrapper.dao.load(tom.getUri());
 		assertEquals(ActionState.RUNABLE, tom.getState());
@@ -558,11 +567,12 @@ public class CloudProcessTest  {
 		jerryDependency.add(tom.getUri());
 		CloudResourceTestWrapper.dao.clear();
 		cpr.refresh();
-		Thread.sleep(1000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		
 		CloudProcess jerry = ProcessLifecycle.mgr().createProcess(UserResource.Root, "jerry", jerry_env, jerryDependency, null, true, CountDownAction.class);
 		ProcessLifecycle.mgr().init(jerry);
+		QueueTestHelper.runAllTasksOnQueue();
 		
 		CloudResourceTestWrapper.dao.clear();
 		
@@ -594,7 +604,7 @@ public class CloudProcessTest  {
 		ProcessLifecycle.mgr().init(tom);
 		ProcessLifecycle.mgr().init(jerry);
 
-		Thread.sleep(3000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 
 		
@@ -605,7 +615,7 @@ public class CloudProcessTest  {
 		CloudResourceTestWrapper.dao.clear();
 		ProcessLifecycle.mgr().cancel(tom);
 
-		Thread.sleep(1000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		tom = CloudResourceTestWrapper.dao.load(tom.getUri());
 		assertEquals(ActionState.CANCELLED, tom.getState());
@@ -635,13 +645,13 @@ public class CloudProcessTest  {
 	
 		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, true, CountDownAction.class);
 		ProcessLifecycle.mgr().init(tom);
-		Thread.sleep(3000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		tom  = CloudResourceTestWrapper.dao.load(tom.getUri());
 		assertEquals(ActionState.RUNABLE, tom.getState());
 		CloudResourceTestWrapper.dao.clear();
 		ProcessLifecycle.mgr().cancel(tom);
-		Thread.sleep(1000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		
 		List<URI> jerryDependency = new ArrayList<URI>();
@@ -678,10 +688,11 @@ public class CloudProcessTest  {
 		List<URI> jerryDependency = new ArrayList<URI>();
 		jerryDependency.add(tom.getUri());
 		CloudProcess jerry = ProcessLifecycle.mgr().createProcess(UserResource.Root, "jerry", jerry_env, jerryDependency, null, true, CountDownAction.class);
+		
 		ProcessLifecycle.mgr().init(tom);
 		ProcessLifecycle.mgr().init(jerry);
 
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 
 		
@@ -716,9 +727,8 @@ public class CloudProcessTest  {
 		ProcessLifecycle.mgr().init(tom);
 		ProcessLifecycle.mgr().init(jerry);
 
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
-
 		
 		tom  = CloudResourceTestWrapper.dao.load(tom.getUri());
 		jerry  = CloudResourceTestWrapper.dao.load(jerry.getUri());
@@ -750,9 +760,8 @@ public class CloudProcessTest  {
 		ProcessLifecycle.mgr().init(tom);
 		ProcessLifecycle.mgr().init(jerry);
 
-		Thread.sleep(1000);
-		CloudResourceTestWrapper.dao.clear();
-		
+		QueueTestHelper.runAllTasksOnQueue();
+		CloudResourceTestWrapper.dao.clear();		
 		
 		tom  = CloudResourceTestWrapper.dao.load(tom.getUri());
 		jerry  = CloudResourceTestWrapper.dao.load(jerry.getUri());
@@ -762,8 +771,8 @@ public class CloudProcessTest  {
 		ProcessLifecycle.mgr().dump(tom);
 		
 		CloudResourceTestWrapper.dao.clear();
-		
-		Thread.sleep(2000);
+
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		tom  = CloudResourceTestWrapper.dao.load(tom.getUri());
 		jerry  = CloudResourceTestWrapper.dao.load(jerry.getUri());
@@ -795,10 +804,10 @@ public class CloudProcessTest  {
 	
 		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, true, CountDownAction.class);
 		ProcessLifecycle.mgr().init(tom);
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		cpr.refresh();
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		tom  = CloudResourceTestWrapper.dao.load(tom.getUri());
 		assertEquals(ActionState.RUNABLE, tom.getState());
@@ -806,12 +815,12 @@ public class CloudProcessTest  {
 		CloudProcess jerry = ProcessLifecycle.mgr().createProcess(UserResource.Root, "jerry", jerry_env, null, null, true, CountDownAction.class);
 		CloudResourceTestWrapper.dao.clear();
 		cpr.refresh();
-		Thread.sleep(1000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		ProcessLifecycle.mgr().addDependentOn(tom, jerry);
 		ProcessLifecycle.mgr().init(jerry);
 
-		Thread.sleep(1000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		
 		
@@ -837,10 +846,10 @@ public class CloudProcessTest  {
 	
 		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, true, CountDownAction.class);
 		ProcessLifecycle.mgr().init(tom);
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		cpr.refresh();
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		tom  = CloudResourceTestWrapper.dao.load(tom.getUri());
 		assertEquals(ActionState.RUNABLE, tom.getState());
@@ -848,10 +857,11 @@ public class CloudProcessTest  {
 		CloudProcess jerry = ProcessLifecycle.mgr().createProcess(UserResource.Root, "jerry", jerry_env, null, null, true, CountDownAction.class);
 		CloudResourceTestWrapper.dao.clear();
 		cpr.refresh();
+		QueueTestHelper.runAllTasksOnQueue();
 		ProcessLifecycle.mgr().addDependentOn(tom, jerry);
 		ProcessLifecycle.mgr().init(jerry);
 
-		Thread.sleep(3000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		
 		
@@ -865,7 +875,7 @@ public class CloudProcessTest  {
 		ActionResource.dao.update(jerryAction);
 		CloudResourceTestWrapper.dao.clear();
 		cpr.refresh();
-		Thread.sleep(1000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		tom  = CloudResourceTestWrapper.dao.load(tom.getUri());
 		jerry  = CloudResourceTestWrapper.dao.load(jerry.getUri());
@@ -891,10 +901,10 @@ public class CloudProcessTest  {
 	
 		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, true, CountDownAction.class);
 		ProcessLifecycle.mgr().init(tom);
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		cpr.refresh();
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		tom  = CloudResourceTestWrapper.dao.load(tom.getUri());
 		assertEquals(ActionState.RUNABLE, tom.getState());
@@ -905,7 +915,7 @@ public class CloudProcessTest  {
 		ProcessLifecycle.mgr().addDependentOn(tom, jerry);
 		ProcessLifecycle.mgr().init(jerry);
 
-		Thread.sleep(3000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		
 		
@@ -918,9 +928,10 @@ public class CloudProcessTest  {
 		jerryAction.setCount(1);
 		ActionResource.dao.update(jerryAction);
 		ProcessLifecycle.mgr().cancel(tom);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		cpr.refresh();
-		Thread.sleep(1000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		tom  = CloudResourceTestWrapper.dao.load(tom.getUri());
 		jerry  = CloudResourceTestWrapper.dao.load(jerry.getUri());
@@ -944,10 +955,10 @@ public class CloudProcessTest  {
 	
 		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, true, CountDownAction.class);
 		ProcessLifecycle.mgr().init(tom);
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		cpr.refresh();
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		tom  = CloudResourceTestWrapper.dao.load(tom.getUri());
 		assertEquals(ActionState.RUNABLE, tom.getState());
@@ -955,12 +966,12 @@ public class CloudProcessTest  {
 		CloudProcess jerry = ProcessLifecycle.mgr().createProcess(UserResource.Root, "jerry", jerry_env, null, null, true, CountDownAction.class);
 		CloudResourceTestWrapper.dao.clear();
 		cpr.refresh();
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		ProcessLifecycle.mgr().addDependentOn(tom, jerry);
 		ProcessLifecycle.mgr().init(jerry);
 
-		Thread.sleep(3000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		
 		
@@ -975,7 +986,7 @@ public class CloudProcessTest  {
 		ProcessLifecycle.mgr().cancel(jerry);
 		CloudResourceTestWrapper.dao.clear();
 		cpr.refresh();
-		Thread.sleep(1000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		tom  = CloudResourceTestWrapper.dao.load(tom.getUri());
 		jerry  = CloudResourceTestWrapper.dao.load(jerry.getUri());
@@ -1003,20 +1014,20 @@ public class CloudProcessTest  {
 	
 		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, true, CountDownAction.class);
 		ProcessLifecycle.mgr().init(tom);
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		cpr.refresh();
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		tom  = CloudResourceTestWrapper.dao.load(tom.getUri());
 		assertEquals(ActionState.RUNABLE, tom.getState());
 		//
 		CloudProcess jerry = ProcessLifecycle.mgr().createProcess(UserResource.Root, "jerry", jerry_env, null, null, true, CountDownAction.class);
 		ProcessLifecycle.mgr().init(jerry);
-		Thread.sleep(1000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		cpr.refresh();
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		ProcessLifecycle.mgr().addDependentOn(tom, jerry);
 		
@@ -1031,7 +1042,7 @@ public class CloudProcessTest  {
 		ProcessLifecycle.mgr().dump(tom);
 		CloudResourceTestWrapper.dao.clear();
 		cpr.refresh();
-		Thread.sleep(1000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		tom  = CloudResourceTestWrapper.dao.load(tom.getUri());
 		jerry  = CloudResourceTestWrapper.dao.load(jerry.getUri());
@@ -1057,10 +1068,10 @@ public class CloudProcessTest  {
 	
 		CloudProcess tom = ProcessLifecycle.mgr().createProcess(UserResource.Root, "tom", tom_env, null, null, true, CountDownAction.class);
 		ProcessLifecycle.mgr().init(tom);
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		cpr.refresh();
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		tom  = CloudResourceTestWrapper.dao.load(tom.getUri());
 		assertEquals(ActionState.RUNABLE, tom.getState());
@@ -1068,14 +1079,13 @@ public class CloudProcessTest  {
 		CloudProcess jerry = ProcessLifecycle.mgr().createProcess(UserResource.Root, "jerry", jerry_env, null, null, true, CountDownAction.class);
 		CloudResourceTestWrapper.dao.clear();
 		cpr.refresh();
-		Thread.sleep(2000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		ProcessLifecycle.mgr().addDependentOn(tom, jerry);
 		ProcessLifecycle.mgr().init(jerry);
 
-		Thread.sleep(3000);
-		CloudResourceTestWrapper.dao.clear();
-		
+		QueueTestHelper.runAllTasksOnQueue();
+		CloudResourceTestWrapper.dao.clear();		
 		
 		tom  = CloudResourceTestWrapper.dao.load(tom.getUri());
 		jerry  = CloudResourceTestWrapper.dao.load(jerry.getUri());
@@ -1086,9 +1096,10 @@ public class CloudProcessTest  {
 		jerryAction.setCount(1);
 		ActionResource.dao.update(jerryAction);
 		ProcessLifecycle.mgr().dump(jerry);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		cpr.refresh();
-		Thread.sleep(1000);
+		QueueTestHelper.runAllTasksOnQueue();
 		CloudResourceTestWrapper.dao.clear();
 		tom  = CloudResourceTestWrapper.dao.load(tom.getUri());
 		jerry  = CloudResourceTestWrapper.dao.load(jerry.getUri());
