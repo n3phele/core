@@ -80,7 +80,8 @@ public class ServiceDetailsView extends WorkspaceVerticalPanel {
 	private SimplePager simplePager;
 	private List<Stack> data = new ArrayList<Stack>();
 	private Label lblNewLabel; 
-	
+	private boolean addedNoStack = false;
+	private Label noStack;
 	public StackServiceAction getStackAction() {
 		return this.stackAction;
 	}
@@ -91,6 +92,12 @@ public class ServiceDetailsView extends WorkspaceVerticalPanel {
 		lblNewLabel.setText(stackAction.getName());
 		lblNewLabel.setStyleName(N3phele.n3pheleResource.css().labelFontWeight());
 		this.stackAction = stackAction;
+		
+		if((data == null || data.isEmpty())){
+			noStack.setVisible(true);
+		}else{
+			noStack.setVisible(false);
+		}
 	}
 
 	public ServiceDetailsView() {
@@ -101,14 +108,13 @@ public class ServiceDetailsView extends WorkspaceVerticalPanel {
 
 		table = new FlexTable();
 		table.setCellPadding(10);
-		
+		 noStack = new Label("There's no stacks on this service!");
 
 		// Selected service.
 		lblNewLabel = new Label("");
 		table.setWidget(0, 0, lblNewLabel);	
 		
-
-
+		
 		table.setWidget(1, 2, cancel);
 		table.getFlexCellFormatter().setHorizontalAlignment(1, 2,
 				HasHorizontalAlignment.ALIGN_RIGHT);
@@ -185,13 +191,6 @@ public class ServiceDetailsView extends WorkspaceVerticalPanel {
 					@Override
 					public void update(int index, Stack object, Stack value) {
 						presenter.onSelect(value);
-						// TODO Stack Details View
-						// if(value != null) {
-						// GWT.log("got-166 "+index+" "+value.getName());
-						// commandActivity.goTo(new
-						// CommandPlace(value.getUri()));
-						// }
-
 					}
 				};
 			}
@@ -265,6 +264,7 @@ public class ServiceDetailsView extends WorkspaceVerticalPanel {
 		});
 		this.add(table);
 		this.add(grid);
+		this.add(noStack);
 	}
 
 	

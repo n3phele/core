@@ -14,6 +14,7 @@ package n3phele.service.rest.impl;
 import static com.googlecode.objectify.ObjectifyService.ofy;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -84,19 +85,22 @@ public class ActionResource {
 	@Produces("application/json")
 	@RolesAllowed("authenticated")
 	@Path("{id}/history") 
-	public Command history( @PathParam ("id") Long id) throws NotFoundException {
+	public Command history( @PathParam ("id") Long id) throws NotFoundException, URISyntaxException {
 		User user =  UserResource.toUser(securityContext);
 		Action item = dao.load(id, user);
 		
 		Command command = item.getPrototype();
-		if(command.getImplementations() != null && !command.getImplementations().isEmpty()) {
-			CloudProcess process = CloudProcessResource.dao.load(item.getProcess());
-			if(process.isTopLevel()) {
-				command.initCloudAccounts(user);
-				command.setImplementations(null);
-			} 
+		if(command.getTags().contains("service")){
+			command.initServiceList(user);
+		}else{
+			if(command.getImplementations() != null && !command.getImplementations().isEmpty()) {
+				CloudProcess process = CloudProcessResource.dao.load(item.getProcess());
+				if(process.isTopLevel()) {
+					command.initCloudAccounts(user);
+					command.setImplementations(null);
+				} 
+			}
 		}
-		
 		return command;
 	}
 	

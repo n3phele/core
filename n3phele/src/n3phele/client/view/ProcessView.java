@@ -199,7 +199,12 @@ public class ProcessView extends WorkspaceVerticalPanel {
 		if(this.process != null) {
 			this.name.setText(this.process.getName());
 			
-			this.command = new Hyperlink(this.process.getDescription(),  presenter.getToken(this.process.getAction()));
+			if(process.getDescription().split(" ")[0].equals("StackService")){
+				this.command = new Hyperlink(this.process.getDescription(), "serviceDetails:"+process.getUri());
+
+			}else{
+				this.command = new Hyperlink(this.process.getDescription(),  presenter.getToken(this.process.getAction()));
+			}			
 			table.setWidget(1, 1, this.command);
 			this.startdate.setValue(this.process.getStart());
 			this.completedate.setValue(this.process.getComplete());
