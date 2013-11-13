@@ -53,8 +53,6 @@ public class NewUserView extends DialogBox {
 	private Button cancel;
 	private Button save;
 	// private PasswordTextBox confirmSecret;
-	private TextBox secret;
-	private TextBox accessKey;
 	private final String signupUrl;
 	private ValidInputIndicatorWidget emailValid;
 	private ValidInputIndicatorWidget firstNameValid;
@@ -62,12 +60,7 @@ public class NewUserView extends DialogBox {
 	private ValidInputIndicatorWidget passwordTextSupplied;
 	private ValidInputIndicatorWidget passwordConfirmSupplied;
 	private ValidInputIndicatorWidget errorsOnPage;
-	private Widget accessKeySupplied;
-	private ValidInputIndicatorWidget secretSupplied;
 	// private Widget confirmSupplied;
-	private ListBox credentialType;
-	private ListBox cloudZone;
-	private Label lblNewLabel_5, lblNewLabel_6; // lblNewLabel_7;
 
 	public NewUserView(String signupUrl) {
 		this.signupUrl = signupUrl;
@@ -94,20 +87,6 @@ public class NewUserView extends DialogBox {
 
 		};
 
-		ChangeHandler credentialTypeEvent = new ChangeHandler() {
-			public void onChange(ChangeEvent event) {
-				if (credentialType.isItemSelected(0)) {
-					lblNewLabel_5.setText("Amazon EC2 Access Key ID");
-					lblNewLabel_6.setText("Amazon EC2 Secret Access Key");
-					// lblNewLabel_7.setText("Confirm EC2 Secret Access Key");
-				} else {
-					lblNewLabel_5.setText("HP Cloud Access Key ID");
-					lblNewLabel_6.setText("HP Cloud Secret Access Key");
-					// lblNewLabel_7.setText("Confirm HP Cloud Secret Access Key");
-				}
-				fillCloudZoneListBox();
-			}
-		};
 		HTML heading = new HTML("<i><u>New User Registration</u></i>");
 		table.setWidget(0, 0, heading);
 
@@ -166,60 +145,6 @@ public class NewUserView extends DialogBox {
 		confirmPassword.addKeyUpHandler(keyup);
 		table.setWidget(5, 2, confirmPassword);
 
-		Label lblNewLabel_9 = new Label("Select cloud");
-		table.setWidget(6, 0, lblNewLabel_9);
-
-		credentialType = new ListBox();
-		credentialType.setVisibleItemCount(1);
-		credentialType.insertItem("Amazon EC2", 0);
-		credentialType.insertItem("HP Cloud", 1);
-		credentialType.addChangeHandler(credentialTypeEvent);
-		table.setWidget(6, 2, credentialType);
-
-		Label lblCloudZone = new Label("Cloud Zone");
-		table.setWidget(7, 0, lblCloudZone);
-
-		// adicionado a zona da cloud.
-		cloudZone = new ListBox();
-		cloudZone.setVisibleItemCount(1);
-		table.setWidget(7, 2, cloudZone);
-		fillCloudZoneListBox();
-
-		lblNewLabel_5 = new Label("Amazon EC2 Access Key ID");
-		table.setWidget(8, 0, lblNewLabel_5);
-		accessKeySupplied = new ValidInputIndicatorWidget("Access key required", true);
-		table.setWidget(8, 1, accessKeySupplied);
-
-		accessKey = new TextBox();
-		accessKey.setVisibleLength(30);
-		accessKey.addChangeHandler(update);
-		accessKey.addKeyUpHandler(keyup);
-		table.setWidget(8, 2, accessKey);
-
-		lblNewLabel_6 = new Label("Amazon EC2 Secret Access Key");
-		table.setWidget(9, 0, lblNewLabel_6);
-		secretSupplied = new ValidInputIndicatorWidget("Amazon EC2 secret access key required", true);
-		table.setWidget(9, 1, secretSupplied);
-
-		secret = new TextBox();
-		secret.setVisibleLength(30);
-		secret.addChangeHandler(update);
-		secret.addKeyUpHandler(keyup);
-		table.setWidget(9, 2, secret);
-		
-		/*
-		 * lblNewLabel_7 = new Label("Confirm EC2 Secret Access Key");
-		 * table.setWidget(9, 0, lblNewLabel_7); confirmSupplied = new
-		 * ValidInputIndicatorWidget
-		 * ("Matching Amazon EC2 secret access key required", true);
-		 * table.setWidget(9, 1, confirmSupplied);
-		 * 
-		 * confirmSecret = new PasswordTextBox();
-		 * confirmSecret.setVisibleLength(30);
-		 * confirmSecret.addChangeHandler(update);
-		 * confirmSecret.addKeyUpHandler(keyup); table.setWidget(9, 2,
-		 * confirmSecret);
-		 */
 		cancel = new Button("cancel", new ClickHandler() {
 			public void onClick(ClickEvent event) {
 				do_cancel();
@@ -261,50 +186,14 @@ public class NewUserView extends DialogBox {
 		this.center();
 	}
 
-	public void fillCloudZoneListBox() {
-		String cloud = credentialType.getValue(credentialType.getSelectedIndex());
-
-		int index = this.signupUrl.lastIndexOf('/');
-		String url = this.signupUrl.substring(0, index) + "/cloud/zones";
-		
-		RequestBuilder builder = new RequestBuilder(RequestBuilder.GET, url);
-		builder.setUser("signup");
-		builder.setPassword("newuser");
-		builder.setHeader("cloudType", cloud);
-
-		try {
-			@SuppressWarnings("unused")
-			Request request = builder.sendRequest("", new RequestCallback() {
-				public void onError(Request request, Throwable exception) {
-					String msg = exception.getMessage();
-				}
-
-				public void onResponseReceived(Request request, Response response) {
-					if (200 == response.getStatusCode()) {
-						String[] zones = response.getText().split(";");
-						cloudZone.clear();
-						for (int i = 0; i < zones.length; i++) {
-							cloudZone.insertItem(zones[i], cloudZone.getItemCount());
-						}
-					} else {
-						Window.alert("Zones retrieve problems : HTTP status " + response.getStatusCode());
-					}
-				}
-
-			});
-		} catch (RequestException e) {
-			Window.alert("Zones retrieve exception " + e.getMessage());
-		}
-	}
 
 	public void do_save() {
-		createUser(this.signupUrl, email.getText(), firstName.getText().trim(), lastName.getText().trim(), password.getText()
-				.trim(), accessKey.getText().trim(), secret.getText().trim(), cloudZone.getValue(cloudZone.getSelectedIndex()));
+		createUser(this.signupUrl, email.getText(), firstName.getText().trim(), 
+				lastName.getText().trim(), password.getText().trim());
 		hide();
 	}
 
-	private void createUser(String url, final String email, String firstName, String lastName, String password, String cloudId,
-			String cloudSecret, String cloudZoneName) {
+	private void createUser(String url, final String email, String firstName, String lastName, String password) {
 
 		// Send request to server and catch any errors.
 		RequestBuilder builder = new RequestBuilder(RequestBuilder.POST, url);
@@ -323,14 +212,6 @@ public class NewUserView extends DialogBox {
 			args.append("&secret=");
 			args.append(URL.encodeQueryString(password));
 		}
-		if (cloudId != null && cloudId.length() != 0) {
-			args.append("&cloudId=");
-			args.append(URL.encodeQueryString(cloudId));
-			args.append("&cloudSecret=");
-			args.append(URL.encodeQueryString(cloudSecret));
-		}
-		args.append("&cloudZoneName=");
-		args.append(URL.encodeQueryString(cloudZoneName));
 
 		try {
 			@SuppressWarnings("unused")
@@ -370,8 +251,6 @@ public class NewUserView extends DialogBox {
 			lastName.setText("");
 			password.setText("");
 			confirmPassword.setText("");
-			accessKey.setText("");
-			secret.setText("");
 			// confirmSecret.setText("");
 		}
 	}
@@ -392,15 +271,10 @@ public class NewUserView extends DialogBox {
 		this.passwordConfirmSupplied.setVisible(!(gotConfirm && password.getText().equals(confirmPassword.getText())));
 		isValid = isValid && gotPassword && gotConfirm && password.getText().equals(confirmPassword.getText());
 
-		boolean gotId = accessKey.getText() != null && accessKey.getText().length() != 0;
-		boolean gotSecret = secret.getText() != null && secret.getText().length() != 0;
 		// boolean gotEC2Confirm = confirmSecret.getText() != null &&
 		// confirmSecret.getText().length() != 0 &&
 		// secret.getText().equals(confirmSecret.getText());
-		this.accessKeySupplied.setVisible(!gotId);
-		this.secretSupplied.setVisible(!gotSecret);
 		// this.confirmSupplied.setVisible(!gotEC2Confirm);
-		isValid = isValid && gotSecret && gotId;
 		this.errorsOnPage.setVisible(!isValid);
 		this.save.setEnabled(isValid);
 		return isValid;

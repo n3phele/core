@@ -96,9 +96,7 @@ public class UserResource {
 	public Response add(@FormParam("email") String email,
 			@FormParam("firstName") String firstName,
 			@FormParam("lastName") String lastName,
-			@FormParam("secret") String secret,
-			@FormParam("ec2Id") String ec2Id,
-			@FormParam("ec2Secret") String ec2secret) {
+			@FormParam("secret") String secret) {
 		if(email == null || !email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}$")) {
 			throw new IllegalArgumentException("bad email");
 		}
@@ -115,12 +113,7 @@ public class UserResource {
 			
 		}
 		dao.add(user);
-		boolean hasEC2Info = ec2Id != null && ec2Id.trim().length() != 0;
-		welcome(user, hasEC2Info);
-		if(hasEC2Info) {
-	//		new AccountResource(dao).createAccountForUser(user, ec2Id, ec2secret);
-	//		new RepositoryResource(dao).createRepoForUser(user, ec2Id, ec2secret);
-		}
+		welcome(user, false);
 		log.warning("Created "+user);
 		return Response.created(user.getUri()).build();
 	}
@@ -135,12 +128,6 @@ public class UserResource {
 					body.append(",\n\nWelcome!\n\nYour account with username \"");
 					body.append(user.getName());
 					body.append("\" has been established, and is now ready for you to login.\n\n");
-					if(ec2Info) {
-						body.append("During the account signup process you supplied information about your Amazon EC2 account.");
-						body.append("This information is being used to setup a default cloud account for you within the n3phele environment. ");
-						body.append("As well, a default repository on Amazon S3 will be set up for you to use. You should recieve additional ");
-						body.append("email about these shortly.\n\n");
-					}
 					body.append("n3phele\n---\nhttps://n3phele.appspot.com");
 					
 
