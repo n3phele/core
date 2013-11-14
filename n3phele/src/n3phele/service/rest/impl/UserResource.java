@@ -167,15 +167,11 @@ public class UserResource {
 		if(email == null || !email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}$")) {
 			throw new IllegalArgumentException("bad email");
 		}
-		if(firstName == null || firstName.trim().length() == 0)
-			throw new IllegalArgumentException("bad firstName");
-		if(lastName == null || lastName.trim().length() == 0)
-			throw new IllegalArgumentException("bad lastName");
 		User exists = null;
 		try {
 			exists = dao.load(email, Root);
 		} catch (NotFoundException e) {
-			throw new IllegalArgumentException("User "+exists.getName()+" is unknown.");
+			throw new IllegalArgumentException("User not found.");
 		}
 		dao.deleteUserFromMemcache(exists.getName());
 		String secret = UUID.randomUUID().toString();

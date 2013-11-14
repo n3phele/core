@@ -42,19 +42,16 @@ import com.google.gwt.user.client.ui.TextBox;
 public class ForgotPasswordView extends DialogBox {
 	final private FlexTable table;
 	private TextBox email;
-	private TextBox firstName;
-	private TextBox lastName;
 	private Button cancel;
 	private Button save;
 	private final String signupUrl;
 	private ValidInputIndicatorWidget emailValid;
-	private ValidInputIndicatorWidget firstNameValid;
-	private ValidInputIndicatorWidget lastNameValid;
 
 	private ValidInputIndicatorWidget errorsOnPage;
 
 	public ForgotPasswordView(String signupUrl) {
 		this.signupUrl = signupUrl;
+		
 		this.setGlassEnabled(true);
 		this.setAnimationEnabled(true);
 		
@@ -91,27 +88,7 @@ public class ForgotPasswordView extends DialogBox {
 		email.addKeyUpHandler(keyup);
 		table.setWidget(1, 2, email);
 		
-		Label lblNewLabel_1 = new Label("First Name");
-		table.setWidget(2, 0, lblNewLabel_1);
-		firstNameValid = new ValidInputIndicatorWidget("Text value required", true);
-		table.setWidget(2, 1, firstNameValid);
-		
-		firstName = new TextBox();
-		firstName.setVisibleLength(30);
-		firstName.addChangeHandler(update);
-		firstName.addKeyUpHandler(keyup);
-		table.setWidget(2, 2, firstName);
-		
-		Label lblNewLabel_2 = new Label("Last Name");
-		table.setWidget(3, 0, lblNewLabel_2);
-		lastNameValid = new ValidInputIndicatorWidget("Text value required", true);
-		table.setWidget(3, 1, lastNameValid);
-		
-		lastName = new TextBox();
-		lastName.setVisibleLength(30);
-		lastName.addChangeHandler(update);
-		lastName.addKeyUpHandler(keyup);
-		table.setWidget(3, 2, lastName);
+
 		
 
 		
@@ -143,7 +120,6 @@ public class ForgotPasswordView extends DialogBox {
 			table.getFlexCellFormatter().setHorizontalAlignment(i, 0, HasHorizontalAlignment.ALIGN_RIGHT);
 			table.getFlexCellFormatter().setVerticalAlignment(i, 2, HasVerticalAlignment.ALIGN_MIDDLE);
 			table.getFlexCellFormatter().setHorizontalAlignment(i, 2, HasHorizontalAlignment.ALIGN_LEFT);
-	
 		}
 
 		table.getColumnFormatter().setWidth(1, "18px");
@@ -155,12 +131,11 @@ public class ForgotPasswordView extends DialogBox {
 	}
 	
 	public void do_save() {
-		createUser(this.signupUrl, email.getText(), 
-				firstName.getText().trim(), lastName.getText().trim());
+		createUser(this.signupUrl, email.getText());
 		hide();
 	}
 	
-	private void createUser(String url, final String email, String firstName, String lastName) {
+	private void createUser(String url, final String email) {
 
 		// Send request to server and catch any errors.
 		RequestBuilder builder = new RequestBuilder(RequestBuilder.POST, url);
@@ -170,10 +145,6 @@ public class ForgotPasswordView extends DialogBox {
 		StringBuilder args = new StringBuilder();
 		args.append("email=");
 		args.append(URL.encodeQueryString(email));
-		args.append("&firstName=");
-		args.append(URL.encodeQueryString(firstName));
-		args.append("&lastName=");
-		args.append(URL.encodeQueryString(lastName));
 
 		try {
 			@SuppressWarnings("unused")
@@ -187,8 +158,7 @@ public class ForgotPasswordView extends DialogBox {
 					if (201 == response.getStatusCode()) {
 						Window.alert("User "+email+" password reset. Check your email for details.");
 					} else {
-						Window.alert("User password reset failure "+response.getStatusText()+"\n"+
-								response.getText());
+						Window.alert("User password reset failure, user not found");
 					}
 				}
 
@@ -206,12 +176,8 @@ public class ForgotPasswordView extends DialogBox {
 	public void setData(User user) {
 		if(user != null) {
 			email.setText(user.getName());
-			firstName.setText(user.getFirstName());
-			lastName.setText(user.getLastName());
 		} else {
 			email.setText("");
-			firstName.setText("");
-			lastName.setText("");
 		}
 	}
 
@@ -219,11 +185,7 @@ public class ForgotPasswordView extends DialogBox {
 	private boolean validateUser(boolean isValid) {
 		boolean gotEmail = (email.getText().equals("root") || email.getText().matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}$"));
 		this.emailValid.setVisible(!gotEmail);
-		boolean gotFirstName = firstName.getText() != null && firstName.getText().length() != 0;
-		this.firstNameValid.setVisible(!gotFirstName);
-		boolean gotLastName = lastName.getText() != null && lastName.getText().length() != 0;
-		this.lastNameValid.setVisible(!gotLastName);
-		isValid = isValid && gotEmail && gotFirstName && gotLastName;
+		isValid = gotEmail;
 		this.errorsOnPage.setVisible(!isValid);
 		this.save.setEnabled(isValid);
 		return isValid;
