@@ -14,9 +14,23 @@
 package n3phele.client.view;
 
 
-import n3phele.client.model.User;
-import n3phele.client.widgets.ValidInputIndicatorWidget;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import n3phele.client.CacheManager;
+import n3phele.client.N3phele;
+import n3phele.client.model.Account;
+import n3phele.client.model.Cloud;
+import n3phele.client.model.Collection;
+import n3phele.client.model.User;
+import n3phele.client.presenter.helpers.AuthenticatedRequestFactory;
+import n3phele.client.widgets.ValidInputIndicatorWidget;
+import n3phele.service.rest.impl.N3pheleResource;
+
+import com.gargoylesoftware.htmlunit.Cache;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
@@ -60,13 +74,23 @@ public class NewUserView extends DialogBox {
 	private ValidInputIndicatorWidget passwordTextSupplied;
 	private ValidInputIndicatorWidget passwordConfirmSupplied;
 	private ValidInputIndicatorWidget errorsOnPage;
+	private ValidInputIndicatorWidget nameValid;
+	private ValidInputIndicatorWidget cloudSelected;
+	private ValidInputIndicatorWidget gotCloudId;
+	private final ValidInputIndicatorWidget secretTextSupplied;
+
+	private ListBox cloud = new ListBox(false);
+	private TextBox accountName;
+	private TextBox description;
+	private TextBox cloudId;
+	private TextBox secret;
+	
+	private final Map<String,Integer> cloudMap = new HashMap<String,Integer>();
+	private final List<String> uriMap = new ArrayList<String>();
 	// private Widget confirmSupplied;
 
 	public NewUserView(String signupUrl) {
 		this.signupUrl = signupUrl;
-		this.setGlassEnabled(true);
-		this.setAnimationEnabled(true);
-
 		table = new FlexTable();
 		table.setCellPadding(1);
 		table.setCellSpacing(5);
@@ -144,6 +168,61 @@ public class NewUserView extends DialogBox {
 		confirmPassword.addChangeHandler(update);
 		confirmPassword.addKeyUpHandler(keyup);
 		table.setWidget(5, 2, confirmPassword);
+		
+		//Account Settings
+		heading = new HTML("<i><u>New Account Registration</u></i>");
+		table.setWidget(6, 0, heading);
+		
+		Label labelName = new Label("Name");
+		table.setWidget(7, 0, labelName);
+		nameValid = new ValidInputIndicatorWidget("Text value required", false);
+		table.setWidget(7, 1, nameValid);
+		
+		accountName = new TextBox();
+		accountName.setVisibleLength(40);
+		accountName.addChangeHandler(update);
+		accountName.addKeyUpHandler(keyup);
+		table.setWidget(7, 2, accountName);
+		
+		Label descriptionLabel = new Label("Description");
+		table.setWidget(8, 0, descriptionLabel);
+		
+		description = new TextBox();
+		description.setVisibleLength(40);
+		description.addChangeHandler(update);
+		table.setWidget(8, 2, description);
+		
+		Label labelCloud = new Label("on Cloud");
+		table.setWidget(9, 0, labelCloud);
+		
+		cloudSelected = new ValidInputIndicatorWidget("Cloud selection required", false);
+		table.setWidget(9, 1, cloudSelected);
+		
+		cloud.addItem("--loading--");
+		cloud.addChangeHandler(update);
+		table.setWidget(9, 2, cloud);
+		
+		Label labelCloudId = new Label("Cloud Id");
+		table.setWidget(10, 0, labelCloudId);
+		
+		gotCloudId = new ValidInputIndicatorWidget("Cloud id required", false);
+		table.setWidget(10, 1, gotCloudId);
+		cloudId = new TextBox();
+		cloudId.setVisibleLength(40);
+		cloudId.addChangeHandler(update);
+		cloudId.addKeyUpHandler(keyup);
+		table.setWidget(10, 2, cloudId);
+		
+		Label labelCloudSecret = new Label("Cloud Secret");
+		table.setWidget(11, 0, labelCloudSecret);
+		
+		secretTextSupplied = new ValidInputIndicatorWidget("Secret text required", false);
+		table.setWidget(11, 1, secretTextSupplied);
+		secret = new TextBox();
+		secret.setVisibleLength(40);
+		secret.addChangeHandler(update);
+		secret.addKeyUpHandler(keyup);
+		table.setWidget(11, 2, secret);
 
 		cancel = new Button("cancel", new ClickHandler() {
 			public void onClick(ClickEvent event) {
@@ -151,7 +230,7 @@ public class NewUserView extends DialogBox {
 			}
 		});
 
-		table.setWidget(10, 3, cancel);
+		table.setWidget(13, 3, cancel);
 		// table.getFlexCellFormatter().setHorizontalAlignment(10, 0,
 		// HasHorizontalAlignment.ALIGN_RIGHT);
 
@@ -160,16 +239,21 @@ public class NewUserView extends DialogBox {
 				do_save();
 			}
 		});
-		table.setWidget(10, 2, save);
+		table.setWidget(13, 2, save);
 		// table.getFlexCellFormatter().setHorizontalAlignment(10, 2,
 		// HasHorizontalAlignment.ALIGN_RIGHT);
 		save.setEnabled(false);
 		errorsOnPage = new ValidInputIndicatorWidget("check for missing or invalid parameters marked with this icon", true);
-		table.setWidget(10, 1, errorsOnPage);
+		table.setWidget(13, 1, errorsOnPage);
 		// table.getFlexCellFormatter().setHorizontalAlignment(10, 3,
 		// HasHorizontalAlignment.ALIGN_RIGHT);
 
-		for (int i = 1; i < 10; i++) {
+		for (int i = 1; i < 12; i++) {
+			if(i == 6){ 
+				table.getFlexCellFormatter().setColSpan(i, 0, 4);
+				table.getFlexCellFormatter().setHorizontalAlignment(i, 0, HasHorizontalAlignment.ALIGN_CENTER);
+				continue;
+			}
 			table.getFlexCellFormatter().setColSpan(i, 2, 3);
 			table.getFlexCellFormatter().setVerticalAlignment(i, 0, HasVerticalAlignment.ALIGN_MIDDLE);
 			table.getFlexCellFormatter().setHorizontalAlignment(i, 0, HasHorizontalAlignment.ALIGN_RIGHT);
@@ -184,16 +268,20 @@ public class NewUserView extends DialogBox {
 		table.getFlexCellFormatter().setHorizontalAlignment(0, 0, HasHorizontalAlignment.ALIGN_CENTER);
 		this.add(table);
 		this.center();
+		getClouds();
 	}
 
 
 	public void do_save() {
 		createUser(this.signupUrl, email.getText(), firstName.getText().trim(), 
-				lastName.getText().trim(), password.getText().trim());
+				lastName.getText().trim(), password.getText().trim(),accountName.getText().trim(),
+				description.getText().trim(), uriMap.get(cloud.getSelectedIndex()),
+				cloudId.getText().trim(),secret.getText().trim());
 		hide();
 	}
 
-	private void createUser(String url, final String email, String firstName, String lastName, String password) {
+	private void createUser(String url, final String email, String firstName, String lastName, 
+			String password, String accountName, String description, String cloud, String cloudId, String cloudSecret) {
 
 		// Send request to server and catch any errors.
 		RequestBuilder builder = new RequestBuilder(RequestBuilder.POST, url);
@@ -212,7 +300,21 @@ public class NewUserView extends DialogBox {
 			args.append("&secret=");
 			args.append(URL.encodeQueryString(password));
 		}
-
+		args.append("&accountName=");
+		args.append(URL.encodeQueryString(accountName));
+		if(description != null && description.length() !=0) {
+			args.append("&description=");
+			args.append(URL.encodeQueryString(description));
+		}
+		args.append("&cloud=");
+		args.append(URL.encodeQueryString(cloud));
+		if(cloudSecret != null && cloudSecret.length() > 0) {
+			args.append("&accountId=");
+			args.append(URL.encodeQueryString(cloudId));
+			args.append("&accountSecret=");
+			args.append(URL.encodeQueryString(cloudSecret));
+		}
+		System.out.println(args.toString());
 		try {
 			@SuppressWarnings("unused")
 			Request request = builder.sendRequest(args.toString(), new RequestCallback() {
@@ -269,15 +371,76 @@ public class NewUserView extends DialogBox {
 		boolean gotConfirm = confirmPassword.getText() != null && confirmPassword.getText().length() != 0;
 		this.passwordTextSupplied.setVisible(!gotPassword);
 		this.passwordConfirmSupplied.setVisible(!(gotConfirm && password.getText().equals(confirmPassword.getText())));
-		isValid = isValid && gotPassword && gotConfirm && password.getText().equals(confirmPassword.getText());
-
+		boolean nameValid = (accountName.getText()!= null && accountName.getText().length()!=0);
+		this.nameValid.setVisible(!nameValid);
+		boolean cloudValid = cloud.getSelectedIndex() >=0; //&& cloudMap.size() > 0;
+		this.cloudSelected.setVisible(!cloudValid);
+		boolean gotId =  cloudId.getText() != null && cloudId.getText().length() != 0;
+		this.gotCloudId.setVisible(!gotId);
+		boolean cloudPassword = secret.getText() != null && secret.getText().length() != 0;
+		this.secretTextSupplied.setVisible(!cloudPassword);
 		// boolean gotEC2Confirm = confirmSecret.getText() != null &&
 		// confirmSecret.getText().length() != 0 &&
 		// secret.getText().equals(confirmSecret.getText());
 		// this.confirmSupplied.setVisible(!gotEC2Confirm);
+		isValid = isValid && gotPassword && gotConfirm
+				&& password.getText().equals(confirmPassword.getText())
+				&& gotId && cloudValid && cloudPassword;
+				
 		this.errorsOnPage.setVisible(!isValid);
 		this.save.setEnabled(isValid);
-		return isValid;
+		
+		
+		
+		isValid = isValid && nameValid && cloudValid;
+		return isValid;		
 	}
+	protected void getClouds() {
+		String url = this.signupUrl;
+		int index = url.lastIndexOf("/");
+		url = url.substring(0, index+1) + "cloud";
+		RequestBuilder builder = new RequestBuilder(RequestBuilder.GET,url);
+	
+		builder.setUser("signup");
+		builder.setPassword("newuser");
+		builder.setHeader("Content-type", "application/x-www-form-urlencoded");
+		try {
+			Request request = builder.sendRequest(null, new RequestCallback() {
+				public void onError(Request request, Throwable exception) {
+					// displayError("Couldn't retrieve JSON "+exception.getMessage());
+				}
 
+				public void onResponseReceived(Request request, Response response) {
+					GWT.log("Got reply");
+					if (200 == response.getStatusCode()) {
+						Collection<Cloud> list = Cloud.asCollection(response.getText());
+						setClouds(list.getElements());
+						
+					} else {
+
+					}
+				}
+
+			});
+		} catch (RequestException e) {
+			//displayError("Couldn't retrieve JSON "+e.getMessage());
+		}
+	}
+	
+	public void setClouds(List<Cloud> list) {
+		uriMap.clear();
+		cloudMap.clear();
+		cloud.clear();
+		if(list != null) {
+			int i=0;
+			for(Cloud c : list) {
+				uriMap.add(c.getUri());
+				cloudMap.put(c.getUri(),i++);
+				cloud.addItem(c.getName());
+			}			
+			cloud.setSelectedIndex(0);
+		}
+		validateUser(true);
+	}
+	
 }

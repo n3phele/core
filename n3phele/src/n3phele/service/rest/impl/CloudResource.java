@@ -61,13 +61,32 @@ public class CloudResource {
 
 	@GET
 	@Produces("application/json")
-	@RolesAllowed("authenticated")
+	@RolesAllowed({"authenticated","signup"})
 	public CloudCollection list(
 			@DefaultValue("false") @QueryParam("summary") Boolean summary) {
 
 		log.warning("getCloud entered with summary "+summary);
-
-		Collection<Cloud> result = dao.getCollection(UserResource.toUser(securityContext));
+		System.out.println(securityContext.getUserPrincipal());
+		String [] str = securityContext.getUserPrincipal().toString().split(" ");
+		User user;
+		boolean onlyPublic = false;
+		if(str[0].equals("signup")){
+			user = UserResource.Root;
+			onlyPublic = true;
+		}else{
+			user = UserResource.toUser(securityContext);
+		}
+		Collection<Cloud> result = dao.getCollection(user);
+		ArrayList<Cloud> filterPublic = new ArrayList<Cloud>();
+		if(onlyPublic){	
+			for(int i=0; i < result.getElements().size(); i++) {
+				if(result.getElements().get(i).isPublic()){
+					filterPublic.add(result.getElements().get(i));
+				}
+			}
+			result.setElements(filterPublic);
+		}
+		//result.set
 		if(summary) {
 			if(result.getElements() != null) {
 				for(int i=0; i < result.getElements().size(); i++) {
@@ -110,7 +129,7 @@ public class CloudResource {
 									  @FormParam("value") String value,
 									  @FormParam("defaultValue") String defaultValue
 			  						 ) throws NotFoundException {
-		
+
 		Cloud cloud = dao.load(id, UserResource.toUser(securityContext));
 		ArrayList<TypedParameter> inputParameters = cloud.getInputParameters();
 		for(TypedParameter typedParameter:inputParameters){
