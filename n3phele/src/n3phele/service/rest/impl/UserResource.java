@@ -126,7 +126,6 @@ public class UserResource {
 			
 		}
 		dao.add(user);
-		System.out.println("URI " + user.getUri());
 		Account account = new Account(accountName, description, cloud, myCloud.getName(), new Credential(accountId, secret).encrypt(), user.getUri(), false);
 		AccountResource.dao.add(account);
 		welcome(user, false);

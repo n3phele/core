@@ -66,7 +66,6 @@ public class CloudResource {
 			@DefaultValue("false") @QueryParam("summary") Boolean summary) {
 
 		log.warning("getCloud entered with summary "+summary);
-		System.out.println(securityContext.getUserPrincipal());
 		String [] str = securityContext.getUserPrincipal().toString().split(" ");
 		User user;
 		boolean onlyPublic = false;

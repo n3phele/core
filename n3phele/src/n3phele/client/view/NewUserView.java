@@ -314,7 +314,6 @@ public class NewUserView extends DialogBox {
 			args.append("&accountSecret=");
 			args.append(URL.encodeQueryString(cloudSecret));
 		}
-		System.out.println(args.toString());
 		try {
 			@SuppressWarnings("unused")
 			Request request = builder.sendRequest(args.toString(), new RequestCallback() {
@@ -385,14 +384,10 @@ public class NewUserView extends DialogBox {
 		// this.confirmSupplied.setVisible(!gotEC2Confirm);
 		isValid = isValid && gotPassword && gotConfirm
 				&& password.getText().equals(confirmPassword.getText())
-				&& gotId && cloudValid && cloudPassword;
+				&& gotId && cloudValid && cloudPassword  && nameValid ;
 				
 		this.errorsOnPage.setVisible(!isValid);
 		this.save.setEnabled(isValid);
-		
-		
-		
-		isValid = isValid && nameValid && cloudValid;
 		return isValid;		
 	}
 	protected void getClouds() {
