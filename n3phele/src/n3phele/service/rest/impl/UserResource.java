@@ -47,7 +47,9 @@ import javax.ws.rs.core.UriInfo;
 
 import n3phele.service.core.NotFoundException;
 import n3phele.service.core.Resource;
+import n3phele.service.model.Account;
 import n3phele.service.model.CachingAbstractManager;
+import n3phele.service.model.Cloud;
 import n3phele.service.model.ServiceModelDao;
 import n3phele.service.model.core.BaseEntity;
 import n3phele.service.model.core.Collection;
@@ -96,7 +98,12 @@ public class UserResource {
 	public Response add(@FormParam("email") String email,
 			@FormParam("firstName") String firstName,
 			@FormParam("lastName") String lastName,
-			@FormParam("secret") String secret) {
+			@FormParam("secret") String secret,
+			@FormParam("accountName") String accountName,
+			@FormParam("description") String description,
+			@FormParam("cloud") URI cloud,
+			@FormParam("accountId") String accountId,
+			@FormParam("accountSecret") String accountSecret) {
 		if(email == null || !email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}$")) {
 			throw new IllegalArgumentException("bad email");
 		}
@@ -104,7 +111,13 @@ public class UserResource {
 			throw new IllegalArgumentException("bad firstName");
 		if(lastName == null || lastName.trim().length() == 0)
 			throw new IllegalArgumentException("bad lastName");
-
+		
+		
+		Cloud myCloud = CloudResource.dao.load(cloud, UserResource.Root);
+		if (accountName == null || accountName.trim().length() == 0) {
+			throw new IllegalArgumentException("bad name");
+		}
+	
 		User user = new User(email, firstName, lastName, secret);
 		try {
 			User exists = dao.load(email, Root);
@@ -113,7 +126,10 @@ public class UserResource {
 			
 		}
 		dao.add(user);
+		Account account = new Account(accountName, description, cloud, myCloud.getName(), new Credential(accountId, secret).encrypt(), user.getUri(), false);
+		AccountResource.dao.add(account);
 		welcome(user, false);
+		
 		log.warning("Created "+user);
 		return Response.created(user.getUri()).build();
 	}
@@ -161,9 +177,7 @@ public class UserResource {
 	@Path("reset")
 	@RolesAllowed({"signup","administrator"})
 	@Produces("text/plain")
-	public Response forgot(@FormParam("email") String email,
-			@FormParam("firstName") String firstName,
-			@FormParam("lastName") String lastName) {
+	public Response forgot(@FormParam("email") String email) {
 		if(email == null || !email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}$")) {
 			throw new IllegalArgumentException("bad email");
 		}
