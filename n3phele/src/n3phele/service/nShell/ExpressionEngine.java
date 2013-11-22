@@ -16,6 +16,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,6 +33,7 @@ import n3phele.service.rest.impl.AccountResource;
 import n3phele.service.rest.impl.ActionResource;
 
 public class ExpressionEngine {
+	private static Logger log = Logger.getLogger(ExpressionEngine.class.getName());
 	private List<ShellFragment> executable;
 	private Context context;
 	private URI user;
@@ -133,8 +135,11 @@ public class ExpressionEngine {
 
 			
 		} else if((stack = twoChildren(s))!=null) {
-			if(isClass(stack[0], "List", List.class) && isClass(stack[1], "integer", Long.class))
-				return ((List<?>)stack[0]).get(((Long)stack[1]).intValue());
+			if(isClass(stack[0], "List", List.class) && isClass(stack[1], "integer", Long.class)) {
+				Object element = ((List<?>)stack[0]).get(((Long)stack[1]).intValue());
+				log.info("List Element "+(((Long)stack[1]).intValue())+" is type "+element.getClass().getSimpleName()+" with value "+element);
+				return element;
+			}
 		} else if((stack = threeChildren(s))!=null) {
 			if(isClass(stack[0], "List", List.class) && isClass(stack[1], "integer", Long.class) && isClass(stack[2], "integer", Long.class))
 				return ((List<?>)stack[0]).subList(((Long)stack[1]).intValue(), ((Long)stack[2]).intValue());

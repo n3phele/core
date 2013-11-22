@@ -1,0 +1,18 @@
+# ipAddressTest.n
+# Copyright (c) 2013 Nigel Cook. All Rights reserved
+# xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+name	   :  ipAddressTest
+description: output a vm Ip address
+version	   : 1.0
+preferred  : true
+processor  : Job
+public	   : true
+icon	   : http://www.n3phele.com/icons/custom
+
+HPZone1: # HP Cloud
+	$$vm = CREATEVM --n 1
+	$$child = $$vm.cloudVM[0]
+	LOG $$vm.arg
+	LOG $$child
+	LOG $$vm
+	LOG $$child.publicIpAddress
