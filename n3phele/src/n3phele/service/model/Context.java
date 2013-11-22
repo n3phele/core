@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import n3phele.service.model.core.Helpers;
+import n3phele.service.rest.impl.ActionResource;
 
 public class Context extends HashMap<String, Variable> {
 	private static final long serialVersionUID = 1L;
@@ -139,7 +140,10 @@ public class Context extends HashMap<String, Variable> {
 		boolean created = this.containsKey(name);
 		String scheme = uri.getScheme();
 		if("http".equals(scheme) || "https".equals(scheme)) {
-			v.setType(VariableType.Object);
+			if(uri.toString().startsWith(ActionResource.dao.path.toString())) {
+				v.setType(VariableType.Action);
+			} else
+				v.setType(VariableType.Object);
 		} else {
 			v.setType(VariableType.File);
 		}
@@ -227,6 +231,8 @@ public class Context extends HashMap<String, Variable> {
 			putValue(name, (Map<String,String>)arg);
 		} else if (arg instanceof URI[]) {
 			putValue(name, (URI[])arg);
+		} else if (arg instanceof URI) {
+			putValue(name, (URI)arg);
 		} else {
 			putValue(name, arg.toString());
 		}
