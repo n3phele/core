@@ -140,9 +140,11 @@ public class VMAction extends Action {
 					log.info("VMAction: Server status is "+vs.getStatus());
 					URI notification = UriBuilder.fromUri(this.getProcess()).scheme("http").path("event").build();
 					if(!notification.equals(vs.getNotification())) {
-						// FIXME: Update factory to accept notification put .. resource.put(notification);
+						log.severe("Incorrect notification Expected :"+notification+" was "+vs);
+						// FIXME: Update factory to insert correct notification
 					}
 					if(vs.getStatus().equals(VirtualServerStatus.running) && vs.getOutputParameters() != null) {
+						log.info("Update context from VirtualServer "+vs);
 						for(NameValue p : vs.getOutputParameters()) {
 							if(p.getKey().equals("publicIpAddress")) {
 								this.context.putValue("publicIpAddress", p.getValue());
