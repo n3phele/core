@@ -1158,7 +1158,14 @@ public class NShellAction extends Action {
 				if(v != null) {
 					if(v.getType() == VariableType.Action) {
 						URI actionURI = URI.create(v.value());
-						dependencies.add(actionURI);
+						Action action = ActionResource.dao.load(actionURI);
+						if(action instanceof VMAction) {
+							// Assumption here is that you cannot get the URI of a vmAction
+							// unless it already has a stable context
+							log.info("Ignoring dependency on VmAction "+action);
+						} else {
+							dependencies.add(actionURI);
+						}
 					}
 				} 
 			}

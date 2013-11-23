@@ -120,7 +120,7 @@ public class VMAction extends Action {
 	public boolean call() throws n3phele.service.lifecycle.ProcessLifecycle.WaitForSignalRequest, Exception {
 		if(epoch != 0) {
 			/*
-			 * Waiting for the VM to initally start up
+			 * Waiting for the VM to initially start up
 			 */
 			long timeout = Long.valueOf(Resource.get("vmProvisioningTimeoutInSeconds", "900"))*1000;
 			if(epoch+timeout < Calendar.getInstance().getTimeInMillis()) {
