@@ -385,7 +385,7 @@ public class VMAction extends Action {
 		client.setConnectTimeout(5000);
 		client.addFilter(factoryAuth);
 		WebResource resource = client.resource(uri);
-		URI updatedNotification = resource.accept(MediaType.APPLICATION_JSON_TYPE).type(MediaType.APPLICATION_JSON_TYPE).put(URI.class, notification);
+		URI updatedNotification = resource.accept(MediaType.APPLICATION_JSON_TYPE).type(MediaType.APPLICATION_JSON_TYPE).put(URI.class, notification.toString());
 		return updatedNotification;
 	}
 
