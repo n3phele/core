@@ -12,7 +12,8 @@ icon	   : http://www.n3phele.com/icons/custom
 HPZone1: # HP Cloud
 	$$vm = CREATEVM --n 1
 	$$child = $$vm.cloudVM[0]
-	LOG $$vm.arg
-	LOG $$child
-	LOG $$vm
-	LOG $$child.publicIpAddress
+	LOG vm arg is $$vm.arg
+	LOG first child $$child
+	LOG vm $$vm
+	LOG public ip address $$child.publicIpAddress
+	LOG private ip address $$child.privateIpAddress

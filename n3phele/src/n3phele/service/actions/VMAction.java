@@ -141,7 +141,14 @@ public class VMAction extends Action {
 					URI notification = UriBuilder.fromUri(this.getProcess()).scheme("http").path("event").build();
 					if(!notification.equals(vs.getNotification())) {
 						log.severe("Incorrect notification Expected :"+notification+" was "+vs);
-						// FIXME: Update factory to insert correct notification
+						try {
+							URI updatedNotification = updateNotificationUrl(client, this.context.getValue("vmFactory"), notification);
+							if(!notification.equals(updatedNotification)) {
+								log.severe("Updated notification is "+updatedNotification+" expected "+notification);
+							}
+						} catch (Exception e) {
+							log.log(Level.WARNING, "Update of notification to "+this.context.getValue("vmFactory")+" failed", e);
+						}
 					}
 					if(vs.getStatus().equals(VirtualServerStatus.running) && vs.getOutputParameters() != null) {
 						log.info("Update context from VirtualServer "+vs);
@@ -367,6 +374,18 @@ public class VMAction extends Action {
 		WebResource resource = client.resource(uri);
 		VirtualServer vs = resource.get(VirtualServer.class);
 		return vs;
+	}
+	
+	protected URI updateNotificationUrl(Client client, String uri, URI notification) {
+		client.removeAllFilters();
+		ClientFilter factoryAuth = new HTTPBasicAuthFilter(this.context.getValue("factoryUser"), 
+				this.context.getValue("factorySecret"));
+		client.setReadTimeout(25000);
+		client.setConnectTimeout(5000);
+		client.addFilter(factoryAuth);
+		WebResource resource = client.resource(uri);
+		URI updatedNotification = resource.put(URI.class, notification);
+		return updatedNotification;
 	}
 
 	/**

@@ -718,6 +718,10 @@ public class CreateVMActionTest {
 					result.setStatus(processState);
 				return result;
 			}
+			@Override
+			protected URI updateNotificationUrl(Client client, String uri, URI notification) {
+				return notification;
+			}
 	 }
 	 
 	 private User getRoot() {

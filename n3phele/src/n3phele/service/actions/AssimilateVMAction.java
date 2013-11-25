@@ -174,7 +174,15 @@ public class AssimilateVMAction extends VMAction{
 						log.info("VMAction: Server status is "+vs.getStatus());
 						URI notification = UriBuilder.fromUri(this.getProcess()).scheme("http").path("event").build();
 						if(!notification.equals(vs.getNotification())) {
-							// FIXME: Update factory to accept notification put .. resource.put(notification);
+							log.severe("Incorrect notification Expected :"+notification+" was "+vs);
+							try {
+								URI updatedNotification = updateNotificationUrl(client, this.context.getValue("vmFactory"), notification);
+								if(!notification.equals(updatedNotification)) {
+									log.severe("Updated notification is "+updatedNotification+" expected "+notification);
+								}
+							} catch (Exception e) {
+								log.log(Level.WARNING, "Update of notification to "+this.context.getValue("vmFactory")+" failed", e);
+							}
 						}
 						if(vs.getStatus().equals(VirtualServerStatus.running) && vs.getOutputParameters() != null) {
 							for(NameValue p : vs.getOutputParameters()) {
