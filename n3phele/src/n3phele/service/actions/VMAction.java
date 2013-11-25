@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
@@ -384,7 +385,7 @@ public class VMAction extends Action {
 		client.setConnectTimeout(5000);
 		client.addFilter(factoryAuth);
 		WebResource resource = client.resource(uri);
-		URI updatedNotification = resource.put(URI.class, notification);
+		URI updatedNotification = resource.accept(MediaType.APPLICATION_JSON_TYPE).type(MediaType.APPLICATION_JSON_TYPE).put(URI.class, notification);
 		return updatedNotification;
 	}
 
