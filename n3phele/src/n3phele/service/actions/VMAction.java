@@ -185,7 +185,6 @@ public class VMAction extends Action {
 						int status = forceAgentRestart(client, agentURI);
 						if(status == 200) {
 							this.context.putValue("forceAgentRestart", false);
-							Thread.sleep(3000);
 						} else {
 							log.info("Agent restart "+status);
 						}
@@ -193,7 +192,19 @@ public class VMAction extends Action {
 						log.log(Level.SEVERE, "Agent restart exception", e);
 					}
 				}
-				aliveTest(client, agentURI);
+				for(int i=0; i < 10; i++) {
+					try {
+						aliveTest(client, agentURI);
+						break;
+					} catch (Exception e) {
+						if(i >= 9) {
+							throw e;
+						} else {
+							Thread.sleep(1000);
+						}
+					}
+				}
+				
 				long duration = (Calendar.getInstance().getTimeInMillis() - epoch)/1000;
 				if(duration == 0)
 					duration = 1;
@@ -213,10 +224,10 @@ public class VMAction extends Action {
 					}
 				}
 				logger.info("Awaiting host "+URI.create(clientURI).getHost()+" initialization");
-				log.info("Waiting for agent "+URI.create(clientURI).getHost()+" "+e.getMessage());
+				log.info("Waiting for host "+URI.create(clientURI).getHost()+" "+e.getMessage());
 			} catch (ClientHandlerException e) {
-				logger.info("Awaiting host "+URI.create(clientURI).getHost()+" initialization");
-				log.info("Waiting for agent "+URI.create(clientURI).getHost()+" "+e.getMessage());
+				logger.info("Awaiting "+URI.create(clientURI).getHost()+" initialization");
+				log.info("Waiting for "+URI.create(clientURI).getHost()+" "+e.getMessage());
 			} catch (ProcessLifecycle.WaitForSignalRequest wait) {
 				throw wait;
 			} catch (Exception e) {
@@ -358,7 +369,7 @@ public class VMAction extends Action {
 		client.removeAllFilters();
 		ClientFilter agentAuth = new HTTPBasicAuthFilter(this.context.getValue("agentUser"), 
 				this.context.getValue("agentSecret"));
-		client.setReadTimeout(25000);
+		client.setReadTimeout(10000);
 		client.setConnectTimeout(5000);
 		client.addFilter(agentAuth);
 		WebResource resource = client.resource(agentURI);
