@@ -310,16 +310,31 @@ public class VMAction extends Action {
 		client.setConnectTimeout(5000);
 		client.addFilter(factoryAuth);
 		try {
-			boolean debug = Resource.get("suppressDeleteVM", false);
-			int status = terminate(client, this.context.getValue("vmFactory"), isError, isError && debug);
-			logger.warning("VM Terminate error="+isError);	
-			log.info("Delete status is "+status);
-			if(isError && debug) {
-				logger.warning("Attempting to create a debug VM to allow error inspection. Debug instance will be removed aproximately 55 minutes after inital creation.");
+			for(int i=3; i >= 0; i--) {
+				try {
+					boolean debug = Resource.get("suppressDeleteVM", false);
+					int status = terminate(client, this.context.getValue("vmFactory"), isError, isError && debug);
+					if(status == 204) {
+						if(isError) 
+							logger.error("VM terminated. Processing on the VM had errors");
+						else
+							logger.info("VM terminated.");	
+						log.info("Delete status is "+status);
+						if(isError && debug) {
+							logger.warning("Attempting to create a debug VM to allow error inspection. Debug instance will be removed before next billing hour.");
+						}
+						return;
+					} else if(status == 404) {
+						logger.warning("Attempted to terminate VM, but is was not found. It may have been manually deleted from the cloud");
+						return;
+					} else {
+						logger.error("Attempted to terminate VM got unexpected error code "+status+((i>0)?" .. retrying":""));
+					}
+				} catch (Exception e) {
+					log.log(Level.SEVERE, "Exception terminating VM", e);
+					logger.error("Encountered exception while attempting to terminate VM "+e.getMessage()+((i>0)?" .. retrying":""));
+				}
 			}
-		} catch (Exception e) {
-			log.log(Level.SEVERE, "Exception terminating VM", e);
-			logger.error("Exception terminating VM "+e.getMessage());
 		} finally {
 			ClientFactory.give(client);
 		}

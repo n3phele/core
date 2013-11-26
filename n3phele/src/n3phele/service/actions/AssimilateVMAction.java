@@ -282,14 +282,14 @@ public class AssimilateVMAction extends VMAction{
 	}
 	@Override
 	public void cancel() {
-		killVM();
+		killVM(false);
 		log.warning("Cancel");
 		
 	}
 
 	@Override
 	public void dump() {
-		killVM();
+		killVM(true);
 		log.warning("Dump");
 		
 	}
@@ -358,39 +358,7 @@ public class AssimilateVMAction extends VMAction{
 	}
 		
 
-	public void killVM() {
-		
-		URI accountURI = Helpers.stringToURI(this.context.getValue("account"));
-		if(accountURI == null)
-			throw new IllegalArgumentException("Missing account");
-		Account account = AccountResource.dao.load(accountURI, this.getOwner());
-		Cloud cloud = CloudResource.dao.load(account.getCloud(), this.getOwner());
-		Client client = ClientFactory.create();
-		ClientFilter factoryAuth = new HTTPBasicAuthFilter(Credential.unencrypted(cloud.getFactoryCredential()).getAccount(), Credential.unencrypted(cloud.getFactoryCredential()).getSecret());
-		client.addFilter(factoryAuth);
-		client.setReadTimeout(90000);
-		client.setConnectTimeout(5000);		
-		try {			
-			int status = terminate(client, this.context.getValue("vmFactory"), true, false, false);
-			log.info("Delete status is "+status);
-			//IP not found on cloud
-			if(status == 404){
-				log.info("IP not found on factory");
-				logger.info("IP not found on factory");
-				throw new Exception("IP not found on factory");				
-			}
-			else if(status == 204){
-				log.info("VM deleted from factory");
-				logger.info("VM deleted from factory");
-			}
-			
-		} catch (Exception e) {
-			log.log(Level.SEVERE, "Exception terminating VM", e);
-			logger.error("Exception terminating VM "+e.getMessage());
-		} finally {
-			ClientFactory.give(client);
-		}
-	}
+	
 	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
@@ -461,11 +429,7 @@ public class AssimilateVMAction extends VMAction{
 		return ProcessLifecycle.mgr();
 	}
 	
-	protected int terminate(Client client, String factory, boolean error, boolean debug, boolean dbonly) {
-		WebResource resource = client.resource(factory);
-		ClientResponse response = resource.queryParam("error", Boolean.toString(error)).queryParam("debug", Boolean.toString(debug)).queryParam("dbonly", Boolean.toString(dbonly)).delete(ClientResponse.class);
-		return response.getStatus();
-	}
+
 	
 	protected static class AssimilateVirtualServerResult {
 		private ClientResponse response;

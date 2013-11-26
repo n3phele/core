@@ -399,25 +399,33 @@ public class AssimilateAction extends Action {
 		Client client = ClientFactory.create();
 		ClientFilter factoryAuth = new HTTPBasicAuthFilter(Credential.unencrypted(cloud.getFactoryCredential()).getAccount(), Credential.unencrypted(cloud.getFactoryCredential()).getSecret());
 		client.addFilter(factoryAuth);
-		client.setReadTimeout(90000);
+		client.setReadTimeout(45000);
 		client.setConnectTimeout(5000);		
-		try {			
-			int status = terminate(client, this.context.getValue("vmFactory"), false, false, true);
-			log.info("Delete status is "+status);
-			//IP not found on cloud
-			if(status == 404){
-				log.info("IP not found on factory");
-				logger.info("IP not found on factory");
-				throw new Exception("IP not found on factory");				
-			}
-			else if(status == 204){
-				log.info("VM deleted from factory");
-				logger.info("VM deleted from factory");
+		try {
+			for(int i = 3; i >= 0; i--) {
+				try {
+					int status = terminate(client, this.context.getValue("vmFactory"), false, false, true);
+					log.info("Delete status is "+status);
+					//IP not found on cloud
+					if(status == 404){
+						log.info("IP not found on factory");
+						logger.warning("IP not found on factory");
+						return;
+					}
+					else if(status == 204){
+						log.info("VM deleted from factory");
+						logger.info("VM deleted from factory");
+						return;
+					} else {
+						log.info("VM delete returned status "+status);
+						logger.info("VM delete returned status "+status+((i>0)?" .. retrying":""));
+					}
+				} catch (Exception e) {
+					log.log(Level.SEVERE, "Exception terminating VM", e);
+					logger.error("Exception terminating VM "+e.getMessage()+((i>0)?" .. retrying":""));
+				}
 			}
 			
-		} catch (Exception e) {
-			log.log(Level.SEVERE, "Exception terminating VM", e);
-			logger.error("Exception terminating VM "+e.getMessage());
 		} finally {
 			ClientFactory.give(client);
 		}
