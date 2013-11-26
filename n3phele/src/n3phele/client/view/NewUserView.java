@@ -44,8 +44,10 @@ import com.google.gwt.http.client.RequestCallback;
 import com.google.gwt.http.client.RequestException;
 import com.google.gwt.http.client.Response;
 import com.google.gwt.http.client.URL;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HTML;
@@ -77,6 +79,7 @@ public class NewUserView extends DialogBox {
 	private ValidInputIndicatorWidget nameValid;
 	private ValidInputIndicatorWidget cloudSelected;
 	private ValidInputIndicatorWidget gotCloudId;
+	private ValidInputIndicatorWidget checkSelected;
 	private final ValidInputIndicatorWidget secretTextSupplied;
 
 	private ListBox cloud = new ListBox(false);
@@ -84,6 +87,8 @@ public class NewUserView extends DialogBox {
 	private TextBox description;
 	private TextBox cloudId;
 	private TextBox secret;
+	
+	private CheckBox termsCheckBox;
 	
 	private final Map<String,Integer> cloudMap = new HashMap<String,Integer>();
 	private final List<String> uriMap = new ArrayList<String>();
@@ -224,31 +229,40 @@ public class NewUserView extends DialogBox {
 		secret.addKeyUpHandler(keyup);
 		table.setWidget(11, 2, secret);
 
+		termsCheckBox = new CheckBox();
+		termsCheckBox.addClickHandler(new ClickHandler() {
+			public void onClick(ClickEvent event) {
+				validateUser(true);
+			}
+		});
+		HTML termsOfService = new HTML("By registering, you agree to our <u><a href=" + "https://region-a.geo-1.objects.hpcloudsvc.com:443/v1/12365734013392/images/Terms_of_Service.html" + " target='_blank'>Terms of Service</a></u>");
+		table.setWidget(12, 2, termsOfService);
+		
+		checkSelected = new ValidInputIndicatorWidget("Please, accept the Terms of Service", false);
+		table.setWidget(12, 1, checkSelected);
+		table.setWidget(12, 0, termsCheckBox);
 		cancel = new Button("cancel", new ClickHandler() {
 			public void onClick(ClickEvent event) {
 				do_cancel();
 			}
 		});
 
-		table.setWidget(13, 3, cancel);
-		// table.getFlexCellFormatter().setHorizontalAlignment(10, 0,
-		// HasHorizontalAlignment.ALIGN_RIGHT);
+		table.setWidget(14, 3, cancel);
+
 
 		save = new Button("register", new ClickHandler() {
 			public void onClick(ClickEvent event) {
 				do_save();
 			}
 		});
-		table.setWidget(13, 2, save);
-		// table.getFlexCellFormatter().setHorizontalAlignment(10, 2,
-		// HasHorizontalAlignment.ALIGN_RIGHT);
+		table.setWidget(14, 2, save);
+
 		save.setEnabled(false);
 		errorsOnPage = new ValidInputIndicatorWidget("check for missing or invalid parameters marked with this icon", true);
-		table.setWidget(13, 1, errorsOnPage);
-		// table.getFlexCellFormatter().setHorizontalAlignment(10, 3,
-		// HasHorizontalAlignment.ALIGN_RIGHT);
+		table.setWidget(14, 1, errorsOnPage);
 
-		for (int i = 1; i < 12; i++) {
+
+		for (int i = 1; i < 13; i++) {
 			if(i == 6){ 
 				table.getFlexCellFormatter().setColSpan(i, 0, 4);
 				table.getFlexCellFormatter().setHorizontalAlignment(i, 0, HasHorizontalAlignment.ALIGN_CENTER);
@@ -382,9 +396,11 @@ public class NewUserView extends DialogBox {
 		// confirmSecret.getText().length() != 0 &&
 		// secret.getText().equals(confirmSecret.getText());
 		// this.confirmSupplied.setVisible(!gotEC2Confirm);
+		boolean selected = this.termsCheckBox.getValue();
+		checkSelected.setVisible(!selected);
 		isValid = isValid && gotPassword && gotConfirm
 				&& password.getText().equals(confirmPassword.getText())
-				&& gotId && cloudValid && cloudPassword  && nameValid ;
+				&& gotId && cloudValid && cloudPassword  && nameValid && selected;
 				
 		this.errorsOnPage.setVisible(!isValid);
 		this.save.setEnabled(isValid);
