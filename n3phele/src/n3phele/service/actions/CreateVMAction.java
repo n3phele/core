@@ -657,6 +657,7 @@ public class CreateVMAction extends Action {
 		protected CreateVirtualServerResult() {}
 		public CreateVirtualServerResult(ClientResponse response) {
 			this.response = response;
+			log.info("Response "+response+" has Entity "+response.hasEntity()+" type "+response.getType()+" content "+response.getEntity(String.class));
 		}
 		
 		public URI getLocation() {
