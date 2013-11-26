@@ -332,10 +332,10 @@ public class CreateVMAction extends Action {
 
 			CreateVirtualServerResult response = createVirtualServers(resource, cr);
 			log.info("Factory response: "+response.getStatus() + " "+response);
-
+			
 			URI location = response.getLocation();
 			log.info("Response location: "+location);			
-			if(location != null) {
+			if(location != null && response.getStatus() == 201) {
 				URI[] refs = response.getRefs();
 				log.info("Refs length: "+refs.length);
 
@@ -387,8 +387,9 @@ public class CreateVMAction extends Action {
 					}
 				}
 			} else {
-				log.log(Level.SEVERE, this.name+" vm creation initiation FAILED with status "+response.getStatus()+" "+response.getEntity());
-				logger.error("vm creation initiation FAILED "+response.getEntity());
+				String entity = response.getEntity();
+				log.log(Level.SEVERE, this.name+" vm creation initiation FAILED with status "+response.getStatus()+" "+entity);
+				logger.error("vm creation initiation FAILED with explanation "+entity);
 				throw new UnprocessableEntityException("vm creation initiation FAILED with status "+response.getStatus());
 			}	
 		} catch (Exception e) {
@@ -657,7 +658,6 @@ public class CreateVMAction extends Action {
 		protected CreateVirtualServerResult() {}
 		public CreateVirtualServerResult(ClientResponse response) {
 			this.response = response;
-			log.info("Response "+response+" has Entity "+response.hasEntity()+" type "+response.getType()+" content "+response.getEntity(String.class));
 		}
 		
 		public URI getLocation() {
