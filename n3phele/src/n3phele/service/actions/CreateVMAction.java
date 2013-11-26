@@ -387,8 +387,8 @@ public class CreateVMAction extends Action {
 					}
 				}
 			} else {
-				log.log(Level.SEVERE, this.name+" vm creation initiation FAILED with status "+response.getStatus());
-				logger.error("vm creation initiation FAILED with status "+response.getStatus()+" "+response.toString());
+				log.log(Level.SEVERE, this.name+" vm creation initiation FAILED with status "+response.getStatus()+" "+response.getEntity());
+				logger.error("vm creation initiation FAILED "+response.getEntity());
 				throw new UnprocessableEntityException("vm creation initiation FAILED with status "+response.getStatus());
 			}	
 		} catch (Exception e) {
@@ -669,6 +669,10 @@ public class CreateVMAction extends Action {
 		
 		public int getStatus() {
 			return response.getStatus();
+		}
+		
+		public String getEntity() {
+			return response.getEntity(String.class);
 		}
 		
 		public String toString() {

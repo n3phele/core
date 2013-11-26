@@ -1393,6 +1393,10 @@ public class NShellActionTest {
 			public int getStatus() {
 				return this.status;
 			}
+			
+			public String getEntity() {
+				return "entity";
+			}
 		}
 
 

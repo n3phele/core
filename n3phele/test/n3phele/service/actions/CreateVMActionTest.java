@@ -592,6 +592,10 @@ public class CreateVMActionTest {
 			public int getStatus() {
 				return this.status;
 			}
+			
+			public String getEntity() {
+				return "entity";
+			}
 		}
 	 
 	 @EntitySubclass
