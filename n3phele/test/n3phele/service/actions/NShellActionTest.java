@@ -1200,7 +1200,7 @@ public class NShellActionTest {
 		 @Override
 		 protected int terminate(Client client, String factory, boolean error, boolean debug) {
 			 log.info("terminate "+factory+" error="+error+" debug="+debug);
-				return 200;
+				return 204;
 			}
 		    @Override
 			protected int forceAgentRestart(Client client, String agentURI) {
