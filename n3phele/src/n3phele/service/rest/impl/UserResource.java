@@ -107,8 +107,7 @@ public class UserResource {
 			@FormParam("accountId") String accountId,
 			@FormParam("accountSecret") String accountSecret) {
 		if(email == null || !email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}$")) {
-			return Response.serverError().header("BAD USER", "VERY BAD =(").build();
-			
+			throw new IllegalArgumentException("bad user");		
 		}
 		if(firstName == null || firstName.trim().length() == 0)
 			throw new IllegalArgumentException("bad firstName");
