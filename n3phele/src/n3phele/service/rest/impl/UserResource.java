@@ -40,7 +40,9 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
@@ -105,13 +107,12 @@ public class UserResource {
 			@FormParam("accountId") String accountId,
 			@FormParam("accountSecret") String accountSecret) {
 		if(email == null || !email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}$")) {
-			throw new IllegalArgumentException("bad email");
+			throw new IllegalArgumentException("bad email");		
 		}
 		if(firstName == null || firstName.trim().length() == 0)
 			throw new IllegalArgumentException("bad firstName");
 		if(lastName == null || lastName.trim().length() == 0)
 			throw new IllegalArgumentException("bad lastName");
-		
 		
 		Cloud myCloud = CloudResource.dao.load(cloud, UserResource.Root);
 		if (accountName == null || accountName.trim().length() == 0) {
@@ -121,7 +122,7 @@ public class UserResource {
 		User user = new User(email, firstName, lastName, secret);
 		try {
 			User exists = dao.load(email, Root);
-			throw new IllegalArgumentException("User "+exists.getName()+" already exists.");
+			return Response.serverError().header("ERROR", "User").build();
 		} catch (NotFoundException e) {
 			
 		}
