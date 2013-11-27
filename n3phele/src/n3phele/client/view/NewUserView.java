@@ -338,9 +338,15 @@ public class NewUserView extends DialogBox {
 				public void onResponseReceived(Request request, Response response) {
 					GWT.log("Got reply");
 					if (201 == response.getStatusCode()) {
-						Window.alert("User " + email + " created.");
+						Window.alert("User created successfully");
 					} else {
-						Window.alert("User create failure " + response.getStatusText() + "\n" + response.getText());
+						if(response.getHeader("ERROR").equals("User")){
+							Window.alert("User create failure " + response.getStatusText() + "\n" + "User already exists.");
+						}else{
+							Window.alert("User create failure " + response.getStatusText() + "\n" + "An internal error occured.");
+
+						}
+						
 					}
 				}
 
