@@ -471,6 +471,9 @@ public class CreateVMAction extends Action {
 
 	private ArrayList<NameValue> contextToNameValue(Cloud cloud, Context context) {
 		ArrayList<NameValue> result = new ArrayList<NameValue>();
+		if(this.context.containsKey("securityGroups") && this.context.containsKey("security_groups")){
+			this.context.remove("security_groups");
+		}
 		for(TypedParameter param : Helpers.safeIterator(cloud.getInputParameters())) {
 			String name = param.getName();
 			String contextName = name;
