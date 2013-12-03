@@ -1,16 +1,16 @@
 # deployN3pheleJenkins.n
 # Author: Alexandre Tavares
-name       : deployN3pheleJenkins
+name       : JenkinsService
 description: Deploy Jenkins for the N3phele project
-version    : 7.4
+version    : 7.9
 preferred  : true
 tags 	   : service jenkins 
 processor  : StackService
 public     : true
 icon       : http://www.n3phele.com/icons/jujuIcon
 parameters :
-	string service_name = "nephele-jenkins" # A name for the service
-	string password = "password" # Password for Jenkins
+	string service_name = "nephele-jenkins" # Service name
+	string password = "password" # Jenkins password
 HPZone1: # HP Cloud
 
 	ON $$bootstrap
@@ -50,7 +50,6 @@ HPZone1: # HP Cloud
 		juju status $${$$service_name}-agent > machine.txt;
 		machine=$(grep machine: machine.txt | grep -o '[0-9]\{1,9\}');
 		juju deploy --config config.yaml --to $machine jenkins $${$$service_name};
-		rm config.yaml
 	
 	$$exposeJenkins = ON $$bootstrap
 					STAT="none";
@@ -92,8 +91,9 @@ HPZone1: # HP Cloud
 		unzip ~/builder/sdks/gwt-2.5.0 -d ~/ > /dev/null;
 		sudo cp ~/builder/Libs/* /usr/share/ant/lib;
 		sudo wget http://127.0.0.1:8080/jnlpJars/jenkins-cli.jar -q;
-		sudo java -jar jenkins-cli.jar -s http://127.0.0.1:8080/ restart --username admin --password $${$$password};
+		sudo java -jar jenkins-cli.jar -s http://127.0.0.1:8080/ login --username admin --password  $${$$password} ;
+		sudo java -jar jenkins-cli.jar -s http://127.0.0.1:8080/ restart ;
 		sleep 50;
-		sudo java -jar jenkins-cli.jar -s http://127.0.0.1:8080/ create-job n3phele-core < ~/builder/configN3phele.xml --username admin --password $${$$password};
-		sudo java -jar jenkins-cli.jar -s http://127.0.0.1:8080/ create-job core < ~/builder/configCore.xml --username admin --password $${$$password};
-		sudo java -jar jenkins-cli.jar -s http://127.0.0.1:8080/ create-job openstack-factory < ~/builder/config.xml --username admin --password $${$$password};
+		sudo java -jar jenkins-cli.jar -s http://127.0.0.1:8080/ create-job n3phele-core < ~/builder/configN3phele.xml ;
+		sudo java -jar jenkins-cli.jar -s http://127.0.0.1:8080/ create-job core < ~/builder/configCore.xml ;
+		sudo java -jar jenkins-cli.jar -s http://127.0.0.1:8080/ create-job openstack-factory < ~/builder/config.xml ;
