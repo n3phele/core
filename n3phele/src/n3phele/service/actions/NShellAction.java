@@ -193,6 +193,13 @@ public class NShellAction extends Action {
 					log.info("Not found: "+e.getMessage());
 					logger.error("Not found: "+e.getMessage());
 					throw e;
+				} catch (IndexOutOfBoundsException e) {
+					log.info("Index out of bounds: "+e.getMessage());
+					logger.error("Index out of bounds: "+e.getMessage());
+					throw new IllegalArgumentException("Index out of bounds: "+e.getMessage(), e);
+				} catch (Exception e) {
+					log.info("Unexpected error: "+e.getClass().getSimpleName()+" "+e.getMessage());
+					logger.error("Unexpected error: "+e.getClass().getSimpleName()+" "+e.getMessage());
 				}
 				
 			} else {
