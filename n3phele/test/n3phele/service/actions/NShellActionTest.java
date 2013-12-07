@@ -129,6 +129,44 @@ public class NShellActionTest {
 		assertEquals(NarrativeLevel.warning, log.getState());
 	}
 	
+	/** Invokes a simple command containing a log action
+	 * @throws InterruptedException
+	 * @throws ClassNotFoundException
+	 * @throws FileNotFoundException
+	 * @throws ParseException
+	 */
+	@Test
+	public void simpleVariableAssignmentTestTest() throws InterruptedException, ClassNotFoundException, FileNotFoundException, ParseException {
+		User root = getRoot();
+		ObjectifyService.register(NShellActionTestHarness.class);
+		assertNotNull(root);
+		
+		NParser n = new NParser(new FileInputStream("./test/assignmentTest.n"));
+		Command cd = n.parse();
+		cd.setUri(URI.create("http://n3phele.com/test"));
+		Assert.assertEquals("assignmentTest", cd.getName());
+		Assert.assertEquals("test assignment", cd.getDescription());
+		Assert.assertTrue(cd.isPublic());
+		Assert.assertTrue(cd.isPreferred());
+		Assert.assertEquals("1.0", cd.getVersion());
+		Assert.assertEquals(URI.create("http://www.n3phele.com/icons/custom"), cd.getIcon());
+		testCommandDefinition = cd;
+		
+		Context context = new Context();
+		
+		context.putValue("arg", "http://n3phele.com/test#EC2");
+		
+		CloudProcess shellProcess = ProcessLifecycle.mgr().createProcess(root, "shell", context, null, null, true, NShellActionTestHarness.class);
+		ProcessLifecycle.mgr().init(shellProcess);
+		QueueTestHelper.runAllTasksOnQueue();
+		CloudProcessResource.dao.clear();
+		
+		String refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
+		assertEquals("{}", refresh);
+		Narrative log = NarrativeResource.dao.getNarratives(shellProcess.getUri()).toArray(new Narrative[1])[0];
+		assertEquals("2 foo", log.getText());
+	}
+	
 	/** Tests shell expression assignment
 	 * @throws InterruptedException
 	 * @throws ClassNotFoundException
