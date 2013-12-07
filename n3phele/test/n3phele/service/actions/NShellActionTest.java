@@ -1064,6 +1064,63 @@ public class NShellActionTest {
 					"log For_0_1 1".equals(logs.get(0).getText()) ));
 		
 	}
+	
+	/** Invokes a log command in a for loop with a numeric concurrency parameter in the script
+	 * @throws InterruptedException
+	 * @throws ClassNotFoundException
+	 * @throws FileNotFoundException
+	 * @throws ParseException
+	 */
+	@Test
+	public void forLoopOfLogTest2() throws InterruptedException, ClassNotFoundException, FileNotFoundException, ParseException {
+		User root = getRoot();
+		ObjectifyService.register(NShellActionTestHarness.class);
+		assertNotNull(root);
+		
+		NParser n = new NParser(new FileInputStream("./test/forCommandLogTest2.n"));
+		Command cd = n.parse();
+		cd.setUri(URI.create("http://n3phele.com/test"));
+		Assert.assertEquals("forCommandLog2", cd.getName());
+		Assert.assertEquals("a simple for loop", cd.getDescription());
+		Assert.assertTrue(cd.isPublic());
+		Assert.assertTrue(cd.isPreferred());
+		Assert.assertEquals("1.0", cd.getVersion());
+		Assert.assertEquals(URI.create("http://www.n3phele.com/icons/custom"), cd.getIcon());
+		testCommandDefinition = cd;
+		
+		Context context = new Context();
+		
+		context.putValue("n", 3);
+		context.putValue("arg", "http://n3phele.com/test#EC2");
+		
+		CloudProcess shellProcess = ProcessLifecycle.mgr().createProcess(root, "shell", context, null, null, true, NShellActionTestHarness.class);
+		ProcessLifecycle.mgr().init(shellProcess);
+		QueueTestHelper.runAllTasksOnQueue();
+		CloudProcessResource.dao.clear();
+		
+		String refresh = ProcessLifecycle.mgr().periodicScheduler().toString().replaceAll("([0-9a-zA-Z_]+)=", "\"$1\": ");
+		assertEquals("{}", refresh);
+		List<Narrative> logs = new ArrayList<Narrative>();
+		logs.addAll(NarrativeResource.dao.getNarratives(shellProcess.getUri()));
+		assertEquals(6, logs.size());
+		assertEquals("log For_0_2 2", logs.get(4).getText());
+		assertEquals("log2 For_0_2 2", logs.get(5).getText());
+		for(Narrative log : logs) {
+			System.out.println(log.toString());
+		}
+		Assert.assertTrue("loop concurrent", 
+			(	"log For_0_0 0".equals(logs.get(0).getText()) && 
+				"log For_0_1 1".equals(logs.get(1).getText()) ) ||
+			(	"log For_0_1 1".equals(logs.get(0).getText()) && 
+				"log For_0_0 0".equals(logs.get(1).getText()) ) ||
+			(	"log For_0_1 1".equals(logs.get(0).getText()) && 
+				"log2 For_0_1 1".equals(logs.get(1).getText()) ) ||
+			(	"log For_0_0 0".equals(logs.get(0).getText()) && 
+				"log2 For_0_0 0".equals(logs.get(1).getText()) ) ||
+			(	"log shell For_0_0 0".equals(logs.get(1).getText()) && 
+					"log For_0_1 1".equals(logs.get(0).getText()) ));
+		
+	}
 
 
 		

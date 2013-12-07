@@ -83,13 +83,15 @@ public interface ShellConstants {
   /** RegularExpression Id. */
   int STRING_LITERAL = 38;
   /** RegularExpression Id. */
-  int PASSTHRU = 39;
+  int NUMBER_CONSTANT = 39;
   /** RegularExpression Id. */
-  int PASSTHRUSET = 40;
+  int PASSTHRU = 40;
   /** RegularExpression Id. */
-  int PASSTHRUMORE = 41;
+  int PASSTHRUSET = 41;
   /** RegularExpression Id. */
-  int WRAPPEDEXPRESSION = 42;
+  int PASSTHRUMORE = 42;
+  /** RegularExpression Id. */
+  int WRAPPEDEXPRESSION = 43;
 
   /** Lexical state. */
   int fileListProcessing = 0;
@@ -145,6 +147,7 @@ public interface ShellConstants {
     "<VARIABLE>",
     "<EXPRESSION>",
     "<STRING_LITERAL>",
+    "<NUMBER_CONSTANT>",
     "<PASSTHRU>",
     "<PASSTHRUSET>",
     "<PASSTHRUMORE>",

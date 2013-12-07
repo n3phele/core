@@ -927,7 +927,7 @@ public class NShellAction extends Action {
 	
 	
 	/** FOR shell command
-	 * < FORLOOP > variable() < COLON > expression() [ <COLON > expression() ] block
+	 * < FORLOOP > variable() < COLON > expressionOrNumeric() [ <COLON > expressionOrNumeric() ] block
 	 * block:: ( command() )*
 	 * @param shellFragment
 	 * @return
@@ -988,7 +988,7 @@ public class NShellAction extends Action {
 
 	/** variableAssign shell command
 	 * 
-	 * < VARIABLE > "=" ( simpleCommand() | expression() )
+	 * < VARIABLE > "=" ( simpleCommand() | expressionOrConstant() )
 	 * 
 	 * @param varAssign
 	 * @return
@@ -1002,7 +1002,7 @@ public class NShellAction extends Action {
 
 		String variableName = varAssign.value;
 		ShellFragment fragment = this.executable.get(varAssign.children[0]);
-		if(fragment.kind == ShellFragmentKind.expression) {
+		if(fragment.kind == ShellFragmentKind.expressionOrConstant) {
 			ExpressionEngine ee = expressionEngineFactory(fragment.children[0]);
 			this.context.putObjectValue(variableName, ee.run());
 			return this.context.get(variableName);
