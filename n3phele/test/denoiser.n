@@ -1,0 +1,146 @@
+# Denoise 
+# Copyright (c) 2012 Nigel Cook. All Rights reserved
+# xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# Based on the following tutorial: http://qiime.org/tutorials/denoising_454_data.html
+name	   : denoiser
+description: denoise an aggregate of up to 5 files in .sff.txt format, which is the output of sffinfo
+version	   : 8.9
+preferred  : True
+tags	   : qiime denoise
+processor  : StackService
+public	   : True
+icon	   : http://www.n3phele.com/qiimeIcon
+
+parameters :						  
+	int clusterSize = 3 					# cluster size
+	boolean titanium = true 				# select for titanium sequencer, unselected for flx
+	string primer = "LinkerPrimerSequence" 	# Primer sequence.
+											# Default use mapping file LinkerPrimerSequence in mapping file					  
+input files:
+	flowgram.sff.txt 			# Input flowgram file in sff.txt format
+    optional flowgram1.sff.txt	# Input flowgram file 2 in sff.txt format(optional)
+    optional flowgram2.sff.txt	# Input flowgram file 3 in sff.txt format(optional)
+    optional flowgram3.sff.txt	# Input flowgram file 4 in sff.txt format(optional)
+    optional flowgram4.sff.txt	# Input flowgram file 5 in sff.txt format(optional)
+	sequence.fasta 				# Input sequence file
+	mapping.txt 				# Input mapping file, has to contain field LinkerPrimerSequence. Not required if primer sequence specified ????????????
+	run1.qual					# File .qual - Required?
+	
+output files:
+	denoiser.log				# Information about the clustering procedure. Can be used to monitor the program's progress
+	centroids.fasta				# The centroids of sequences clustered with 2 and more members
+    singletons.fasta			# Read sequences that could not be clustered
+	denoiser_mapping.txt		# The cluster to read mapping
+	denoised_seqs.fasta			# Centroids and singletons combined and sorted by cluster size
+
+HPZone1:
+	# All the machines will be created with the "NewQIIME-Parallel1" image (#360427), with the "xsmall" size, and with the "n3phele-qiime" security group.
+	# Creates the master machine
+	$$DenoiseMaster = CREATEVM  --name DenoiseMaster --imageRef 360427 --nodeCount 1 --flavorRef 101 --securityGroups n3phele-qiime
+	# Creates all cluster machines. What happens when clusterSize = 1?
+	$$DenoiseCluster = CREATEVM  --name DenoiseCluster --imageRef 360427 --nodeCount $$clusterSize-1 --flavorRef 101 --securityGroups n3phele-qiime
+	
+	# Variable that stores the master machine
+	$$DenoiseMasterMachine = $$DenoiseMaster.cloudVM[0]
+
+	# "hosts_ip_addresses" file will store the IP addresses of all machines
+	ON $$DenoiseMaster
+		echo localhost > ~/hosts_ip_addresses ;
+		function removeIfFileExist() { FILE=~/sync123; if [ -f "$FILE" ]; then rm $FILE; fi; } ; 
+		removeIfFileExist ;
+
+	# Iterates sequentially (because the ": 1") through all cluster machines
+	FOR $$i : $$clusterSize-1 : 1
+		# Variable that stores the ith cluster machine
+		$$DenoiseClusterMachine = $$DenoiseCluster.cloudVM[$$i]
+		ON $$DenoiseMaster
+			# Function to get the public ssh key of a defined host IP address
+			function scan-hosts() { i=0; while [ $i -le 10 ]; do i=$(($i+1)); ssh-keyscan -H $* > /tmp/known_hosts; if [ "`wc -l </tmp/known_hosts`" -ne "$#" ]; then echo not done .. retrying >&2; sleep 5;else cat /tmp/known_hosts; break; fi; done } ;
+			# Copy the public ssh key of the defined cluster machine to the known_hosts file
+			scan-hosts $$DenoiseClusterMachine.privateIpAddress >> ~/.ssh/known_hosts ;
+			# Copy the private IP address of the ith cluster machine to the "hosts_ip_addresses" file
+			echo $$DenoiseClusterMachine.privateIpAddress >> ~/hosts_ip_addresses ;		
+
+	# These commands need to be executed after the above FOR loop. (The problem is that other commands outside this FOR loop are allowed to run even if the FOR loop has not finalized yet. The (temporary) solution was to use a temporary file, so the commands outside the FOR loop would be waiting/sleeping while this temporary file were not created.)
+	$$DenoiseMasterStdout = ON $$DenoiseMaster
+		# On the master node a public/private key pair is generated.
+		ssh-keygen -t rsa -f cluster -P '' -q -C cluster ;
+		mv cluster cluster.pem ; 
+		mv cluster.* ~/.ssh ;
+		
+		# Execute a determined command n times (n-times "# of times" "command to be executed")
+		function n-times() {  i=0; n=$1; shift; while [ $i -lt $n ]; do $*; i=$(($i+1)); done; } ;
+		
+		# Define the number of cores
+		NUMBER_OF_CORES=2 ; 
+		NUMBER_OF_CORES_MASTER=$(($NUMBER_OF_CORES - 1)) ;
+		echo Your workers have $NUMBER_OF_CORES cores. Your master will use $NUMBER_OF_CORES_MASTER cores.;
+		
+		# "hosts.slave" will contain the IP addresses of the worker machines (a determined host machine will be used as many time as its IP address appears in the "hosts.slave" file)
+		n-times $NUMBER_OF_CORES_MASTER echo localhost > ~/hosts.slave ;
+		
+		# Wait for the "hosts_ip_addresses" file contains all the IP addresses
+		function waitForFile() { FILE=~/hosts_ip_addresses; while [ ! -f "$FILE" ]; do sleep 20; done; while [ "`wc -l < ~/hosts_ip_addresses`" -ne $$clusterSize ]; do sleep 20; done; } ;
+		waitForFile ;
+		n-times $NUMBER_OF_CORES sed 1d ~/hosts_ip_addresses >> ~/hosts.slave ;
+		
+		# Output to "DenoiseMasterStdout" the public key of the master machine
+		cat ~/.ssh/cluster.pub ;
+
+	# Iterates sequentially (because the ": 1") through all cluster machines
+	FOR $$i : $$clusterSize-1 : 1
+		$$DenoiseClusterMachine = $$DenoiseCluster.cloudVM[$$i]
+		ON $$DenoiseClusterMachine
+			# Necessary exports
+			source /home/ubuntu/sandbox/qiime_software/activate.sh ;
+			cp $QIIME/qiime/support_files/qiime_config_n3phele ~/.qiime_config_default ;
+			# Write the public key of the master machine to the authorized_keys of each cluster machine ;
+			echo '$${$$regex($$DenoiseMasterStdout.stdout,".*(ssh-rsa .*cluster).*",1)}'  >> ~/.ssh/authorized_keys ;
+			chmod 600 ~/.ssh/authorized_keys ;
+			# Correct an error (temporary solution): the denoise_worker.py looks for a file called "FlowgramAli_4frame" in the "qiime_software/qiime-1.7.0-repository-cc50dbaf/lib/scripts" directory, but this file is in another directory.
+			sudo mkdir ~/sandbox/qiime_software/qiime-1.7.0-repository-cc50dbaf/lib/scripts ;
+	    	sudo cp ~/sandbox/qiime_software/qiime-1.7.0-repository-cc50dbaf/scripts/FlowgramAli_4frame ~/sandbox/qiime_software/qiime-1.7.0-repository-cc50dbaf/lib/scripts/ ;
+		ON $$DenoiseMaster
+			# File that we are going to use for syncing purposes
+			echo $$i >> ~/sync123 ;
+	
+	ON $$DenoiseMaster --produces [denoiser.log: output/denoiser.log,
+    			    denoiser_mapping.txt: output/prefix_mapping.txt]
+		# Wait for the "~/sync123" file contains "$$clusterSize-1" numbers
+		function waitForFile() { FILE=~/sync123; while [ ! -f "$FILE" ]; do sleep 20; done; while [ "`wc -l < ~/sync123`" -ne $$clusterSize-1 ]; do sleep 20; done; } ;
+		waitForFile ;
+		# Test if each cluster machine listed in the "~/hosts.slave" file can "ping" the private IP address of the master machine
+    	for i in `grep -v localhost ~/hosts.slave`; do ssh -i ~/.ssh/cluster.pem $i ping -q -c 3 $$DenoiseMasterMachine.privateIpAddress || echo $i failed; done ;
+    	# Necessary exports 
+    	source /home/ubuntu/sandbox/qiime_software/activate.sh ;
+    	# The attribute "cloud_environment" in the qiime_config file needs to be set to True
+    	cp $QIIME/qiime/support_files/qiime_config_n3phele ~/.qiime_config_default ;
+    	# Comment the line in the "/etc/hosts" file that contains the 127.0.0.1 IP address
+    	sed 's/127.0.0.1/#127.0.0.1/' < /etc/hosts > temp_hosts ;
+    	sudo mv temp_hosts /etc/hosts ;
+    	# Number of workers, listed in the "~/hosts.slave" file
+    	WORKERS=`wc -l < ~/hosts.slave` ;
+	    echo Run with $WORKERS workers ;
+	    # Move to the correct folder
+		cd ~/sandbox ;
+		# Start of the commands described in the tutorial (http://qiime.org/tutorials/denoising_454_data.html)
+		# Function to validate the mapping file
+		function validateMapping() { MAPPING_FILE=mapping.txt; if [ -f "$MAPPING_FILE" ]; then validate_mapping_file.py -m $MAPPING_FILE; fi; } ;
+		validateMapping ;
+		# Prior to denoising, each read has to be assigned to one barcode/sample and low quality reads need to be filtered out. This can be done using split_libraries.py.
+		split_libraries.py -o run1 -f sequence.fasta -q run1.qual -m mapping.txt ;
+		# Required command
+		shopt -s nullglob ; 
+		# Store in the "flowgram_files" variable all the "flowgram" files.
+		flowgram_files="flowgram.sff.txt" ;
+	    for i in flowgram[1234].sff.txt; do flowgram_files=$flowgram_files,$i; done ;	
+	    # Flowgram clustering (aka denoising)	
+	    #denoise_wrapper.py -v -i $flowgram_files $$primer!="LinkerPrimerSequence"?"-m mapping.txt ":"-p "+$$primer -f sequence.fasta -o output -n $WORKERS $$titanium?" --titanium ":"" || { tail -40 output/denoiser.log; exit 1; } ;
+		time denoise_wrapper.py -v --input_file $flowgram_files --map_fname mapping.txt --fasta_file run1/seqs.fna --output_dir output --num_cpus $WORKERS $$titanium?" --titanium ":"" || { tail -40 output/denoiser.log; exit 1; } ;
+
+	ON $$DenoiseMaster --produces [centroids.fasta: output/centroids.fasta, 
+					singletons.fasta: output/singletons.fasta, 
+					denoised_seqs.fasta: output/denoised_seqs.fna]
+		source /home/ubuntu/sandbox/qiime_software/activate.sh
+		# Re-integrating the denoised data into QIIME
+		inflate_denoiser_output.py -v -c output/centroids.fasta -s output/singletons.fasta -f run1/seqs.fna -d output/denoiser_mapping.txt -o output/denoised_seqs.fna
