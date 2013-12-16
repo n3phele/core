@@ -1,6 +1,6 @@
 # deployN3pheleJenkins.n
 # Author: Alexandre Tavares
-name       : JenkinsService2
+name       : JenkinsService
 description: Deploy Jenkins for the N3phele project
 version    : 8.2
 preferred  : true
