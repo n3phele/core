@@ -1064,7 +1064,7 @@ public class NShellActionTest {
 		Assert.assertEquals("a simple for loop", cd.getDescription());
 		Assert.assertTrue(cd.isPublic());
 		Assert.assertTrue(cd.isPreferred());
-		Assert.assertEquals("1.0", cd.getVersion());
+		Assert.assertEquals("1.1", cd.getVersion());
 		Assert.assertEquals(URI.create("http://www.n3phele.com/icons/custom"), cd.getIcon());
 		testCommandDefinition = cd;
 		
@@ -1083,12 +1083,14 @@ public class NShellActionTest {
 		assertEquals("{}", refresh);
 		List<Narrative> logs = new ArrayList<Narrative>();
 		logs.addAll(NarrativeResource.dao.getNarratives(shellProcess.getUri()));
-		assertEquals(6, logs.size());
-		assertEquals("log For_0_2 2", logs.get(4).getText());
-		assertEquals("log2 For_0_2 2", logs.get(5).getText());
+		assertEquals(7, logs.size());
 		for(Narrative log : logs) {
 			System.out.println(log.toString());
 		}
+		assertEquals("this is the end", logs.get(6).getText());
+		assertEquals("log For_0_2 2", logs.get(4).getText());
+		assertEquals("log2 For_0_2 2", logs.get(5).getText());
+			
 		Assert.assertTrue("loop concurrent", 
 			(	"log For_0_0 0".equals(logs.get(0).getText()) && 
 				"log For_0_1 1".equals(logs.get(1).getText()) ) ||
