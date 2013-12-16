@@ -344,7 +344,7 @@ public class ParserTest {
 				+ "\"\n"
 				+ ".forCommand:null\n"
 				+ "..variable:\"$$i\"\n"
-				+ "..expression:\" \"\n"
+				+ "..expressionOrNumeric:\" \"\n"
 				+ "...conditionalExpression:null\n"
 				+ "....logicalORExpression:null\n"
 				+ ".....logicalANDExpression:null\n"
@@ -678,7 +678,7 @@ public class ParserTest {
 				+ "\n"
 				+ ".forCommand:null\n"
 				+ "..variable:$$i\n"
-				+ "..expression: \n"
+				+ "..expressionOrNumeric: \n"
 				+ "...additiveExpression:-\n"
 				+ "....identifier:n\n"
 				+ "....constantLong:1\n"
@@ -953,7 +953,7 @@ public class ParserTest {
 		String expected = "script:null\n"
 				+ ".forCommand:null\n"
 				+ "..variable:\"$$i\"\n"
-				+ "..expression:\" \"\n"
+				+ "..expressionOrNumeric:\" \"\n"
 				+ "...conditionalExpression:null\n"
 				+ "....logicalORExpression:null\n"
 				+ ".....logicalANDExpression:null\n"
@@ -1029,6 +1029,116 @@ public class ParserTest {
 				+ "...passThru:\"third foobar > file.txt\n"
 				+ "\"\n";
 		Assert.assertEquals(expected, result);	
+	}
+	
+	/** Test FOR statement with a numeric iteration limit & with multiple statements defined in the FOR block and a statement following the FOR block
+	 * @throws ParseException
+	 * @throws n3phele.service.nShell.ParseException 
+	 */
+	@Test
+	public void shellTest_FOR_2() throws ParseException, n3phele.service.nShell.ParseException {
+		String test = "	FOR $$i : $$n-1 : 1\n" +
+					  "		ON $$DenoiseCluster[$$i]\n" +
+					  "			first --command\n" +
+					  "		ON $$DenoiseCluster[$$i]\n" +
+					  "			second -help\n" +
+					  "	ON $$DenoiseMaster\n" +
+					  "			third foobar > file.txt\n";
+		Shell s = new Shell(test, 1);
+		SimpleNode node = s.script();
+		String result = dump(node, "", ".");
+		// transform(dump(node, "", "."));
+		String expected = "script:null\n"
+				+ ".forCommand:null\n"
+				+ "..variable:\"$$i\"\n"
+				+ "..expressionOrNumeric:\" \"\n"
+				+ "...conditionalExpression:null\n"
+				+ "....logicalORExpression:null\n"
+				+ ".....logicalANDExpression:null\n"
+				+ "......equalityExpression:null\n"
+				+ ".......relationalExpression:null\n"
+				+ "........additiveExpression:\"-\"\n"
+				+ ".........multiplicativeExpression:null\n"
+				+ "..........unaryExpression:null\n"
+				+ "...........identifier:\"n\"\n"
+				+ ".........additiveExpression:null\n"
+				+ "..........multiplicativeExpression:null\n"
+				+ "...........unaryExpression:null\n"
+				+ "............constant:1\n"
+				+ "..expressionOrNumeric:\" \"\n"
+				+ "...conditionalExpression:null\n"
+				+ "....logicalORExpression:null\n"
+				+ ".....logicalANDExpression:null\n"
+				+ "......equalityExpression:null\n"
+				+ ".......relationalExpression:null\n"
+				+ "........additiveExpression:null\n"
+				+ ".........multiplicativeExpression:null\n"
+				+ "..........unaryExpression:null\n"
+				+ "...........constant:1\n"
+				+ "..block:null\n"
+				+ "...on:null\n"
+				+ "....expression:\" \"\n"
+				+ ".....conditionalExpression:null\n"
+				+ "......logicalORExpression:null\n"
+				+ ".......logicalANDExpression:null\n"
+				+ "........equalityExpression:null\n"
+				+ ".........relationalExpression:null\n"
+				+ "..........additiveExpression:null\n"
+				+ "...........multiplicativeExpression:null\n"
+				+ "............unaryExpression:null\n"
+				+ ".............identifier:\"DenoiseCluster\"\n"
+				+ ".............conditionalExpression:null\n"
+				+ "..............logicalORExpression:null\n"
+				+ "...............logicalANDExpression:null\n"
+				+ "................equalityExpression:null\n"
+				+ ".................relationalExpression:null\n"
+				+ "..................additiveExpression:null\n"
+				+ "...................multiplicativeExpression:null\n"
+				+ "....................unaryExpression:null\n"
+				+ ".....................identifier:\"i\"\n"
+				+ "....pieces:null\n"
+				+ ".....passThru:\"first --command\n"
+				+ "\"\n"
+				+ "...on:null\n"
+				+ "....expression:\" \"\n"
+				+ ".....conditionalExpression:null\n"
+				+ "......logicalORExpression:null\n"
+				+ ".......logicalANDExpression:null\n"
+				+ "........equalityExpression:null\n"
+				+ ".........relationalExpression:null\n"
+				+ "..........additiveExpression:null\n"
+				+ "...........multiplicativeExpression:null\n"
+				+ "............unaryExpression:null\n"
+				+ ".............identifier:\"DenoiseCluster\"\n"
+				+ ".............conditionalExpression:null\n"
+				+ "..............logicalORExpression:null\n"
+				+ "...............logicalANDExpression:null\n"
+				+ "................equalityExpression:null\n"
+				+ ".................relationalExpression:null\n"
+				+ "..................additiveExpression:null\n"
+				+ "...................multiplicativeExpression:null\n"
+				+ "....................unaryExpression:null\n"
+				+ ".....................identifier:\"i\"\n"
+				+ "....pieces:null\n"
+				+ ".....passThru:\"second -help\n"
+				+ "\"\n"
+				+ ".on:null\n"
+				+ "..expression:\" \"\n"
+				+ "...conditionalExpression:null\n"
+				+ "....logicalORExpression:null\n"
+				+ ".....logicalANDExpression:null\n"
+				+ "......equalityExpression:null\n"
+				+ ".......relationalExpression:null\n"
+				+ "........additiveExpression:null\n"
+				+ ".........multiplicativeExpression:null\n"
+				+ "..........unaryExpression:null\n"
+				+ "...........identifier:\"DenoiseMaster\"\n"
+				+ "..pieces:null\n"
+				+ "...passThru:\"third foobar > file.txt\n"
+				+ "\"\n"
+				+ "";
+
+		Assert.assertEquals(expected, result);
 	}
 	
 	/** Tests multi-line CREATEVM statement with a multi-line literal for userdata. Multi-line literal has leading whitespace removal.

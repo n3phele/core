@@ -29,6 +29,8 @@ public enum ShellFragmentKind {
     export,
     variableAssign,
     expression,
+    expressionOrNumeric,
+    expressionOrConstant,
     passThru,
     pieces,
     fileList,

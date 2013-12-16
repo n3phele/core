@@ -19,10 +19,12 @@ public interface ShellTreeConstants
   public int JJTEXPORT = 13;
   public int JJTVARIABLEASSIGN = 14;
   public int JJTEXPRESSION = 15;
-  public int JJTPASSTHRU = 16;
-  public int JJTPIECES = 17;
-  public int JJTFILELIST = 18;
-  public int JJTFILEELEMENT = 19;
+  public int JJTEXPRESSIONORNUMERIC = 16;
+  public int JJTEXPRESSIONORCONSTANT = 17;
+  public int JJTPASSTHRU = 18;
+  public int JJTPIECES = 19;
+  public int JJTFILELIST = 20;
+  public int JJTFILEELEMENT = 21;
 
 
   public String[] jjtNodeName = {
@@ -42,10 +44,12 @@ public interface ShellTreeConstants
     "export",
     "variableAssign",
     "expression",
+    "expressionOrNumeric",
+    "expressionOrConstant",
     "passThru",
     "pieces",
     "fileList",
     "fileElement",
   };
 }
-/* JavaCC - OriginalChecksum=aafbca70158b251957ab66e4f240b153 (do not edit this line) */
+/* JavaCC - OriginalChecksum=16372d043a707d1939ff95d64157bb4f (do not edit this line) */
