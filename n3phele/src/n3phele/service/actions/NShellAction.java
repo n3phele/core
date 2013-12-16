@@ -974,6 +974,7 @@ public class NShellAction extends Action {
 		childContext.putValue("chunkSize", chunk);
 		
 		CloudProcess child = forkChildProcess("For", childContext, specifiedName, null);
+		this.setWatchFor(child.getUri());
 		ForAction forAction = (ForAction) ActionResource.dao.load(child.getAction());
 		forAction.setExecutable(new ArrayList<ShellFragment>(this.executable.subList(0, shellFragment.children[children-1]+1)));
 		forAction.setCloud(this.getCloud());
