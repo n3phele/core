@@ -1,8 +1,8 @@
 # deployN3pheleJenkins.n
 # Author: Alexandre Tavares
-name       : JenkinsService
+name       : JenkinsService2
 description: Deploy Jenkins for the N3phele project
-version    : 7.9
+version    : 8.2
 preferred  : true
 tags 	   : service jenkins 
 processor  : StackService
@@ -45,7 +45,7 @@ HPZone1: # HP Cloud
 	ON $$bootstrap
 		printf "%s:\\n" $$service_name > config.yaml
 		echo "  username: admin " >> config.yaml
-		echo "  password: $$password " >> config.yaml
+		echo "  password: "$$password  >> config.yaml
 		echo "  plugins: ant promoted-builds mask-passwords git-client git github github-api github-oauth github-sqs-plugin" >> config.yaml
 		juju status $${$$service_name}-agent > machine.txt;
 		machine=$(grep machine: machine.txt | grep -o '[0-9]\{1,9\}');

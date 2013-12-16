@@ -2,7 +2,7 @@
 # Author: Alexandre Tavares
 name       : bootstrapJujuCore
 description: Bootstraps Juju
-version    : 6.7
+version    : 7.1
 preferred  : true
 tags       : service
 processor  : StackService
@@ -23,24 +23,24 @@ HPZone1: # HP Cloud
 
 	ON $$vmTavares 
 		juju init -f ;
-		echo "default: $${$$serviceName}" 																>  ~/.juju/environments.yaml ;
+		echo "default: "$$serviceName 																>  ~/.juju/environments.yaml ;
 		echo "environments:" 																			>> ~/.juju/environments.yaml ;
-		echo "  $${$$serviceName}:" 																	>> ~/.juju/environments.yaml ;
+		echo "  "$$serviceName ":" 																	>> ~/.juju/environments.yaml ;
 		echo "    type: openstack" 																		>> ~/.juju/environments.yaml ;
 		echo "    default-series: precise" 																>> ~/.juju/environments.yaml ;
 		echo "    use-floating-ip: false"																>> ~/.juju/environments.yaml ;
-		echo "    control-bucket: $${$$controlBucket}" 													>> ~/.juju/environments.yaml ;
+		echo "    control-bucket: "$$controlBucket 													>> ~/.juju/environments.yaml ;
 		echo "    admin-secret: secretword" 															>> ~/.juju/environments.yaml ;
 		echo "    public-bucket-url: https://region-a.geo-1.objects.hpcloudsvc.com/v1/60502529753910" 	>> ~/.juju/environments.yaml ;
 		echo "    region: az-1.region-a.geo-1" 															>> ~/.juju/environments.yaml ;
-		echo "    tenant-name: $${$$tenant}" 															>> ~/.juju/environments.yaml ;
+		echo "    tenant-name: "$$tenant 															>> ~/.juju/environments.yaml ;
 		echo "    auth-url: https://region-a.geo-1.identity.hpcloudsvc.com:35357/v2.0/" 				>> ~/.juju/environments.yaml ;
 		echo "    auth-mode: keypair" 																	>> ~/.juju/environments.yaml ;
-		echo "    access-key: $${$$key}" 																>> ~/.juju/environments.yaml ;
-		echo "    secret-key: $${$$secret}" 															>> ~/.juju/environments.yaml ;
+		echo "    access-key: "$$key 																>> ~/.juju/environments.yaml ;
+		echo "    secret-key: "$$secret 															>> ~/.juju/environments.yaml ;
 		echo "    default-image-id: \"81078\"" 														>> ~/.juju/environments.yaml ;
 		ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -N "" ;
-	
+
 	ON $$vmTavares
 		sleep 30
 		juju bootstrap
@@ -109,5 +109,5 @@ HPZone1: # HP Cloud
 		sudo apt-get update ; 
 		sudo apt-get install openjdk-7-jre-headless -y ;
 		echo 2 | sudo update-alternatives --config java
-		sudo java -jar secGroupDelete.jar -k $${$$key} -s $${$$secret} -t $${$$tenant} -z az-1.region-a.geo-1 -g juju-$${$$serviceName} ;
+		sudo java -jar secGroupDelete.jar -k $$key -s $$secret -t $$tenant -z az-1.region-a.geo-1 -g juju-$$serviceName ;
 		juju destroy-environment -y ;
