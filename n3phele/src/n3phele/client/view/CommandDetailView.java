@@ -829,6 +829,9 @@ public class CommandDetailView extends WorkspaceVerticalPanel {
 	
 	
 	private static boolean validateTypedParameter(TypedParameter object, String value) {
+		if(object.isOptional() && (value == null || value.trim().length()==0)){
+			return true;
+		}
 		boolean error = false;
 		String type = object.getType();
   	  if(type.equals("Long")) {
