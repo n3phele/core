@@ -1,0 +1,45 @@
+# testOptional.n
+# Created automatically by the nshell generator
+# Based on the following page: http://qiime.org/scripts/split_libraries.html
+name		: testOptional
+description	: testOptional
+version		: 0.1
+preferred	: true
+tags		: qiime
+public		: true
+icon	   : http://www.n3phele.com/qiimeIcon
+parameters	:
+	optional int optionalIntW = 12 				# optional int with default
+	optional int optionalIntWO 					# optional int without default
+	int requiredInt								# required int
+	optional boolean optionalBooleanW = False 	# optional boolean with default
+	optional boolean optionalBooleanWO 			# optional boolean without default
+	boolean requiredBoolean						# required boolean
+	optional string optionalStringW = "default" # optional String with default
+	optional string optionalStringWO 			# optional String without default
+	string requiredString						# required string
+	optional float optionalFloatW = 0.3 		# optional float with default
+	optional float optionalFloatWO 				# optional float without default
+	float requiredFloat							# required float
+	
+input files:
+	optional inOptional.txt		# input optional
+	in.txt						# required input 
+output files:
+	out.txt						# required output
+
+HPZone1:
+	# All the machines will be created with the "NewQIIME-Parallel1" image (#360427) and with the "n3phele-qiime" security group
+	# FlavorRef: 100 - xsmall(1), 101 - small(2), 102 - medium(2), 103 - large(4), 104 - xlarge(4), 105 - 2xlarge(8)
+	# Creates the inflateDenoiserOutputMachine, a standard.small (101) with 2 cores. 
+	$$inflateDenoiserOutputMachine = CREATEVM  --name inflateDenoiserOutputMachine --imageRef 360427 --nodeCount 1 --flavorRef 101 --securityGroups n3phele-qiime
+
+	ON $$inflateDenoiserOutputMachine --produces [
+											inflated_seqs.fna: inflated_seqs.fna]
+		source /home/ubuntu/sandbox/qiime_software/activate.sh ;
+		inflate_denoiser_output.py -c centroids.fasta -s singletons.fasta -f seqs.fna -d denoiser_mapping.txt -o inflated_seqs.fna ;
+
+	ON $$inflateDenoiserOutputMachine
+		sleep 30 ;
+
+	DESTROY $$inflateDenoiserOutputMachine
