@@ -3,7 +3,7 @@
 # Based on the following page: http://qiime.org/scripts/split_libraries.html
 name		: split libraries
 description	: Split libraries according to barcodes specified in mapping file
-version		: 1.7
+version		: 1.7.0
 preferred	: true
 tags		: qiime
 public		: true

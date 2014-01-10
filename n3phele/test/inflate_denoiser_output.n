@@ -2,7 +2,7 @@
 # Based on the following page: http://qiime.org/scripts/inflate_denoiser_output.html
 name	   : inflate_denoiser_output
 description: The inflation process writes each centroid sequence n times, where n is the number of reads that cluster to that centroid, and writes each singleton once. Flowgram identifiers are mapped back to post-split_libraries identifiers in this process (i.e., identifiers in fasta fps).
-version	   : 0.2
+version	   : 1.7.0
 preferred  : True
 tags	   : qiime
 processor  : Job

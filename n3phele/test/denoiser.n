@@ -4,7 +4,7 @@
 # Based on the following tutorial: http://qiime.org/tutorials/denoising_454_data.html
 name	   : denoiser
 description: denoise an aggregate of up to 5 files in .sff.txt format, which is the output of sffinfo
-version	   : 10.0
+version	   : 1.7.0
 preferred  : True
 tags	   : qiime denoise
 processor  : Job
@@ -125,5 +125,8 @@ HPZone1:
 	    for i in flowgram[1234].sff.txt; do flowgram_files=$flowgram_files,$i; done ;	
 	    # Flowgram clustering (aka denoising)	
 		time denoise_wrapper.py -v --input_file $flowgram_files $$primer=="LinkerPrimerSequence"?" --map_fname mapping.txt ":"-p "+$$primer --fasta_file sequence.fasta --output_dir output --num_cpus $WORKERS $$titanium?" --titanium ":"" || { tail -40 output/denoiser.log; exit 1; } ;
+
+	ON $$DenoiseMaster
+		sleep 30 ;
 
 	DESTROY $$DenoiseMaster

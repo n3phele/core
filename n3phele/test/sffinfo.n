@@ -2,7 +2,7 @@
 # Based on the following page: http://qiime.org/scripts/process_sff.html?highlight=sffinfo
 name	   : sffinfo
 description: From the raw, binary sff file, three files (FASTA and QUAL formatted files, along with a flowgram file) will be generated for each run with the sffinfo tool from 454.
-version	   : 1.5
+version	   : 1.7.0
 preferred  : True
 tags	   : qiime
 processor  : Job
