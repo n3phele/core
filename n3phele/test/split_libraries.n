@@ -1,0 +1,62 @@
+# split_libraries.n
+# Created automatically by the nshell generator
+# Based on the following page: http://qiime.org/scripts/split_libraries.html
+name		: split libraries
+description	: Split libraries according to barcodes specified in mapping file
+version		: 1.7.0
+preferred	: true
+tags		: qiime
+public		: true
+icon	   : http://www.n3phele.com/qiimeIcon
+parameters	:
+	optional boolean remove_unassigned = False # DEPRECATED: pass --retain_unassigned_reads to keep unassigned reads  [default: %default]
+	optional int minseqlength = 200 # minimum sequence length, in nucleotides [default: %default]
+	optional int maxseqlength = 1000 # maximum sequence length, in nucleotides [default: %default]
+	optional boolean trimseqlength = False # calculate sequence lengths after trimming primers and barcodes [default: %default]
+	optional int minqualscore = 25 # min average qual score allowed in read [default: 25]
+	optional boolean keepprimer = False # do not remove primer from sequences
+	optional boolean keepbarcode = False # do not remove barcode from sequences
+	optional int maxambig = 6 # maximum number of ambiguous bases [default: %default]
+	optional int maxhomopolymer = 6 # maximum length of homopolymer run [default: %default]
+	optional int maxprimermismatch = 0 # maximum number of primer mismatches [default: %default]
+	optional string barcodetype = "golay_12" # barcode type, hamming_8, golay_12, variable_length (will disable any barcode correction if variable_length set), or a number representing the length of the barcode, such as -b 4.  [default: %default]
+	optional float maxbarcodeerrors = 1.5 # maximum number of errors in barcode [default: %default]
+	optional int startnumberingat = 1 # seq id to use for the first sequence [default: %default]
+	optional boolean retain_unassigned_reads = False # retain sequences which are Unassigned in the output sequence file[default: %default]
+	optional boolean disable_bc_correction = False # Disable attempts to find nearest corrected barcode.  Can improve performance. [default: %default]
+	optional int qual_score_window = 0 # Enable sliding window test of quality scores.  If the average score of a continuous set of w nucleotides falls below the threshold (see -s for default), the sequence is discarded. A good value would be 50. 0 (zero) means no filtering. Must pass a .qual file (see -q parameter) if this functionality is enabled.  Default behavior for this function is to truncate the sequence at the beginning of the poor quality window, and test for minimal length (-l parameter) of the resulting sequence. [default: %default]
+	optional boolean discard_bad_windows = False # If the qual_score_window option (-w) is enabled, this will override the default truncation behavior and discard any sequences where a bad window is found.  [default: %default]
+	optional boolean disable_primers = False # Disable primer usage when demultiplexing.  Should be enabled for unusual circumstances, such as analyzing Sanger sequence data generated with different primers.  [default: %default]
+	optional string reverse_primers = "disable" # Enable removal of the reverse primer and any subsequence sequence from the end of each read.  To enable this, there has to be a "ReversePrimer" column in the mapping file. Primers a required to be in IUPAC format and written in the 5' to  3' direction.  Valid options are 'disable', 'truncate_only', and 'truncate_remove'.  'truncate_only' will remove the primer and subsequent sequence data from the output read and will not alter output of sequences where the primer cannot be found. 'truncate_remove' will flag sequences where the primer cannot be found to not be written and will record the quantity of such failed sequences in the log file. [default: %default]
+	optional int reverse_primer_mismatches = 0 # Set number of allowed mismatches for reverse primers (option -z). [default: %default]
+	optional boolean record_qual_scores = False # Enables recording of quality scores for all sequences that are recorded.  If this option is enabled, a file named seqs_filtered.qual will be created in the output directory, and will contain the same sequence IDs in the seqs.fna file and sequence quality scores matching the bases present in the seqs.fna file. [default: %default]
+	optional string median_length_filtering = "None" # Disables minimum and maximum sequence length filtering, and instead calculates the median sequence length and filters the sequences based upon the number of median absolute deviations specified by this parameter.  Any sequences with lengths outside the number of deviations will be removed. [default: %default]
+	optional string added_demultiplex_field = "None" # Use -j to add a field to use in the mapping file as an additional demultiplexing option to the barcode.  All combinations of barcodes and the values in these fields must be unique. The fields must contain values that can be parsed from the fasta labels such as "plate=R_2008_12_09".  In this case, "plate" would be the column header and "R_2008_12_09" would be the field data (minus quotes) in the mapping file.  To use the run prefix from the fasta label, such as ">FLP3FBN01ELBSX", where "FLP3FBN01" is generated from the run ID, use "-j run_prefix" and set the run prefix to be used as the data under the column headerr "run_prefix".  [default: %default]
+	optional boolean truncate_ambi_bases = False # Enable to truncate at the first "N" character encountered in the sequences.  This will disable testing for ambiguous bases (-a option) [default: %default]
+input files:
+	map.file 				# Name of mapping file. NOTE: Must contain a header line indicating SampleID in the first column and BarcodeSequence in the second, LinkerPrimerSequence in the third.
+	fasta.repeat 			# Name of fasta file
+	optional qual.repeat 	# Name of qual file
+output files:
+	seqs.fna				# This is a FASTA file containing all sequences which meet the user-defined parameters, where each sequence identifier now contains its corresponding sample id from mapping file.
+	histograms.txt			# This contains the counts of sequences with a particular length.
+	split_library_log.txt	# This file contains a summary of the split_libraries.py analysis. Specifically, this file includes information regarding the number of sequences that pass quality control (number of seqs written) and how these are distributed across the different samples which, through the use of bar-coding technology, would have been pooled into a single 454 run. 
+HPZone1:
+	# All the machines will be created with the "NewQIIME-Parallel1" image (#360427) and with the "n3phele-qiime" security group
+	# FlavorRef: 100 - xsmall(1), 101 - small(2), 102 - medium(2), 103 - large(4), 104 - xlarge(4), 105 - 2xlarge(8)
+	# Creates the splitLibrariesMachine, a standard.small (101) with 2 cores. 	
+	$$splitLibrariesMachine = CREATEVM --name splitLibrariesMachine --imageRef 360427 --nodeCount 1 --flavorRef 101 --securityGroups n3phele-qiime
+
+	ON $$splitLibrariesMachine --produces [seqs.fna: seqs.fna, 
+								histograms.txt: histograms.txt,
+								split_library_log.txt: split_library_log.txt]
+		source /home/ubuntu/sandbox/qiime_software/activate.sh ;
+		
+		#split_libraries.py -m map.file -f fasta.repeat $$remove_unassigned?" -r":"" $$trimseqlength?" -t":"" $$keepprimer?" -k":"" $$keepbarcode?" -B":"" $$retain_unassigned_reads?" --retain_unassigned_reads":"" $$disable_bc_correction?" -c":"" $$discard_bad_windows?" -g":"" $$disable_primers?" -p":"" $$record_qual_scores?" -d":"" $$truncate_ambi_bases?" -x":"" $$minseqlength!=200?" -l "+$$minseqlength:"" $$maxseqlength!=1000?" -L "+$$maxseqlength:"" $$maxambig!=6?" -a "+$$maxambig:"" $$maxhomopolymer!=6?" -H "+$$maxhomopolymer:"" $$maxprimermismatch!=0?" -M "+$$maxprimermismatch:"" $$maxbarcodeerrors!=1.5?" -e "+$$maxbarcodeerrors:"" $$startnumberingat!=1?" -n "+$$startnumberingat:"" $$qual_score_window!=0?" -w "+$$qual_score_window:"" $$reverse_primer_mismatches!=0?" --reverse_primer_mismatches "+$$reverse_primer_mismatches:"" $$barcodetype!="golay_12"?" -b "+$$barcodetype:"" $$reverse_primers!="disable"?" -z "+$$reverse_primers:"" $$median_length_filtering!="None"?" -i "+$$median_length_filtering:"" $$added_demultiplex_field!="None"?" -j "+$$added_demultiplex_field:"" $$minqualscore!=25?" -s "+$$minqualscore:"" ;
+		function testIfQualFileExists() { QUAL_FILE=qual.repeat; if [ -f "$QUAL_FILE" ]; then split_libraries.py -m map.file -f fasta.repeat -q $QUAL_FILE $$remove_unassigned?" -r":"" $$trimseqlength?" -t":"" $$keepprimer?" -k":"" $$keepbarcode?" -B":"" $$retain_unassigned_reads?" --retain_unassigned_reads":"" $$disable_bc_correction?" -c":"" $$discard_bad_windows?" -g":"" $$disable_primers?" -p":"" $$record_qual_scores?" -d":"" $$truncate_ambi_bases?" -x":"" $$minseqlength!=200?" -l "+$$minseqlength:"" $$maxseqlength!=1000?" -L "+$$maxseqlength:"" $$maxambig!=6?" -a "+$$maxambig:"" $$maxhomopolymer!=6?" -H "+$$maxhomopolymer:"" $$maxprimermismatch!=0?" -M "+$$maxprimermismatch:"" $$maxbarcodeerrors!=1.5?" -e "+$$maxbarcodeerrors:"" $$startnumberingat!=1?" -n "+$$startnumberingat:"" $$qual_score_window!=0?" -w "+$$qual_score_window:"" $$reverse_primer_mismatches!=0?" --reverse_primer_mismatches "+$$reverse_primer_mismatches:"" $$barcodetype!="golay_12"?" -b "+$$barcodetype:"" $$reverse_primers!="disable"?" -z "+$$reverse_primers:"" $$median_length_filtering!="None"?" -i "+$$median_length_filtering:"" $$added_demultiplex_field!="None"?" -j "+$$added_demultiplex_field:"" $$minqualscore!=25?" -s "+$$minqualscore:"" ; else split_libraries.py -m map.file -f fasta.repeat $$remove_unassigned?" -r":"" $$trimseqlength?" -t":"" $$keepprimer?" -k":"" $$keepbarcode?" -B":"" $$retain_unassigned_reads?" --retain_unassigned_reads":"" $$disable_bc_correction?" -c":"" $$discard_bad_windows?" -g":"" $$disable_primers?" -p":"" $$record_qual_scores?" -d":"" $$truncate_ambi_bases?" -x":"" $$minseqlength!=200?" -l "+$$minseqlength:"" $$maxseqlength!=1000?" -L "+$$maxseqlength:"" $$maxambig!=6?" -a "+$$maxambig:"" $$maxhomopolymer!=6?" -H "+$$maxhomopolymer:"" $$maxprimermismatch!=0?" -M "+$$maxprimermismatch:"" $$maxbarcodeerrors!=1.5?" -e "+$$maxbarcodeerrors:"" $$startnumberingat!=1?" -n "+$$startnumberingat:"" $$qual_score_window!=0?" -w "+$$qual_score_window:"" $$reverse_primer_mismatches!=0?" --reverse_primer_mismatches "+$$reverse_primer_mismatches:"" $$barcodetype!="golay_12"?" -b "+$$barcodetype:"" $$reverse_primers!="disable"?" -z "+$$reverse_primers:"" $$median_length_filtering!="None"?" -i "+$$median_length_filtering:"" $$added_demultiplex_field!="None"?" -j "+$$added_demultiplex_field:"" $$minqualscore!=25?" -s "+$$minqualscore:"" ; fi; } ;
+		testIfQualFileExists ;
+
+	ON $$splitLibrariesMachine
+		sleep 30 ;
+
+	DESTROY $$splitLibrariesMachine

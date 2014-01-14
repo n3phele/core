@@ -1,0 +1,35 @@
+# inflate_denoiser_output.n
+# Based on the following page: http://qiime.org/scripts/inflate_denoiser_output.html
+name	   : inflate_denoiser_output
+description: The inflation process writes each centroid sequence n times, where n is the number of reads that cluster to that centroid, and writes each singleton once. Flowgram identifiers are mapped back to post-split_libraries identifiers in this process (i.e., identifiers in fasta fps).
+version	   : 1.7.0
+preferred  : True
+tags	   : qiime
+processor  : Job
+public	   : True
+icon	   : http://www.n3phele.com/qiimeIcon
+
+input files:
+	centroids.fasta			# The centroid fasta filepaths
+	singletons.fasta		# The singleton fasta filepaths
+	seqs.fna				# The input (to denoiser) fasta filepaths
+	denoiser_mapping.txt	# The denoiser map filepaths
+
+output files:
+	inflated_seqs.fna		# The output fasta filepath
+
+HPZone1:
+	# All the machines will be created with the "NewQIIME-Parallel1" image (#360427) and with the "n3phele-qiime" security group
+	# FlavorRef: 100 - xsmall(1), 101 - small(2), 102 - medium(2), 103 - large(4), 104 - xlarge(4), 105 - 2xlarge(8)
+	# Creates the inflateDenoiserOutputMachine, a standard.small (101) with 2 cores. 
+	$$inflateDenoiserOutputMachine = CREATEVM  --name inflateDenoiserOutputMachine --imageRef 360427 --nodeCount 1 --flavorRef 101 --securityGroups n3phele-qiime
+
+	ON $$inflateDenoiserOutputMachine --produces [
+											inflated_seqs.fna: inflated_seqs.fna]
+		source /home/ubuntu/sandbox/qiime_software/activate.sh ;
+		inflate_denoiser_output.py -c centroids.fasta -s singletons.fasta -f seqs.fna -d denoiser_mapping.txt -o inflated_seqs.fna ;
+
+	ON $$inflateDenoiserOutputMachine
+		sleep 30 ;
+
+	DESTROY $$inflateDenoiserOutputMachine
