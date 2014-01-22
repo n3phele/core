@@ -36,7 +36,7 @@ import com.googlecode.objectify.annotation.Unindex;
 public class Repository extends Entity {
 	@Id private Long id;
 	private Text description;
-	@Embed private Credential credential;
+	private Credential credential;
 	private String target;
 	private String root;
 	private String kind;

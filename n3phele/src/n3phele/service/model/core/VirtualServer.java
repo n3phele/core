@@ -41,7 +41,7 @@ public class VirtualServer extends Entity {
 	@com.googlecode.objectify.annotation.Id private Long id;
 	private String description;
 	private String location;
-	@Embed private ArrayList<NameValue> parametersList;
+	private ArrayList<NameValue> parametersList;
 	@Index private VirtualServerStatus status;
 	private String notification;
 	@Index private String instanceId;
@@ -53,7 +53,7 @@ public class VirtualServer extends Entity {
 	//TODO: check if it is the date it was created and not the date it was made into zombie
 	private Date created;
 	private boolean zombie;
-	@Embed private ArrayList<NameValue> outputParameters;
+	private ArrayList<NameValue> outputParameters;
 	
 	
 	public VirtualServer() {}

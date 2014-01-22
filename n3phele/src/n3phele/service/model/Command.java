@@ -51,12 +51,12 @@ public class Command extends Entity {
 	private String version;
 	private String icon;
 	private String ownerName;
-	@Embed private List<FileSpecification> inputFiles;
-	@Embed private List<TypedParameter> executionParameters = new ArrayList<TypedParameter>();
-	@Embed private List<FileSpecification> outputFiles;
-	@Embed private List<CommandImplementationDefinition> implementations = new ArrayList<CommandImplementationDefinition>();
-	@Embed private List<CommandCloudAccount> cloudAccounts = new ArrayList<CommandCloudAccount>();
-	@Embed private List<CommandCloudAccount> serviceList = new ArrayList<CommandCloudAccount>();
+	private List<FileSpecification> inputFiles;
+	private List<TypedParameter> executionParameters = new ArrayList<TypedParameter>();
+	private List<FileSpecification> outputFiles;
+	private List<CommandImplementationDefinition> implementations = new ArrayList<CommandImplementationDefinition>();
+	private List<CommandCloudAccount> cloudAccounts = new ArrayList<CommandCloudAccount>();
+	private List<CommandCloudAccount> serviceList = new ArrayList<CommandCloudAccount>();
 	
 	public Command() {}
 	

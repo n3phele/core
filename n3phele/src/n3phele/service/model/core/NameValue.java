@@ -14,8 +14,11 @@ import java.util.Map.Entry;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import com.googlecode.objectify.annotation.Embed;
+
 @XmlRootElement(name="NameValue")
 @XmlType(name="NameValue", propOrder={"key", "value"})
+@Embed
 public class NameValue {
 	private String key;
 	private String value;

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.appengine.api.datastore.Text;
+import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Serialize;
 
 /**
@@ -17,6 +18,7 @@ import com.googlecode.objectify.annotation.Serialize;
  *  an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the 
  *  specific language governing permissions and limitations under the License.
  */
+@Embed
 public class CommandImplementationDefinition {
 	
 	private String name;

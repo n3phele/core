@@ -36,9 +36,9 @@ public class Cloud extends Entity {
 	private String factory;
 	private String costDriverName;
 	private Map<String, Double> costMap;
-	@Embed private Credential factoryCredential;
-	@Embed private ArrayList<TypedParameter> inputParameters; 
-	@Embed private ArrayList<TypedParameter> outputParameters; 
+	private Credential factoryCredential;
+	private ArrayList<TypedParameter> inputParameters; 
+	private ArrayList<TypedParameter> outputParameters; 
 	
 	
 	public Cloud() {}

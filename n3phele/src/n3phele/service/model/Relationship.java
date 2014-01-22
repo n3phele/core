@@ -4,6 +4,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Unindex;
 
 
@@ -11,6 +12,7 @@ import com.googlecode.objectify.annotation.Unindex;
 @XmlType(name="Relationship", propOrder={"type","description","name"})
 @Unindex
 @Cache
+@Embed
 public class Relationship {
 
 	private long idStackMaster;

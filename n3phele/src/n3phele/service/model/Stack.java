@@ -8,6 +8,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.annotation.Unindex;
 
@@ -15,6 +16,7 @@ import com.googlecode.objectify.annotation.Unindex;
 @XmlType(name="Stack", propOrder={"name","id", "description" ,"commandUri","vms","deployProcess"})
 @Unindex
 @Cache
+@Embed
 public class Stack{
 	/**
 	 * 

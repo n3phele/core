@@ -30,7 +30,7 @@ public class Account extends Entity {
 	private Text description;
 	private String cloud;
 	@Index private String cloudName;
-	@Embed private Credential credential;
+	private Credential credential;
 	
 	public Account() {}
 	

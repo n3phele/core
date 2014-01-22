@@ -32,6 +32,7 @@ import n3phele.service.core.Resource;
 
 
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Unindex;
 import com.sun.jersey.core.util.Base64;
 
@@ -42,6 +43,7 @@ import com.sun.jersey.core.util.Base64;
 @XmlType(name = "Credential", propOrder = { "account", "secret" })
 @Unindex
 @Cache
+@Embed
 public class Credential {
 	final private static Logger log = Logger.getLogger(Credential.class
 			.getName());

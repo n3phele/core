@@ -43,8 +43,8 @@ public class StackServiceAction extends ServiceAction {
 
 	private List<String> adopted = new ArrayList<String>();
 
-	@Embed private List<Stack> stacks = new ArrayList<Stack>();
-	@Embed private List<Relationship> relationships = new ArrayList<Relationship>();
+	private List<Stack> stacks = new ArrayList<Stack>();
+	private List<Relationship> relationships = new ArrayList<Relationship>();
 	@Ignore private ResourceFileFactory resourceFileFactory;
 			
 	public StackServiceAction()
