@@ -47,8 +47,8 @@ public class CacheManager {
 	private int backoff = 0;
 	private int counter = 0;
 	private Timer refreshTimer = null;
-	//final public String ServiceAddress = "https://n3phele-dev.appspot.com/resources/";
-	final public String ServiceAddress = "http://127.0.0.1:8888/resources/";   // uncomment for local access
+	final public String ServiceAddress = "https://n3phele-dev.appspot.com/resources/";
+	//final public String ServiceAddress = "http://127.0.0.1:8888/resources/";   // uncomment for local access
 	//final public String ServiceAddress = "http://192.168.100.73:8888/resources/";   // uncomment for local access
 	
 	public CacheManager(EventBus eventBus) {
