@@ -33,7 +33,7 @@ public abstract class ProcessCachingAbstractManager extends AbstractManager<Clou
 	protected void add(CloudProcess item) throws IllegalArgumentException {
 			super.add(item);
 			Date date = new Date(System.currentTimeMillis());
-			QueueFactory.getDefaultQueue().add(ofy().getTxn(),
+			QueueFactory.getDefaultQueue().add(ofy().getTransaction(),
 					TaskOptions.Builder.withPayload(new AddChangeTask(item.getUri(), date, super.path,sleepTime)));
 	}
 	

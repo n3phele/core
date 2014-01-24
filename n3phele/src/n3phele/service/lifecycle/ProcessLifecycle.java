@@ -153,7 +153,7 @@ public class ProcessLifecycle {
 						Date stamp = new Date();
 						log.info("Queued "+processURI+" "+stamp);
 						process.setRunning(stamp);
-						QueueFactory.getDefaultQueue().add(ofy().getTxn(),
+						QueueFactory.getDefaultQueue().add(ofy().getTransaction(),
 								TaskOptions.Builder.withPayload(new Schedule(processURI, process.getRunning())));
 						result = true;
 						dirty = true;

@@ -38,7 +38,7 @@ public class User extends Entity implements Principal {
 	private boolean validated = false;
 	private Date validationDate = null;
 	private boolean admin = false;
-	@Embed private Credential credential;
+	private Credential credential;
 	
 	public User() {}
 	

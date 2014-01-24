@@ -55,6 +55,7 @@ import n3phele.service.rest.impl.ActionResource;
 import n3phele.service.rest.impl.CloudResource;
 
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.EmbedMap;
 import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.annotation.Unindex;
 import com.sun.jersey.api.client.Client;
@@ -73,7 +74,7 @@ public class AssimilateAction extends Action {
 	final protected static java.util.logging.Logger log = java.util.logging.Logger.getLogger(AssimilateAction.class.getName());
 	@XmlTransient private ActionLogger logger;
 	private ArrayList<String> inProgress = new ArrayList<String>();
-	private HashMap<String, String> childMap = new HashMap<String, String>();
+	@EmbedMap private HashMap<String, String> childMap = new HashMap<String, String>();
 	private boolean failed = false;
 	private String targetIP;
 	

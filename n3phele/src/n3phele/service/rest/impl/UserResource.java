@@ -413,7 +413,7 @@ public class UserResource {
 		User root = null;
 		try {
 			ObjectifyService.register(User.class);
-			root = ofy().load().type(User.class).filter("name", "root").first().safeGet();
+			root = ofy().load().type(User.class).filter("name", "root").first().safe();
 			if(!(root.getCredential().decrypt().getAccount().equals("root") ||
 					root.isAdmin() ||
 					!root.isPublic() ||

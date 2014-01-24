@@ -18,9 +18,11 @@ import java.util.Date;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import com.googlecode.objectify.annotation.Embed;
+
 @XmlRootElement(name="FileSpecification")
 @XmlType(name="FileSpecification", propOrder={"name", "description", "filename", "repository", "canonicalPath", "size", "modified", "optional"})
-
+@Embed
 public class FileSpecification implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private String name;

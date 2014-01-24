@@ -21,6 +21,7 @@ import n3phele.service.model.core.TypedParameter;
 import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Embed;
+import com.googlecode.objectify.annotation.EmbedMap;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Unindex;
 
@@ -35,10 +36,10 @@ public class Cloud extends Entity {
 	private String location;
 	private String factory;
 	private String costDriverName;
-	private Map<String, Double> costMap;
-	@Embed private Credential factoryCredential;
-	@Embed private ArrayList<TypedParameter> inputParameters; 
-	@Embed private ArrayList<TypedParameter> outputParameters; 
+	@EmbedMap private Map<String, Double> costMap;
+	private Credential factoryCredential;
+	private ArrayList<TypedParameter> inputParameters; 
+	private ArrayList<TypedParameter> outputParameters; 
 	
 	
 	public Cloud() {}

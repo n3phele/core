@@ -21,11 +21,13 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 import com.google.appengine.api.datastore.Text;
+import com.googlecode.objectify.annotation.Embed;
 
 
 
 @XmlRootElement(name="TypedParameter")
 @XmlType(name="TypedParameter", propOrder={"name", "description", "type", "value", "defaultValue", "optional"})
+@Embed
 public class TypedParameter implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private String name;

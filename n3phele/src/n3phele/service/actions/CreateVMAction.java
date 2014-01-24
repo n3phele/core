@@ -58,6 +58,7 @@ import n3phele.service.rest.impl.ActionResource;
 import n3phele.service.rest.impl.CloudResource;
 
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.EmbedMap;
 import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.annotation.Unindex;
 import com.sun.jersey.api.client.Client;
@@ -89,7 +90,7 @@ public class CreateVMAction extends Action {
 	@XmlTransient private ActionLogger logger;
 	private ArrayList<String> inProgress = new ArrayList<String>();
 	private boolean failed = false;
-	private HashMap<String, String> childMap = new HashMap<String, String>();
+	@EmbedMap private HashMap<String, String> childMap = new HashMap<String, String>();
 	
 	/* (non-Javadoc)
 	 * @see n3phele.service.model.Action#getDescription()

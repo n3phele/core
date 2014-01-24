@@ -64,7 +64,6 @@ public class OnAction extends Action {
 	
 	private String target;
 	@XmlTransient
-	@Embed
 	private Credential clientCredential=null;
 	private String instance;
 	private Long epoch = 0L;
