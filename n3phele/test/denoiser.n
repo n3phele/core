@@ -4,7 +4,7 @@
 # Based on the following tutorial: http://qiime.org/tutorials/denoising_454_data.html
 name	   : denoiser
 description: denoise an aggregate of up to 5 files in .sff.txt format, which is the output of sffinfo
-version	   : 1.7.0
+version	   : 1.8.4
 preferred  : True
 tags	   : qiime denoise
 processor  : Job
@@ -34,10 +34,10 @@ output files:
 HPZone1:
 	# All the machines will be created with the "NewQIIME-Parallel1" image (#360427) and with the "n3phele-qiime" security group.
 	# FlavorRef: 100 - xsmall(1), 101 - small(2), 102 - medium(2), 103 - large(4), 104 - xlarge(4), 105 - 2xlarge(8)
-	# Creates the master machine, a standard.xlarge (104) with 4 cores. 
-	$$DenoiseMaster = CREATEVM  --name DenoiseMaster --imageRef 360427 --nodeCount 1 --flavorRef 104 --securityGroups n3phele-qiime
+	# Creates the master machine, a standard.small (101) with 4 cores. 
+	$$DenoiseMaster = CREATEVM  --name DenoiseMaster --imageRef 373455 --nodeCount 1 --flavorRef 101 --securityGroups n3phele-qiime
 	# Creates all cluster machines, standard.small (101) with 2 cores each.
-	$$DenoiseCluster = CREATEVM  --name DenoiseCluster --imageRef 360427 --nodeCount $$clusterSize-1 --flavorRef 101 --securityGroups n3phele-qiime
+	$$DenoiseCluster = CREATEVM  --name DenoiseCluster --imageRef 373455 --nodeCount $$clusterSize-1 --flavorRef 101 --securityGroups n3phele-qiime
 	
 	# Variable that stores the master machine
 	$$DenoiseMasterMachine = $$DenoiseMaster.cloudVM[0]
@@ -90,13 +90,13 @@ HPZone1:
 		ON $$DenoiseClusterMachine
 			# Necessary exports
 			source /home/ubuntu/sandbox/qiime_software/activate.sh ;
-			cp $QIIME/qiime/support_files/qiime_config_n3phele ~/.qiime_config_default ;
+			cp $QIIME/qiime/support_files/qiime_config ~/.qiime_config_default ;
 			# Write the public key of the master machine to the authorized_keys of each cluster machine ;
 			echo '$${$$regex($$DenoiseMasterStdout.stdout,".*(ssh-rsa .*cluster).*",1)}'  >> ~/.ssh/authorized_keys ;
 			chmod 600 ~/.ssh/authorized_keys ;
-			# Correct an error (temporary solution): the denoise_worker.py looks for a file called "FlowgramAli_4frame" in the "qiime_software/qiime-1.7.0-repository-cc50dbaf/lib/scripts" directory, but this file is in another directory.
-			sudo mkdir ~/sandbox/qiime_software/qiime-1.7.0-repository-cc50dbaf/lib/scripts ;
-	    	sudo cp ~/sandbox/qiime_software/qiime-1.7.0-repository-cc50dbaf/scripts/FlowgramAli_4frame ~/sandbox/qiime_software/qiime-1.7.0-repository-cc50dbaf/lib/scripts/ ;
+			# Correct an error (temporary solution): the denoise_worker.py looks for a file called "FlowgramAli_4frame" in the "qiime_software/qiime-1.8.0-release/lib/scripts" directory, but this file is in another directory.
+			sudo mkdir ~/sandbox/qiime_software/qiime-1.8.0-release/lib/scripts ;
+	    	sudo cp ~/sandbox/qiime_software/qiime-1.8.0-release/scripts/FlowgramAli_4frame ~/sandbox/qiime_software/qiime-1.8.0-release/lib/scripts/ ;
 
 	ON $$DenoiseMaster --produces [denoiser.log: output/denoiser.log,
     			    denoiser_mapping.txt: output/prefix_mapping.txt,
@@ -108,7 +108,7 @@ HPZone1:
     	function sourceIfFileExist() { FILE=/home/ubuntu/sandbox/qiime_software/activate.sh; if [ -f "$FILE" ]; then source $FILE; fi; } ;
     	sourceIfFileExist ;
     	# The attribute "cloud_environment" in the qiime_config file needs to be set to True
-    	cp $QIIME/qiime/support_files/qiime_config_n3phele ~/.qiime_config_default ;
+    	cp $QIIME/qiime/support_files/qiime_config ~/.qiime_config_default ;
     	# Comment the line in the "/etc/hosts" file that contains the 127.0.0.1 IP address
     	sed 's/127.0.0.1/#127.0.0.1/' < /etc/hosts > temp_hosts ;
     	sudo mv temp_hosts /etc/hosts ;
