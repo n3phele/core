@@ -1181,12 +1181,12 @@ public class NShellActionTest {
 	
 	private User getRoot() {
 		try {
-			User temp = com.googlecode.objectify.ObjectifyService.ofy().load().type(User.class).id(UserResource.Root.getId()).safeGet();
+			User temp = com.googlecode.objectify.ObjectifyService.ofy().load().type(User.class).id(UserResource.Root.getId()).safe();
 		} catch (com.googlecode.objectify.NotFoundException e) {
 			User temp = UserResource.Root;
 			temp.setId(null);
 			Key<User>key =  com.googlecode.objectify.ObjectifyService.ofy().save().entity(temp).now();
-			temp = com.googlecode.objectify.ObjectifyService.ofy().load().type(User.class).id(UserResource.Root.getId()).get();
+			temp = com.googlecode.objectify.ObjectifyService.ofy().load().type(User.class).id(UserResource.Root.getId()).now();
 			UserResource.Root.setId(temp.getId());
 			UserResource.Root.setUri(temp.getUri());
 		}
