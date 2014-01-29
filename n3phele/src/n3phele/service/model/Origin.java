@@ -136,7 +136,7 @@ public class Origin {
 	}
 	
 	public static Origin getCurrentReference(String path) {
-		return ObjectifyService.ofy().load().type(Origin.class).id(createKey(path)).get();
+		return ObjectifyService.ofy().load().type(Origin.class).id(createKey(path)).now();
 	}
 	
 }
