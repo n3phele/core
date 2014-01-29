@@ -1,7 +1,7 @@
 <project name="n3phele test" basedir="." default="junit">
 
-	<property name="sdk.dir" location="/home/ubuntu/appengine-java-sdk-1.7.5" />
-	<property name="gwt.dir" location="/home/ubuntu/gwt-2.5.0" />
+	<property name="sdk.dir" location="/home/ubuntu/appengine-java-sdk-1.8.9" />
+	<property name="gwt.dir" location="/home/ubuntu/gwt-2.5.1" />
 	<import file="${sdk.dir}/config/user/ant-macros.xml" />
 
 	<target name="copyjars"

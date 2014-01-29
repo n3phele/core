@@ -2,4 +2,4 @@ eclipse.preferences.version=1
 jarsExcludedFromWebInfLib=
 launchConfigExternalUrlPrefix=https\://n3phele-dev.appspot.com
 warSrcDir=war
-warSrcDirIsOutput=true
+warSrcDirIsOutput=false

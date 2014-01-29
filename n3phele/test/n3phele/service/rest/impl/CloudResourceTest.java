@@ -176,13 +176,13 @@ public class CloudResourceTest {
 				final User u;
 				if(user == null) {
 					try {
-						User temp = com.googlecode.objectify.ObjectifyService.ofy().load().type(User.class).id(UserResource.Root.getId()).safeGet();
+						User temp = com.googlecode.objectify.ObjectifyService.ofy().load().type(User.class).id(UserResource.Root.getId()).safe();
 					} catch (com.googlecode.objectify.NotFoundException e) {
 						User temp = UserResource.Root;
 						URI initial = temp.getUri();
 						temp.setId(null);
 						Key<User>key =  com.googlecode.objectify.ObjectifyService.ofy().save().entity(temp).now();
-						temp = com.googlecode.objectify.ObjectifyService.ofy().load().type(User.class).id(UserResource.Root.getId()).get();
+						temp = com.googlecode.objectify.ObjectifyService.ofy().load().type(User.class).id(UserResource.Root.getId()).now();
 						UserResource.Root.setId(temp.getId());
 						UserResource.Root.setUri(temp.getUri());
 						System.out.println("============================>addSecurity notfoundexception initial="+initial.toString()+" final "+temp.toString());

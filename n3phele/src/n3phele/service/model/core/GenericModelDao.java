@@ -69,7 +69,7 @@ public final Class<T> clazz;
 
 	public T get(Long id) throws NotFoundException {
 		try {
-			return ofy().load().type(clazz).id(id).safeGet();
+			return ofy().load().type(clazz).id(id).safe();
 		} catch (com.googlecode.objectify.NotFoundException e) {
 			throw new NotFoundException();
 		}
@@ -77,7 +77,7 @@ public final Class<T> clazz;
 	
 	public T get(String id) throws NotFoundException {
 		try {
-			return ofy().load().type(clazz).id(id).safeGet();
+			return ofy().load().type(clazz).id(id).safe();
 		} catch (com.googlecode.objectify.NotFoundException e) {
 			throw new NotFoundException();
 		}
@@ -85,7 +85,7 @@ public final Class<T> clazz;
 
 	public T get(Key<T> key) throws NotFoundException {
 		try {
-			return ofy().load().key(key).safeGet();
+			return ofy().load().key(key).safe();
 		} catch (com.googlecode.objectify.NotFoundException e) {
 			throw new NotFoundException();
 		}
@@ -107,11 +107,11 @@ public final Class<T> clazz;
 			int split = identity.indexOf('_');
 			if(split == -1) {
 				long id = Long.valueOf(identity);
-				return ofy().load().type(clazz).id(id).safeGet();
+				return ofy().load().type(clazz).id(id).safe();
 			} else {
 				long parent = Long.valueOf(identity.substring(0,split));
 				long id = Long.valueOf(identity.substring(split+1));
-				return ofy().load().key(Key.create(Key.create(clazz, parent), clazz, id)).safeGet();
+				return ofy().load().key(Key.create(Key.create(clazz, parent), clazz, id)).safe();
 			}
 		} catch (com.googlecode.objectify.NotFoundException e) {
 			throw new NotFoundException("URI "+uri);
@@ -131,7 +131,7 @@ public final Class<T> clazz;
 			String s = uri.getPath();
 			long id = Long.valueOf(s.substring(s.lastIndexOf("/")+1));
 			ofy().clear();
-			return ofy().load().type(clazz).id(id).safeGet();
+			return ofy().load().type(clazz).id(id).safe();
 		} catch (com.googlecode.objectify.NotFoundException e) {
 			throw new NotFoundException();
 		} catch (Exception e) {
@@ -150,7 +150,7 @@ public final Class<T> clazz;
 			String s = uri.getPath();
 			long id = Long.valueOf(s.substring(s.lastIndexOf("/")+1));
 			ofy().clear();
-			return ofy().transactionless().load().type(clazz).id(id).safeGet();
+			return ofy().transactionless().load().type(clazz).id(id).safe();
 		} catch (com.googlecode.objectify.NotFoundException e) {
 			throw new NotFoundException();
 		} catch (Exception e) {
@@ -208,7 +208,7 @@ public final Class<T> clazz;
 	
 	public T getByProperty(String propName, Object propValue) throws NotFoundException  {
 		try {
-			return ofy().load().type(clazz).filter(propName, propValue).first().safeGet();
+			return ofy().load().type(clazz).filter(propName, propValue).first().safe();
 		} catch (com.googlecode.objectify.NotFoundException e) {
 			throw new NotFoundException();
 		}
@@ -216,7 +216,7 @@ public final Class<T> clazz;
 	
 	public T getByPropertyOrdered(String propName, Object propValue, String sortBy) throws NotFoundException  {
 		try {
-			return ofy().load().type(clazz).filter(propName, propValue).order(sortBy).first().safeGet();
+			return ofy().load().type(clazz).filter(propName, propValue).order(sortBy).first().safe();
 		} catch (com.googlecode.objectify.NotFoundException e) {
 			throw new NotFoundException();
 		}
