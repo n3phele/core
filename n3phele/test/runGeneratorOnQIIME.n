@@ -1,0 +1,29 @@
+# runGeneratorOnQIIME.n
+# Based on the following page: https://github.com/qiime/qiime-deploy
+name	   : runGeneratorOnQIIME
+description: Use generator to create nshell scripts for QIIME scripts
+version	   : 1.8.0
+preferred  : True
+tags	   : qiime service
+processor  : StackService
+public	   : True
+icon	   : http://www.n3phele.com/qiimeIcon
+output files:
+	nshells.zip # generated nshell scripts
+HPZone1:
+	ON $$createQiimeImageMachine --produces [nshells.zip: nshells.zip]
+		cd ~ ;
+		sudo mkdir ~/generator_output ;
+		sudo chmod 077 ~/generator_output ;
+		git clone git://github.com/n3phele/nshell-generator.git ;
+		# Need to move generator because it needs to be in the same folder as the scripts
+		mv nshell-generator/scripts/make_nshell.py sandbox/qiime_software/qiime-1.8.0-release/scripts ;
+		mv nshell-generator/scripts/nshell_generator.py sandbox/qiime_software/qiime-1.8.0-release/scripts ;
+		cd sandbox/qiime_software/qiime-1.8.0-release/scripts ;
+		# Execute this to fix python path
+		source /home/ubuntu/sandbox/qiime_software/activate.sh ;
+		FILES=*.py ;
+		for f in $FILES ; do python make_nshell.py -o ~/generator_output -s $f -z HPZone1 -m generatorVM ; done ;
+		cd ~/generator_output ;
+		zip -r nshells ./ ;
+		mv nshells.zip ~/sandbox ;
