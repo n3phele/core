@@ -40,7 +40,7 @@ HPZone1:
 	$$DenoiseCluster = CREATEVM  --name DenoiseCluster --imageRef 373455 --nodeCount $$clusterSize-1 --flavorRef 101 --securityGroups n3phele-qiime
 	
 	# Variable that stores the master machine
-	$$DenoiseMasterMachine = $$DenoiseMaster.buttVM[0]
+	$$DenoiseMasterMachine = $$DenoiseMaster.cloudVM[0]
 
 	# "hosts_ip_addresses" file will store the IP addresses of all machines
 	ON $$DenoiseMaster
@@ -51,7 +51,7 @@ HPZone1:
 	# Iterates sequentially (because the ": 1") through all cluster machines
 	FOR $$i : $$clusterSize-1 : 1
 		# Variable that stores the ith cluster machine
-		$$DenoiseClusterMachine = $$DenoiseCluster.buttVM[$$i]
+		$$DenoiseClusterMachine = $$DenoiseCluster.cloudVM[$$i]
 		ON $$DenoiseMaster
 			# Function to get the public ssh key of a defined host IP address
 			function scan-hosts() { i=0; while [ $i -le 10 ]; do i=$(($i+1)); ssh-keyscan -H $* > /tmp/known_hosts; if [ "`wc -l </tmp/known_hosts`" -ne "$#" ]; then echo not done .. retrying >&2; sleep 5;else cat /tmp/known_hosts; break; fi; done } ;
@@ -86,7 +86,7 @@ HPZone1:
 
 	# Iterates sequentially (because the ": 1") through all cluster machines
 	FOR $$i : $$clusterSize-1 : 1
-		$$DenoiseClusterMachine = $$DenoiseCluster.buttVM[$$i]
+		$$DenoiseClusterMachine = $$DenoiseCluster.cloudVM[$$i]
 		ON $$DenoiseClusterMachine
 			# Necessary exports
 			source /home/ubuntu/sandbox/qiime_software/activate.sh ;
@@ -107,7 +107,7 @@ HPZone1:
     	# Necessary exports 
     	function sourceIfFileExist() { FILE=/home/ubuntu/sandbox/qiime_software/activate.sh; if [ -f "$FILE" ]; then source $FILE; fi; } ;
     	sourceIfFileExist ;
-    	# The attribute "butt_environment" in the qiime_config file needs to be set to True
+    	# The attribute "cloud_environment" in the qiime_config file needs to be set to True
     	cp $QIIME/qiime/support_files/qiime_config ~/.qiime_config_default ;
     	# Comment the line in the "/etc/hosts" file that contains the 127.0.0.1 IP address
     	sed 's/127.0.0.1/#127.0.0.1/' < /etc/hosts > temp_hosts ;
