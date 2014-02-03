@@ -1,8 +1,6 @@
-# bootstrapJuju.n
-# Author: Alexandre Tavares
 name       : bootstrapJujuCore
 description: Bootstraps Juju
-version    : 7.1
+version    : 7.7
 preferred  : true
 tags       : service
 processor  : StackService
@@ -16,34 +14,31 @@ HPZone1: # HP Cloud
 	$$tenant = $$regex($$credential[0],"([^:]+):([^:]+)",1)
 	$$key = $$regex($$credential[0],"([^:]+):([^:]+)",2)
 	$$secret = $$credential[1]
-	
-	ON $$vmTavares 
-		sudo add-apt-repository -y ppa:juju/devel ;
+
+	ON $$vmTavares
+		sudo add-apt-repository -y ppa:juju/stable ;
 		sudo apt-get update -y && sudo apt-get install -y juju-core ;
 
-	ON $$vmTavares 
+	ON $$vmTavares
 		juju init -f ;
-		echo "default: "$$serviceName 																>  ~/.juju/environments.yaml ;
+		echo "default: "$$serviceName 																	>  ~/.juju/environments.yaml ;
 		echo "environments:" 																			>> ~/.juju/environments.yaml ;
-		echo "  "$$serviceName ":" 																	>> ~/.juju/environments.yaml ;
+		echo "  "$$serviceName ":" 																		>> ~/.juju/environments.yaml ;
 		echo "    type: openstack" 																		>> ~/.juju/environments.yaml ;
-		echo "    default-series: precise" 																>> ~/.juju/environments.yaml ;
-		echo "    use-floating-ip: false"																>> ~/.juju/environments.yaml ;
-		echo "    control-bucket: "$$controlBucket 													>> ~/.juju/environments.yaml ;
 		echo "    admin-secret: secretword" 															>> ~/.juju/environments.yaml ;
-		echo "    public-bucket-url: https://region-a.geo-1.objects.hpcloudsvc.com/v1/60502529753910" 	>> ~/.juju/environments.yaml ;
-		echo "    region: az-1.region-a.geo-1" 															>> ~/.juju/environments.yaml ;
-		echo "    tenant-name: "$$tenant 															>> ~/.juju/environments.yaml ;
+		echo "    control-bucket: "$$controlBucket 														>> ~/.juju/environments.yaml ;
 		echo "    auth-url: https://region-a.geo-1.identity.hpcloudsvc.com:35357/v2.0/" 				>> ~/.juju/environments.yaml ;
+		echo "    default-series: precise" 																>> ~/.juju/environments.yaml ;
 		echo "    auth-mode: keypair" 																	>> ~/.juju/environments.yaml ;
-		echo "    access-key: "$$key 																>> ~/.juju/environments.yaml ;
-		echo "    secret-key: "$$secret 															>> ~/.juju/environments.yaml ;
-		echo "    default-image-id: \"81078\"" 														>> ~/.juju/environments.yaml ;
+		echo "    access-key: "$$key 																	>> ~/.juju/environments.yaml ;
+		echo "    secret-key: "$$secret 																>> ~/.juju/environments.yaml ;
+		echo "    tenant-name: "$$tenant 																>> ~/.juju/environments.yaml ;
+		echo "    region: az-1.region-a.geo-1" 															>> ~/.juju/environments.yaml ;
 		ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -N "" ;
 
 	ON $$vmTavares
 		sleep 30
-		juju bootstrap
+		juju bootstrap -v
 		sleep 30
 
 	$$bootstrapIP = ON $$vmTavares
@@ -60,13 +55,13 @@ HPZone1: # HP Cloud
 						IP=$(echo ${IPA[0]})
 						IP=$(echo $IP | tr -d ' ')
 						echo $IP
-	
+
 	$$installAgent = ON $$vmTavares
 						sudo apt-get install -y unzip
 						wget https://region-a.geo-1.objects.hpcloudsvc.com/v1/AUTH_dc700102-734c-4a97-afc8-50530e87a171/n3phele-agent/precise.zip
 						unzip precise.zip -d charms
 						juju deploy --repository=charms local:agent --to 0 bootstrap-agent
-		
+
 	$$exposeAgent = ON $$vmTavares
 						STAT="none"
 						RUN_STATUS="started"
@@ -78,35 +73,33 @@ HPZone1: # HP Cloud
 						done
 						juju expose bootstrap-agent
 						echo "Agent exposed"
-	
+
 	$$bootstrap = ASSIMILATEVM --targetIP $$bootstrapIP.stdout
 	EXPORT $$bootstrap
-	
+
 	ON $$bootstrap
 		sudo service rsyslog stop
 		sudo apt-get install -y unzip
-		sudo add-apt-repository -y ppa:juju/devel ;
+		sudo add-apt-repository -y ppa:juju/stable ;
 		sudo apt-get update -y && sudo apt-get install -y juju-core ;
-		
+
 	ON $$bootstrap
 		wget https://region-a.geo-1.objects.hpcloudsvc.com/v1/AUTH_dc700102-734c-4a97-afc8-50530e87a171/n3phele-agent/precise.zip
 		unzip precise.zip -d charms
 		mkdir ~/.juju
 		sudo chmod 777 ~/.juju
 		ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -N ""
-		
-	ON $$vmTavares 
+
+	ON $$vmTavares
 		juju scp ~/.juju/environments.yaml 0:~/.juju
 		juju scp ~/.juju/environments/* 0:~/.juju
 	ON $$bootstrap
 		mkdir ~/.juju/environments;
 		cp ~/.juju/*.jenv ~/.juju/environments;
-	
-	DESTROY $$vmTavares
-	
+
 	ONEXIT $$bootstrap
 		sudo wget https://region-a.geo-1.objects.hpcloudsvc.com:443/v1/12365734013392/securityGroupDeleter/secGroupDelete.jar ;
-		sudo apt-get update ; 
+		sudo apt-get update ;
 		sudo apt-get install openjdk-7-jre-headless -y ;
 		echo 2 | sudo update-alternatives --config java
 		sudo java -jar secGroupDelete.jar -k $$key -s $$secret -t $$tenant -z az-1.region-a.geo-1 -g juju-$$serviceName ;
