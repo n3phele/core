@@ -24,7 +24,7 @@ public class ActivityData extends Entity {
 	}-*/;
 
 	/**
-	 * @return the uri of the topLeveç
+	 * @return the uri of the topLevel
 	 */
 	public native final String getUriTopLevel() /*-{
 		return this.uriTopLevel;
