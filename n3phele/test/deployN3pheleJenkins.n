@@ -2,7 +2,7 @@
 # Author: Alexandre Tavares
 name       : JenkinsServiceFile
 description: Deploy Jenkins for the N3phele project
-version    : 12.0
+version    : 12.1
 preferred  : true
 tags 	   : service jenkins 
 processor  : StackService
@@ -12,7 +12,7 @@ parameters :
 	string service_name = "nephele-jenkins" # Service name
 	string password = "password" # Jenkins password
 input files:
-	key.zip # Input file
+	android.zip # Input file
 
 HPZone1: # HP Cloud
 
@@ -87,7 +87,7 @@ HPZone1: # HP Cloud
 		echo ssh-$I >> ~/.ssh/authorized_keys;
 	ON $$bootstrap
 		machine=$(grep machine: machine.txt | grep -o '[0-9]\{1,9\}');
-		juju scp key.zip $machine:./sandbox
+		juju scp android.zip $machine:./sandbox
 	
 	ON $$jenkins
 		sleep 50;
