@@ -8,6 +8,12 @@ tags	   : qiime service
 processor  : StackService
 public	   : True
 icon	   : http://www.n3phele.com/qiimeIcon
+parameters	:
+	optional string zone = "" # zone to run the command
+	optional string name = "" # machine name
+	optional string image = "" # machine image reference
+	optional string nodes = "" # quantity of nodes to run the command
+	optional string flavor = "" # machine flavor reference
 output files:
 	nshells.zip # generated nshell scripts
 HPZone1:
@@ -22,8 +28,10 @@ HPZone1:
 		cd sandbox/qiime_software/qiime-1.8.0-release/scripts ;
 		# Execute this to fix python path
 		source /home/ubuntu/sandbox/qiime_software/activate.sh ;
+
 		FILES=*.py ;
-		for f in $FILES ; do python make_nshell.py -o ~/generator_output -s $f -z HPZone1 -m generatorVM ; done ;
+		for f in $FILES ; do python make_nshell.py -o ~/generator_output -s $f $$zone!=""?" -z "+$$zone:"" $$name!=""?" -m "+$$name:"" $$image!=""?" -i "+$$image:"" $$nodes!=""?" -n "+$$nodes:"" $$flavor!=""?" -f "+$$flavor:"" ; done ;
+
 		cd ~/generator_output ;
 		zip -r nshells ./ ;
 		mv nshells.zip ~/sandbox ;
