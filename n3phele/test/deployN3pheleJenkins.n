@@ -2,7 +2,7 @@
 # Author: Alexandre Tavares
 name       : JenkinsServiceFile
 description: Deploy Jenkins for the N3phele project
-version    : 10.8
+version    : 12.0
 preferred  : true
 tags 	   : service jenkins 
 processor  : StackService
@@ -51,7 +51,7 @@ HPZone1: # HP Cloud
 		printf "%s:\\n" $$service_name > config.yaml
 		echo "  username: admin " >> config.yaml
 		echo "  password: "$$password  >> config.yaml
-		echo "  plugins: ant promoted-builds mask-passwords git-client git github github-api github-oauth github-sqs-plugin android-emulator" >> config.yaml
+		echo "  plugins: ant promoted-builds mask-passwords git-client git github github-api github-oauth github-sqs-plugin android-emulator port-allocator multiple-scms git scm-api" >> config.yaml
 		juju status $${$$service_name}-agent > machine.txt;
 		machine=$(grep machine: machine.txt | grep -o '[0-9]\{1,9\}');
 		juju deploy --config config.yaml --to $machine jenkins $${$$service_name};
@@ -115,3 +115,17 @@ HPZone1: # HP Cloud
 		sudo java -jar jenkins-cli.jar -s http://127.0.0.1:8080/ create-job core < ~/builder/configCore.xml ;
 		sudo java -jar jenkins-cli.jar -s http://127.0.0.1:8080/ create-job openstack-factory < ~/builder/config.xml ;
 		sudo java -jar jenkins-cli.jar -s http://127.0.0.1:8080/ create-job n3phele-android < ~/builder/configAndroid.xml;
+		
+	ON $$jenkins
+		sudo chmod 777 /var/lib/jenkins/config.xml ;
+		sudo cat ~/builder/configJenkins.xml > /var/lib/jenkins/config.xml ;
+		sudo chmod 644 /var/lib/jenkins/config.xml ;
+		cd ~/ ;
+		wget https://google-web-toolkit.googlecode.com/files/gwt-2.5.1.zip ;
+		wget http://googleappengine.googlecode.com/files/appengine-java-sdk-1.8.9.zip ;
+		unzip appengine-java-sdk-1.8.9.zip ;
+		unzip gwt-2.5.1.zip	;
+		sudo cp ./appengine-java-sdk-1.8.9/lib/impl/appengine-api-stubs.jar /usr/share/ant/lib ;
+		sudo cp ./appengine-java-sdk-1.8.9/lib/testing/appengine-testing.jar /usr/share/ant/lib ;
+		sudo apt-get install ia32-libs -y ;
+		sudo java -jar ~/sandbox/jenkins-cli.jar -s http://127.0.0.1:8080/ restart ;
