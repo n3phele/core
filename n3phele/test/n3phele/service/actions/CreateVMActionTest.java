@@ -843,6 +843,35 @@ public class CreateVMActionTest {
 			Assert.assertEquals("Wrong value", expected, result);
 		}
 		
+	 	@Test
+	 	public void getValueByCDNWithMapAnd_() throws Exception
+		{
+			CreateVMAction cvma = PowerMockito.spy(new CreateVMAction());
+			
+			Cloud cloud = PowerMockito.mock(Cloud.class);
+			PowerMockito.when(cloud.getCostDriverName()).thenReturn("flavor");			
+			HashMap<String, Double> map = new HashMap<String, Double>();
+			map.put("t1_small", 0.03);
+			map.put("t1_big", 0.035);
+			PowerMockito.when(cloud.getCostMap()).thenReturn(map);
+			
+			ArrayList<NameValue> list = new ArrayList<NameValue>();
+			//For testing the key
+			list.add(new NameValue("flavor","t1.small"));
+			list.add(new NameValue("flavorRef","t1.big"));
+			
+			ActionLogger logger = PowerMockito.mock(ActionLogger.class);
+			Whitebox.setInternalState(cvma, "logger", logger);
+			
+			double result = (Double)Whitebox.invokeMethod(cvma, "getValueByCDN", cloud, list);
+			double expected = 0.03;
+			
+			Assert.assertEquals("Wrong value", expected, result);
+		}
+	 	
+	 	
+		/*
+	 	
 		@Test
 		/*
 		 * This method tests everything that the method twoVmCreation tests and also checks if the Map of costs, the account and the Epoch are being set correctly

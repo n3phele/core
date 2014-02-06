@@ -413,7 +413,7 @@ public class CreateVMAction extends Action {
 	private double getValueByCDN(Cloud myCloud, ArrayList<NameValue> values){
 		for(int i = 0; i < values.size(); i++){
 			if(values.get(i).getKey().equals(myCloud.getCostDriverName())){
-				double value = myCloud.getCostMap().get( values.get(i).getValue());
+				double value = myCloud.getCostMap().get( values.get(i).getValue().replace(".","_"));
 				return value;			
 			}
 		}
