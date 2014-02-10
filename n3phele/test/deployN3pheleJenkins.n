@@ -1,8 +1,8 @@
 # deployN3pheleJenkins.n
 # Author: Alexandre Tavares
-name       : JenkinsService
+name       : JenkinsServiceFile
 description: Deploy Jenkins for the N3phele project
-version    : 8.2
+version    : 12.1
 preferred  : true
 tags 	   : service jenkins 
 processor  : StackService
@@ -11,6 +11,9 @@ icon       : http://www.n3phele.com/icons/jujuIcon
 parameters :
 	string service_name = "nephele-jenkins" # Service name
 	string password = "password" # Jenkins password
+input files:
+	android.zip # Input file
+
 HPZone1: # HP Cloud
 
 	ON $$bootstrap
@@ -36,6 +39,8 @@ HPZone1: # HP Cloud
 	$$jenkins = ASSIMILATEVM --targetIP $$exposeAgent.stdout
 	EXPORT $$jenkins
 	
+	LOG $$exposeAgent.stdout
+	
 	ON $$jenkins
 		wget -q -O - http://pkg.jenkins-ci.org/debian/jenkins-ci.org.key | sudo apt-key add -;
 		sudo sh -c 'echo deb http://pkg.jenkins-ci.org/debian binary/ > /etc/apt/sources.list.d/jenkins.list';
@@ -46,7 +51,7 @@ HPZone1: # HP Cloud
 		printf "%s:\\n" $$service_name > config.yaml
 		echo "  username: admin " >> config.yaml
 		echo "  password: "$$password  >> config.yaml
-		echo "  plugins: ant promoted-builds mask-passwords git-client git github github-api github-oauth github-sqs-plugin" >> config.yaml
+		echo "  plugins: ant promoted-builds mask-passwords git-client git github github-api github-oauth github-sqs-plugin android-emulator port-allocator multiple-scms git scm-api" >> config.yaml
 		juju status $${$$service_name}-agent > machine.txt;
 		machine=$(grep machine: machine.txt | grep -o '[0-9]\{1,9\}');
 		juju deploy --config config.yaml --to $machine jenkins $${$$service_name};
@@ -69,9 +74,21 @@ HPZone1: # HP Cloud
 	ON $$jenkins
 		sudo apt-get install -y ant;
 		sudo apt-get install -y git;
-		sudo apt-get install -y openjdk-6-jdk;
+		sudo apt-get install -y openjdk-7-jdk;
 		sudo apt-get install -y wget;
+	
+	$$bootstrapkey = ON $$bootstrap
+		I=$(cat ~/.ssh/id_rsa.pub) ;
+		echo "$I" ;
 
+	ON $$jenkins	
+		I=${$${$$bootstrapkey.stdout}} ;
+		echo $I ;
+		echo ssh-$I >> ~/.ssh/authorized_keys;
+	ON $$bootstrap
+		machine=$(grep machine: machine.txt | grep -o '[0-9]\{1,9\}');
+		juju scp android.zip $machine:./sandbox
+	
 	ON $$jenkins
 		sleep 50;
 		var1="<org.jenkinsci.main.modules.cli.auth.ssh.UserPropertyImpl><authorizedKeys>";
@@ -97,3 +114,18 @@ HPZone1: # HP Cloud
 		sudo java -jar jenkins-cli.jar -s http://127.0.0.1:8080/ create-job n3phele-core < ~/builder/configN3phele.xml ;
 		sudo java -jar jenkins-cli.jar -s http://127.0.0.1:8080/ create-job core < ~/builder/configCore.xml ;
 		sudo java -jar jenkins-cli.jar -s http://127.0.0.1:8080/ create-job openstack-factory < ~/builder/config.xml ;
+		sudo java -jar jenkins-cli.jar -s http://127.0.0.1:8080/ create-job n3phele-android < ~/builder/configAndroid.xml;
+		
+	ON $$jenkins
+		sudo chmod 777 /var/lib/jenkins/config.xml ;
+		sudo cat ~/builder/configJenkins.xml > /var/lib/jenkins/config.xml ;
+		sudo chmod 644 /var/lib/jenkins/config.xml ;
+		cd ~/ ;
+		wget https://google-web-toolkit.googlecode.com/files/gwt-2.5.1.zip ;
+		wget http://googleappengine.googlecode.com/files/appengine-java-sdk-1.8.9.zip ;
+		unzip appengine-java-sdk-1.8.9.zip ;
+		unzip gwt-2.5.1.zip	;
+		sudo cp ./appengine-java-sdk-1.8.9/lib/impl/appengine-api-stubs.jar /usr/share/ant/lib ;
+		sudo cp ./appengine-java-sdk-1.8.9/lib/testing/appengine-testing.jar /usr/share/ant/lib ;
+		sudo apt-get install ia32-libs -y ;
+		sudo java -jar ~/sandbox/jenkins-cli.jar -s http://127.0.0.1:8080/ restart ;
