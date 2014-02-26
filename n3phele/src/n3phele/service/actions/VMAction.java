@@ -191,16 +191,17 @@ public class VMAction extends Action {
 						log.log(Level.SEVERE, "Agent restart exception", e);
 					}
 				}
-				for(int i=0; i < 10; i++) {
-					try {
+				Thread.sleep(1000); //Time for Restart
+				for(int i=0; i < 15; i++) {
+					try {						
 						aliveTest(client, agentURI);
-						log.info("Verifying agent availability");
 						break;
 					} catch (Exception e) {
-						if(i >= 9) {
+						if(i >= 14) {
 							throw e;
 						} else {
-							Thread.sleep(1000);
+							Thread.sleep(2000);
+							log.info("Agent didn't respond, will try again.");
 						}
 					}
 				}
