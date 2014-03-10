@@ -134,58 +134,74 @@ public class OnAction extends Action {
 					targetVM.getContext().getValue("agentSecret")).encrypt();
 		}
 
-		Client client = ClientFactory.create();
-
-		Credential plain = this.clientCredential.decrypt();
-		client.addFilter(new HTTPBasicAuthFilter(plain.getAccount(), plain.getSecret()));
-		client.setReadTimeout(30000);
-		client.setConnectTimeout(5000);
+		Client client = createClient(this.clientCredential);
 		try {
 				epoch = Calendar.getInstance().getTimeInMillis();
 				CommandRequest form = new CommandRequest();
 				form.setCmd(this.context.getValue("command"));
 				form.setStdin(this.context.getValue("stdin"));
 				form.setNotification(UriBuilder.fromUri(this.getProcess()).scheme("http").path("event").build());
+				
+				URI location = null;
 
-				try {
-	
-					URI location = sendRequest(client, targetVM.getContext().getURIValue("agentURI"), form);
-					if(location != null) {
-						this.instance = location.toString();
-						log.info("Command target "+this.instance); 
-					} else {
-						logger.error("command execution initiation FAILED");
-						log.severe(this.name+" command execution initiation FAILED");
-						throw new UnprocessableEntityException(this.name+" command execution initiation FAILED");
+				int numberOfTries = 5;
+				int sleepTime = 5000;
+				for(int i=0; i<numberOfTries;i++)
+				{
+					try {					
+						location = sendRequest(client, targetVM.getContext().getURIValue("agentURI"), form);						 
+						break;
 					}
-				} catch (UnprocessableEntityException e) {
-					throw e;
-				} catch (Exception e) {
-					log.log(Level.SEVERE, "Command exception", e);
-					long now = Calendar.getInstance().getTimeInMillis();
-					long timeout = Long.valueOf(Resource.get("agentStartupGracePeriodInSeconds", "600"))*1000;
-					// Give the agent a grace period to respond
-					if((now - epoch) > timeout) {
-						logger.error("command execution initiation FAILED with exception "+e.getMessage());
-						log.log(Level.SEVERE, this.name+" command execution initiation FAILED with exception ", e);
-						throw new UnprocessableEntityException(this.name+" command execution initiation FAILED with exception");
-					} 
-				} 
+					catch (Exception e) {
+
+						if( i < numberOfTries - 1 )
+						{
+							Thread.sleep(sleepTime);
+							log.info("Exception was throw when contacting the agent, will try again"); 
+						}
+						else
+						{
+							log.log(Level.SEVERE, "Command exception", e);
+							long now = Calendar.getInstance().getTimeInMillis();
+							long timeout = Long.valueOf(Resource.get("agentStartupGracePeriodInSeconds", "600"))*1000;
+							// Give the agent a grace period to respond
+							if((now - epoch) > timeout) {
+								logger.error("command execution initiation FAILED with exception "+e.getMessage());
+								log.log(Level.SEVERE, this.name+" command execution initiation FAILED with exception ", e);
+								throw new UnprocessableEntityException(this.name+" command execution initiation FAILED with exception");
+							}
+						}
+					}
+				}
+
+				if(location != null) {
+					this.instance = location.toString();
+					log.info("Command target "+this.instance); 
+				} else {
+					logger.error("command execution initiation FAILED");
+					log.severe(this.name+" command execution initiation FAILED");
+					throw new UnprocessableEntityException(this.name+" command execution initiation FAILED");
+				}
+				
 		} finally {
 			ClientFactory.give(client);
 		}
 		
 	}
 
-	@Override
-	public boolean call() throws Exception
-	{
+	protected Client createClient(Credential credentials) {
 		Client client = ClientFactory.create();
-
-		Credential plain = this.clientCredential.decrypt();
+		Credential plain = credentials.decrypt();
 		client.addFilter(new HTTPBasicAuthFilter(plain.getAccount(), plain.getSecret()));
 		client.setReadTimeout(30000);
 		client.setConnectTimeout(5000);
+		return client;
+	}
+
+	@Override
+	public boolean call() throws Exception
+	{
+		Client client = createClient(this.clientCredential);
 		try
 		{
 			Task t;

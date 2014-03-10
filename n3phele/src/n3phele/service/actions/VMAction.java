@@ -185,22 +185,23 @@ public class VMAction extends Action {
 						int status = forceAgentRestart(client, agentURI);
 						if(status == 200) {
 							this.context.putValue("forceAgentRestart", false);
-						} else {
-							log.info("Agent restart "+status);
 						}
+						log.info("Agent restart "+status);
 					} catch (Exception e) {
 						log.log(Level.SEVERE, "Agent restart exception", e);
 					}
 				}
-				for(int i=0; i < 10; i++) {
-					try {
+				Thread.sleep(1000); //Time for Restart
+				for(int i=0; i < 15; i++) {
+					try {						
 						aliveTest(client, agentURI);
 						break;
 					} catch (Exception e) {
-						if(i >= 9) {
+						if(i >= 14) {
 							throw e;
 						} else {
-							Thread.sleep(1000);
+							Thread.sleep(2000);
+							log.info("Agent didn't respond, will try again.");
 						}
 					}
 				}
