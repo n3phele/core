@@ -14,7 +14,7 @@ HPZone1:
 	$$createQiimeImageMachine = CREATEVM  --name createQiimeImageMachine --imageRef 75845 --nodeCount 1 --flavorRef 100
 
 	ON $$createQiimeImageMachine
-		# Uncomment the universe and multiverse repositories from /etc/apt/sources.list, and add the URL to download the R package ;
+		# Uncomment the universe and multiverse repositories from /etc/apt/sources.list, and add the URL to download the R package
 		wget https://region-a.geo-1.objects.hpcloudsvc.com:443/v1/12365734013392/filesToQiime/sources.list 2> /dev/null ;
 		sudo mv sources.list /etc/apt/sources.list ;
 		sudo apt-get update ;
@@ -27,23 +27,23 @@ HPZone1:
 		git clone git://github.com/qiime/qiime-deploy-conf.git ;
 		cd qiime-deploy/ ;
 		sudo apt-get install -y gcc g++ ant openjdk-7-jdk openjdk-7-jre ;
-		#Upgrade and update ;
+		#Upgrade and update
 		sudo apt-get upgrade -y ;
 		sudo apt-get update -y ;
-		# Install usearch v5.2.236 ;
+		# Install usearch v5.2.236
 		wget https://region-a.geo-1.objects.hpcloudsvc.com:443/v1/12365734013392/filesToQiime/usearch5.2.236_i86linux32 ;
 		mv usearch5.2.236_i86linux32 usearch ;
 		chmod a+x usearch ;
 		sudo mv usearch /bin/ ;
-		# Install R package - http://cran-r.c3sl.ufpr.br/index.html ;
+		# Install R package - http://cran-r.c3sl.ufpr.br/index.html
 		sudo apt-get install --force-yes -y r-base ;
-		# Deploy qiime - The following command will fail, so we have to force it to return true ;
+		# Deploy qiime - The following command will fail, so we have to force it to return true
 		python qiime-deploy.py $HOME/sandbox/qiime_software/ -f $HOME/sandbox/qiime-deploy-conf/qiime-1.8.0/qiime.conf --force-remove-failed-dirs || true ;
-		# Change cloud_environment to true ;
+		# Change cloud_environment to true
 		cd ~/sandbox ;
 		cp qiime_software/qiime_config qiime_software/qiime_config_cloud_environment_false ;
 		sed -i -r 's/False/True/' ./qiime_software/qiime_config ;
-		# Check installation ;
+		# Check installation
 		source /home/ubuntu/sandbox/qiime_software/activate.sh ;
 		print_qiime_config.py -t || echo printed_qiime_config ;
 
