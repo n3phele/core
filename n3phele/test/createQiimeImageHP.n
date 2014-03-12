@@ -1,10 +1,10 @@
-# createQiimeImage.n
+# createQiimeImageHP.n
 # Based on the following page: https://github.com/qiime/qiime-deploy
-name	   : createQiimeImage
+name	   : createQiimeImageHP
 description: Create the Qiime image. It will install all required files. After that, you need to create the image in the console hpcloud at https://console.hpcloud.com/compute/az-1_region-a_geo-1/custom_images
-version	   : 1.8.0
+version	   : 1.8.2.2
 preferred  : True
-tags	   : qiime
+tags	   : qiime service
 processor  : StackService
 public	   : True
 icon	   : http://www.n3phele.com/qiimeIcon
@@ -14,32 +14,37 @@ HPZone1:
 	$$createQiimeImageMachine = CREATEVM  --name createQiimeImageMachine --imageRef 75845 --nodeCount 1 --flavorRef 100
 
 	ON $$createQiimeImageMachine
-		# Uncomment the universe and multiverse repositories from /etc/apt/sources.list, and add the URL to download the R package
+		# Uncomment the universe and multiverse repositories from /etc/apt/sources.list, and add the URL to download the R package ;
 		wget https://region-a.geo-1.objects.hpcloudsvc.com:443/v1/12365734013392/filesToQiime/sources.list 2> /dev/null ;
 		sudo mv sources.list /etc/apt/sources.list ;
+		sudo apt-get update ;
 		sudo apt-get --force-yes -y install python-dev libncurses5-dev libssl-dev libzmq-dev libgsl0-dev openjdk-6-jdk libxml2 libxslt1.1 libxslt1-dev ant git subversion build-essential zlib1g-dev libpng12-dev libfreetype6-dev mpich2 libreadline-dev gfortran unzip libmysqlclient18 libmysqlclient-dev ghc sqlite3 libsqlite3-dev libc6-i386 torque-client libbz2-dev 2> /dev/null ;
-		cd ~/sandbox ;
+		cd ~ ;
+		if [ ! -d "sandbox" ]; then mkdir sandbox ; fi ;
+		cd sandbox ;
 		sudo apt-get install -y git ;
 		git clone git://github.com/qiime/qiime-deploy.git ;
 		git clone git://github.com/qiime/qiime-deploy-conf.git ;
 		cd qiime-deploy/ ;
 		sudo apt-get install -y gcc g++ ant openjdk-7-jdk openjdk-7-jre ;
-		# Upgrade and update
+		#Upgrade and update ;
 		sudo apt-get upgrade -y ;
-		sudo apt-get update -y ;	
-		# Install usearch v5.2.236
-		wget http://drive5.com/cgi-bin/upload3.py?license=2014011005224508902 ;
-		mv upload3.py\?license\=2014011005224508902 usearch ;
+		sudo apt-get update -y ;
+		# Install usearch v5.2.236 ;
+		wget https://region-a.geo-1.objects.hpcloudsvc.com:443/v1/12365734013392/filesToQiime/usearch5.2.236_i86linux32 ;
+		mv usearch5.2.236_i86linux32 usearch ;
 		chmod a+x usearch ;
 		sudo mv usearch /bin/ ;
-		# Install R package - http://cran-r.c3sl.ufpr.br/index.html
+		# Install R package - http://cran-r.c3sl.ufpr.br/index.html ;
 		sudo apt-get install --force-yes -y r-base ;
-		# Deploy qiime - The following command will fail, so we have to force it to return true
-		python qiime-deploy.py $HOME/sandbox/qiime_software/ -f $HOME/sandbox/qiime-deploy-conf/qiime-1.8.0/qiime.conf --force-remove-failed-dirs || echo qiime-deployed ;
-		# Change cloud_environment to true
+		# Deploy qiime - The following command will fail, so we have to force it to return true ;
+		python qiime-deploy.py $HOME/sandbox/qiime_software/ -f $HOME/sandbox/qiime-deploy-conf/qiime-1.8.0/qiime.conf --force-remove-failed-dirs || true ;
+		# Change cloud_environment to true ;
 		cd ~/sandbox ;
 		cp qiime_software/qiime_config qiime_software/qiime_config_cloud_environment_false ;
 		sed -i -r 's/False/True/' ./qiime_software/qiime_config ;
-		# Check installation
+		# Check installation ;
 		source /home/ubuntu/sandbox/qiime_software/activate.sh ;
 		print_qiime_config.py -t || echo printed_qiime_config ;
+
+	EXPORT $$createQiimeImageMachine
