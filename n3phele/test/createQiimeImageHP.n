@@ -2,7 +2,7 @@
 # Based on the following page: https://github.com/qiime/qiime-deploy
 name	   : createQiimeImageHP
 description: Create the Qiime image. It will install all required files. After that, you need to create the image in the console hpcloud at https://console.hpcloud.com/compute/az-1_region-a_geo-1/custom_images
-version	   : 1.8.2.2
+version	   : 1.8.0
 preferred  : True
 tags	   : qiime service
 processor  : StackService
