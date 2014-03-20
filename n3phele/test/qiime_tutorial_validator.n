@@ -1,0 +1,21 @@
+# qiime_tutorial_validator.n
+name		: qiime tutorial validator
+description	: A nshell script that runs everything from the QIIME tutorial validator
+version		: 2.2
+preferred	: true
+tags		: qiime
+public		: true
+icon		: http://www.n3phele.com/qiimeIconqiime
+parameters	:
+	string user = "" # User login name that will be encoded for the authorization.
+	string password = "" # User password that will be encoded for the authorization.
+	string repository = "" # Folder repository name where the output files from the nshell scripts will be saved.
+	
+HPZone1:
+	$$vmGen = CREATEVM --name generatorVM --imageRef 373455 --nodeCount 1 --flavorRef 100 
+
+	ON $$vmGen
+		cd ~/sandbox ;
+		wget https://region-a.geo-1.objects.hpcloudsvc.com/v1/12365734013392/qiimeTutorialTesting/QIIMETutorialValidator.zip ;
+		unzip QIIMETutorialValidator.zip ;
+		/usr/lib/jvm/java-1.7.0-openjdk-amd64/bin/java -jar qiimeTutorialValidator.jar $$user $$password $$repository ;
